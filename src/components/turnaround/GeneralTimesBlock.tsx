@@ -92,7 +92,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
 
           {/* Fin carga especial */}
           <TimeInput
-            label="Fin ITA-BG/TAP,AEGEAN-BW"
+            label="Retirada Escalera"
             value={times.specialEndLoading}
             onChange={(v) => updateTime('specialEndLoading', v)}
             error={getError('specialEndLoading')}
