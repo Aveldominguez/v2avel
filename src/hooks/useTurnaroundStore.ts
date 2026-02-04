@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Initial empty times
 export const getEmptyTimes = (): TurnaroundTimes => ({
+  lirReception: null,
   chocksOnArrival: null,
   stairsTime: null,
   unloadingStart: null,
@@ -15,6 +16,9 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   lastBus: null,
   cargoArrival: false,
   cargoDeparture: false,
+  firstBag: null,
+  gpuOn: null,
+  gpuOff: null,
 });
 
 // Create new turnaround
