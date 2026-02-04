@@ -32,9 +32,9 @@ export const AirlineFieldsTable: React.FC<AirlineFieldsTableProps> = ({
       <Table className="table-operational">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="w-24 text-center">Código</TableHead>
-            <TableHead className="min-w-[200px]">Significado</TableHead>
-            <TableHead className="w-48">Datos</TableHead>
+            <TableHead className="w-20 text-center">Código</TableHead>
+            <TableHead className="w-auto pr-4">Significado</TableHead>
+            <TableHead className="w-full">Datos</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
