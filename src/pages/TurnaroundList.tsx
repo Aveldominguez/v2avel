@@ -1,0 +1,356 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Turnaround, AirlineCode, AIRLINES } from '@/types/turnaround';
+import { loadTurnarounds, saveTurnarounds, filterTurnarounds } from '@/hooks/useTurnaroundStore';
+import { formatDate, formatDateTime } from '@/utils/timeValidation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
+import { 
+  Plus, 
+  Search, 
+  Calendar as CalendarIcon, 
+  Plane, 
+  Edit, 
+  Trash2, 
+  Filter,
+  X,
+  Clock
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+
+const TurnaroundList: React.FC = () => {
+  const navigate = useNavigate();
+  const [turnarounds, setTurnarounds] = useState<Turnaround[]>([]);
+  const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
+  
+  // Filters
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  // Delete dialog
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Load data
+  useEffect(() => {
+    const loaded = loadTurnarounds();
+    setTurnarounds(loaded);
+  }, []);
+
+  // Apply filters
+  useEffect(() => {
+    let result = filterTurnarounds(turnarounds, {
+      date: dateFilter,
+      airline: airlineFilter === 'ALL' ? undefined : airlineFilter,
+      flightNumber: searchQuery || undefined,
+    });
+
+    // Sort by date descending
+    result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    setFilteredTurnarounds(result);
+  }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
+
+  const handleDelete = (id: string) => {
+    const updated = turnarounds.filter(t => t.id !== id);
+    saveTurnarounds(updated);
+    setTurnarounds(updated);
+    setDeleteId(null);
+    toast({
+      title: 'Escala eliminada',
+      description: 'La escala ha sido eliminada correctamente',
+    });
+  };
+
+  const clearFilters = () => {
+    setDateFilter(undefined);
+    setAirlineFilter('ALL');
+    setSearchQuery('');
+  };
+
+  const hasFilters = dateFilter || airlineFilter !== 'ALL' || searchQuery;
+
+  const getAirlineInfo = (code: AirlineCode) => AIRLINES.find(a => a.code === code);
+
+  const getCompletionStatus = (t: Turnaround) => {
+    const times = t.times;
+    const hasArrival = times.chocksOnArrival;
+    const hasDeparture = times.chocksOff;
+    
+    if (hasArrival && hasDeparture) return 'completed';
+    if (hasArrival || times.unloadingStart || times.loadingStart) return 'in-progress';
+    return 'pending';
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/20">
+                <Plane className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Operaciones Rampa</h1>
+                <p className="text-sm text-muted-foreground">
+                  Control de Escalas y Tiempos
+                </p>
+              </div>
+            </div>
+
+            <Button onClick={() => navigate('/turnaround/new')} size="lg" className="gap-2">
+              <Plus className="h-5 w-5" />
+              Nueva Escala
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Filters */}
+        <Card className="card-operational">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Filter className="h-4 w-4" />
+              Filtros
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="ml-auto text-xs"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Limpiar
+                </Button>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar por vuelo..."
+                  className="pl-10 h-11"
+                />
+              </div>
+
+              {/* Date filter */}
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'h-11 w-full justify-start text-left font-normal',
+                      !dateFilter && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFilter ? format(dateFilter, 'PPP', { locale: es }) : 'Filtrar por fecha'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFilter}
+                    onSelect={(d) => {
+                      setDateFilter(d);
+                      setIsCalendarOpen(false);
+                    }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Airline filter */}
+              <Select value={airlineFilter} onValueChange={(v) => setAirlineFilter(v as AirlineCode | 'ALL')}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Todas las aerolíneas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
+                  {AIRLINES.map((a) => (
+                    <SelectItem key={a.code} value={a.code}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Results */}
+        <Card className="card-operational">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center justify-between text-base">
+              <span>Escalas ({filteredTurnarounds.length})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {filteredTurnarounds.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <Plane className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">
+                  {hasFilters ? 'No hay escalas con estos filtros' : 'No hay escalas registradas'}
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => navigate('/turnaround/new')}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear primera escala
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table className="table-operational">
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Vuelo</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Aerolínea</TableHead>
+                      <TableHead>Calzos ON</TableHead>
+                      <TableHead>Calzos OFF</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTurnarounds.map((t) => {
+                      const status = getCompletionStatus(t);
+                      const airlineInfo = getAirlineInfo(t.airline);
+                      
+                      return (
+                        <TableRow key={t.id} className="hover:bg-secondary/30">
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                'text-xs font-medium',
+                                status === 'completed' && 'status-completed',
+                                status === 'in-progress' && 'status-in-progress',
+                                status === 'pending' && 'status-pending'
+                              )}
+                            >
+                              {status === 'completed' && 'Completado'}
+                              {status === 'in-progress' && 'En curso'}
+                              {status === 'pending' && 'Pendiente'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono font-bold text-lg">
+                              {t.flightNumber}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm">
+                              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                              {formatDate(t.date)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="font-medium">
+                              {airlineInfo?.shortName}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono text-base">
+                              {t.times.chocksOnArrival || '—'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono text-base">
+                              {t.times.chocksOff || '—'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => navigate(`/turnaround/${t.id}`)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeleteId(t.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar escala?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán todos los datos de esta escala.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && handleDelete(deleteId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default TurnaroundList;
