@@ -242,8 +242,9 @@ const TurnaroundForm: React.FC = () => {
           errors={errors}
         />
 
-        {/* Airline Tabs */}
+        {/* Airline Fields */}
         <AirlineTabs
+          airline={airline}
           fieldValues={fieldValues}
           onChange={setFieldValues}
         />
