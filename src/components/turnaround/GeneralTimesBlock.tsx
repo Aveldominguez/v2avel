@@ -39,6 +39,15 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          {/* Recepción de LIR - Primero */}
+          <TimeInput
+            label="Recepción de LIR"
+            value={times.lirReception}
+            onChange={(v) => updateTime('lirReception', v)}
+            error={getError('lirReception')}
+            disabled={disabled}
+          />
+
           {/* Tiempo de llegada */}
           <TimeInput
             label="Calzos Llegada"
@@ -137,6 +146,31 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             label="Cargo Salida"
             value={times.cargoDeparture}
             onChange={(v) => updateTime('cargoDeparture', v)}
+            disabled={disabled}
+          />
+
+          {/* Nuevos campos al final */}
+          <TimeInput
+            label="1ª Maleta"
+            value={times.firstBag}
+            onChange={(v) => updateTime('firstBag', v)}
+            error={getError('firstBag')}
+            disabled={disabled}
+          />
+
+          <TimeInput
+            label="Puesta de GPU"
+            value={times.gpuOn}
+            onChange={(v) => updateTime('gpuOn', v)}
+            error={getError('gpuOn')}
+            disabled={disabled}
+          />
+
+          <TimeInput
+            label="Retirada de GPU"
+            value={times.gpuOff}
+            onChange={(v) => updateTime('gpuOff', v)}
+            error={getError('gpuOff')}
             disabled={disabled}
           />
         </div>
