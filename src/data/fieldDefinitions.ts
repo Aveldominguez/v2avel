@@ -86,12 +86,34 @@ export const AEGEAN_FIELDS: FieldDefinition[] = [
   createField('AEGEAN', 'WDB', 'Wheelchair – Dry Battery', 14),
 ];
 
+// Shared fields for Pegasus, Transavia, Sky Express
+const createSharedFields = (airline: AirlineCode): FieldDefinition[] => [
+  createField(airline, 'BT', 'Tránsito', 1),
+  createField(airline, 'BY', 'Local', 2),
+  createField(airline, 'BG', 'Gate – Mano – Puerta', 3),
+  createField(airline, 'BP', 'Priority', 4),
+  createField(airline, 'DAA', 'Delivery At Aircraft (Carrito)', 5),
+  createField(airline, 'D', 'Crew', 6),
+  createField(airline, 'E', 'Equipment', 7),
+  createField(airline, 'BH', 'Grupo (varios de tránsito mismo destino)', 8),
+  createField(airline, 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
+  createField(airline, 'WCH', 'Wheelchair', 10),
+  createField(airline, 'WDB', 'Wheelchair – Dry Battery', 11),
+];
+
+export const PEGASUS_FIELDS: FieldDefinition[] = createSharedFields('PEGASUS');
+export const TRANSAVIA_FIELDS: FieldDefinition[] = createSharedFields('TRANSAVIA');
+export const SKYEXPRESS_FIELDS: FieldDefinition[] = createSharedFields('SKYEXPRESS');
+
 // All field definitions combined
 export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...TAP_FIELDS,
   ...WIZZ_FIELDS,
   ...ITA_FIELDS,
   ...AEGEAN_FIELDS,
+  ...PEGASUS_FIELDS,
+  ...TRANSAVIA_FIELDS,
+  ...SKYEXPRESS_FIELDS,
 ];
 
 // Get fields by airline
