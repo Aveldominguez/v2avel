@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Turnaround, TurnaroundTimes, AirlineCode, FieldValue, TimeValidationError, AIRLINES } from '@/types/turnaround';
+import { TurnaroundTimes, AirlineCode, FieldValue, TimeValidationError, AIRLINES } from '@/types/turnaround';
 import { validateTimes, formatDateTime } from '@/utils/timeValidation';
-import { loadTurnarounds, saveTurnarounds, createTurnaround, getEmptyTimes, getTurnaroundById } from '@/hooks/useTurnaroundStore';
+import { useTurnarounds } from '@/hooks/useTurnarounds';
+import { getEmptyTimes } from '@/hooks/useTurnaroundStore';
 import { GeneralTimesBlock } from '@/components/turnaround/GeneralTimesBlock';
 import { AirlineTabs } from '@/components/turnaround/AirlineTabs';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Calendar as CalendarIcon, Plane, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Save, Calendar as CalendarIcon, Plane, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -22,8 +23,9 @@ const TurnaroundForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
+  
+  const { createTurnaround, updateTurnaround, getTurnaroundById } = useTurnarounds();
 
-  const [turnarounds, setTurnarounds] = useState<Turnaround[]>([]);
   const [flightNumber, setFlightNumber] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [airline, setAirline] = useState<AirlineCode>('TAP');
@@ -32,38 +34,42 @@ const TurnaroundForm: React.FC = () => {
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [loading, setLoading] = useState(isEditing);
+  const [saving, setSaving] = useState(false);
 
   // Load data on mount
   useEffect(() => {
-    const loaded = loadTurnarounds();
-    setTurnarounds(loaded);
-
-    if (id) {
-      const existing = getTurnaroundById(loaded, id);
-      if (existing) {
-        setFlightNumber(existing.flightNumber);
-        setDate(existing.date);
-        setAirline(existing.airline);
-        setTimes(existing.times);
-        setFieldValues(existing.fieldValues);
-        setLastSaved(existing.updatedAt);
-      } else {
-        toast({
-          title: 'Error',
-          description: 'No se encontró la escala',
-          variant: 'destructive',
-        });
-        navigate('/');
+    const loadData = async () => {
+      if (id) {
+        setLoading(true);
+        const existing = await getTurnaroundById(id);
+        if (existing) {
+          setFlightNumber(existing.flightNumber);
+          setDate(existing.date);
+          setAirline(existing.airline);
+          setTimes(existing.times);
+          setFieldValues(existing.fieldValues);
+          setLastSaved(existing.updatedAt);
+        } else {
+          toast({
+            title: 'Error',
+            description: 'No se encontró la escala',
+            variant: 'destructive',
+          });
+          navigate('/');
+        }
+        setLoading(false);
       }
-    }
-  }, [id, navigate]);
+    };
+    loadData();
+  }, [id, navigate, getTurnaroundById]);
 
   // Validate on times change
   useEffect(() => {
     setErrors(validateTimes(times));
   }, [times]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!flightNumber.trim()) {
       toast({
         title: 'Campo requerido',
@@ -73,43 +79,42 @@ const TurnaroundForm: React.FC = () => {
       return;
     }
 
-    const now = new Date();
-    let updatedTurnarounds: Turnaround[];
-
-    if (isEditing && id) {
-      updatedTurnarounds = turnarounds.map(t =>
-        t.id === id
-          ? {
-              ...t,
-              flightNumber,
-              date,
-              airline,
-              times,
-              fieldValues,
-              updatedAt: now,
-            }
-          : t
-      );
-    } else {
-      const newTurnaround = createTurnaround(flightNumber, date, airline);
-      newTurnaround.times = times;
-      newTurnaround.fieldValues = fieldValues;
-      updatedTurnarounds = [...turnarounds, newTurnaround];
+    setSaving(true);
+    try {
+      if (isEditing && id) {
+        await updateTurnaround(id, flightNumber, date, airline, times, fieldValues);
+        setLastSaved(new Date());
+        toast({
+          title: 'Escala actualizada',
+          description: `Vuelo ${flightNumber} guardado correctamente`,
+        });
+      } else {
+        await createTurnaround(flightNumber, date, airline, times, fieldValues);
+        toast({
+          title: 'Escala creada',
+          description: `Vuelo ${flightNumber} guardado correctamente`,
+        });
+        navigate('/');
+      }
+    } catch (err) {
+      console.error('Error saving:', err);
+      toast({
+        title: 'Error',
+        description: 'No se pudo guardar la escala',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
     }
+  }, [flightNumber, date, airline, times, fieldValues, isEditing, id, navigate, createTurnaround, updateTurnaround]);
 
-    saveTurnarounds(updatedTurnarounds);
-    setTurnarounds(updatedTurnarounds);
-    setLastSaved(now);
-
-    toast({
-      title: isEditing ? 'Escala actualizada' : 'Escala creada',
-      description: `Vuelo ${flightNumber} guardado correctamente`,
-    });
-
-    if (!isEditing) {
-      navigate('/');
-    }
-  }, [flightNumber, date, airline, times, fieldValues, turnarounds, isEditing, id, navigate]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,8 +151,12 @@ const TurnaroundForm: React.FC = () => {
                   <span>{errors.length} advertencia(s)</span>
                 </div>
               )}
-              <Button onClick={handleSave} size="lg" className="gap-2">
-                <Save className="h-5 w-5" />
+              <Button onClick={handleSave} size="lg" className="gap-2" disabled={saving}>
+                {saving ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="h-5 w-5" />
+                )}
                 <span className="hidden sm:inline">Guardar</span>
               </Button>
             </div>

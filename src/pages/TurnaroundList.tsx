@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Turnaround, AirlineCode, AIRLINES } from '@/types/turnaround';
-import { loadTurnarounds, saveTurnarounds, filterTurnarounds } from '@/hooks/useTurnaroundStore';
-import { formatDate, formatDateTime } from '@/utils/timeValidation';
+import { useTurnarounds } from '@/hooks/useTurnarounds';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDate } from '@/utils/timeValidation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +39,8 @@ import {
   Trash2, 
   Filter,
   X,
-  Clock
+  LogOut,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -46,7 +48,8 @@ import { cn } from '@/lib/utils';
 
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
-  const [turnarounds, setTurnarounds] = useState<Turnaround[]>([]);
+  const { user, signOut } = useAuth();
+  const { turnarounds, loading, deleteTurnaround } = useTurnarounds();
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
   
   // Filters
@@ -57,20 +60,25 @@ const TurnaroundList: React.FC = () => {
 
   // Delete dialog
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // Load data
-  useEffect(() => {
-    const loaded = loadTurnarounds();
-    setTurnarounds(loaded);
-  }, []);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Apply filters
   useEffect(() => {
-    let result = filterTurnarounds(turnarounds, {
-      date: dateFilter,
-      airline: airlineFilter === 'ALL' ? undefined : airlineFilter,
-      flightNumber: searchQuery || undefined,
-    });
+    let result = [...turnarounds];
+
+    if (dateFilter) {
+      const filterDate = dateFilter.toDateString();
+      result = result.filter(t => t.date.toDateString() === filterDate);
+    }
+
+    if (airlineFilter !== 'ALL') {
+      result = result.filter(t => t.airline === airlineFilter);
+    }
+
+    if (searchQuery) {
+      const search = searchQuery.toLowerCase();
+      result = result.filter(t => t.flightNumber.toLowerCase().includes(search));
+    }
 
     // Sort by date descending
     result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -78,15 +86,29 @@ const TurnaroundList: React.FC = () => {
     setFilteredTurnarounds(result);
   }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
 
-  const handleDelete = (id: string) => {
-    const updated = turnarounds.filter(t => t.id !== id);
-    saveTurnarounds(updated);
-    setTurnarounds(updated);
-    setDeleteId(null);
-    toast({
-      title: 'Escala eliminada',
-      description: 'La escala ha sido eliminada correctamente',
-    });
+  const handleDelete = async (id: string) => {
+    setIsDeleting(true);
+    try {
+      await deleteTurnaround(id);
+      toast({
+        title: 'Escala eliminada',
+        description: 'La escala ha sido eliminada correctamente',
+      });
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar la escala',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
   const clearFilters = () => {
@@ -109,6 +131,14 @@ const TurnaroundList: React.FC = () => {
     return 'pending';
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -122,15 +152,20 @@ const TurnaroundList: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Operaciones Rampa</h1>
                 <p className="text-sm text-muted-foreground">
-                  Control de Escalas y Tiempos
+                  {user?.email}
                 </p>
               </div>
             </div>
 
-            <Button onClick={() => navigate('/turnaround/new')} size="lg" className="gap-2">
-              <Plus className="h-5 w-5" />
-              Nueva Escala
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => navigate('/turnaround/new')} size="lg" className="gap-2">
+                <Plus className="h-5 w-5" />
+                Nueva Escala
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleSignOut}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -339,12 +374,13 @@ const TurnaroundList: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && handleDelete(deleteId)}
               className="bg-destructive hover:bg-destructive/90"
+              disabled={isDeleting}
             >
-              Eliminar
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
