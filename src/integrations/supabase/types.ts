@@ -22,6 +22,7 @@ export type Database = {
           field_values: Json
           flight_number: string
           id: string
+          observations: string | null
           times: Json
           updated_at: string
           user_id: string
@@ -33,6 +34,7 @@ export type Database = {
           field_values?: Json
           flight_number: string
           id?: string
+          observations?: string | null
           times?: Json
           updated_at?: string
           user_id: string
@@ -44,6 +46,7 @@ export type Database = {
           field_values?: Json
           flight_number?: string
           id?: string
+          observations?: string | null
           times?: Json
           updated_at?: string
           user_id?: string

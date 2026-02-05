@@ -12,6 +12,7 @@ const mapDbToTurnaround = (db: {
   airline: string;
   times: Json;
   field_values: Json;
+  observations: string | null;
   created_at: string;
   updated_at: string;
 }): Turnaround => {
@@ -33,6 +34,7 @@ const mapDbToTurnaround = (db: {
       ...fv,
       updatedAt: new Date(fv.updatedAt),
     })),
+    observations: db.observations || '',
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
@@ -80,7 +82,8 @@ export const useTurnarounds = () => {
     date: Date,
     airline: AirlineCode,
     times: TurnaroundTimes,
-    fieldValues: FieldValue[]
+    fieldValues: FieldValue[],
+    observations: string = ''
   ): Promise<Turnaround | null> => {
     if (!user) return null;
 
@@ -101,6 +104,7 @@ export const useTurnarounds = () => {
           airline,
           times: times as unknown as Json,
           field_values: fieldValuesForDb as unknown as Json,
+          observations,
         })
         .select()
         .single();
@@ -122,7 +126,8 @@ export const useTurnarounds = () => {
     date: Date,
     airline: AirlineCode,
     times: TurnaroundTimes,
-    fieldValues: FieldValue[]
+    fieldValues: FieldValue[],
+    observations: string = ''
   ): Promise<Turnaround | null> => {
     if (!user) return null;
 
@@ -142,6 +147,7 @@ export const useTurnarounds = () => {
           airline,
           times: times as unknown as Json,
           field_values: fieldValuesForDb as unknown as Json,
+          observations,
         })
         .eq('id', id)
         .select()

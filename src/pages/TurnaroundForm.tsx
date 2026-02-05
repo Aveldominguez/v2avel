@@ -9,12 +9,13 @@ import { AirlineTabs } from '@/components/turnaround/AirlineTabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Calendar as CalendarIcon, Plane, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Calendar as CalendarIcon, Plane, Clock, AlertTriangle, Loader2, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,7 @@ const TurnaroundForm: React.FC = () => {
   const [airline, setAirline] = useState<AirlineCode>('TAP');
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
+  const [observations, setObservations] = useState('');
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -52,6 +54,7 @@ const TurnaroundForm: React.FC = () => {
             setAirline(existing.airline);
             setTimes(existing.times);
             setFieldValues(existing.fieldValues);
+            setObservations(existing.observations || '');
             setLastSaved(existing.updatedAt);
           } else {
             toast({
@@ -91,14 +94,14 @@ const TurnaroundForm: React.FC = () => {
     setSaving(true);
     try {
       if (isEditing && id) {
-        await updateTurnaround(id, flightNumber, date, airline, times, fieldValues);
+        await updateTurnaround(id, flightNumber, date, airline, times, fieldValues, observations);
         setLastSaved(new Date());
         toast({
           title: 'Escala actualizada',
           description: `Vuelo ${flightNumber} guardado correctamente`,
         });
       } else {
-        await createTurnaround(flightNumber, date, airline, times, fieldValues);
+        await createTurnaround(flightNumber, date, airline, times, fieldValues, observations);
         toast({
           title: 'Escala creada',
           description: `Vuelo ${flightNumber} guardado correctamente`,
@@ -115,7 +118,7 @@ const TurnaroundForm: React.FC = () => {
     } finally {
       setSaving(false);
     }
-  }, [flightNumber, date, airline, times, fieldValues, isEditing, id, navigate, createTurnaround, updateTurnaround]);
+  }, [flightNumber, date, airline, times, fieldValues, observations, isEditing, id, navigate, createTurnaround, updateTurnaround]);
 
   if (loading) {
     return (
@@ -274,6 +277,26 @@ const TurnaroundForm: React.FC = () => {
           fieldValues={fieldValues}
           onChange={setFieldValues}
         />
+
+        {/* Observations */}
+        <Card className="card-operational">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="p-2 rounded-lg bg-muted">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+              </div>
+              Observaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              placeholder="Ingrese cualquier observación relevante sobre esta escala..."
+              className="min-h-[120px] resize-y"
+            />
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
