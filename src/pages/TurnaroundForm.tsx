@@ -271,12 +271,14 @@ const TurnaroundForm: React.FC = () => {
           errors={errors}
         />
 
-        {/* Airline Fields */}
-        <AirlineTabs
-          airline={airline}
-          fieldValues={fieldValues}
-          onChange={setFieldValues}
-        />
+        {/* Airline Fields - Hidden for FedEx */}
+        {airline !== 'FEDEX' && (
+          <AirlineTabs
+            airline={airline}
+            fieldValues={fieldValues}
+            onChange={setFieldValues}
+          />
+        )}
 
         {/* Observations */}
         <Card className="card-operational">
