@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      turnarounds: {
+        Row: {
+          airline: string
+          created_at: string
+          date: string
+          field_values: Json
+          flight_number: string
+          id: string
+          times: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          airline: string
+          created_at?: string
+          date: string
+          field_values?: Json
+          flight_number: string
+          id?: string
+          times?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          airline?: string
+          created_at?: string
+          date?: string
+          field_values?: Json
+          flight_number?: string
+          id?: string
+          times?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
