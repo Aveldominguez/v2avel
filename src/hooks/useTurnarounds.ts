@@ -177,7 +177,7 @@ export const useTurnarounds = () => {
     }
   };
 
-  const getTurnaroundById = async (id: string): Promise<Turnaround | null> => {
+  const getTurnaroundById = useCallback(async (id: string): Promise<Turnaround | null> => {
     if (!user) return null;
 
     try {
@@ -195,7 +195,7 @@ export const useTurnarounds = () => {
       console.error('Error fetching turnaround:', err);
       return null;
     }
-  };
+  }, [user]);
 
   return {
     turnarounds,

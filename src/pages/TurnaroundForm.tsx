@@ -37,32 +37,41 @@ const TurnaroundForm: React.FC = () => {
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
 
-  // Load data on mount
+  // Load data on mount - only runs when id changes
   useEffect(() => {
+    let isMounted = true;
+    
     const loadData = async () => {
       if (id) {
         setLoading(true);
         const existing = await getTurnaroundById(id);
-        if (existing) {
-          setFlightNumber(existing.flightNumber);
-          setDate(existing.date);
-          setAirline(existing.airline);
-          setTimes(existing.times);
-          setFieldValues(existing.fieldValues);
-          setLastSaved(existing.updatedAt);
-        } else {
-          toast({
-            title: 'Error',
-            description: 'No se encontró la escala',
-            variant: 'destructive',
-          });
-          navigate('/');
+        if (isMounted) {
+          if (existing) {
+            setFlightNumber(existing.flightNumber);
+            setDate(existing.date);
+            setAirline(existing.airline);
+            setTimes(existing.times);
+            setFieldValues(existing.fieldValues);
+            setLastSaved(existing.updatedAt);
+          } else {
+            toast({
+              title: 'Error',
+              description: 'No se encontró la escala',
+              variant: 'destructive',
+            });
+            navigate('/');
+          }
+          setLoading(false);
         }
-        setLoading(false);
       }
     };
     loadData();
-  }, [id, navigate, getTurnaroundById]);
+    
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // Validate on times change
   useEffect(() => {
@@ -146,12 +155,12 @@ const TurnaroundForm: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => navigate('/')}
-                className="gap-2"
+                className="gap-2 font-semibold"
               >
                 <Plane className="h-4 w-4" />
-                <span className="hidden sm:inline">Ver Escalas</span>
+                Ver Escalas
               </Button>
               {errors.length > 0 && (
                 <div className="hidden sm:flex items-center gap-2 text-warning text-sm">
