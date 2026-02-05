@@ -1,14 +1,18 @@
 import { FieldDefinition, AirlineCode } from '@/types/turnaround';
-import { v4 as uuidv4 } from 'uuid';
 
-// Helper to create field definitions
+// Helper to create deterministic field ID based on airline + code
+const createFieldId = (airline: AirlineCode, code: string): string => {
+  return `${airline.toLowerCase()}-${code.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+};
+
+// Helper to create field definitions with stable IDs
 const createField = (
   airline: AirlineCode,
   code: string,
   label: string,
   sortOrder: number
 ): FieldDefinition => ({
-  id: uuidv4(),
+  id: createFieldId(airline, code),
   airline,
   code,
   label,
