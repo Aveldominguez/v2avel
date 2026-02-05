@@ -45,6 +45,7 @@ export interface Turnaround {
   airline: AirlineCode;
   times: TurnaroundTimes;
   fieldValues: FieldValue[];
+  observations: string;
   createdBy?: string;
   updatedBy?: string;
   createdAt: Date;

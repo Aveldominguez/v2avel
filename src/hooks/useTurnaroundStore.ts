@@ -33,6 +33,7 @@ export const createTurnaround = (
   airline,
   times: getEmptyTimes(),
   fieldValues: [],
+  observations: '',
   createdAt: new Date(),
   updatedAt: new Date(),
 });
@@ -52,6 +53,7 @@ export const loadTurnarounds = (): Turnaround[] => {
       date: new Date(t.date),
       createdAt: new Date(t.createdAt),
       updatedAt: new Date(t.updatedAt),
+      observations: t.observations || '',
       fieldValues: t.fieldValues?.map((fv: any) => ({
         ...fv,
         updatedAt: new Date(fv.updatedAt),
