@@ -35,12 +35,13 @@ import {
   Search, 
   Calendar as CalendarIcon, 
   Plane, 
-  Edit, 
+  Eye, 
   Trash2, 
   Filter,
   X,
   LogOut,
-  Loader2
+  Loader2,
+  Circle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -277,36 +278,27 @@ const TurnaroundList: React.FC = () => {
                 <Table className="table-operational">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead>Estado</TableHead>
+                      <TableHead className="w-12"></TableHead>
                       <TableHead>Vuelo</TableHead>
                       <TableHead>Fecha</TableHead>
-                      <TableHead>Aerolínea</TableHead>
-                      <TableHead>Calzos ON</TableHead>
-                      <TableHead>Calzos OFF</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredTurnarounds.map((t) => {
                       const status = getCompletionStatus(t);
-                      const airlineInfo = getAirlineInfo(t.airline);
                       
                       return (
                         <TableRow key={t.id} className="hover:bg-secondary/30">
-                          <TableCell>
-                            <Badge
-                              variant="outline"
+                          <TableCell className="w-12">
+                            <Circle
                               className={cn(
-                                'text-xs font-medium',
-                                status === 'completed' && 'status-completed',
-                                status === 'in-progress' && 'status-in-progress',
-                                status === 'pending' && 'status-pending'
+                                'h-4 w-4',
+                                status === 'completed' && 'fill-success text-success',
+                                status === 'in-progress' && 'fill-warning text-warning',
+                                status === 'pending' && 'fill-muted text-muted-foreground'
                               )}
-                            >
-                              {status === 'completed' && 'Completado'}
-                              {status === 'in-progress' && 'En curso'}
-                              {status === 'pending' && 'Pendiente'}
-                            </Badge>
+                            />
                           </TableCell>
                           <TableCell>
                             <span className="font-mono font-bold text-lg">
@@ -320,28 +312,13 @@ const TurnaroundList: React.FC = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="secondary" className="font-medium">
-                              {airlineInfo?.shortName}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-mono text-base">
-                              {t.times.chocksOnArrival || '—'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-mono text-base">
-                              {t.times.chocksOff || '—'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
                             <div className="flex items-center justify-end gap-2">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => navigate(`/turnaround/${t.id}`)}
                               >
-                                <Edit className="h-4 w-4" />
+                                <Eye className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
