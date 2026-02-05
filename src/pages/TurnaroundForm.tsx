@@ -145,6 +145,14 @@ const TurnaroundForm: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+                className="gap-2"
+              >
+                <Plane className="h-4 w-4" />
+                <span className="hidden sm:inline">Ver Escalas</span>
+              </Button>
               {errors.length > 0 && (
                 <div className="hidden sm:flex items-center gap-2 text-warning text-sm">
                   <AlertTriangle className="h-4 w-4" />
