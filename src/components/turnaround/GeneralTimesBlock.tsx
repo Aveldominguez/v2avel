@@ -46,6 +46,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('chocksOnArrival', v)}
             error={getError('chocksOnArrival')}
             disabled={disabled}
+            clockColor="green"
           />
 
           {/* 2 - Recepción de LIR */}
@@ -64,6 +65,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('unloadingStart', v)}
             error={getError('unloadingStart')}
             disabled={disabled}
+            clockColor="green"
           />
 
           {/* 4 - Inicio Carga */}
@@ -73,6 +75,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('loadingStart', v)}
             error={getError('loadingStart')}
             disabled={disabled}
+            clockColor="red"
           />
 
           {/* 5 - Fin Descarga */}
@@ -82,6 +85,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('unloadingEnd', v)}
             error={getError('unloadingEnd')}
             disabled={disabled}
+            clockColor="green"
           />
 
           {/* 6 - Fin Carga */}
@@ -91,6 +95,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('loadingEnd', v)}
             error={getError('loadingEnd')}
             disabled={disabled}
+            clockColor="red"
           />
 
           {/* 7 - Puesta Escalera */}
@@ -100,6 +105,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('stairsTime', v)}
             error={getError('stairsTime')}
             disabled={disabled}
+            clockColor="green"
           />
 
           {/* 8 - Retirada Escalera */}
@@ -109,6 +115,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('specialEndLoading', v)}
             error={getError('specialEndLoading')}
             disabled={disabled}
+            clockColor="red"
           />
 
           {/* 9 - 1ª Maleta */}
@@ -118,6 +125,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('firstBag', v)}
             error={getError('firstBag')}
             disabled={disabled}
+            clockColor="green"
           />
 
           {/* 10 - Calzos Salida */}
@@ -127,6 +135,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('chocksOff', v)}
             error={getError('chocksOff')}
             disabled={disabled}
+            clockColor="red"
           />
 
           {/* Llegada Jardinera */}
@@ -169,6 +178,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('gpuOn', v)}
             error={getError('gpuOn')}
             disabled={disabled}
+            clockColor="red"
           />
 
           {/* Retirada de GPU */}

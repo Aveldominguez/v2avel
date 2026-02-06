@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+type ClockColor = 'default' | 'green' | 'red';
+
 interface TimeInputProps {
   value: string | null;
   onChange: (value: string | null) => void;
@@ -11,6 +13,7 @@ interface TimeInputProps {
   error?: string;
   className?: string;
   disabled?: boolean;
+  clockColor?: ClockColor;
 }
 
 const getCurrentTime = (): string => {
@@ -31,6 +34,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   error,
   className,
   disabled = false,
+  clockColor = 'default',
 }) => {
   const [localValue, setLocalValue] = useState(value || '');
 
@@ -97,7 +101,12 @@ export const TimeInput: React.FC<TimeInputProps> = ({
           size="icon"
           onClick={handleNowClick}
           disabled={disabled}
-          className="h-12 w-12 shrink-0 bg-accent hover:bg-accent/90 text-accent-foreground"
+          className={cn(
+            'h-12 w-12 shrink-0',
+            clockColor === 'green' && 'bg-emerald-600 hover:bg-emerald-700 text-white',
+            clockColor === 'red' && 'bg-red-600 hover:bg-red-700 text-white',
+            clockColor === 'default' && 'bg-accent hover:bg-accent/90 text-accent-foreground'
+          )}
           title="Poner hora actual"
         >
           <Clock className="h-5 w-5" />
