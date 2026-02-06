@@ -39,7 +39,16 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {/* Recepción de LIR - Primero */}
+          {/* 1 - Calzos Llegada */}
+          <TimeInput
+            label="Calzos Llegada"
+            value={times.chocksOnArrival}
+            onChange={(v) => updateTime('chocksOnArrival', v)}
+            error={getError('chocksOnArrival')}
+            disabled={disabled}
+          />
+
+          {/* 2 - Recepción de LIR */}
           <TimeInput
             label="Recepción de LIR"
             value={times.lirReception}
@@ -48,24 +57,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
-          {/* Tiempo de llegada */}
-          <TimeInput
-            label="Calzos Llegada"
-            value={times.chocksOnArrival}
-            onChange={(v) => updateTime('chocksOnArrival', v)}
-            error={getError('chocksOnArrival')}
-            disabled={disabled}
-          />
-          
-          <TimeInput
-            label="Puesta Escalera"
-            value={times.stairsTime}
-            onChange={(v) => updateTime('stairsTime', v)}
-            error={getError('stairsTime')}
-            disabled={disabled}
-          />
-
-          {/* Descarga */}
+          {/* 3 - Inicio Descarga */}
           <TimeInput
             label="Inicio Descarga"
             value={times.unloadingStart}
@@ -73,7 +65,17 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             error={getError('unloadingStart')}
             disabled={disabled}
           />
-          
+
+          {/* 4 - Inicio Carga */}
+          <TimeInput
+            label="Inicio Carga"
+            value={times.loadingStart}
+            onChange={(v) => updateTime('loadingStart', v)}
+            error={getError('loadingStart')}
+            disabled={disabled}
+          />
+
+          {/* 5 - Fin Descarga */}
           <TimeInput
             label="Fin Descarga"
             value={times.unloadingEnd}
@@ -82,15 +84,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
-          {/* Carga */}
-          <TimeInput
-            label="Inicio Carga"
-            value={times.loadingStart}
-            onChange={(v) => updateTime('loadingStart', v)}
-            error={getError('loadingStart')}
-            disabled={disabled}
-          />
-          
+          {/* 6 - Fin Carga */}
           <TimeInput
             label="Fin Carga"
             value={times.loadingEnd}
@@ -99,7 +93,16 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
-          {/* Fin carga especial */}
+          {/* 7 - Puesta Escalera */}
+          <TimeInput
+            label="Puesta Escalera"
+            value={times.stairsTime}
+            onChange={(v) => updateTime('stairsTime', v)}
+            error={getError('stairsTime')}
+            disabled={disabled}
+          />
+
+          {/* 8 - Retirada Escalera */}
           <TimeInput
             label="Retirada Escalera"
             value={times.specialEndLoading}
@@ -108,7 +111,16 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
-          {/* Salida */}
+          {/* 9 - 1ª Maleta */}
+          <TimeInput
+            label="1ª Maleta"
+            value={times.firstBag}
+            onChange={(v) => updateTime('firstBag', v)}
+            error={getError('firstBag')}
+            disabled={disabled}
+          />
+
+          {/* 10 - Calzos Salida */}
           <TimeInput
             label="Calzos Salida"
             value={times.chocksOff}
@@ -117,7 +129,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
-          {/* Jardinera */}
+          {/* Llegada Jardinera */}
           <TimeInput
             label="Llegada Jardinera"
             value={times.busArrival}
@@ -125,7 +137,8 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             error={getError('busArrival')}
             disabled={disabled}
           />
-          
+
+          {/* Última Jardinera */}
           <TimeInput
             label="Última Jardinera"
             value={times.lastBus}
@@ -141,7 +154,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('cargoArrival', v)}
             disabled={disabled}
           />
-          
+
           <BooleanInput
             label="Cargo Salida"
             value={times.cargoDeparture}
@@ -149,15 +162,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
-          {/* Nuevos campos al final */}
-          <TimeInput
-            label="1ª Maleta"
-            value={times.firstBag}
-            onChange={(v) => updateTime('firstBag', v)}
-            error={getError('firstBag')}
-            disabled={disabled}
-          />
-
+          {/* Puesta de GPU */}
           <TimeInput
             label="Puesta de GPU"
             value={times.gpuOn}
@@ -166,6 +171,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             disabled={disabled}
           />
 
+          {/* Retirada de GPU */}
           <TimeInput
             label="Retirada de GPU"
             value={times.gpuOff}
