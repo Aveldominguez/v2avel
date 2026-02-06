@@ -178,7 +178,6 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             onChange={(v) => updateTime('gpuOn', v)}
             error={getError('gpuOn')}
             disabled={disabled}
-            clockColor="red"
           />
 
           {/* Retirada de GPU */}
