@@ -10,6 +10,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   unloadingEnd: null,
   loadingStart: null,
   loadingEnd: null,
+  lastHandBag: null,
   specialEndLoading: null,
   chocksOff: null,
   busArrival: null,
