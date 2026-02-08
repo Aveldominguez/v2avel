@@ -19,92 +19,83 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   firstBag: null,
   gpuOn: null,
   gpuOff: null,
+  mailArrival: false,
+  tango: null,
+  isRemote: false,
+  remoteLocation: null,
 });
 
-// Create new turnaround
-export const createTurnaround = (
+// Create a new turnaround
+export const createTurnaround = async (
   flightNumber: string,
   date: Date,
-  airline: AirlineCode
-): Turnaround => ({
-  id: uuidv4(),
-  flightNumber,
-  date,
-  airline,
-  times: getEmptyTimes(),
-  fieldValues: [],
-  observations: '',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-});
+  airline: AirlineCode,
+  times: TurnaroundTimes,
+  fieldValues: FieldValue[],
+  observations: string
+): Promise<Turnaround> => {
+  const newTurnaround: Turnaround = {
+    id: uuidv4(),
+    flightNumber,
+    date,
+    airline,
+    times,
+    fieldValues,
+    observations,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
-// Storage key
-const STORAGE_KEY = 'ramp_turnarounds';
+  // Store in local storage
+  let turnarounds = getTurnaroundsFromStorage();
+  turnarounds.push(newTurnaround);
+  localStorage.setItem('turnarounds', JSON.stringify(turnarounds));
 
-// Load turnarounds from localStorage
-export const loadTurnarounds = (): Turnaround[] => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (!data) return [];
-    
-    const parsed = JSON.parse(data);
-    return parsed.map((t: any) => ({
-      ...t,
-      date: new Date(t.date),
-      createdAt: new Date(t.createdAt),
-      updatedAt: new Date(t.updatedAt),
-      observations: t.observations || '',
-      fieldValues: t.fieldValues?.map((fv: any) => ({
-        ...fv,
-        updatedAt: new Date(fv.updatedAt),
-      })) || [],
-    }));
-  } catch (e) {
-    console.error('Error loading turnarounds:', e);
-    return [];
-  }
+  return newTurnaround;
 };
 
-// Save turnarounds to localStorage
-export const saveTurnarounds = (turnarounds: Turnaround[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(turnarounds));
-  } catch (e) {
-    console.error('Error saving turnarounds:', e);
+// Update an existing turnaround
+export const updateTurnaround = async (
+  id: string,
+  flightNumber: string,
+  date: Date,
+  airline: AirlineCode,
+  times: TurnaroundTimes,
+  fieldValues: FieldValue[],
+  observations: string
+): Promise<Turnaround> => {
+  let turnarounds = getTurnaroundsFromStorage();
+  const index = turnarounds.findIndex((t) => t.id === id);
+
+  if (index === -1) {
+    throw new Error('Turnaround not found');
   }
+
+  const updatedTurnaround: Turnaround = {
+    ...turnarounds[index],
+    flightNumber,
+    date,
+    airline,
+    times,
+    fieldValues,
+    observations,
+    updatedAt: new Date(),
+  };
+
+  turnarounds[index] = updatedTurnaround;
+  localStorage.setItem('turnarounds', JSON.stringify(turnarounds));
+
+  return updatedTurnaround;
 };
 
-// Get turnaround by ID
-export const getTurnaroundById = (
-  turnarounds: Turnaround[],
-  id: string
-): Turnaround | undefined => {
-  return turnarounds.find(t => t.id === id);
+// Get a turnaround by ID
+export const getTurnaroundById = async (id: string): Promise<Turnaround | undefined> => {
+  const turnarounds = getTurnaroundsFromStorage();
+  return turnarounds.find((t) => t.id === id);
 };
 
-// Filter turnarounds
-export const filterTurnarounds = (
-  turnarounds: Turnaround[],
-  filters: {
-    date?: Date;
-    airline?: AirlineCode;
-    flightNumber?: string;
-  }
-): Turnaround[] => {
-  return turnarounds.filter(t => {
-    if (filters.date) {
-      const filterDate = filters.date.toDateString();
-      const turnaroundDate = t.date.toDateString();
-      if (filterDate !== turnaroundDate) return false;
-    }
-    
-    if (filters.airline && t.airline !== filters.airline) return false;
-    
-    if (filters.flightNumber) {
-      const search = filters.flightNumber.toLowerCase();
-      if (!t.flightNumber.toLowerCase().includes(search)) return false;
-    }
-    
-    return true;
-  });
+// Get all turnarounds from local storage
+export const getTurnaroundsFromStorage = (): Turnaround[] => {
+  const storedTurnarounds = localStorage.getItem('turnarounds');
+  return storedTurnarounds ? JSON.parse(storedTurnarounds) : [];
 };
