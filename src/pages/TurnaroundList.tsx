@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Turnaround, AirlineCode, AIRLINES } from '@/types/turnaround';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/utils/timeValidation';
 import { Button } from '@/components/ui/button';
@@ -41,7 +42,8 @@ import {
   X,
   LogOut,
   Loader2,
-  Circle
+  Circle,
+  Shield,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -51,6 +53,7 @@ const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { turnarounds, loading, deleteTurnaround } = useTurnarounds();
+  const { isAdmin } = useAdmin();
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
   
   // Filters
@@ -159,6 +162,12 @@ const TurnaroundList: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button variant="outline" onClick={() => navigate('/admin')} className="gap-2">
+                  <Shield className="h-5 w-5" />
+                  <span className="hidden sm:inline">Admin</span>
+                </Button>
+              )}
               <Button onClick={() => navigate('/turnaround/new')} size="lg" className="gap-2">
                 <Plus className="h-5 w-5" />
                 Nueva Escala
