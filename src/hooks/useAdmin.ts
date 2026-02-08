@@ -172,6 +172,27 @@ export const useAdmin = () => {
     return result;
   };
 
+  const changePassword = async (userId: string, newPassword: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('No autenticado');
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/change-password`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ user_id: userId, new_password: newPassword }),
+      }
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Error al cambiar contraseña');
+    return result;
+  };
+
   return {
     isAdmin,
     loading,
@@ -186,5 +207,6 @@ export const useAdmin = () => {
     removeManagedUser,
     getUserTurnarounds,
     createUser,
+    changePassword,
   };
 };
