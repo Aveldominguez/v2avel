@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye,
-  Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus,
+  Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -35,6 +35,7 @@ const AdminPanel: React.FC = () => {
     approveUser, blockUser, deleteUser, toggleAdminRole,
     assignManagedUser, removeManagedUser, getUserTurnarounds,
     createUser,
+    changePassword,
   } = useAdmin();
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -48,6 +49,9 @@ const AdminPanel: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newDisplayName, setNewDisplayName] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
+  const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && isAdmin) {
@@ -398,6 +402,16 @@ const AdminPanel: React.FC = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
+                                  onClick={() => setPasswordDialog({ userId: u.user_id, email: u.email })}
+                                  title="Cambiar contraseña"
+                                >
+                                  <KeyRound className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {!isSelf && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
                                   onClick={() => setDeleteTarget(u.user_id)}
                                   className="text-destructive hover:text-destructive"
                                 >
@@ -562,6 +576,51 @@ const AdminPanel: React.FC = () => {
             >
               {createLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
               Crear Usuario
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change password dialog */}
+      <Dialog open={!!passwordDialog} onOpenChange={() => { setPasswordDialog(null); setNewUserPassword(''); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cambiar contraseña</DialogTitle>
+            <DialogDescription>
+              Nueva contraseña para {passwordDialog?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="change-password">Nueva contraseña *</Label>
+              <Input
+                id="change-password"
+                type="password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <Button
+              onClick={async () => {
+                if (!passwordDialog || !newUserPassword) return;
+                setPasswordLoading(true);
+                try {
+                  await changePassword(passwordDialog.userId, newUserPassword);
+                  toast({ title: 'Contraseña actualizada' });
+                  setPasswordDialog(null);
+                  setNewUserPassword('');
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                } finally {
+                  setPasswordLoading(false);
+                }
+              }}
+              disabled={passwordLoading || newUserPassword.length < 6}
+              className="w-full"
+            >
+              {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}
+              Cambiar Contraseña
             </Button>
           </div>
         </DialogContent>
