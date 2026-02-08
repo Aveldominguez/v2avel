@@ -1,0 +1,493 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdmin, UserProfile } from '@/hooks/useAdmin';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { toast } from '@/hooks/use-toast';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye,
+  Loader2, ShieldCheck, Link, Plane, LogOut,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+const AdminPanel: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const {
+    isAdmin, loading, users, usersLoading, fetchUsers,
+    approveUser, blockUser, deleteUser, toggleAdminRole,
+    assignManagedUser, removeManagedUser, getUserTurnarounds,
+  } = useAdmin();
+
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [turnaroundsDialog, setTurnaroundsDialog] = useState<{ userId: string; email: string } | null>(null);
+  const [turnarounds, setTurnarounds] = useState<any[]>([]);
+  const [turnaroundsLoading, setTurnaroundsLoading] = useState(false);
+  const [manageDialog, setManageDialog] = useState<UserProfile | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && isAdmin) {
+      fetchUsers();
+    }
+  }, [loading, isAdmin]);
+
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      navigate('/');
+    }
+  }, [loading, isAdmin, navigate]);
+
+  const handleApprove = async (userId: string) => {
+    setActionLoading(userId);
+    try {
+      await approveUser(userId);
+      toast({ title: 'Usuario aprobado' });
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo aprobar el usuario', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBlock = async (userId: string, blocked: boolean) => {
+    setActionLoading(userId);
+    try {
+      await blockUser(userId, blocked);
+      toast({ title: blocked ? 'Usuario bloqueado' : 'Usuario desbloqueado' });
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(deleteTarget);
+    try {
+      await deleteUser(deleteTarget);
+      toast({ title: 'Usuario eliminado' });
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo eliminar el usuario', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleToggleAdmin = async (userId: string, isCurrentlyAdmin: boolean) => {
+    setActionLoading(userId);
+    try {
+      await toggleAdminRole(userId, !isCurrentlyAdmin);
+      toast({ title: !isCurrentlyAdmin ? 'Admin asignado' : 'Admin revocado' });
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleViewTurnarounds = async (userId: string, email: string) => {
+    setTurnaroundsDialog({ userId, email });
+    setTurnaroundsLoading(true);
+    try {
+      const data = await getUserTurnarounds(userId);
+      setTurnarounds(data);
+    } catch {
+      toast({ title: 'Error cargando escalas', variant: 'destructive' });
+    } finally {
+      setTurnaroundsLoading(false);
+    }
+  };
+
+  const handleManageManagedUsers = async (adminProfile: UserProfile) => {
+    setManageDialog(adminProfile);
+  };
+
+  const handleToggleManagedUser = async (adminUserId: string, managedUserId: string, isManaged: boolean) => {
+    try {
+      if (isManaged) {
+        await removeManagedUser(adminUserId, managedUserId);
+      } else {
+        await assignManagedUser(adminUserId, managedUserId);
+      }
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const adminUsers = users.filter(u => u.roles.includes('admin'));
+  const pendingUsers = users.filter(u => !u.approved && !u.blocked);
+  const activeUsers = users.filter(u => u.approved && !u.blocked);
+  const blockedUsers = users.filter(u => u.blocked);
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="p-2.5 rounded-xl bg-destructive/20">
+                <Shield className="h-7 w-7 text-destructive" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Panel de Administración</h1>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => navigate('/')}>
+                <Plane className="h-4 w-4 mr-2" />
+                Mis Escalas
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => { signOut(); navigate('/auth'); }}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="card-operational">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                <span className="text-2xl font-bold">{users.length}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Total usuarios</p>
+            </CardContent>
+          </Card>
+          <Card className="card-operational">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <span className="text-2xl font-bold">{activeUsers.length}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Activos</p>
+            </CardContent>
+          </Card>
+          <Card className="card-operational">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 text-warning" />
+                <span className="text-2xl font-bold">{pendingUsers.length}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Pendientes</p>
+            </CardContent>
+          </Card>
+          <Card className="card-operational">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <XCircle className="h-5 w-5 text-destructive" />
+                <span className="text-2xl font-bold">{blockedUsers.length}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Bloqueados</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pending approvals */}
+        {pendingUsers.length > 0 && (
+          <Card className="card-operational border-warning/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-warning">
+                <Loader2 className="h-5 w-5" />
+                Usuarios Pendientes de Aprobación ({pendingUsers.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Registro</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingUsers.map(u => (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-mono text-sm">{u.email}</TableCell>
+                      <TableCell>{u.display_name || '-'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(u.created_at), 'dd MMM yyyy', { locale: es })}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(u.user_id)}
+                            disabled={actionLoading === u.user_id}
+                            className="bg-success hover:bg-success/90"
+                          >
+                            {actionLoading === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                            Aprobar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteTarget(u.user_id)}
+                            disabled={actionLoading === u.user_id}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* All Users */}
+        <Card className="card-operational">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Todos los Usuarios ({users.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {usersLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Rol</TableHead>
+                      <TableHead>Bloqueado</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map(u => {
+                      const isSelf = u.user_id === user?.id;
+                      const isUserAdmin = u.roles.includes('admin');
+
+                      return (
+                        <TableRow key={u.id}>
+                          <TableCell>
+                            <div>
+                              <span className="font-mono text-sm">{u.email}</span>
+                              {u.display_name && (
+                                <p className="text-xs text-muted-foreground">{u.display_name}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {u.approved ? (
+                              <Badge className="bg-success/20 text-success border-success/30">Aprobado</Badge>
+                            ) : (
+                              <Badge variant="secondary">Pendiente</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {isUserAdmin && (
+                                <Badge className="bg-destructive/20 text-destructive border-destructive/30">
+                                  <ShieldCheck className="h-3 w-3 mr-1" />Admin
+                                </Badge>
+                              )}
+                              {!isSelf && (
+                                <Switch
+                                  checked={isUserAdmin}
+                                  onCheckedChange={() => handleToggleAdmin(u.user_id, isUserAdmin)}
+                                  disabled={actionLoading === u.user_id}
+                                />
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {!isSelf && (
+                              <Switch
+                                checked={u.blocked}
+                                onCheckedChange={(blocked) => handleBlock(u.user_id, blocked)}
+                                disabled={actionLoading === u.user_id}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleViewTurnarounds(u.user_id, u.email)}
+                                title="Ver escalas"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {isUserAdmin && !isSelf && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleManageManagedUsers(u)}
+                                  title="Vincular usuarios"
+                                >
+                                  <Link className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {!isSelf && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeleteTarget(u.user_id)}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará el perfil del usuario. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Turnarounds dialog */}
+      <Dialog open={!!turnaroundsDialog} onOpenChange={() => setTurnaroundsDialog(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Escalas de {turnaroundsDialog?.email}</DialogTitle>
+            <DialogDescription>
+              {turnarounds.length} escalas encontradas
+            </DialogDescription>
+          </DialogHeader>
+          {turnaroundsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : turnarounds.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No hay escalas registradas</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Vuelo</TableHead>
+                  <TableHead>Aerolínea</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="text-right">Acción</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {turnarounds.map((t: any) => (
+                  <TableRow key={t.id}>
+                    <TableCell className="font-mono font-bold">{t.flight_number}</TableCell>
+                    <TableCell>{t.airline}</TableCell>
+                    <TableCell>{format(new Date(t.date), 'dd MMM yyyy', { locale: es })}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/turnaround/${t.id}`)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" /> Ver/Editar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage users dialog */}
+      <Dialog open={!!manageDialog} onOpenChange={() => setManageDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Vincular usuarios a {manageDialog?.email}</DialogTitle>
+            <DialogDescription>
+              Selecciona qué usuarios puede administrar este admin.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {users
+              .filter(u => u.user_id !== manageDialog?.user_id)
+              .map(u => {
+                const isManaged = u.managed_by.includes(manageDialog?.user_id || '');
+                return (
+                  <div key={u.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/30">
+                    <Checkbox
+                      checked={isManaged}
+                      onCheckedChange={() =>
+                        manageDialog && handleToggleManagedUser(manageDialog.user_id, u.user_id, isManaged)
+                      }
+                    />
+                    <div>
+                      <p className="text-sm font-medium">{u.email}</p>
+                      <p className="text-xs text-muted-foreground">{u.display_name || 'Sin nombre'}</p>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminPanel;
