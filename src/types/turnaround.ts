@@ -10,6 +10,7 @@ export interface TurnaroundTimes {
   unloadingEnd: string | null;           // Fin Descarga
   loadingStart: string | null;           // Inicio Carga
   loadingEnd: string | null;             // Fin Carga
+  lastHandBag: string | null;            // Última de mano
   specialEndLoading: string | null;      // Retirada Escalera
   chocksOff: string | null;              // Retirada Calzos
   busArrival: string | null;             // Llegada Jardinera
@@ -97,6 +98,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'lastHandBag', label: 'Última de mano', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
@@ -113,6 +115,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'lastHandBag', label: 'Última de mano', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'green', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
@@ -127,6 +130,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'red', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'lastHandBag', label: 'Última de mano', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
