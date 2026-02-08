@@ -18,9 +18,11 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye,
-  Loader2, ShieldCheck, Link, Plane, LogOut,
+  Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -32,6 +34,7 @@ const AdminPanel: React.FC = () => {
     isAdmin, loading, users, usersLoading, fetchUsers,
     approveUser, blockUser, deleteUser, toggleAdminRole,
     assignManagedUser, removeManagedUser, getUserTurnarounds,
+    createUser,
   } = useAdmin();
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -40,6 +43,11 @@ const AdminPanel: React.FC = () => {
   const [turnaroundsLoading, setTurnaroundsLoading] = useState(false);
   const [manageDialog, setManageDialog] = useState<UserProfile | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [createDialog, setCreateDialog] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newDisplayName, setNewDisplayName] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && isAdmin) {
@@ -132,6 +140,23 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!newEmail || !newPassword) return;
+    setCreateLoading(true);
+    try {
+      await createUser(newEmail, newPassword, newDisplayName);
+      toast({ title: 'Usuario creado correctamente' });
+      setCreateDialog(false);
+      setNewEmail('');
+      setNewPassword('');
+      setNewDisplayName('');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -164,6 +189,10 @@ const AdminPanel: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button onClick={() => setCreateDialog(true)} className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                Crear Usuario
+              </Button>
               <Button variant="outline" onClick={() => navigate('/')}>
                 <Plane className="h-4 w-4 mr-2" />
                 Mis Escalas
@@ -483,6 +512,57 @@ const AdminPanel: React.FC = () => {
                   </div>
                 );
               })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create user dialog */}
+      <Dialog open={createDialog} onOpenChange={setCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear nuevo usuario</DialogTitle>
+            <DialogDescription>
+              El usuario se creará con email confirmado. Podrás aprobarlo después.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-email">Email *</Label>
+              <Input
+                id="new-email"
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="usuario@ejemplo.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Contraseña *</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-name">Nombre (opcional)</Label>
+              <Input
+                id="new-name"
+                value={newDisplayName}
+                onChange={(e) => setNewDisplayName(e.target.value)}
+                placeholder="Nombre del usuario"
+              />
+            </div>
+            <Button
+              onClick={handleCreateUser}
+              disabled={createLoading || !newEmail || !newPassword}
+              className="w-full"
+            >
+              {createLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+              Crear Usuario
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

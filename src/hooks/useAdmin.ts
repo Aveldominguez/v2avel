@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 export interface UserProfile {
   id: string;
@@ -149,6 +150,28 @@ export const useAdmin = () => {
     return data || [];
   };
 
+  const createUser = async (email: string, password: string, displayName: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('No autenticado');
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ email, password, display_name: displayName }),
+      }
+    );
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Error al crear usuario');
+    await fetchUsers();
+    return result;
+  };
+
   return {
     isAdmin,
     loading,
@@ -162,5 +185,6 @@ export const useAdmin = () => {
     assignManagedUser,
     removeManagedUser,
     getUserTurnarounds,
+    createUser,
   };
 };
