@@ -39,7 +39,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     // If lastHandBag is filled, freeze the timer at that moment
     if (lastHandBagTime && /^\d{2}:\d{2}$/.test(lastHandBagTime)) {
       const stopDate = parseTimeToDate(lastHandBagTime);
-      const frozen = Math.max(0, Math.floor((endDate.getTime() - stopDate.getTime()) / 1000));
+      const frozen = Math.floor((endDate.getTime() - stopDate.getTime()) / 1000);
       setStoppedDisplay(frozen);
       setRemainingSeconds(null);
       return;
@@ -79,18 +79,22 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   }
 
   const isStopped = stoppedDisplay !== null;
-  const isExpired = displaySeconds <= 0;
+  const isOvertime = isStopped && displaySeconds <= 0;
+  const isOnTime = isStopped && displaySeconds > 0;
+  const isExpired = !isStopped && displaySeconds <= 0;
   const isWarning = !isExpired && !isStopped && displaySeconds <= 300;
-  const mins = Math.floor(displaySeconds / 60);
-  const secs = displaySeconds % 60;
-  const display = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  const absSecs = Math.abs(displaySeconds);
+  const mins = Math.floor(absSecs / 60);
+  const secs = absSecs % 60;
+  const display = `${displaySeconds < 0 ? '-' : ''}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
   return (
     <div
       className={cn(
         'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-mono font-bold',
-        isStopped && 'bg-primary/20 text-primary',
-        isExpired && !isStopped && 'bg-destructive/20 text-destructive',
+        isOnTime && 'bg-success/20 text-success',
+        isOvertime && 'bg-destructive/20 text-destructive',
+        isExpired && 'bg-destructive/20 text-destructive',
         isWarning && 'bg-warning/20 text-warning',
         !isExpired && !isWarning && !isStopped && 'bg-success/20 text-success'
       )}
