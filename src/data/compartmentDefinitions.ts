@@ -216,6 +216,81 @@ export const WIZZ_A320_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Aegean A320
+export const AEGEAN_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'aegean-a320-comp1',
+    airline: 'AEGEAN',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a320-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('AEGEAN', 'a320-12'), label: 'Bodega 12' },
+    ],
+  },
+  {
+    id: 'aegean-a320-comp3',
+    airline: 'AEGEAN',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a320-3'), label: 'Bodega 3' },
+    ],
+  },
+  {
+    id: 'aegean-a320-comp4',
+    airline: 'AEGEAN',
+    compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a320-4'), label: 'Bodega 4 🚪' },
+    ],
+  },
+  {
+    id: 'aegean-a320-bulk5',
+    airline: 'AEGEAN',
+    compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a320-5'), label: 'Bodega 5' },
+    ],
+  },
+];
+
+// Aegean A321
+export const AEGEAN_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'aegean-a321-comp1',
+    airline: 'AEGEAN',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a321-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('AEGEAN', 'a321-21'), label: 'Bodega 21' },
+    ],
+  },
+  {
+    id: 'aegean-a321-comp3',
+    airline: 'AEGEAN',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a321-31'), label: 'Bodega 31' },
+    ],
+  },
+  {
+    id: 'aegean-a321-comp4',
+    airline: 'AEGEAN',
+    compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a321-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('AEGEAN', 'a321-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'aegean-a321-bulk5',
+    airline: 'AEGEAN',
+    compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('AEGEAN', 'a321-5'), label: 'Bodega 5' },
+    ],
+  },
+];
+
 export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'ITA') {
@@ -226,6 +301,11 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   if (airline === 'WIZZ') {
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS;
+    return [];
+  }
+  if (airline === 'AEGEAN') {
+    if (aircraftModel === 'A320') return AEGEAN_A320_COMPARTMENTS;
+    if (aircraftModel === 'A321') return AEGEAN_A321_COMPARTMENTS;
     return [];
   }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
