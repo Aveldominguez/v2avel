@@ -3,6 +3,7 @@ import { AirlineCode, AIRLINES, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline } from '@/data/compartmentDefinitions';
 import { AirlineFieldsTable } from './AirlineFieldsTable';
+import { CompartmentsTable } from './CompartmentsTable';
 import { ComoditysDialog } from './ComoditysDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Luggage } from 'lucide-react';
@@ -55,15 +56,19 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
       </div>
 
       <CardContent className="pt-6 space-y-4">
-        <AirlineFieldsTable fields={getFieldsByAirline(airline)} values={fieldValues} onChange={handleFieldChange} disabled={disabled} />
-
-        {compartments.length > 0 && (
-          <ComoditysDialog
-            compartments={compartments}
-            values={fieldValues}
-            onChange={handleFieldChange}
-            disabled={disabled}
-          />
+        {compartments.length > 0 ? (
+          <>
+            {/* Sky Express: show compartments inline, codes in dialog */}
+            <CompartmentsTable compartments={compartments} values={fieldValues} onChange={handleFieldChange} disabled={disabled} />
+            <ComoditysDialog
+              fields={getFieldsByAirline(airline)}
+              values={fieldValues}
+              onChange={handleFieldChange}
+              disabled={disabled}
+            />
+          </>
+        ) : (
+          <AirlineFieldsTable fields={getFieldsByAirline(airline)} values={fieldValues} onChange={handleFieldChange} disabled={disabled} />
         )}
       </CardContent>
     </Card>

@@ -1,6 +1,5 @@
 import React from 'react';
-import { FieldValue } from '@/types/turnaround';
-import { CompartmentDefinition } from '@/data/compartmentDefinitions';
+import { FieldDefinition, FieldValue } from '@/types/turnaround';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
@@ -14,20 +13,20 @@ import {
 } from '@/components/ui/dialog';
 
 interface ComoditysDialogProps {
-  compartments: CompartmentDefinition[];
+  fields: FieldDefinition[];
   values: FieldValue[];
-  onChange: (holdId: string, value: string) => void;
+  onChange: (fieldId: string, value: string) => void;
   disabled?: boolean;
 }
 
 export const ComoditysDialog: React.FC<ComoditysDialogProps> = ({
-  compartments,
+  fields,
   values,
   onChange,
   disabled = false,
 }) => {
-  const getValue = (holdId: string): string =>
-    values.find(v => v.fieldDefinitionId === holdId)?.value || '';
+  const getValue = (fieldId: string): string =>
+    values.find(v => v.fieldDefinitionId === fieldId)?.value || '';
 
   return (
     <Dialog>
@@ -44,33 +43,27 @@ export const ComoditysDialog: React.FC<ComoditysDialogProps> = ({
             Comoditys – Sky Express
           </DialogTitle>
           <DialogDescription>
-            Introduce los datos de cada bodega por compartimiento.
+            Introduce los datos de cada código de carga.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 mt-2">
-          {compartments.map((comp) => (
-            <div key={comp.id}>
-              <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
-                {comp.compartmentName}
-              </h3>
-              <div className="space-y-2">
-                {comp.holds.map((hold) => (
-                  <div key={hold.id} className="flex items-center gap-3">
-                    <label className="text-sm font-medium text-foreground/80 w-24 shrink-0">
-                      {hold.label}:
-                    </label>
-                    <Input
-                      type="text"
-                      value={getValue(hold.id)}
-                      onChange={(e) => onChange(hold.id, e.target.value)}
-                      disabled={disabled}
-                      placeholder="—"
-                      className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
-                    />
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-3 mt-2">
+          {fields.map((field) => (
+            <div key={field.id} className="flex items-center gap-3">
+              <span className="font-mono text-sm font-bold text-primary w-10 shrink-0 text-center">
+                {field.code}
+              </span>
+              <span className="text-sm text-foreground/80 w-32 shrink-0">
+                {field.label}
+              </span>
+              <Input
+                type="text"
+                value={getValue(field.id)}
+                onChange={(e) => onChange(field.id, e.target.value)}
+                disabled={disabled}
+                placeholder="—"
+                className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+              />
             </div>
           ))}
         </div>
