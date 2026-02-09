@@ -24,6 +24,8 @@ export interface TurnaroundTimes {
   tango: string | null;                  // Tango
   isRemote: boolean;                     // En remoto
   remoteLocation: string | null;         // Ubicación remoto
+  asu: boolean;                          // ASU activo
+  asuData: string | null;               // Datos ASU
 }
 
 export interface FieldDefinition {
@@ -92,7 +94,7 @@ export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
   label: string;
   clockColor?: 'green' | 'red' | 'default';
-  type: 'time' | 'boolean';
+  type: 'time' | 'boolean' | 'boolean-text';
 }
 
 // Base fields for TAP/AEGEAN/ITA (with stairs)
@@ -110,6 +112,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
 // Fields without stairs (WIZZ, PEGASUS, TRANSAVIA, SKYEXPRESS)
@@ -125,6 +128,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
 // FedEx-specific fields (different order, no cargo/mail selectors, no 1ª Maleta)
@@ -139,6 +143,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
 // Remote-only fields
