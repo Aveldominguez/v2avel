@@ -5,13 +5,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Verify the caller is an admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
@@ -23,7 +24,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller is admin using their token
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -36,7 +36,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check admin role
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await adminClient
       .from("user_roles")
@@ -54,23 +53,40 @@ Deno.serve(async (req) => {
 
     const { email, password, display_name } = await req.json();
 
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Email y contraseña son obligatorios" }), {
+    // Validate email format
+    if (!email || typeof email !== "string" || !emailRegex.test(email) || email.length > 255) {
+      return new Response(JSON.stringify({ error: "Email inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create user with admin API (auto-confirms email)
+    // Validate password strength
+    if (!password || typeof password !== "string" || password.length < 8) {
+      return new Response(JSON.stringify({ error: "La contraseña debe tener al menos 8 caracteres" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate display_name
+    const safeName = display_name && typeof display_name === "string" && display_name.trim().length > 0 && display_name.length <= 100
+      ? display_name.trim()
+      : email.split("@")[0];
+
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { display_name: display_name || email.split("@")[0] },
+      user_metadata: { display_name: safeName },
     });
 
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
+      console.error("User creation failed:", createError);
+      const safeMessage = createError.message.includes("already")
+        ? "Este email ya está registrado"
+        : "Error al crear usuario";
+      return new Response(JSON.stringify({ error: safeMessage }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -81,7 +97,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error("Unexpected error:", err.message);
+    return new Response(JSON.stringify({ error: "Error interno del servidor" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
