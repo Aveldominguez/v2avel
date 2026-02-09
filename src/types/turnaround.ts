@@ -24,6 +24,8 @@ export interface TurnaroundTimes {
   tango: string | null;                  // Tango
   isRemote: boolean;                     // En remoto
   remoteLocation: string | null;         // Ubicación remoto
+  asu: boolean;                          // ASU activo
+  asuData: string | null;               // Datos ASU
 }
 
 export interface FieldDefinition {
