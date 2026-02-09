@@ -31,7 +31,7 @@ export const TAP_FIELDS: FieldDefinition[] = [
   createField('TAP', 'BG', 'Super Short', 6),
   createField('TAP', 'D', 'Crew', 7),
   createField('TAP', 'E', 'Equipment', 8),
-  createField('TAP', 'B-Xr', 'Restos', 9),
+  createField('TAP', 'BE', 'Tránsito internacional', 9),
   createField('TAP', 'DAA', 'Delivery At Aircraft (Carrito)', 10),
   createField('TAP', 'Crew', 'Tripulación', 11),
   createField('TAP', 'BH', 'Grupo (varios de tránsito mismo destino)', 12),
