@@ -31,7 +31,9 @@ const TurnaroundForm: React.FC = () => {
   const [step, setStep] = useState(isEditing ? 2 : 1);
   const [flightNumber, setFlightNumber] = useState('');
   const [date, setDate] = useState<Date>(new Date());
-  const [airline, setAirline] = useState<AirlineCode>('TAP');
+  const [airline, setAirline] = useState<AirlineCode | ''>('');
+  // Safe cast for step 2+ where airline is guaranteed to be set
+  const selectedAirline = airline as AirlineCode;
   const [tango, setTango] = useState('');
   const [isRemote, setIsRemote] = useState(false);
   const [aircraftModel, setAircraftModel] = useState('');
@@ -134,7 +136,7 @@ const TurnaroundForm: React.FC = () => {
       turnaroundId: id,
       flightNumber,
       date: date.toISOString(),
-      airline,
+      airline: selectedAirline,
       aircraftModel,
       times: getTimesWithFlightInfo(),
       fieldValues,
@@ -175,7 +177,7 @@ const TurnaroundForm: React.FC = () => {
 
     if (isOnline) {
       try {
-        await updateTurnaround(id, flightNumber, date, airline, finalTimes, fieldValues, observations);
+        await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
         setLastSaved(new Date());
         hasUnsavedChanges.current = false;
         clearDraft(id);
@@ -187,7 +189,7 @@ const TurnaroundForm: React.FC = () => {
           data: {
             flightNumber,
             date: date.toISOString().split('T')[0],
-            airline,
+            airline: selectedAirline,
             times: finalTimes,
             fieldValues: fieldValuesForDb,
             observations,
@@ -202,7 +204,7 @@ const TurnaroundForm: React.FC = () => {
         data: {
           flightNumber,
           date: date.toISOString().split('T')[0],
-          airline,
+          airline: selectedAirline,
           times: finalTimes,
           fieldValues: fieldValuesForDb,
           observations,
@@ -239,12 +241,12 @@ const TurnaroundForm: React.FC = () => {
     if (isOnline) {
       try {
         if (isEditing && id) {
-          await updateTurnaround(id, flightNumber, date, airline, finalTimes, fieldValues, observations);
+          await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           setLastSaved(new Date());
           clearDraft(id);
           toast({ title: 'Escala actualizada', description: `Vuelo ${flightNumber} guardado correctamente` });
         } else {
-          await createTurnaround(flightNumber, date, airline, finalTimes, fieldValues, observations);
+          await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           clearDraft();
           toast({ title: 'Escala creada', description: `Vuelo ${flightNumber} guardado correctamente` });
           navigate('/');
@@ -258,7 +260,7 @@ const TurnaroundForm: React.FC = () => {
           data: {
             flightNumber,
             date: date.toISOString().split('T')[0],
-            airline,
+            airline: selectedAirline,
             times: finalTimes,
             fieldValues: fieldValuesForDb,
             observations,
@@ -275,7 +277,7 @@ const TurnaroundForm: React.FC = () => {
         data: {
           flightNumber,
           date: date.toISOString().split('T')[0],
-          airline,
+          airline: selectedAirline,
           times: finalTimes,
           fieldValues: fieldValuesForDb,
           observations,
@@ -394,7 +396,7 @@ const TurnaroundForm: React.FC = () => {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <AirlineTimesBlock
-          airline={airline}
+          airline={selectedAirline}
           aircraftModel={aircraftModel}
           isRemote={isRemote}
           times={times}
@@ -402,9 +404,9 @@ const TurnaroundForm: React.FC = () => {
           errors={errors}
         />
 
-        {airline !== 'FEDEX' && (
+        {selectedAirline !== 'FEDEX' && (
           <AirlineTabs
-            airline={airline}
+            airline={selectedAirline}
             fieldValues={fieldValues}
             onChange={setFieldValues}
           />

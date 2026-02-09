@@ -25,7 +25,7 @@ interface FlightInfoStepProps {
   setRemoteLocation: (v: string) => void;
   date: Date;
   setDate: (v: Date) => void;
-  airline: AirlineCode;
+  airline: AirlineCode | '';
   setAirline: (v: AirlineCode) => void;
   aircraftModel: string;
   setAircraftModel: (v: string) => void;
@@ -52,9 +52,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   onCancel,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
-  const models = getModelsForAirline(airline);
+  const models = airline ? getModelsForAirline(airline) : [];
 
-  const canContinue = flightNumber.trim() !== '' && airline && aircraftModel;
+  const canContinue = flightNumber.trim() !== '' && airline !== '' && aircraftModel;
 
   const handleAirlineChange = (v: AirlineCode) => {
     setAirline(v);
@@ -89,7 +89,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             <Input
               value={flightNumber}
               onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-              placeholder="TP1234"
+              placeholder="Introducir vuelo"
               className="input-operational font-mono"
             />
           </div>
@@ -182,9 +182,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               Aerolínea <span className="text-destructive">*</span>
             </Label>
-            <Select value={airline} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
+            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
               <SelectTrigger className="input-operational">
-                <SelectValue />
+                <SelectValue placeholder="Seleccionar Aerolínea" />
               </SelectTrigger>
               <SelectContent>
                 {AIRLINES.map((a) => (
