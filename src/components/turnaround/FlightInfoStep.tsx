@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plane, Calendar as CalendarIcon, ArrowRight, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
-import { Plane, Calendar as CalendarIcon, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,7 @@ interface FlightInfoStepProps {
   aircraftModel: string;
   setAircraftModel: (v: string) => void;
   onContinue: () => void;
+  onCancel: () => void;
 }
 
 export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
@@ -48,6 +49,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   aircraftModel,
   setAircraftModel,
   onContinue,
+  onCancel,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const models = getModelsForAirline(airline);
@@ -65,12 +67,18 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="card-operational w-full max-w-lg">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="p-2 rounded-lg bg-primary/20">
-              <Plane className="h-6 w-6 text-primary" />
-            </div>
-            Nueva Escala
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <div className="p-2 rounded-lg bg-primary/20">
+                <Plane className="h-6 w-6 text-primary" />
+              </div>
+              Nueva Escala
+            </CardTitle>
+            <Button variant="destructive" size="sm" onClick={onCancel} className="gap-1.5">
+              <X className="h-4 w-4" />
+              Cancelar
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-5">
           {/* Flight Number */}
