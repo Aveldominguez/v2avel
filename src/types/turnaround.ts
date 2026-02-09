@@ -143,6 +143,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
 // Remote-only fields
