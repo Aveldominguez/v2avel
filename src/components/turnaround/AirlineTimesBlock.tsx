@@ -59,8 +59,11 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                     label={field.label}
                     value={boolVal}
                     onChange={(v) => {
-                      updateTime(field.key, v);
-                      if (!v) updateTime(textKey, null);
+                      if (!v) {
+                        onChange({ ...times, [field.key]: false, [textKey]: null });
+                      } else {
+                        updateTime(field.key, true);
+                      }
                     }}
                     disabled={disabled}
                   />
