@@ -1,5 +1,6 @@
 import React from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
+import { getModelsForAirline } from '@/data/aircraftModels';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,8 @@ interface FlightInfoStepProps {
   setDate: (v: Date) => void;
   airline: AirlineCode;
   setAirline: (v: AirlineCode) => void;
+  aircraftModel: string;
+  setAircraftModel: (v: string) => void;
   onContinue: () => void;
 }
 
@@ -42,11 +45,21 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setDate,
   airline,
   setAirline,
+  aircraftModel,
+  setAircraftModel,
   onContinue,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+  const models = getModelsForAirline(airline);
 
-  const canContinue = flightNumber.trim() !== '' && airline;
+  const canContinue = flightNumber.trim() !== '' && airline && aircraftModel;
+
+  const handleAirlineChange = (v: AirlineCode) => {
+    setAirline(v);
+    // Reset model when airline changes
+    const newModels = getModelsForAirline(v);
+    setAircraftModel(newModels.length === 1 ? newModels[0].model : '');
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -161,7 +174,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               Aerolínea <span className="text-destructive">*</span>
             </Label>
-            <Select value={airline} onValueChange={(v) => setAirline(v as AirlineCode)}>
+            <Select value={airline} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
               <SelectTrigger className="input-operational">
                 <SelectValue />
               </SelectTrigger>
@@ -169,6 +182,25 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 {AIRLINES.map((a) => (
                   <SelectItem key={a.code} value={a.code}>
                     {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Aircraft Model */}
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Modelo de Aeronave <span className="text-destructive">*</span>
+            </Label>
+            <Select value={aircraftModel} onValueChange={setAircraftModel}>
+              <SelectTrigger className="input-operational">
+                <SelectValue placeholder="Seleccionar modelo" />
+              </SelectTrigger>
+              <SelectContent>
+                {models.map((m) => (
+                  <SelectItem key={m.model} value={m.model}>
+                    {m.label} — {m.turnaroundMinutes} min
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -108,6 +108,11 @@ const createSharedFields = (airline: AirlineCode): FieldDefinition[] => [
 export const PEGASUS_FIELDS: FieldDefinition[] = createSharedFields('PEGASUS');
 export const TRANSAVIA_FIELDS: FieldDefinition[] = createSharedFields('TRANSAVIA');
 export const SKYEXPRESS_FIELDS: FieldDefinition[] = createSharedFields('SKYEXPRESS');
+export const AIR_CANADA_FIELDS: FieldDefinition[] = createSharedFields('AIR_CANADA');
+export const ALBASTAR_FIELDS: FieldDefinition[] = createSharedFields('ALBASTAR');
+export const ICELANDAIR_FIELDS: FieldDefinition[] = createSharedFields('ICELANDAIR');
+export const AZUL_FIELDS: FieldDefinition[] = createSharedFields('AZUL');
+export const AMAZON_FIELDS: FieldDefinition[] = createSharedFields('AMAZON');
 
 // All field definitions combined
 export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
@@ -118,6 +123,11 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...PEGASUS_FIELDS,
   ...TRANSAVIA_FIELDS,
   ...SKYEXPRESS_FIELDS,
+  ...AIR_CANADA_FIELDS,
+  ...ALBASTAR_FIELDS,
+  ...ICELANDAIR_FIELDS,
+  ...AZUL_FIELDS,
+  ...AMAZON_FIELDS,
 ];
 
 // Get fields by airline
