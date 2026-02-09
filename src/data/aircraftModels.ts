@@ -58,6 +58,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: 'B737', label: 'B737', turnaroundMinutes: 45 },
   ],
   SKYEXPRESS: [
+    { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
     { model: 'OTHER', label: 'Genérico', turnaroundMinutes: 40 },
   ],
   FEDEX: [
