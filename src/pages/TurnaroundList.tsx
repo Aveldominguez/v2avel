@@ -149,16 +149,11 @@ const TurnaroundList: React.FC = () => {
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
         <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/20">
-                <Plane className="h-7 w-7 text-primary" />
-              </div>
-              <div className="text-center">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registros de Escalas Rampa</h1>
-                <p className="text-sm text-muted-foreground">
-                  {user?.email}
-                </p>
-              </div>
+            <div className="text-center">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registros de Escalas Rampa</h1>
+              <p className="text-sm text-muted-foreground">
+                Usuario: {user?.email}
+              </p>
             </div>
 
             <div className="flex items-center justify-between w-full">
