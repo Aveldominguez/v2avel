@@ -5,6 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -22,7 +24,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller is admin
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -52,29 +53,31 @@ Deno.serve(async (req) => {
 
     const { user_id, new_password } = await req.json();
 
-    if (!user_id || !new_password) {
-      return new Response(JSON.stringify({ error: "user_id y new_password son obligatorios" }), {
+    // Validate user_id is a valid UUID
+    if (!user_id || typeof user_id !== "string" || !uuidRegex.test(user_id)) {
+      return new Response(JSON.stringify({ error: "user_id inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (new_password.length < 6) {
-      return new Response(JSON.stringify({ error: "La contraseña debe tener al menos 6 caracteres" }), {
+    // Validate password strength
+    if (!new_password || typeof new_password !== "string" || new_password.length < 8) {
+      return new Response(JSON.stringify({ error: "La contraseña debe tener al menos 8 caracteres" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log(`Admin ${caller.email} changing password for user ${user_id}`);
+    console.log(`Admin ${caller.id} changing password for user ${user_id}`);
 
     const { error: updateError } = await adminClient.auth.admin.updateUserById(user_id, {
       password: new_password,
     });
 
     if (updateError) {
-      console.error("Error updating password:", updateError.message);
-      return new Response(JSON.stringify({ error: updateError.message }), {
+      console.error("Error updating password:", updateError);
+      return new Response(JSON.stringify({ error: "Error al cambiar contraseña" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -88,7 +91,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("Unexpected error:", err.message);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "Error interno del servidor" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
