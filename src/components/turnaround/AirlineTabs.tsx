@@ -1,15 +1,19 @@
 import React from 'react';
 import { AirlineCode, AIRLINES, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
+import { getCompartmentsByAirline } from '@/data/compartmentDefinitions';
 import { AirlineFieldsTable } from './AirlineFieldsTable';
+import { ComoditysDialog } from './ComoditysDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Luggage } from 'lucide-react';
+
 interface AirlineTabsProps {
   airline: AirlineCode;
   fieldValues: FieldValue[];
   onChange: (values: FieldValue[]) => void;
   disabled?: boolean;
 }
+
 export const AirlineTabs: React.FC<AirlineTabsProps> = ({
   airline,
   fieldValues,
@@ -17,6 +21,8 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
   disabled = false
 }) => {
   const airlineInfo = AIRLINES.find(a => a.code === airline);
+  const compartments = getCompartmentsByAirline(airline);
+
   const handleFieldChange = (fieldId: string, value: string) => {
     const existing = fieldValues.find(v => v.fieldDefinitionId === fieldId);
     if (existing) {
@@ -33,7 +39,9 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
       }]);
     }
   };
-  return <Card className="card-operational">
+
+  return (
+    <Card className="card-operational">
       <div className="border-b-2 border-border px-4 pt-4 pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-accent/20">
@@ -46,8 +54,18 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
         </div>
       </div>
 
-      <CardContent className="pt-6">
+      <CardContent className="pt-6 space-y-4">
         <AirlineFieldsTable fields={getFieldsByAirline(airline)} values={fieldValues} onChange={handleFieldChange} disabled={disabled} />
+
+        {compartments.length > 0 && (
+          <ComoditysDialog
+            compartments={compartments}
+            values={fieldValues}
+            onChange={handleFieldChange}
+            disabled={disabled}
+          />
+        )}
       </CardContent>
-    </Card>;
+    </Card>
+  );
 };
