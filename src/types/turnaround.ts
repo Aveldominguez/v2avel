@@ -94,7 +94,7 @@ export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
   label: string;
   clockColor?: 'green' | 'red' | 'default';
-  type: 'time' | 'boolean';
+  type: 'time' | 'boolean' | 'boolean-text';
 }
 
 // Base fields for TAP/AEGEAN/ITA (with stairs)
