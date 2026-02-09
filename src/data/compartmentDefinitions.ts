@@ -136,11 +136,96 @@ export const ITA_A320_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Wizz Air A321
+export const WIZZ_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'wizz-a321-comp1',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('WIZZ', 'a321-12'), label: 'Bodega 12' },
+    ],
+  },
+  {
+    id: 'wizz-a321-comp3',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 3 AFT (hasta 90 maletas)',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321-31'), label: 'Bodega 31' },
+      { id: createHoldId('WIZZ', 'a321-32'), label: 'Bodega 32' },
+      { id: createHoldId('WIZZ', 'a321-33'), label: 'Bodega 33' },
+    ],
+  },
+  {
+    id: 'wizz-a321-comp4',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 4 (Resto aquí)',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('WIZZ', 'a321-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'wizz-a321-bulk5',
+    airline: 'WIZZ',
+    compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321-51'), label: 'Bodega 51' },
+    ],
+  },
+];
+
+// Wizz Air A320
+export const WIZZ_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'wizz-a320-comp1',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('WIZZ', 'a320-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('WIZZ', 'a320-12'), label: 'Bodega 12' },
+      { id: createHoldId('WIZZ', 'a320-13'), label: 'Bodega 13' },
+    ],
+  },
+  {
+    id: 'wizz-a320-comp3',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('WIZZ', 'a320-31'), label: 'Bodega 31' },
+      { id: createHoldId('WIZZ', 'a320-32'), label: 'Bodega 32' },
+    ],
+  },
+  {
+    id: 'wizz-a320-comp4',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('WIZZ', 'a320-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('WIZZ', 'a320-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'wizz-a320-bulk',
+    airline: 'WIZZ',
+    compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('WIZZ', 'a320-5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
 export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'ITA') {
     if (aircraftModel === 'A321') return ITA_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return ITA_A320_COMPARTMENTS;
+    return [];
+  }
+  if (airline === 'WIZZ') {
+    if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS;
+    if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS;
     return [];
   }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
