@@ -128,6 +128,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
 // FedEx-specific fields (different order, no cargo/mail selectors, no 1ª Maleta)
