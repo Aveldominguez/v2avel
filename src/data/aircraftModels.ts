@@ -26,7 +26,10 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: '787-900', label: '787-900', turnaroundMinutes: 95, cleaningMinutes: 25 },
   ],
   TRANSAVIA: [
-    { model: 'B737', label: 'B737', turnaroundMinutes: 45 },
+    { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
+    { model: 'A321', label: 'A321', turnaroundMinutes: 50 },
+    { model: '737-800', label: '737-800', turnaroundMinutes: 45 },
+    { model: 'A320_AIRBALTIC', label: 'A320 airBaltic', turnaroundMinutes: 45 },
   ],
   ALBASTAR: [
     { model: 'B737', label: 'B737', turnaroundMinutes: 50 },
