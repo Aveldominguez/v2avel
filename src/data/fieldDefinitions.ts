@@ -80,14 +80,13 @@ export const AEGEAN_FIELDS: FieldDefinition[] = [
   createField('AEGEAN', 'BG', 'Gate / Mano / Puerta', 4),
   createField('AEGEAN', 'BF', 'Priority', 5),
   createField('AEGEAN', 'BR', 'Rush', 6),
-  createField('AEGEAN', 'DAA', 'Delivery At Aircraft (Carrito)', 7),
+  createField('AEGEAN', 'DAA', 'Delivery at Aircraft (Carrito)', 7),
   createField('AEGEAN', 'CREW', 'Crew', 8),
   createField('AEGEAN', 'E', 'Equipment', 9),
-  createField('AEGEAN', 'BH', 'Grupo (varios de tránsito mismo destino)', 10),
-  createField('AEGEAN', 'B-Xr', 'Restos', 11),
-  createField('AEGEAN', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 12),
-  createField('AEGEAN', 'WCH', 'Wheelchair', 13),
-  createField('AEGEAN', 'WDB', 'Wheelchair – Dry Battery', 14),
+  createField('AEGEAN', 'BH', 'Grupo (varios tránsitos mismo destino)', 10),
+  createField('AEGEAN', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 11),
+  createField('AEGEAN', 'WCH', 'Wheelchair', 12),
+  createField('AEGEAN', 'WDB', 'Wheelchair – Dry Battery', 13),
 ];
 
 // Shared fields for Pegasus, Transavia, Sky Express
