@@ -164,7 +164,7 @@ const TurnaroundList: React.FC = () => {
             <div className="flex items-center justify-between w-full">
               <div>
                 {isAdmin && (
-                  <Button variant="outline" size="icon" onClick={() => navigate('/admin')} className="border-warning text-warning hover:bg-warning/20">
+                  <Button size="icon" onClick={() => navigate('/admin')} className="bg-warning text-warning-foreground hover:bg-warning/90">
                     <Shield className="h-5 w-5" />
                   </Button>
                 )}
@@ -173,7 +173,7 @@ const TurnaroundList: React.FC = () => {
                 <Plus className="h-5 w-5" />
                 Nueva Escala
               </Button>
-              <Button variant="outline" size="icon" onClick={handleSignOut} className="border-destructive text-destructive hover:bg-destructive/20">
+              <Button variant="destructive" size="icon" onClick={handleSignOut}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
