@@ -24,6 +24,8 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   tango: null,
   isRemote: false,
   remoteLocation: null,
+  asu: false,
+  asuData: null,
 });
 
 // Create a new turnaround
