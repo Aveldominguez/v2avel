@@ -179,29 +179,25 @@ const AdminPanel: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="p-2.5 rounded-xl bg-destructive/20">
-                <Shield className="h-7 w-7 text-destructive" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Panel de Administración</h1>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
-              </div>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 justify-center w-full">
+              <Shield className="h-6 w-6 text-destructive" />
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Panel de Administración</h1>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setCreateDialog(true)} className="gap-2">
-                <UserPlus className="h-4 w-4" />
-                Crear Usuario
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/')}>
-                <Plane className="h-4 w-4 mr-2" />
-                Mis Escalas
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => { signOut(); navigate('/auth'); }}>
+            <p className="text-sm text-muted-foreground">
+              Administrador: {user?.email}
+            </p>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setCreateDialog(true)} className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Crear Usuario
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/')}>
+                  Mis Escalas
+                </Button>
+              </div>
+              <Button variant="destructive" size="icon" onClick={() => { signOut(); navigate('/auth'); }}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
