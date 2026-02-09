@@ -320,6 +320,7 @@ const TurnaroundForm: React.FC = () => {
         aircraftModel={aircraftModel}
         setAircraftModel={setAircraftModel}
         onContinue={handleContinue}
+        onCancel={() => navigate('/')}
       />
     );
   }
