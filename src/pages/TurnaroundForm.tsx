@@ -410,6 +410,7 @@ const TurnaroundForm: React.FC = () => {
         {selectedAirline !== 'FEDEX' && (
           <AirlineTabs
             airline={selectedAirline}
+            aircraftModel={aircraftModel}
             fieldValues={fieldValues}
             onChange={setFieldValues}
           />

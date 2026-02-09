@@ -10,6 +10,7 @@ import { Luggage } from 'lucide-react';
 
 interface AirlineTabsProps {
   airline: AirlineCode;
+  aircraftModel?: string;
   fieldValues: FieldValue[];
   onChange: (values: FieldValue[]) => void;
   disabled?: boolean;
@@ -17,12 +18,13 @@ interface AirlineTabsProps {
 
 export const AirlineTabs: React.FC<AirlineTabsProps> = ({
   airline,
+  aircraftModel,
   fieldValues,
   onChange,
   disabled = false
 }) => {
   const airlineInfo = AIRLINES.find(a => a.code === airline);
-  const compartments = getCompartmentsByAirline(airline);
+  const compartments = getCompartmentsByAirline(airline, aircraftModel);
 
   const handleFieldChange = (fieldId: string, value: string) => {
     const existing = fieldValues.find(v => v.fieldDefinitionId === fieldId);
