@@ -1,6 +1,5 @@
 import React from 'react';
 import { FieldDefinition, FieldValue } from '@/types/turnaround';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import {
@@ -42,28 +41,17 @@ export const ComoditysDialog: React.FC<ComoditysDialogProps> = ({
             <AlertTriangle className="h-5 w-5 text-destructive" />
             Comoditys – Sky Express
           </DialogTitle>
-          <DialogDescription>
-            Introduce los datos de cada código de carga.
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 mt-2">
           {fields.map((field) => (
-            <div key={field.id} className="flex items-center gap-3">
+            <div key={field.id} className="flex items-center justify-center gap-3">
               <span className="font-mono text-sm font-bold text-primary w-10 shrink-0 text-center">
                 {field.code}
               </span>
-              <span className="text-sm text-foreground/80 w-32 shrink-0">
+              <span className="text-sm text-foreground/80">
                 {field.label}
               </span>
-              <Input
-                type="text"
-                value={getValue(field.id)}
-                onChange={(e) => onChange(field.id, e.target.value)}
-                disabled={disabled}
-                placeholder="—"
-                className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
-              />
             </div>
           ))}
         </div>
