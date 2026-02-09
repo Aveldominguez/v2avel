@@ -30,7 +30,7 @@ export const ComoditysDialog: React.FC<ComoditysDialogProps> = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full gap-2 border-destructive/60 text-destructive hover:bg-destructive/10 hover:text-destructive font-semibold">
+        <Button variant="outline" className="w-full gap-2 border-yellow-500 bg-yellow-400 text-yellow-950 hover:bg-yellow-500 hover:text-yellow-950 font-semibold">
           <AlertTriangle className="h-4 w-4" />
           Comoditys
         </Button>
