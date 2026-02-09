@@ -107,7 +107,15 @@ const createSharedFields = (airline: AirlineCode): FieldDefinition[] => [
 
 export const PEGASUS_FIELDS: FieldDefinition[] = createSharedFields('PEGASUS');
 export const TRANSAVIA_FIELDS: FieldDefinition[] = createSharedFields('TRANSAVIA');
-export const SKYEXPRESS_FIELDS: FieldDefinition[] = createSharedFields('SKYEXPRESS');
+export const SKYEXPRESS_FIELDS: FieldDefinition[] = [
+  createField('SKYEXPRESS', 'BT', 'Tránsito', 1),
+  createField('SKYEXPRESS', 'BY', 'Local', 2),
+  createField('SKYEXPRESS', 'BW', 'Gate – Equipaje de Mano', 3),
+  createField('SKYEXPRESS', 'BS', 'Short', 4),
+  createField('SKYEXPRESS', 'BP', 'Priority', 5),
+  createField('SKYEXPRESS', 'D', 'Crew', 6),
+  createField('SKYEXPRESS', 'E', 'Equipment', 7),
+];
 export const AIR_CANADA_FIELDS: FieldDefinition[] = createSharedFields('AIR_CANADA');
 export const ALBASTAR_FIELDS: FieldDefinition[] = createSharedFields('ALBASTAR');
 export const ICELANDAIR_FIELDS: FieldDefinition[] = createSharedFields('ICELANDAIR');
