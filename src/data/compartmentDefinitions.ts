@@ -143,5 +143,6 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A320') return ITA_A320_COMPARTMENTS;
     return [];
   }
-  return [];
+  // Demo: usar compartimientos de Sky Express para las demás aerolíneas
+  return SKYEXPRESS_COMPARTMENTS;
 };
