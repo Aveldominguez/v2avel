@@ -148,26 +148,27 @@ const TurnaroundList: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/20">
                 <Plane className="h-7 w-7 text-primary" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Operaciones Rampa</h1>
+              <div className="text-center">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registros de Escalas Rampa</h1>
                 <p className="text-sm text-muted-foreground">
                   {user?.email}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {isAdmin && (
-                <Button variant="outline" onClick={() => navigate('/admin')} className="gap-2">
-                  <Shield className="h-5 w-5" />
-                  <span className="hidden sm:inline">Admin</span>
-                </Button>
-              )}
+            <div className="flex items-center justify-between w-full">
+              <div>
+                {isAdmin && (
+                  <Button variant="outline" size="icon" onClick={() => navigate('/admin')}>
+                    <Shield className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
               <Button onClick={() => navigate('/turnaround/new')} size="lg" className="gap-2">
                 <Plus className="h-5 w-5" />
                 Nueva Escala
