@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TurnaroundTimes, AirlineCode, FieldValue, TimeValidationError, AIRLINES } from '@/types/turnaround';
+import { getModelsForAirline } from '@/data/aircraftModels';
 import { validateTimes, formatDateTime } from '@/utils/timeValidation';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useOfflineSync, saveDraft, loadDraft, clearDraft, TurnaroundDraft } from '@/hooks/useOfflineSync';
@@ -33,6 +34,7 @@ const TurnaroundForm: React.FC = () => {
   const [airline, setAirline] = useState<AirlineCode>('TAP');
   const [tango, setTango] = useState('');
   const [isRemote, setIsRemote] = useState(false);
+  const [aircraftModel, setAircraftModel] = useState('');
   const [remoteLocation, setRemoteLocation] = useState('');
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
@@ -101,6 +103,7 @@ const TurnaroundForm: React.FC = () => {
     setFlightNumber(draft.flightNumber);
     setDate(new Date(draft.date));
     setAirline(draft.airline);
+    setAircraftModel(draft.aircraftModel || '');
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -132,6 +135,7 @@ const TurnaroundForm: React.FC = () => {
       flightNumber,
       date: date.toISOString(),
       airline,
+      aircraftModel,
       times: getTimesWithFlightInfo(),
       fieldValues,
       observations,
@@ -156,7 +160,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, times, fieldValues, observations, tango, isRemote, remoteLocation]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -313,6 +317,8 @@ const TurnaroundForm: React.FC = () => {
         setDate={setDate}
         airline={airline}
         setAirline={setAirline}
+        aircraftModel={aircraftModel}
+        setAircraftModel={setAircraftModel}
         onContinue={handleContinue}
       />
     );
@@ -363,6 +369,8 @@ const TurnaroundForm: React.FC = () => {
           <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
             <span>{airlineInfo?.name}</span>
             <span>|</span>
+            <span>{aircraftModel}</span>
+            <span>|</span>
             <span>{format(date, 'dd/MM/yyyy', { locale: es })}</span>
             {isRemote && remoteLocation && (
               <>
@@ -386,6 +394,7 @@ const TurnaroundForm: React.FC = () => {
       <main className="container mx-auto px-4 py-6 space-y-6">
         <AirlineTimesBlock
           airline={airline}
+          aircraftModel={aircraftModel}
           isRemote={isRemote}
           times={times}
           onChange={setTimes}

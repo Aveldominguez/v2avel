@@ -31,10 +31,11 @@ const DRAFT_KEY = 'turnaround_draft';
 
 // Draft management for auto-save
 export interface TurnaroundDraft {
-  turnaroundId?: string; // undefined = new, string = editing
+  turnaroundId?: string;
   flightNumber: string;
   date: string;
   airline: AirlineCode;
+  aircraftModel: string;
   times: TurnaroundTimes;
   fieldValues: FieldValue[];
   observations: string;
