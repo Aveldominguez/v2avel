@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane } from 'lucide-react';
+import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -384,6 +384,14 @@ const TurnaroundForm: React.FC = () => {
                 <span className="text-warning font-semibold">Remoto: {remoteLocation}</span>
               </>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setStep(1)}
+              className="h-5 w-5 p-0 ml-1 text-muted-foreground hover:text-primary"
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
             {errors.length > 0 && (
               <>
                 <span>|</span>
