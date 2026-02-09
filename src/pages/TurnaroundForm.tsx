@@ -87,11 +87,14 @@ const TurnaroundForm: React.FC = () => {
           setTimeout(() => { isInitialLoad.current = false; }, 500);
         }
       } else {
-        // New turnaround — check for draft
+        // New turnaround — only restore draft if it was on step 2 (operational data)
         const draft = loadDraft();
-        if (draft) {
+        if (draft && draft.step === 2) {
           applyDraft(draft);
           toast({ title: 'Borrador recuperado', description: 'Se ha restaurado tu trabajo anterior' });
+        } else if (draft) {
+          // Draft was only step 1 data, discard it
+          clearDraft();
         }
         isInitialLoad.current = false;
       }
@@ -322,7 +325,7 @@ const TurnaroundForm: React.FC = () => {
         aircraftModel={aircraftModel}
         setAircraftModel={setAircraftModel}
         onContinue={handleContinue}
-        onCancel={() => navigate('/')}
+        onCancel={() => { clearDraft(); navigate('/'); }}
       />
     );
   }
