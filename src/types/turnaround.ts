@@ -112,6 +112,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
 // Fields without stairs (WIZZ, PEGASUS, TRANSAVIA, SKYEXPRESS)
