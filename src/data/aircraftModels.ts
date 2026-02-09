@@ -75,3 +75,10 @@ export const getTurnaroundDuration = (airline: AirlineCode, model: string): numb
   const found = models.find(m => m.model === model);
   return found?.turnaroundMinutes ?? models[0]?.turnaroundMinutes ?? 40;
 };
+
+export const getCleaningMinutes = (airline: AirlineCode, model: string): number | undefined => {
+  const models = AIRCRAFT_MODELS[airline];
+  if (!models) return undefined;
+  const found = models.find(m => m.model === model);
+  return found?.cleaningMinutes;
+};

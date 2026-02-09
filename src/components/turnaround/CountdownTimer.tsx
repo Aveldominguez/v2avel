@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { Timer } from 'lucide-react';
+import { Timer, SprayCan } from 'lucide-react';
 
 interface CountdownTimerProps {
   chocksOnTime: string | null;
   lastHandBagTime: string | null;
   durationMinutes?: number;
+  cleaningMinutes?: number;
 }
 
 const parseTimeToDate = (timeStr: string): Date => {
@@ -19,6 +20,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   chocksOnTime,
   lastHandBagTime,
   durationMinutes = 40,
+  cleaningMinutes,
 }) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [stoppedDisplay, setStoppedDisplay] = useState<number | null>(null);
@@ -89,18 +91,26 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const display = `${displaySeconds < 0 ? '-' : ''}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-mono font-bold',
-        isOnTime && 'bg-success/20 text-success',
-        isOvertime && 'bg-destructive/20 text-destructive',
-        isExpired && 'bg-destructive/20 text-destructive',
-        isWarning && 'bg-warning/20 text-warning',
-        !isExpired && !isWarning && !isStopped && 'bg-success/20 text-success'
+    <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-mono font-bold',
+          isOnTime && 'bg-success/20 text-success',
+          isOvertime && 'bg-destructive/20 text-destructive',
+          isExpired && 'bg-destructive/20 text-destructive',
+          isWarning && 'bg-warning/20 text-warning',
+          !isExpired && !isWarning && !isStopped && 'bg-success/20 text-success'
+        )}
+      >
+        <Timer className="h-4 w-4" />
+        <span>{display}</span>
+      </div>
+      {cleaningMinutes != null && (
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent/20 text-accent-foreground text-xs font-semibold">
+          <SprayCan className="h-3.5 w-3.5" />
+          <span>{cleaningMinutes}'</span>
+        </div>
       )}
-    >
-      <Timer className="h-4 w-4" />
-      <span>{display}</span>
     </div>
   );
 };
