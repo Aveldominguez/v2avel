@@ -1,6 +1,6 @@
 import React from 'react';
 import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline } from '@/types/turnaround';
-import { getTurnaroundDuration } from '@/data/aircraftModels';
+import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { CountdownTimer } from './CountdownTimer';
@@ -27,6 +27,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 }) => {
   const fields = getTimeFieldsForAirline(airline, isRemote);
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
+  const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
   const updateTime = (field: keyof TurnaroundTimes, value: string | null | boolean) => {
     onChange({ ...times, [field]: value });
@@ -41,7 +42,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between text-xl">
           <span>Control de Horas ⏰</span>
-          <CountdownTimer chocksOnTime={times.chocksOnArrival} lastHandBagTime={times.lastHandBag} durationMinutes={durationMinutes} />
+          <CountdownTimer chocksOnTime={times.chocksOnArrival} lastHandBagTime={times.lastHandBag} durationMinutes={durationMinutes} cleaningMinutes={cleaningMins} />
         </CardTitle>
       </CardHeader>
       <CardContent>
