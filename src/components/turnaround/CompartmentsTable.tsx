@@ -66,7 +66,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   const renderPairedHold = (entry: HoldEntry, idx: number) => {
     if (!isPairedHold(entry)) return null;
     return (
-      <div key={`pair-${idx}`} className="grid grid-cols-2 gap-3">
+      <div key={`pair-${idx}`} className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-bold text-center text-foreground/80">
             {entry.left.label}
