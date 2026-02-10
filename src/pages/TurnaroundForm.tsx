@@ -73,6 +73,7 @@ const TurnaroundForm: React.FC = () => {
             setTango(existing.times.tango || '');
             setIsRemote(existing.times.isRemote || false);
             setRemoteLocation(existing.times.remoteLocation || '');
+            setAircraftModel(existing.times.aircraftModel || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLastSaved(existing.updatedAt);
@@ -127,7 +128,8 @@ const TurnaroundForm: React.FC = () => {
     tango: isRemote ? null : (tango || null),
     isRemote,
     remoteLocation: isRemote ? (remoteLocation || null) : null,
-  }), [times, tango, isRemote, remoteLocation]);
+    aircraftModel: aircraftModel || null,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
