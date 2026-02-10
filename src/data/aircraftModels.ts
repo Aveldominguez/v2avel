@@ -20,6 +20,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: 'A321', label: 'A321', turnaroundMinutes: 50, cleaningMinutes: 5 },
   ],
   AIR_CANADA: [
+    { model: 'A333', label: 'A333', turnaroundMinutes: 90 },
     { model: 'B777', label: 'B777', turnaroundMinutes: 85 },
     { model: 'A330', label: 'A330', turnaroundMinutes: 90 },
     { model: '787-800', label: '787-800', turnaroundMinutes: 85, cleaningMinutes: 25 },

@@ -1,10 +1,25 @@
 import { AirlineCode } from '@/types/turnaround';
 
+export interface HoldDefinition {
+  id: string;
+  label: string;
+}
+
+export interface PairedHoldDefinition {
+  left: HoldDefinition;
+  right: HoldDefinition;
+}
+
+export type HoldEntry = HoldDefinition | PairedHoldDefinition;
+
+export const isPairedHold = (h: HoldEntry): h is PairedHoldDefinition =>
+  'left' in h && 'right' in h;
+
 export interface CompartmentDefinition {
   id: string;
   airline: AirlineCode;
   compartmentName: string;
-  holds: { id: string; label: string }[];
+  holds: HoldEntry[];
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
