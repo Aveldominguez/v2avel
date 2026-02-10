@@ -77,6 +77,13 @@ export const ITA_A321_COMPARTMENTS: CompartmentDefinition[] = [
     holds: [
       { id: createHoldId('ITA', 'a321-11'), label: 'Bodega 11 🚪' },
       { id: createHoldId('ITA', 'a321-12'), label: 'Bodega 12' },
+    ],
+  },
+  {
+    id: 'ita-a321-comp2',
+    airline: 'ITA',
+    compartmentName: 'COMPARTIMIENTO 2',
+    holds: [
       { id: createHoldId('ITA', 'a321-21'), label: 'Bodega 21' },
       { id: createHoldId('ITA', 'a321-22'), label: 'Bodega 22' },
       { id: createHoldId('ITA', 'a321-23'), label: 'Bodega 23' },
