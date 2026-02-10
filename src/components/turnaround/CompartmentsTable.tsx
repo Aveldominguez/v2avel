@@ -67,9 +67,9 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     if (!isPairedHold(entry)) return null;
     return (
       <div key={`pair-${idx}`} className="grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-foreground/80 w-16 shrink-0">
-            {entry.left.label}:
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-bold text-center text-foreground/80">
+            {entry.left.label}
           </label>
           <Input
             type="text"
@@ -80,9 +80,9 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-foreground/80 w-16 shrink-0">
-            {entry.right.label}:
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-bold text-center text-foreground/80">
+            {entry.right.label}
           </label>
           <Input
             type="text"
