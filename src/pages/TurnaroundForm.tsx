@@ -252,10 +252,12 @@ const TurnaroundForm: React.FC = () => {
           clearDraft(id);
           toast({ title: 'Escala actualizada', description: `Vuelo ${flightNumber} guardado correctamente` });
         } else {
-          await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
+          const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           clearDraft();
           toast({ title: 'Escala creada', description: `Vuelo ${flightNumber} guardado correctamente` });
-          navigate('/');
+          if (created) {
+            navigate(`/turnaround/${created.id}`, { replace: true });
+          }
         }
       } catch (err) {
         console.error('Error saving:', err);
