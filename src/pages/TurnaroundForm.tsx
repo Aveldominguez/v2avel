@@ -275,6 +275,7 @@ const TurnaroundForm: React.FC = () => {
           },
         });
         toast({ title: 'Guardado localmente', description: 'Se sincronizará cuando haya conexión' });
+      }
     } else {
       // Offline: queue the operation
       enqueue({
