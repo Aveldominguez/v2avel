@@ -20,6 +20,8 @@ export interface CompartmentDefinition {
   airline: AirlineCode;
   compartmentName: string;
   holds: HoldEntry[];
+  expandable?: boolean;
+  expandableDefault?: number;
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
