@@ -56,6 +56,10 @@ const TurnaroundList: React.FC = () => {
   const { isAdmin } = useAdmin();
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
   
+  // Pagination
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   // Filters
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>('ALL');
@@ -88,7 +92,11 @@ const TurnaroundList: React.FC = () => {
     result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     setFilteredTurnarounds(result);
+    setVisibleCount(PAGE_SIZE);
   }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
+
+  const visibleTurnarounds = filteredTurnarounds.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredTurnarounds.length;
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
@@ -290,7 +298,7 @@ const TurnaroundList: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredTurnarounds.map((t) => {
+                    {visibleTurnarounds.map((t) => {
                       const status = getCompletionStatus(t);
                       
                       return (
@@ -340,6 +348,17 @@ const TurnaroundList: React.FC = () => {
                     })}
                   </TableBody>
                 </Table>
+                {hasMore && (
+                  <div className="p-4 flex justify-center border-t border-border">
+                    <Button
+                      variant="outline"
+                      onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                      className="w-full sm:w-auto"
+                    >
+                      Cargar más Escalas ({filteredTurnarounds.length - visibleCount} restantes)
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
