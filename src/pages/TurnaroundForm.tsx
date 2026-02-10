@@ -73,6 +73,7 @@ const TurnaroundForm: React.FC = () => {
             setTango(existing.times.tango || '');
             setIsRemote(existing.times.isRemote || false);
             setRemoteLocation(existing.times.remoteLocation || '');
+            setAircraftModel(existing.times.aircraftModel || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLastSaved(existing.updatedAt);
