@@ -127,7 +127,8 @@ const TurnaroundForm: React.FC = () => {
     tango: isRemote ? null : (tango || null),
     isRemote,
     remoteLocation: isRemote ? (remoteLocation || null) : null,
-  }), [times, tango, isRemote, remoteLocation]);
+    aircraftModel: aircraftModel || null,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
