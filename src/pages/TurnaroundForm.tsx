@@ -427,6 +427,27 @@ const TurnaroundForm: React.FC = () => {
           />
         )}
 
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-2 font-semibold"
+          onClick={() => generateTurnaroundPdf({
+            flightNumber,
+            date,
+            airline: selectedAirline,
+            aircraftModel,
+            isRemote,
+            remoteLocation,
+            tango,
+            times: getTimesWithFlightInfo(),
+            fieldValues,
+            observations,
+          })}
+        >
+          <FileDown className="h-4 w-4" />
+          Exportar PDF
+        </Button>
+
         <Card className="card-operational">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3 text-lg">
