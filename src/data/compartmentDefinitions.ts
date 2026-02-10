@@ -512,6 +512,8 @@ export const AIR_CANADA_A333_COMPARTMENTS: CompartmentDefinition[] = [
     holds: [
       { id: createHoldId('AIR_CANADA', 'a333-53'), label: '53 🚪' },
     ],
+    expandable: true,
+    expandableDefault: 5,
   },
 ];
 
