@@ -298,7 +298,7 @@ const TurnaroundList: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredTurnarounds.map((t) => {
+                    {visibleTurnarounds.map((t) => {
                       const status = getCompletionStatus(t);
                       
                       return (
@@ -348,6 +348,17 @@ const TurnaroundList: React.FC = () => {
                     })}
                   </TableBody>
                 </Table>
+                {hasMore && (
+                  <div className="p-4 flex justify-center border-t border-border">
+                    <Button
+                      variant="outline"
+                      onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                      className="w-full sm:w-auto"
+                    >
+                      Cargar más Escalas ({filteredTurnarounds.length - visibleCount} restantes)
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
