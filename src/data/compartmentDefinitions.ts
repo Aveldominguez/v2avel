@@ -1,10 +1,25 @@
 import { AirlineCode } from '@/types/turnaround';
 
+export interface HoldDefinition {
+  id: string;
+  label: string;
+}
+
+export interface PairedHoldDefinition {
+  left: HoldDefinition;
+  right: HoldDefinition;
+}
+
+export type HoldEntry = HoldDefinition | PairedHoldDefinition;
+
+export const isPairedHold = (h: HoldEntry): h is PairedHoldDefinition =>
+  'left' in h && 'right' in h;
+
 export interface CompartmentDefinition {
   id: string;
   airline: AirlineCode;
   compartmentName: string;
-  holds: { id: string; label: string }[];
+  holds: HoldEntry[];
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
@@ -440,6 +455,64 @@ export const TRANSAVIA_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Air Canada A333
+export const AIR_CANADA_A333_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'aircanada-a333-fwd',
+    airline: 'AIR_CANADA',
+    compartmentName: 'COMPARTIMIENTO FWD',
+    holds: [
+      { id: createHoldId('AIR_CANADA', 'a333-11p'), label: '11 P 🚪' },
+      { id: createHoldId('AIR_CANADA', 'a333-12p'), label: '12 P' },
+      { id: createHoldId('AIR_CANADA', 'a333-21p'), label: '21 P' },
+      { id: createHoldId('AIR_CANADA', 'a333-22p'), label: '22 P' },
+      { id: createHoldId('AIR_CANADA', 'a333-23p'), label: '23 P' },
+      { id: createHoldId('AIR_CANADA', 'a333-24p'), label: '24 P' },
+    ],
+  },
+  {
+    id: 'aircanada-a333-aft',
+    airline: 'AIR_CANADA',
+    compartmentName: 'COMPARTIMIENTO AFT',
+    holds: [
+      { id: createHoldId('AIR_CANADA', 'a333-31p'), label: '31 P' },
+      {
+        left: { id: createHoldId('AIR_CANADA', 'a333-32l'), label: '32 L' },
+        right: { id: createHoldId('AIR_CANADA', 'a333-32r'), label: '32 R' },
+      },
+      {
+        left: { id: createHoldId('AIR_CANADA', 'a333-33l'), label: '33 L' },
+        right: { id: createHoldId('AIR_CANADA', 'a333-33r'), label: '33 R' },
+      },
+      {
+        left: { id: createHoldId('AIR_CANADA', 'a333-34l'), label: '34 L' },
+        right: { id: createHoldId('AIR_CANADA', 'a333-34r'), label: '34 R' },
+      },
+      {
+        left: { id: createHoldId('AIR_CANADA', 'a333-41l'), label: '41 L' },
+        right: { id: createHoldId('AIR_CANADA', 'a333-41r'), label: '41 R' },
+      },
+      {
+        left: { id: createHoldId('AIR_CANADA', 'a333-42l'), label: '42 L' },
+        right: { id: createHoldId('AIR_CANADA', 'a333-42r'), label: '42 R' },
+      },
+      {
+        left: { id: createHoldId('AIR_CANADA', 'a333-43l'), label: '43 L 🚪' },
+        right: { id: createHoldId('AIR_CANADA', 'a333-43r'), label: '43 R 🚪' },
+      },
+      { id: createHoldId('AIR_CANADA', 'a333-44ake'), label: '44 AKE' },
+    ],
+  },
+  {
+    id: 'aircanada-a333-bulk',
+    airline: 'AIR_CANADA',
+    compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('AIR_CANADA', 'a333-53'), label: '53 🚪' },
+    ],
+  },
+];
+
 export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'ITA') {
@@ -450,6 +523,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   if (airline === 'WIZZ') {
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS;
+    return [];
+  }
+  if (airline === 'AIR_CANADA') {
+    if (aircraftModel === 'A333') return AIR_CANADA_A333_COMPARTMENTS;
     return [];
   }
   if (airline === 'AEGEAN') {
