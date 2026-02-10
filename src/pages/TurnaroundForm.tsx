@@ -14,9 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil } from 'lucide-react';
+import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { generateTurnaroundPdf } from '@/utils/generateTurnaroundPdf';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
@@ -425,6 +426,27 @@ const TurnaroundForm: React.FC = () => {
             onChange={setFieldValues}
           />
         )}
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-2 font-semibold"
+          onClick={() => generateTurnaroundPdf({
+            flightNumber,
+            date,
+            airline: selectedAirline,
+            aircraftModel,
+            isRemote,
+            remoteLocation,
+            tango,
+            times: getTimesWithFlightInfo(),
+            fieldValues,
+            observations,
+          })}
+        >
+          <FileDown className="h-4 w-4" />
+          Exportar PDF
+        </Button>
 
         <Card className="card-operational">
           <CardHeader className="pb-4">
