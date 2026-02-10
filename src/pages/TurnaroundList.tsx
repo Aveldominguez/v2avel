@@ -56,6 +56,10 @@ const TurnaroundList: React.FC = () => {
   const { isAdmin } = useAdmin();
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
   
+  // Pagination
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   // Filters
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>('ALL');
