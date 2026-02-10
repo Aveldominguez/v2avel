@@ -252,10 +252,12 @@ const TurnaroundForm: React.FC = () => {
           clearDraft(id);
           toast({ title: 'Escala actualizada', description: `Vuelo ${flightNumber} guardado correctamente` });
         } else {
-          await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
+          const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           clearDraft();
           toast({ title: 'Escala creada', description: `Vuelo ${flightNumber} guardado correctamente` });
-          navigate('/');
+          if (created) {
+            navigate(`/turnaround/${created.id}`, { replace: true });
+          }
         }
       } catch (err) {
         console.error('Error saving:', err);
@@ -273,7 +275,6 @@ const TurnaroundForm: React.FC = () => {
           },
         });
         toast({ title: 'Guardado localmente', description: 'Se sincronizará cuando haya conexión' });
-        if (!isEditing) navigate('/');
       }
     } else {
       // Offline: queue the operation
@@ -292,7 +293,6 @@ const TurnaroundForm: React.FC = () => {
       toast({ title: 'Guardado localmente', description: 'Se sincronizará cuando recuperes la conexión' });
       if (!isEditing) {
         clearDraft();
-        navigate('/');
       } else {
         setLastSaved(new Date());
         clearDraft(id);
