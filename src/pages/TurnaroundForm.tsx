@@ -292,7 +292,6 @@ const TurnaroundForm: React.FC = () => {
       toast({ title: 'Guardado localmente', description: 'Se sincronizará cuando recuperes la conexión' });
       if (!isEditing) {
         clearDraft();
-        navigate('/');
       } else {
         setLastSaved(new Date());
         clearDraft(id);
