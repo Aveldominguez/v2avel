@@ -408,7 +408,7 @@ const TurnaroundForm: React.FC = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="w-full px-2 sm:px-4 py-6 space-y-6">
         <AirlineTimesBlock
           airline={selectedAirline}
           aircraftModel={aircraftModel}
