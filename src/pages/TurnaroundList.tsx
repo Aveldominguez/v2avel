@@ -92,7 +92,11 @@ const TurnaroundList: React.FC = () => {
     result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     setFilteredTurnarounds(result);
+    setVisibleCount(PAGE_SIZE);
   }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
+
+  const visibleTurnarounds = filteredTurnarounds.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredTurnarounds.length;
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
