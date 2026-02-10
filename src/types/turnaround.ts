@@ -26,6 +26,7 @@ export interface TurnaroundTimes {
   remoteLocation: string | null;         // Ubicación remoto
   asu: boolean;                          // ASU activo
   asuData: string | null;               // Datos ASU
+  aircraftModel: string | null;         // Modelo de avión
 }
 
 export interface FieldDefinition {
