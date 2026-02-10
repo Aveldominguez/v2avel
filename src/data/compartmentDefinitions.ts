@@ -20,6 +20,8 @@ export interface CompartmentDefinition {
   airline: AirlineCode;
   compartmentName: string;
   holds: HoldEntry[];
+  expandable?: boolean;
+  expandableDefault?: number;
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
@@ -510,6 +512,8 @@ export const AIR_CANADA_A333_COMPARTMENTS: CompartmentDefinition[] = [
     holds: [
       { id: createHoldId('AIR_CANADA', 'a333-53'), label: '53 🚪' },
     ],
+    expandable: true,
+    expandableDefault: 5,
   },
 ];
 
