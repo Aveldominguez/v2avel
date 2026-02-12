@@ -51,6 +51,7 @@ const TurnaroundForm: React.FC = () => {
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasUnsavedChanges = useRef(false);
   const isInitialLoad = useRef(true);
+  const savedAndNavigating = useRef(false);
 
   // Load data on mount — from server or draft
   useEffect(() => {
@@ -89,15 +90,8 @@ const TurnaroundForm: React.FC = () => {
           setTimeout(() => { isInitialLoad.current = false; }, 500);
         }
       } else {
-        // New turnaround — only restore draft if it was on step 2 (operational data)
-        const draft = loadDraft();
-        if (draft && draft.step === 2) {
-          applyDraft(draft);
-          toast({ title: 'Borrador recuperado', description: 'Se ha restaurado tu trabajo anterior' });
-        } else if (draft) {
-          // Draft was only step 1 data, discard it
-          clearDraft();
-        }
+        // New turnaround — always start fresh
+        clearDraft();
         isInitialLoad.current = false;
       }
     };
@@ -134,7 +128,7 @@ const TurnaroundForm: React.FC = () => {
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
-    if (isInitialLoad.current) return;
+    if (isInitialLoad.current || savedAndNavigating.current) return;
     hasUnsavedChanges.current = true;
 
     // Always save draft locally immediately
@@ -254,6 +248,7 @@ const TurnaroundForm: React.FC = () => {
         } else {
           const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           clearDraft();
+          savedAndNavigating.current = true;
           toast({ title: 'Escala creada', description: `Vuelo ${flightNumber} guardado correctamente` });
           if (created) {
             navigate(`/turnaround/${created.id}`, { replace: true });
