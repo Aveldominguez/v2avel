@@ -9,12 +9,12 @@ const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -24,23 +24,28 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    // Verify caller identity using getClaims
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user: caller } } = await callerClient.auth.getUser();
-    if (!caller) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const callerId = claimsData.claims.sub;
+
+    // Check admin role using service role client
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
+      .eq("user_id", callerId)
       .eq("role", "admin")
       .maybeSingle();
 
@@ -53,7 +58,6 @@ Deno.serve(async (req) => {
 
     const { user_id, new_password } = await req.json();
 
-    // Validate user_id is a valid UUID
     if (!user_id || typeof user_id !== "string" || !uuidRegex.test(user_id)) {
       return new Response(JSON.stringify({ error: "user_id inválido" }), {
         status: 400,
@@ -61,7 +65,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate password strength
     if (!new_password || typeof new_password !== "string" || new_password.length < 8) {
       return new Response(JSON.stringify({ error: "La contraseña debe tener al menos 8 caracteres" }), {
         status: 400,
@@ -69,7 +72,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Admin ${caller.id} changing password for user ${user_id}`);
+    console.log(`Admin ${callerId} changing password for user ${user_id}`);
 
     const { error: updateError } = await adminClient.auth.admin.updateUserById(user_id, {
       password: new_password,

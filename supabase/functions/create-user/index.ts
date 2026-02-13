@@ -2,19 +2,19 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -28,19 +28,22 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user: caller } } = await callerClient.auth.getUser();
-    if (!caller) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const callerId = claimsData.claims.sub;
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
+      .eq("user_id", callerId)
       .eq("role", "admin")
       .maybeSingle();
 
@@ -53,7 +56,6 @@ Deno.serve(async (req) => {
 
     const { email, password, display_name } = await req.json();
 
-    // Validate email format
     if (!email || typeof email !== "string" || !emailRegex.test(email) || email.length > 255) {
       return new Response(JSON.stringify({ error: "Email inválido" }), {
         status: 400,
@@ -61,7 +63,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate password strength
     if (!password || typeof password !== "string" || password.length < 8) {
       return new Response(JSON.stringify({ error: "La contraseña debe tener al menos 8 caracteres" }), {
         status: 400,
@@ -69,7 +70,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate display_name
     const safeName = display_name && typeof display_name === "string" && display_name.trim().length > 0 && display_name.length <= 100
       ? display_name.trim()
       : email.split("@")[0];
