@@ -151,46 +151,24 @@ export const useAdmin = () => {
   };
 
   const createUser = async (email: string, password: string, displayName: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No autenticado');
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: { email, password, display_name: displayName },
+    });
 
-    const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ email, password, display_name: displayName }),
-      }
-    );
-
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || 'Error al crear usuario');
+    if (error) throw new Error(error.message || 'Error al crear usuario');
+    if (data?.error) throw new Error(data.error);
     await fetchUsers();
-    return result;
+    return data;
   };
 
   const changePassword = async (userId: string, newPassword: string) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No autenticado');
+    const { data, error } = await supabase.functions.invoke('change-password', {
+      body: { user_id: userId, new_password: newPassword },
+    });
 
-    const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/change-password`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ user_id: userId, new_password: newPassword }),
-      }
-    );
-
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || 'Error al cambiar contraseña');
-    return result;
+    if (error) throw new Error(error.message || 'Error al cambiar contraseña');
+    if (data?.error) throw new Error(data.error);
+    return data;
   };
 
   return {
