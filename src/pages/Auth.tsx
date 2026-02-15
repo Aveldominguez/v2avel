@@ -75,7 +75,7 @@ const Auth: React.FC = () => {
     } else {
       toast({
         title: '¡Bienvenido!',
-        description: 'Has iniciado sesión correctamente',
+        variant: 'success' as any,
       });
     }
   };
