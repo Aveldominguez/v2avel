@@ -244,12 +244,12 @@ const TurnaroundForm: React.FC = () => {
           await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           setLastSaved(new Date());
           clearDraft(id);
-          toast({ title: 'Guardado', variant: 'success' as any });
+          // saved successfully
         } else {
           const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
           clearDraft();
           savedAndNavigating.current = true;
-          toast({ title: 'Guardado', variant: 'success' as any });
+          // saved successfully
           if (created) {
             navigate(`/turnaround/${created.id}`, { replace: true });
           }
@@ -269,7 +269,7 @@ const TurnaroundForm: React.FC = () => {
             observations,
           },
         });
-        toast({ title: 'Guardado', variant: 'success' as any });
+        // saved locally
       }
     } else {
       // Offline: queue the operation
@@ -285,7 +285,7 @@ const TurnaroundForm: React.FC = () => {
           observations,
         },
       });
-      toast({ title: 'Guardado', variant: 'success' as any });
+      // saved locally
       if (!isEditing) {
         clearDraft();
       } else {
