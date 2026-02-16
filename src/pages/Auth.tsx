@@ -72,11 +72,6 @@ const Auth: React.FC = () => {
         description: message,
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: '¡Bienvenido!',
-        variant: 'success' as any,
-      });
     }
   };
 
