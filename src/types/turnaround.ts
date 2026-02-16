@@ -178,12 +178,19 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean)
 
     // Add stairs for airlines that don't normally have them (excluding FEDEX which already has them)
     if (!AIRLINES_WITH_STAIRS.includes(airline) && airline !== 'FEDEX') {
-      // Insert stairs before Retirada Calzos
-      const chocksOffIdx = baseFields.findIndex(f => f.key === 'chocksOff');
-      if (chocksOffIdx !== -1) {
-        baseFields.splice(chocksOffIdx, 0, ...REMOTE_STAIRS_FIELDS);
-      } else {
-        baseFields.push(...REMOTE_STAIRS_FIELDS);
+      baseFields.push(...REMOTE_STAIRS_FIELDS);
+    }
+
+    // Reorder: Calzos Llegada (1), Puesta Escalera (2), Retirada Escalera (3), Retirada Calzos (4), rest...
+    if (airline !== 'FEDEX') {
+      const stairsField = baseFields.find(f => f.key === 'stairsTime');
+      const retStairsField = baseFields.find(f => f.key === 'specialEndLoading');
+      const chocksOffField = baseFields.find(f => f.key === 'chocksOff');
+      const rest = baseFields.filter(f => f.key !== 'stairsTime' && f.key !== 'specialEndLoading' && f.key !== 'chocksOff' && f.key !== 'chocksOnArrival');
+      const chocksOn = baseFields.find(f => f.key === 'chocksOnArrival');
+
+      if (chocksOn && stairsField && retStairsField && chocksOffField) {
+        baseFields = [chocksOn, stairsField, retStairsField, chocksOffField, ...rest];
       }
     }
   }
