@@ -101,7 +101,6 @@ export interface TimeFieldConfig {
 // Base fields for TAP/AEGEAN/ITA (with stairs)
 const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
-  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'green', type: 'time' },
@@ -111,6 +110,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'lastHandBag', label: 'Última de mano', clockColor: 'green', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
+  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
@@ -119,7 +119,6 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
 // Fields without stairs (WIZZ, PEGASUS, TRANSAVIA, SKYEXPRESS)
 const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
-  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'green', type: 'time' },
@@ -127,6 +126,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
   { key: 'lastHandBag', label: 'Última de mano', clockColor: 'green', type: 'time' },
+  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
