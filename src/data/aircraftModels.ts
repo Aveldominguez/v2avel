@@ -8,6 +8,12 @@ export interface AircraftModelConfig {
 }
 
 export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
+  A_JET: [
+    { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
+    { model: 'A321', label: 'A321', turnaroundMinutes: 50 },
+    { model: '737-800', label: '737-800', turnaroundMinutes: 45 },
+    { model: 'A320_AIRBALTIC', label: 'A320 airBaltic', turnaroundMinutes: 45 },
+  ],
   AEGEAN: [
     { model: 'A320', label: 'A320', turnaroundMinutes: 50, cleaningMinutes: 12 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 55, cleaningMinutes: 15 },
