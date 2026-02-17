@@ -190,7 +190,7 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean)
       const chocksOn = baseFields.find(f => f.key === 'chocksOnArrival');
 
       if (chocksOn && stairsField && retStairsField && chocksOffField) {
-        baseFields = [chocksOn, stairsField, retStairsField, chocksOffField, ...rest];
+        baseFields = [chocksOn, chocksOffField, stairsField, retStairsField, ...rest];
       }
     }
   }
