@@ -524,6 +524,122 @@ export const AIR_CANADA_A333_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// A Jet (same layout as Transavia)
+export const A_JET_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'ajet-a320-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('A_JET', 'a320-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('A_JET', 'a320-12'), label: 'Bodega 12' },
+    ],
+  },
+  {
+    id: 'ajet-a320-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3 AFT (hasta 90 maletas)',
+    holds: [
+      { id: createHoldId('A_JET', 'a320-31'), label: 'Bodega 31' },
+      { id: createHoldId('A_JET', 'a320-32'), label: 'Bodega 32' },
+      { id: createHoldId('A_JET', 'a320-33'), label: 'Bodega 33' },
+    ],
+  },
+  {
+    id: 'ajet-a320-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4 (Resto aquí)',
+    holds: [
+      { id: createHoldId('A_JET', 'a320-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('A_JET', 'a320-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'ajet-a320-bulk5', airline: 'A_JET', compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('A_JET', 'a320-51'), label: 'Bodega 51' },
+    ],
+  },
+];
+
+export const A_JET_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'ajet-a321-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('A_JET', 'a321-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('A_JET', 'a321-12'), label: 'Bodega 12' },
+      { id: createHoldId('A_JET', 'a321-13'), label: 'Bodega 13' },
+    ],
+  },
+  {
+    id: 'ajet-a321-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('A_JET', 'a321-31'), label: 'Bodega 31' },
+      { id: createHoldId('A_JET', 'a321-32'), label: 'Bodega 32' },
+    ],
+  },
+  {
+    id: 'ajet-a321-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('A_JET', 'a321-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('A_JET', 'a321-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'ajet-a321-bulk', airline: 'A_JET', compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('A_JET', 'a321-5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
+export const A_JET_737_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'ajet-737-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('A_JET', '737-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('A_JET', '737-12'), label: 'Bodega 12' },
+      { id: createHoldId('A_JET', '737-13'), label: 'Bodega 13' },
+    ],
+  },
+  {
+    id: 'ajet-737-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('A_JET', '737-31'), label: 'Bodega 31' },
+      { id: createHoldId('A_JET', '737-32'), label: 'Bodega 32' },
+    ],
+  },
+  {
+    id: 'ajet-737-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('A_JET', '737-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('A_JET', '737-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'ajet-737-bulk', airline: 'A_JET', compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('A_JET', '737-5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
+export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'ajet-a320ab-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('A_JET', 'a320ab-1'), label: 'Bodega 1 🚪' },
+      { id: createHoldId('A_JET', 'a320ab-2'), label: 'Bodega 2' },
+    ],
+  },
+  {
+    id: 'ajet-a320ab-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('A_JET', 'a320ab-3'), label: 'Bodega 3' },
+    ],
+  },
+  {
+    id: 'ajet-a320ab-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('A_JET', 'a320ab-4'), label: 'Bodega 4 🚪' },
+    ],
+  },
+];
+
 export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'ITA') {
@@ -550,6 +666,13 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A321') return TRANSAVIA_A321_COMPARTMENTS;
     if (aircraftModel === '737-800') return TRANSAVIA_737_COMPARTMENTS;
     if (aircraftModel === 'A320_AIRBALTIC') return TRANSAVIA_A320_AIRBALTIC_COMPARTMENTS;
+    return [];
+  }
+  if (airline === 'A_JET') {
+    if (aircraftModel === 'A320') return A_JET_A320_COMPARTMENTS;
+    if (aircraftModel === 'A321') return A_JET_A321_COMPARTMENTS;
+    if (aircraftModel === '737-800') return A_JET_737_COMPARTMENTS;
+    if (aircraftModel === 'A320_AIRBALTIC') return A_JET_A320_AIRBALTIC_COMPARTMENTS;
     return [];
   }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
