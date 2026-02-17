@@ -112,7 +112,7 @@ export const SKYEXPRESS_FIELDS: FieldDefinition[] = [
   createField('SKYEXPRESS', 'BY', 'Local', 2),
   createField('SKYEXPRESS', 'BW', 'Gate – Equipaje de Mano', 3),
   createField('SKYEXPRESS', 'BS', 'Short', 4),
-  createField('SKYEXPRESS', 'BP', 'Priority', 5),
+  createField('SKYEXPRESS', 'BC', 'Priority', 5),
   createField('SKYEXPRESS', 'D', 'Crew', 6),
   createField('SKYEXPRESS', 'E', 'Equipment', 7),
 ];
