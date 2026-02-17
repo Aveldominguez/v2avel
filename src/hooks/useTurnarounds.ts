@@ -144,7 +144,6 @@ export const useTurnarounds = () => {
         .from('turnarounds')
         .update({
           flight_number: flightNumber,
-          date: date.toISOString().split('T')[0],
           airline,
           times: times as unknown as Json,
           field_values: fieldValuesForDb as unknown as Json,
