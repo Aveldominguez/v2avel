@@ -58,6 +58,7 @@ export const useTurnarounds = () => {
       const { data, error: fetchError } = await supabase
         .from('turnarounds')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: false })
         .order('created_at', { ascending: false });
 
