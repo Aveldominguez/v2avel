@@ -455,7 +455,7 @@ const TurnaroundForm: React.FC = () => {
           <CardContent>
             <Textarea
               value={observations}
-              onChange={(e) => setObservations(e.target.value)}
+              onChange={(e) => setObservations(e.target.value.toUpperCase())}
               placeholder="Ingrese cualquier observación relevante sobre esta escala..."
               className="min-h-[120px] resize-y"
             />

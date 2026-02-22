@@ -76,7 +76,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                       <Input
                         type="text"
                         value={(times[textKey] as string) || ''}
-                        onChange={(e) => updateTime(textKey, e.target.value)}
+                        onChange={(e) => updateTime(textKey, e.target.value.toUpperCase())}
                         disabled={disabled}
                         placeholder="Datos ASU"
                         className="h-12 font-mono text-base"
