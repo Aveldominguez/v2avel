@@ -23,6 +23,8 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   mailArrival: false,
   dock1: null,
   dock2: null,
+  dock3: null,
+  dock4: null,
   tango: null,
   isRemote: false,
   remoteLocation: null,
