@@ -23,6 +23,8 @@ export interface TurnaroundTimes {
   mailArrival: boolean;                  // Correo Llegada
   dock1: string | null;                   // 1ª Muelle
   dock2: string | null;                   // 2ª Muelle
+  dock3: string | null;                   // 3ª Muelle
+  dock4: string | null;                   // 4ª Muelle
   tango: string | null;                  // Tango
   isRemote: boolean;                     // En remoto
   remoteLocation: string | null;         // Ubicación remoto

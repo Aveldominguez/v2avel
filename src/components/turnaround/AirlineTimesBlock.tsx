@@ -32,8 +32,10 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
-  // Show dock2 if it has a value or user clicked +
-  const [showDock2, setShowDock2] = useState(!!times.dock2);
+  // Show extra docks if they have a value or user clicked +
+  const [showDock2, setShowDock2] = useState(!!times.dock2 || !!times.dock3 || !!times.dock4);
+  const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
+  const [showDock4, setShowDock4] = useState(!!times.dock4);
 
   const updateTime = (field: keyof TurnaroundTimes, value: string | null | boolean) => {
     onChange({ ...times, [field]: value });
@@ -101,6 +103,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
             // Render dock1 with a + button to add dock2
             if (field.key === 'dock1') {
+              const nextDockToShow = !showDock2 ? 'dock2' : !showDock3 ? 'dock3' : !showDock4 ? 'dock4' : null;
               return (
                 <React.Fragment key={field.key}>
                   <div className="flex flex-col gap-1.5">
@@ -108,15 +111,19 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         {field.label}
                       </label>
-                      {!showDock2 && !times.dock2 && (
+                      {nextDockToShow && (
                         <Button
                           type="button"
                           variant="secondary"
                           size="icon"
-                          onClick={() => setShowDock2(true)}
+                          onClick={() => {
+                            if (nextDockToShow === 'dock2') setShowDock2(true);
+                            else if (nextDockToShow === 'dock3') setShowDock3(true);
+                            else if (nextDockToShow === 'dock4') setShowDock4(true);
+                          }}
                           disabled={disabled}
                           className="h-6 w-6 shrink-0"
-                          title="Añadir 2ª Muelle"
+                          title={`Añadir ${nextDockToShow === 'dock2' ? '2ª' : nextDockToShow === 'dock3' ? '3ª' : '4ª'} Muelle`}
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </Button>
@@ -130,13 +137,35 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                       clockColor={field.clockColor || 'default'}
                     />
                   </div>
-                  {(showDock2 || times.dock2) && (
+                  {showDock2 && (
                     <TimeInput
                       key="dock2"
                       label="2ª Muelle"
                       value={times.dock2 as string | null}
                       onChange={(v) => updateTime('dock2', v)}
                       error={getError('dock2')}
+                      disabled={disabled}
+                      clockColor="green"
+                    />
+                  )}
+                  {showDock3 && (
+                    <TimeInput
+                      key="dock3"
+                      label="3ª Muelle"
+                      value={times.dock3 as string | null}
+                      onChange={(v) => updateTime('dock3', v)}
+                      error={getError('dock3')}
+                      disabled={disabled}
+                      clockColor="green"
+                    />
+                  )}
+                  {showDock4 && (
+                    <TimeInput
+                      key="dock4"
+                      label="4ª Muelle"
+                      value={times.dock4 as string | null}
+                      onChange={(v) => updateTime('dock4', v)}
+                      error={getError('dock4')}
                       disabled={disabled}
                       clockColor="green"
                     />
