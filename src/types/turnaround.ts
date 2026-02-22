@@ -21,6 +21,8 @@ export interface TurnaroundTimes {
   gpuOn: string | null;                  // Puesta de GPU
   gpuOff: string | null;                 // Retirada de GPU
   mailArrival: boolean;                  // Correo Llegada
+  dock1: string | null;                   // 1ª Muelle
+  dock2: string | null;                   // 2ª Muelle
   tango: string | null;                  // Tango
   isRemote: boolean;                     // En remoto
   remoteLocation: string | null;         // Ubicación remoto
@@ -112,6 +114,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
   { key: 'lastHandBag', label: 'Última de mano', clockColor: 'red', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
+  { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
@@ -128,6 +131,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
   { key: 'lastHandBag', label: 'Última de mano', clockColor: 'red', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
+  { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
@@ -143,6 +147,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
   { key: 'lastHandBag', label: 'Última de mano', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
+  { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
