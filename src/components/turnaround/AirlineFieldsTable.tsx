@@ -54,7 +54,7 @@ export const AirlineFieldsTable: React.FC<AirlineFieldsTableProps> = ({
                 <Input
                   type="text"
                   value={getValue(field.id)}
-                  onChange={(e) => onChange(field.id, e.target.value)}
+                  onChange={(e) => onChange(field.id, e.target.value.toUpperCase())}
                   disabled={disabled}
                   placeholder="—"
                   className="h-10 font-mono text-base bg-input border-border 
