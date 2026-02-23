@@ -26,6 +26,8 @@ export interface TurnaroundTimes {
   dock3: string | null;                   // 3ª Muelle
   dock4: string | null;                   // 4ª Muelle
   tango: string | null;                  // Tango
+  parkingArrival: string | null;          // Llegada a Parking (FedEx)
+  fedexSuperArrival: string | null;       // Llegada FedEx Súper (FedEx)
   isRemote: boolean;                     // En remoto
   remoteLocation: string | null;         // Ubicación remoto
   asu: boolean;                          // ASU activo
@@ -152,6 +154,8 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'dock1', label: '1ª Ristra', clockColor: 'green', type: 'time' },
+  { key: 'parkingArrival', label: 'Llegada a Parking', clockColor: 'green', type: 'time' },
+  { key: 'fedexSuperArrival', label: 'Llegada FedEx Súper', clockColor: 'green', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
