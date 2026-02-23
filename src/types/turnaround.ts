@@ -149,7 +149,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
-  { key: 'lastHandBag', label: 'Última de mano', type: 'time' },
+  
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'dock1', label: '1ª Ristra', clockColor: 'green', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
