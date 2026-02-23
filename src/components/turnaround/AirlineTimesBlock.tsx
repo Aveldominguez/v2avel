@@ -50,7 +50,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between text-xl">
           <span>Control de Horas ⏰</span>
-          <CountdownTimer chocksOnTime={times.chocksOnArrival} lastHandBagTime={times.lastHandBag} durationMinutes={durationMinutes} cleaningMinutes={cleaningMins} />
+          <CountdownTimer chocksOnTime={times.chocksOnArrival} loadingEndTime={times.loadingEnd} durationMinutes={durationMinutes} cleaningMinutes={cleaningMins} />
         </CardTitle>
       </CardHeader>
       <CardContent>
