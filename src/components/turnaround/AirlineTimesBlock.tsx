@@ -9,6 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
+const getDockLabel = (airline: AirlineCode, dockNum: number): string => {
+  const term = airline === 'FEDEX' ? 'Ristra' : 'Muelle';
+  return `${dockNum}ª ${term}`;
+};
+
 interface AirlineTimesBlockProps {
   airline: AirlineCode;
   aircraftModel: string;
@@ -123,7 +128,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                           }}
                           disabled={disabled}
                           className="h-6 w-6 shrink-0"
-                          title={`Añadir ${nextDockToShow === 'dock2' ? '2ª' : nextDockToShow === 'dock3' ? '3ª' : '4ª'} Muelle`}
+                          title={`Añadir ${getDockLabel(airline, nextDockToShow === 'dock2' ? 2 : nextDockToShow === 'dock3' ? 3 : 4)}`}
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </Button>
@@ -140,7 +145,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                   {showDock2 && (
                     <TimeInput
                       key="dock2"
-                      label="2ª Muelle"
+                      label={getDockLabel(airline, 2)}
                       value={times.dock2 as string | null}
                       onChange={(v) => updateTime('dock2', v)}
                       error={getError('dock2')}
@@ -151,7 +156,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                   {showDock3 && (
                     <TimeInput
                       key="dock3"
-                      label="3ª Muelle"
+                      label={getDockLabel(airline, 3)}
                       value={times.dock3 as string | null}
                       onChange={(v) => updateTime('dock3', v)}
                       error={getError('dock3')}
@@ -162,7 +167,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                   {showDock4 && (
                     <TimeInput
                       key="dock4"
-                      label="4ª Muelle"
+                      label={getDockLabel(airline, 4)}
                       value={times.dock4 as string | null}
                       onChange={(v) => updateTime('dock4', v)}
                       error={getError('dock4')}
