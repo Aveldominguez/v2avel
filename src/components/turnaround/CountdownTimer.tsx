@@ -4,7 +4,7 @@ import { Timer, SprayCan } from 'lucide-react';
 
 interface CountdownTimerProps {
   chocksOnTime: string | null;
-  lastHandBagTime: string | null;
+  loadingEndTime: string | null;
   durationMinutes?: number;
   cleaningMinutes?: number;
 }
@@ -18,7 +18,7 @@ const parseTimeToDate = (timeStr: string): Date => {
 
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   chocksOnTime,
-  lastHandBagTime,
+  loadingEndTime,
   durationMinutes = 40,
   cleaningMinutes,
 }) => {
@@ -38,9 +38,9 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     const startDate = parseTimeToDate(chocksOnTime);
     const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
-    // If lastHandBag is filled, freeze the timer at that moment
-    if (lastHandBagTime && /^\d{2}:\d{2}$/.test(lastHandBagTime)) {
-      const stopDate = parseTimeToDate(lastHandBagTime);
+    // If loadingEnd is filled, freeze the timer at that moment
+    if (loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime)) {
+      const stopDate = parseTimeToDate(loadingEndTime);
       const frozen = Math.floor((endDate.getTime() - stopDate.getTime()) / 1000);
       setStoppedDisplay(frozen);
       setRemainingSeconds(null);
@@ -67,7 +67,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, lastHandBagTime, durationMinutes]);
+  }, [chocksOnTime, loadingEndTime, durationMinutes]);
 
   const displaySeconds = stoppedDisplay !== null ? stoppedDisplay : remainingSeconds;
 
