@@ -139,19 +139,19 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
-// FedEx-specific fields (different order, no cargo/mail selectors, no 1ª Maleta)
+// FedEx-specific fields (same order as stairs airlines, no cargo/mail/1ª Maleta)
 const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
+  { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
-  { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'red', type: 'time' },
-  { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'green', type: 'time' },
+  { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
+  { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
   { key: 'lastHandBag', label: 'Última de mano', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'dock1', label: '1ª Ristra', clockColor: 'green', type: 'time' },
-  { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
-  { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
