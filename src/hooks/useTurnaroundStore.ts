@@ -26,6 +26,8 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   dock3: null,
   dock4: null,
   tango: null,
+  parkingArrival: null,
+  fedexSuperArrival: null,
   isRemote: false,
   remoteLocation: null,
   asu: false,
