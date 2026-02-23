@@ -25,40 +25,51 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [stoppedDisplay, setStoppedDisplay] = useState<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const liveSecondsRef = useRef<number | null>(null);
+  const prevLoadingEndRef = useRef<string | null>(loadingEndTime);
+
+  // Capture freeze on loadingEndTime transition from empty to filled
+  useEffect(() => {
+    const wasEmpty = !prevLoadingEndRef.current || !/^\d{2}:\d{2}$/.test(prevLoadingEndRef.current);
+    const isFilled = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
+
+    if (wasEmpty && isFilled && liveSecondsRef.current !== null) {
+      // Freeze at the exact second the timer was showing
+      setStoppedDisplay(liveSecondsRef.current);
+      setRemainingSeconds(null);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    } else if (!isFilled && stoppedDisplay !== null) {
+      // Cleared → resume live countdown
+      setStoppedDisplay(null);
+    }
+
+    prevLoadingEndRef.current = loadingEndTime;
+  }, [loadingEndTime]);
 
   useEffect(() => {
+    if (stoppedDisplay !== null) return; // frozen, don't tick
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     if (!chocksOnTime || !/^\d{2}:\d{2}$/.test(chocksOnTime)) {
       setRemainingSeconds(null);
-      setStoppedDisplay(null);
+      liveSecondsRef.current = null;
       return;
     }
 
     const startDate = parseTimeToDate(chocksOnTime);
     const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
-    // If loadingEnd is filled, freeze the timer at that moment
-    if (loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime)) {
-      const stopDate = parseTimeToDate(loadingEndTime);
-      const frozen = Math.floor((endDate.getTime() - stopDate.getTime()) / 1000);
-      setStoppedDisplay(frozen);
-      setRemainingSeconds(null);
-      return;
-    }
-
-    setStoppedDisplay(null);
-
     const tick = () => {
       const now = new Date();
       const diff = Math.floor((endDate.getTime() - now.getTime()) / 1000);
-      // Stop at 0
       if (diff <= 0) {
         setRemainingSeconds(0);
+        liveSecondsRef.current = 0;
         if (intervalRef.current) clearInterval(intervalRef.current);
         return;
       }
       setRemainingSeconds(diff);
+      liveSecondsRef.current = diff;
     };
 
     tick();
@@ -67,7 +78,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, loadingEndTime, durationMinutes]);
+  }, [chocksOnTime, durationMinutes, stoppedDisplay]);
 
   const displaySeconds = stoppedDisplay !== null ? stoppedDisplay : remainingSeconds;
 
