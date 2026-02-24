@@ -61,7 +61,7 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
         {compartments.length > 0 ? (
           <>
             {/* Sky Express: show compartments inline, codes in dialog */}
-            <CompartmentsTable compartments={compartments} values={fieldValues} onChange={handleFieldChange} disabled={disabled} />
+            <CompartmentsTable compartments={compartments} values={fieldValues} onChange={handleFieldChange} disabled={disabled} airline={airline} />
             <ComoditysDialog
               fields={getFieldsByAirline(airline)}
               values={fieldValues}
