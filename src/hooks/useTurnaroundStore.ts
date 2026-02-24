@@ -34,6 +34,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   asuData: null,
   aircraftModel: null,
   loadingSheetUrl: null,
+  fileUrl: null,
 });
 
 // Create a new turnaround

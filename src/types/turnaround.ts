@@ -34,6 +34,7 @@ export interface TurnaroundTimes {
   asuData: string | null;               // Datos ASU
   aircraftModel: string | null;         // Modelo de avión
   loadingSheetUrl: string | null;       // Hoja de carga (foto)
+  fileUrl: string | null;               // File (archivo adjunto)
 }
 
 export interface FieldDefinition {
