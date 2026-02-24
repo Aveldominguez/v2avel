@@ -154,6 +154,12 @@ export const generateTurnaroundPdf = (data: PdfData) => {
   <div style="text-align:center;">
     <img src="${data.times.fileUrl}" alt="File" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
   </div>` : ''}
+
+  ${data.times.observationPhotos && data.times.observationPhotos.length > 0 ? `
+  <h2>Fotos de Observaciones</h2>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+    ${data.times.observationPhotos.map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  </div>` : ''}
 </body>
 </html>`;
 

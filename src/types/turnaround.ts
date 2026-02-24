@@ -35,6 +35,7 @@ export interface TurnaroundTimes {
   aircraftModel: string | null;         // Modelo de avión
   loadingSheetUrl: string | null;       // Hoja de carga (foto)
   fileUrl: string | null;               // File (archivo adjunto)
+  observationPhotos: string[];          // Fotos de observaciones (máx 7)
 }
 
 export interface FieldDefinition {
