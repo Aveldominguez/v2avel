@@ -19,6 +19,7 @@ import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { generateTurnaroundPdf } from '@/utils/generateTurnaroundPdf';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
@@ -360,6 +361,7 @@ const TurnaroundForm: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
+              <ThemeToggle />
               <ConnectionStatus
                 isOnline={isOnline}
                 syncing={syncing}
