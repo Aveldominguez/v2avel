@@ -705,7 +705,7 @@ const AdminPanel: React.FC = () => {
       <input
         type="file"
         ref={importFileRef}
-        accept=".json"
+        accept=".json,.zip"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];

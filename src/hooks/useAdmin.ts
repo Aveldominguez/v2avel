@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import JSZip from 'jszip';
 
 export interface UserProfile {
   id: string;
@@ -152,26 +153,62 @@ export const useAdmin = () => {
 
   const exportUserTurnarounds = async (userId: string, email: string) => {
     const data = await getUserTurnarounds(userId);
+    const zip = new JSZip();
+    const photosFolder = zip.folder('fotos_hoja_carga');
+
+    // Download loading sheet photos
+    let photoCount = 0;
+    for (const t of data) {
+      const times = t.times as any;
+      if (times?.loadingSheetUrl) {
+        try {
+          const response = await fetch(times.loadingSheetUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const ext = blob.type.includes('png') ? 'png' : 'jpg';
+            const filename = `${t.flight_number}_${t.date}.${ext}`;
+            photosFolder?.file(filename, blob);
+            photoCount++;
+          }
+        } catch (e) {
+          console.warn(`No se pudo descargar foto de ${t.flight_number}:`, e);
+        }
+      }
+    }
+
     const backup = {
       exportedAt: new Date().toISOString(),
       userEmail: email,
       userId,
       turnaroundsCount: data.length,
+      photosCount: photoCount,
       turnarounds: data,
     };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    zip.file('backup.json', JSON.stringify(backup, null, 2));
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `backup_${email.replace('@', '_at_')}_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `backup_${email.replace('@', '_at_')}_${new Date().toISOString().split('T')[0]}.zip`;
     a.click();
     URL.revokeObjectURL(url);
     return data.length;
   };
 
   const importUserTurnarounds = async (file: File, targetUserId: string): Promise<number> => {
-    const text = await file.text();
-    const backup = JSON.parse(text);
+    let backupText: string;
+
+    if (file.name.endsWith('.zip')) {
+      const zip = await JSZip.loadAsync(file);
+      const jsonFile = zip.file('backup.json');
+      if (!jsonFile) throw new Error('El ZIP no contiene backup.json');
+      backupText = await jsonFile.async('string');
+    } else {
+      backupText = await file.text();
+    }
+
+    const backup = JSON.parse(backupText);
     
     if (!backup.turnarounds || !Array.isArray(backup.turnarounds)) {
       throw new Error('Formato de archivo inválido');
