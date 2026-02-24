@@ -12,6 +12,7 @@ import { AirlineTabs } from '@/components/turnaround/AirlineTabs';
 import { ConnectionStatus } from '@/components/turnaround/ConnectionStatus';
 import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
+import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,7 @@ const TurnaroundForm: React.FC = () => {
   const [observations, setObservations] = useState('');
   const [loadingSheetUrl, setLoadingSheetUrl] = useState<string | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [observationPhotos, setObservationPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
@@ -85,6 +87,7 @@ const TurnaroundForm: React.FC = () => {
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
             setFileUrl(existing.times.fileUrl || null);
+            setObservationPhotos(existing.times.observationPhotos || []);
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
@@ -133,7 +136,8 @@ const TurnaroundForm: React.FC = () => {
     aircraftModel: aircraftModel || null,
     loadingSheetUrl,
     fileUrl,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, loadingSheetUrl, fileUrl]);
+    observationPhotos,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, loadingSheetUrl, fileUrl, observationPhotos]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -171,7 +175,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation, loadingSheetUrl, fileUrl]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation, loadingSheetUrl, fileUrl, observationPhotos]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -482,6 +486,11 @@ const TurnaroundForm: React.FC = () => {
               onChange={(e) => setObservations(e.target.value)}
               placeholder="Ingrese cualquier observación relevante sobre esta escala..."
               className="min-h-[120px] resize-y"
+            />
+            <ObservationPhotos
+              turnaroundId={id}
+              photos={observationPhotos}
+              onChange={setObservationPhotos}
             />
           </CardContent>
         </Card>

@@ -156,10 +156,12 @@ export const useAdmin = () => {
     const zip = new JSZip();
     const photosFolder = zip.folder('fotos_hoja_carga');
     const filesFolder = zip.folder('files');
+    const obsPhotosFolder = zip.folder('fotos_observaciones');
 
     // Download loading sheet photos and file attachments
     let photoCount = 0;
     let fileCount = 0;
+    let obsPhotoCount = 0;
     for (const t of data) {
       const times = t.times as any;
       if (times?.loadingSheetUrl) {
@@ -190,6 +192,22 @@ export const useAdmin = () => {
           console.warn(`No se pudo descargar file de ${t.flight_number}:`, e);
         }
       }
+      if (times?.observationPhotos && Array.isArray(times.observationPhotos)) {
+        for (let i = 0; i < times.observationPhotos.length; i++) {
+          try {
+            const response = await fetch(times.observationPhotos[i]);
+            if (response.ok) {
+              const blob = await response.blob();
+              const ext = blob.type.includes('png') ? 'png' : 'jpg';
+              const filename = `${t.flight_number}_${t.date}_obs_${i + 1}.${ext}`;
+              obsPhotosFolder?.file(filename, blob);
+              obsPhotoCount++;
+            }
+          } catch (e) {
+            console.warn(`No se pudo descargar foto obs de ${t.flight_number}:`, e);
+          }
+        }
+      }
     }
 
     const backup = {
@@ -199,7 +217,7 @@ export const useAdmin = () => {
       turnaroundsCount: data.length,
       photosCount: photoCount,
       filesCount: fileCount,
-      turnarounds: data,
+      obsPhotosCount: obsPhotoCount,
     };
     zip.file('backup.json', JSON.stringify(backup, null, 2));
 
