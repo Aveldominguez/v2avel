@@ -426,14 +426,6 @@ const TurnaroundForm: React.FC = () => {
           />
         )}
 
-        {selectedAirline !== 'FEDEX' && (
-          <LoadingSheetField
-            turnaroundId={id}
-            imageUrl={loadingSheetUrl}
-            onChange={setLoadingSheetUrl}
-          />
-        )}
-
         <Button
           type="button"
           variant="outline"
@@ -454,6 +446,14 @@ const TurnaroundForm: React.FC = () => {
           <FileDown className="h-4 w-4" />
           Exportar PDF
         </Button>
+
+        {selectedAirline !== 'FEDEX' && (
+          <LoadingSheetField
+            turnaroundId={id}
+            imageUrl={loadingSheetUrl}
+            onChange={setLoadingSheetUrl}
+          />
+        )}
 
         <Card className="card-operational">
           <CardHeader className="pb-4">
