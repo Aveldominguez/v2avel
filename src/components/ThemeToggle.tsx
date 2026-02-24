@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const ThemeToggle: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -21,18 +21,21 @@ export const ThemeToggle: React.FC = () => {
   }, [theme]);
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="shrink-0"
+      className={cn(
+        'shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 transition-colors',
+        theme === 'dark'
+          ? 'bg-secondary border-muted-foreground/40 text-warning hover:bg-secondary/80'
+          : 'bg-muted border-border text-foreground hover:bg-muted/80'
+      )}
       aria-label="Cambiar tema"
     >
       {theme === 'dark' ? (
-        <Sun className="h-5 w-5 text-warning" />
+        <Sun className="h-5 w-5" />
       ) : (
         <Moon className="h-5 w-5" />
       )}
-    </Button>
+    </button>
   );
 };
