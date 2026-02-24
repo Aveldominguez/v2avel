@@ -3,13 +3,15 @@ import { FieldValue } from '@/types/turnaround';
 import { CompartmentDefinition, isPairedHold, HoldEntry } from '@/data/compartmentDefinitions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Hash } from 'lucide-react';
+import { AirlineCode } from '@/types/turnaround';
 
 interface CompartmentsTableProps {
   compartments: CompartmentDefinition[];
   values: FieldValue[];
   onChange: (holdId: string, value: string) => void;
   disabled?: boolean;
+  airline?: AirlineCode;
 }
 
 const DEFAULT_EXTRA_FIELDS = 5;
@@ -19,7 +21,9 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   values,
   onChange,
   disabled = false,
+  airline,
 }) => {
+  const showNilButton = airline !== 'FEDEX';
   // Track extra field counts per compartment
   const [extraFieldCounts, setExtraFieldCounts] = useState<Record<string, number>>({});
 
@@ -60,6 +64,18 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         placeholder="—"
         className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
       />
+      {showNilButton && !disabled && (
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => onChange(hold.id, 'NIL')}
+          className="h-9 w-9 shrink-0 font-bold text-muted-foreground hover:text-foreground"
+          title="Escribir NIL"
+        >
+          <Hash className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 
@@ -71,27 +87,41 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <label className="text-sm font-bold text-center text-foreground/80">
             {entry.left.label}
           </label>
-          <Input
-            type="text"
-            value={getValue(entry.left.id)}
-            onChange={(e) => onChange(entry.left.id, e.target.value.toUpperCase())}
-            disabled={disabled}
-            placeholder="—"
-            className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
-          />
+          <div className="flex gap-1">
+            <Input
+              type="text"
+              value={getValue(entry.left.id)}
+              onChange={(e) => onChange(entry.left.id, e.target.value.toUpperCase())}
+              disabled={disabled}
+              placeholder="—"
+              className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+            />
+            {showNilButton && !disabled && (
+              <Button type="button" variant="outline" size="icon" onClick={() => onChange(entry.left.id, 'NIL')} className="h-9 w-9 shrink-0 font-bold text-muted-foreground hover:text-foreground" title="Escribir NIL">
+                <Hash className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-bold text-center text-foreground/80">
             {entry.right.label}
           </label>
-          <Input
-            type="text"
-            value={getValue(entry.right.id)}
-            onChange={(e) => onChange(entry.right.id, e.target.value.toUpperCase())}
-            disabled={disabled}
-            placeholder="—"
-            className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
-          />
+          <div className="flex gap-1">
+            <Input
+              type="text"
+              value={getValue(entry.right.id)}
+              onChange={(e) => onChange(entry.right.id, e.target.value.toUpperCase())}
+              disabled={disabled}
+              placeholder="—"
+              className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+            />
+            {showNilButton && !disabled && (
+              <Button type="button" variant="outline" size="icon" onClick={() => onChange(entry.right.id, 'NIL')} className="h-9 w-9 shrink-0 font-bold text-muted-foreground hover:text-foreground" title="Escribir NIL">
+                <Hash className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );
