@@ -319,9 +319,12 @@ const TurnaroundList: React.FC = () => {
                             />
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono font-bold text-lg">
+                            <button
+                              onClick={() => navigate(`/turnaround/${t.id}`)}
+                              className="font-mono font-bold text-lg text-primary hover:underline cursor-pointer bg-transparent border-none p-0"
+                            >
                               {t.flightNumber}
-                            </span>
+                            </button>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2 text-sm">
