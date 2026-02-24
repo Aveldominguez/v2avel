@@ -10,6 +10,7 @@ import { FlightInfoStep } from '@/components/turnaround/FlightInfoStep';
 import { AirlineTimesBlock } from '@/components/turnaround/AirlineTimesBlock';
 import { AirlineTabs } from '@/components/turnaround/AirlineTabs';
 import { ConnectionStatus } from '@/components/turnaround/ConnectionStatus';
+import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +43,7 @@ const TurnaroundForm: React.FC = () => {
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
+  const [loadingSheetUrl, setLoadingSheetUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
@@ -78,6 +80,7 @@ const TurnaroundForm: React.FC = () => {
             setAircraftModel(existing.times.aircraftModel || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
+            setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
@@ -124,7 +127,8 @@ const TurnaroundForm: React.FC = () => {
     isRemote,
     remoteLocation: isRemote ? (remoteLocation || null) : null,
     aircraftModel: aircraftModel || null,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel]);
+    loadingSheetUrl,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, loadingSheetUrl]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -162,7 +166,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation, loadingSheetUrl]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -419,6 +423,14 @@ const TurnaroundForm: React.FC = () => {
             aircraftModel={aircraftModel}
             fieldValues={fieldValues}
             onChange={setFieldValues}
+          />
+        )}
+
+        {selectedAirline !== 'FEDEX' && (
+          <LoadingSheetField
+            turnaroundId={id}
+            imageUrl={loadingSheetUrl}
+            onChange={setLoadingSheetUrl}
           />
         )}
 
