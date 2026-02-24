@@ -150,6 +150,51 @@ export const useAdmin = () => {
     return data || [];
   };
 
+  const exportUserTurnarounds = async (userId: string, email: string) => {
+    const data = await getUserTurnarounds(userId);
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      userEmail: email,
+      userId,
+      turnaroundsCount: data.length,
+      turnarounds: data,
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_${email.replace('@', '_at_')}_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    return data.length;
+  };
+
+  const importUserTurnarounds = async (file: File, targetUserId: string): Promise<number> => {
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    
+    if (!backup.turnarounds || !Array.isArray(backup.turnarounds)) {
+      throw new Error('Formato de archivo inválido');
+    }
+
+    let imported = 0;
+    for (const t of backup.turnarounds) {
+      const { error } = await supabase
+        .from('turnarounds')
+        .insert({
+          user_id: targetUserId,
+          flight_number: t.flight_number,
+          date: t.date,
+          airline: t.airline,
+          times: t.times,
+          field_values: t.field_values,
+          observations: t.observations || '',
+        });
+      if (!error) imported++;
+    }
+    return imported;
+  };
+
   const createUser = async (email: string, password: string, displayName: string) => {
     const { data, error } = await supabase.functions.invoke('create-user', {
       body: { email, password, display_name: displayName },
@@ -184,6 +229,8 @@ export const useAdmin = () => {
     assignManagedUser,
     removeManagedUser,
     getUserTurnarounds,
+    exportUserTurnarounds,
+    importUserTurnarounds,
     createUser,
     changePassword,
   };
