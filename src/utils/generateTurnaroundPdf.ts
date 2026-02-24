@@ -148,6 +148,12 @@ export const generateTurnaroundPdf = (data: PdfData) => {
   <div style="text-align:center;">
     <img src="${data.times.loadingSheetUrl}" alt="Hoja de carga" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
   </div>` : ''}
+
+  ${data.times.fileUrl ? `
+  <h2>File</h2>
+  <div style="text-align:center;">
+    <img src="${data.times.fileUrl}" alt="File" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
+  </div>` : ''}
 </body>
 </html>`;
 

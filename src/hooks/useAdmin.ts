@@ -155,9 +155,11 @@ export const useAdmin = () => {
     const data = await getUserTurnarounds(userId);
     const zip = new JSZip();
     const photosFolder = zip.folder('fotos_hoja_carga');
+    const filesFolder = zip.folder('files');
 
-    // Download loading sheet photos
+    // Download loading sheet photos and file attachments
     let photoCount = 0;
+    let fileCount = 0;
     for (const t of data) {
       const times = t.times as any;
       if (times?.loadingSheetUrl) {
@@ -174,6 +176,20 @@ export const useAdmin = () => {
           console.warn(`No se pudo descargar foto de ${t.flight_number}:`, e);
         }
       }
+      if (times?.fileUrl) {
+        try {
+          const response = await fetch(times.fileUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            const ext = blob.type.includes('png') ? 'png' : 'jpg';
+            const filename = `${t.flight_number}_${t.date}_file.${ext}`;
+            filesFolder?.file(filename, blob);
+            fileCount++;
+          }
+        } catch (e) {
+          console.warn(`No se pudo descargar file de ${t.flight_number}:`, e);
+        }
+      }
     }
 
     const backup = {
@@ -182,6 +198,7 @@ export const useAdmin = () => {
       userId,
       turnaroundsCount: data.length,
       photosCount: photoCount,
+      filesCount: fileCount,
       turnarounds: data,
     };
     zip.file('backup.json', JSON.stringify(backup, null, 2));
