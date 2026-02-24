@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import {
   ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye,
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
+  Download, Upload,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -34,6 +35,7 @@ const AdminPanel: React.FC = () => {
     isAdmin, loading, users, usersLoading, fetchUsers,
     approveUser, blockUser, deleteUser, toggleAdminRole,
     assignManagedUser, removeManagedUser, getUserTurnarounds,
+    exportUserTurnarounds, importUserTurnarounds,
     createUser,
     changePassword,
   } = useAdmin();
@@ -52,6 +54,9 @@ const AdminPanel: React.FC = () => {
   const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
   const [newUserPassword, setNewUserPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [backupLoading, setBackupLoading] = useState<string | null>(null);
+  const importFileRef = React.useRef<HTMLInputElement>(null);
+  const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
 
   useEffect(() => {
     if (!loading && isAdmin) {
@@ -128,10 +133,40 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleExportBackup = async (userId: string, email: string) => {
+    setBackupLoading(userId);
+    try {
+      const count = await exportUserTurnarounds(userId, email);
+      toast({ title: `Backup exportado: ${count} escalas` });
+    } catch {
+      toast({ title: 'Error al exportar', variant: 'destructive' });
+    } finally {
+      setBackupLoading(null);
+    }
+  };
+
+  const handleImportBackup = async (file: File) => {
+    if (!importTarget) return;
+    setBackupLoading(importTarget.userId);
+    try {
+      const count = await importUserTurnarounds(file, importTarget.userId);
+      toast({ title: `Importadas ${count} escalas para ${importTarget.email}` });
+      // Refresh turnarounds if dialog is open
+      if (turnaroundsDialog?.userId === importTarget.userId) {
+        const data = await getUserTurnarounds(importTarget.userId);
+        setTurnarounds(data);
+      }
+    } catch (err: any) {
+      toast({ title: 'Error al importar', description: err.message, variant: 'destructive' });
+    } finally {
+      setBackupLoading(null);
+      setImportTarget(null);
+    }
+  };
+
   const handleManageManagedUsers = async (adminProfile: UserProfile) => {
     setManageDialog(adminProfile);
   };
-
   const handleToggleManagedUser = async (adminUserId: string, managedUserId: string, isManaged: boolean) => {
     try {
       if (isManaged) {
@@ -384,6 +419,26 @@ const AdminPanel: React.FC = () => {
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleExportBackup(u.user_id, u.email)}
+                                disabled={backupLoading === u.user_id}
+                                title="Exportar backup"
+                              >
+                                {backupLoading === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setImportTarget({ userId: u.user_id, email: u.email });
+                                  importFileRef.current?.click();
+                                }}
+                                title="Importar backup"
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
                               {isUserAdmin && !isSelf && (
                                 <Button
                                   variant="ghost"
@@ -454,6 +509,30 @@ const AdminPanel: React.FC = () => {
               {turnarounds.length} escalas encontradas
             </DialogDescription>
           </DialogHeader>
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => turnaroundsDialog && handleExportBackup(turnaroundsDialog.userId, turnaroundsDialog.email)}
+              disabled={backupLoading === turnaroundsDialog?.userId || turnarounds.length === 0}
+            >
+              {backupLoading === turnaroundsDialog?.userId ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
+              Exportar Backup
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (turnaroundsDialog) {
+                  setImportTarget({ userId: turnaroundsDialog.userId, email: turnaroundsDialog.email });
+                  importFileRef.current?.click();
+                }
+              }}
+            >
+              <Upload className="h-4 w-4 mr-1" />
+              Importar Backup
+            </Button>
+          </div>
           {turnaroundsLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -621,6 +700,19 @@ const AdminPanel: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden file input for import */}
+      <input
+        type="file"
+        ref={importFileRef}
+        accept=".json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleImportBackup(file);
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 };
