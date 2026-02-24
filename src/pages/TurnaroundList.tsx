@@ -48,6 +48,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
@@ -157,11 +158,15 @@ const TurnaroundList: React.FC = () => {
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
         <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col items-center gap-3">
-            <div className="text-center">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registros de Escalas Rampa</h1>
-              <p className="text-sm text-muted-foreground">
-                Usuario: {user?.email}
-              </p>
+            <div className="flex items-center justify-between w-full">
+              <ThemeToggle />
+              <div className="text-center flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registros de Escalas Rampa</h1>
+                <p className="text-sm text-muted-foreground">
+                  Usuario: {user?.email}
+                </p>
+              </div>
+              <div className="w-10" /> {/* spacer */}
             </div>
 
             <div className="flex items-center justify-between w-full">
