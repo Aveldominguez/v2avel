@@ -3,7 +3,7 @@ import { FieldValue } from '@/types/turnaround';
 import { CompartmentDefinition, isPairedHold, HoldEntry } from '@/data/compartmentDefinitions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Hash } from 'lucide-react';
+import { Plus, Hash, Undo2 } from 'lucide-react';
 import { AirlineCode } from '@/types/turnaround';
 
 interface CompartmentsTableProps {
@@ -24,6 +24,8 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   airline,
 }) => {
   const showNilButton = airline !== 'FEDEX';
+  // Store previous values before NIL was set, keyed by hold id
+  const [previousValues, setPreviousValues] = useState<Record<string, string>>({});
   // Track extra field counts per compartment
   const [extraFieldCounts, setExtraFieldCounts] = useState<Record<string, number>>({});
 
@@ -51,6 +53,41 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   const getValue = (holdId: string): string =>
     values.find(v => v.fieldDefinitionId === holdId)?.value || '';
 
+  const handleNil = (holdId: string) => {
+    const current = getValue(holdId);
+    setPreviousValues(prev => ({ ...prev, [holdId]: current }));
+    onChange(holdId, 'NIL');
+  };
+
+  const handleUndo = (holdId: string) => {
+    const prev = previousValues[holdId] ?? '';
+    onChange(holdId, prev);
+    setPreviousValues(p => {
+      const copy = { ...p };
+      delete copy[holdId];
+      return copy;
+    });
+  };
+
+  const isNilSet = (holdId: string) => getValue(holdId) === 'NIL' && holdId in previousValues;
+
+  const renderNilButton = (holdId: string) => {
+    if (!showNilButton || disabled) return null;
+    const nilActive = isNilSet(holdId);
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        onClick={() => nilActive ? handleUndo(holdId) : handleNil(holdId)}
+        className={`h-9 w-9 shrink-0 font-bold ${nilActive ? 'text-destructive hover:text-destructive/80 border-destructive/50' : 'text-muted-foreground hover:text-foreground'}`}
+        title={nilActive ? 'Deshacer NIL' : 'Escribir NIL'}
+      >
+        {nilActive ? <Undo2 className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
+      </Button>
+    );
+  };
+
   const renderHoldInput = (hold: { id: string; label: string }) => (
     <div key={hold.id} className="flex items-center gap-3">
       <label className="text-sm font-medium text-foreground/80 w-24 shrink-0">
@@ -64,18 +101,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         placeholder="—"
         className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
       />
-      {showNilButton && !disabled && (
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => onChange(hold.id, 'NIL')}
-          className="h-9 w-9 shrink-0 font-bold text-muted-foreground hover:text-foreground"
-          title="Escribir NIL"
-        >
-          <Hash className="h-4 w-4" />
-        </Button>
-      )}
+      {renderNilButton(hold.id)}
     </div>
   );
 
@@ -96,11 +122,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               placeholder="—"
               className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
             />
-            {showNilButton && !disabled && (
-              <Button type="button" variant="outline" size="icon" onClick={() => onChange(entry.left.id, 'NIL')} className="h-9 w-9 shrink-0 font-bold text-muted-foreground hover:text-foreground" title="Escribir NIL">
-                <Hash className="h-4 w-4" />
-              </Button>
-            )}
+            {renderNilButton(entry.left.id)}
           </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -116,11 +138,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               placeholder="—"
               className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
             />
-            {showNilButton && !disabled && (
-              <Button type="button" variant="outline" size="icon" onClick={() => onChange(entry.right.id, 'NIL')} className="h-9 w-9 shrink-0 font-bold text-muted-foreground hover:text-foreground" title="Escribir NIL">
-                <Hash className="h-4 w-4" />
-              </Button>
-            )}
+            {renderNilButton(entry.right.id)}
           </div>
         </div>
       </div>
