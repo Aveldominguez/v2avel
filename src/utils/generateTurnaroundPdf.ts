@@ -171,15 +171,23 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 </body>
 </html>`;
 
-  // Use Blob URL + anchor click for maximum browser compatibility (including Brave iOS)
+  // Safari iOS blocks window.open / blob URL clicks from async contexts.
+  // Use a data URI approach with a download link as fallback.
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+  // Try opening in a new tab first (works on most browsers)
+  const newWindow = window.open(url, '_blank');
+
+  if (!newWindow) {
+    // Fallback for Safari iOS: trigger a download instead
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `escala-${data.flightNumber}-${format(data.date, 'yyyyMMdd')}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  setTimeout(() => URL.revokeObjectURL(url), 15000);
 };
