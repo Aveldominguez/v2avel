@@ -26,18 +26,20 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
   const airlineInfo = AIRLINES.find(a => a.code === airline);
   const compartments = getCompartmentsByAirline(airline, aircraftModel);
 
-  const handleFieldChange = (fieldId: string, value: string) => {
+  const handleFieldChange = (fieldId: string, value: string, previousValue?: string | null) => {
     const existing = fieldValues.find(v => v.fieldDefinitionId === fieldId);
     if (existing) {
       onChange(fieldValues.map(v => v.fieldDefinitionId === fieldId ? {
         ...v,
         value,
+        previousValue: previousValue === null ? undefined : (previousValue ?? v.previousValue),
         updatedAt: new Date()
       } : v));
     } else {
       onChange([...fieldValues, {
         fieldDefinitionId: fieldId,
         value,
+        previousValue: previousValue === null ? undefined : previousValue,
         updatedAt: new Date()
       }]);
     }
