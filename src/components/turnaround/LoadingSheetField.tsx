@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Camera, ImageIcon, Trash2, Loader2, FileImage } from 'lucide-react';
+import { buildStoragePath, parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 
 interface LoadingSheetFieldProps {
   turnaroundId?: string;
@@ -21,6 +22,17 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (imageUrl) {
+      getSignedUrl(imageUrl).then(url => { if (!cancelled) setDisplayUrl(url); });
+    } else {
+      setDisplayUrl(null);
+    }
+    return () => { cancelled = true; };
+  }, [imageUrl]);
 
   const uploadFile = async (file: File) => {
     if (!user) {
@@ -52,11 +64,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('loading-sheets')
-        .getPublicUrl(fileName);
-
-      onChange(publicUrl);
+      onChange(buildStoragePath('loading-sheets', fileName));
       toast({ title: 'Foto subida correctamente' });
     } catch (err) {
       console.error('Upload error:', err);
@@ -67,6 +75,8 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   };
 
   const extractPathFromUrl = (url: string): string | null => {
+    const parsed = parseStoragePath(url);
+    if (parsed && parsed.bucket === 'loading-sheets') return parsed.path;
     try {
       const match = url.match(/loading-sheets\/(.+)$/);
       return match ? match[1] : null;
@@ -105,10 +115,10 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
         {imageUrl ? (
           <div className="relative">
             <img
-              src={imageUrl}
+              src={displayUrl || ''}
               alt="Hoja de carga"
               className="w-full rounded-lg border border-border object-contain max-h-[400px]"
-              onClick={() => window.open(imageUrl, '_blank')}
+              onClick={() => displayUrl && window.open(displayUrl, '_blank')}
             />
             <Button
               variant="destructive"

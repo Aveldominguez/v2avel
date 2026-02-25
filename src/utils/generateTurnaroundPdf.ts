@@ -2,6 +2,7 @@ import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, FieldV
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { format } from 'date-fns';
+import { getSignedUrl, getSignedUrls } from '@/utils/storageUrl';
 import { es } from 'date-fns/locale';
 
 interface PdfData {
@@ -17,7 +18,7 @@ interface PdfData {
   observations: string;
 }
 
-export const generateTurnaroundPdf = (data: PdfData) => {
+export const generateTurnaroundPdf = async (data: PdfData) => {
   const airlineInfo = AIRLINES.find(a => a.code === data.airline);
   const timeFields = getTimeFieldsForAirline(data.airline, data.isRemote);
   const fields = getFieldsByAirline(data.airline);
@@ -84,6 +85,13 @@ export const generateTurnaroundPdf = (data: PdfData) => {
     `<tr><td class="code">${f.code}</td><td>${f.label}</td></tr>`
   ).join('');
 
+  // Resolve signed URLs for images
+  const loadingSheetSignedUrl = await getSignedUrl(data.times.loadingSheetUrl);
+  const fileSignedUrl = await getSignedUrl(data.times.fileUrl);
+  const obsPhotoSignedUrls = data.times.observationPhotos?.length
+    ? await getSignedUrls(data.times.observationPhotos)
+    : [];
+
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -143,22 +151,22 @@ export const generateTurnaroundPdf = (data: PdfData) => {
   <h2>Observaciones</h2>
   <div class="obs">${data.observations}</div>` : ''}
 
-  ${data.times.loadingSheetUrl ? `
+  ${loadingSheetSignedUrl ? `
   <h2>Hoja de Carga</h2>
   <div style="text-align:center;">
-    <img src="${data.times.loadingSheetUrl}" alt="Hoja de carga" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
+    <img src="${loadingSheetSignedUrl}" alt="Hoja de carga" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
   </div>` : ''}
 
-  ${data.times.fileUrl ? `
+  ${fileSignedUrl ? `
   <h2>File</h2>
   <div style="text-align:center;">
-    <img src="${data.times.fileUrl}" alt="File" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
+    <img src="${fileSignedUrl}" alt="File" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
   </div>` : ''}
 
-  ${data.times.observationPhotos && data.times.observationPhotos.length > 0 ? `
+  ${obsPhotoSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Fotos de Observaciones</h2>
   <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-    ${data.times.observationPhotos.map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+    ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
   </div>` : ''}
 </body>
 </html>`;

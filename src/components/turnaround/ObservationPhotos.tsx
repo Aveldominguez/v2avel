@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Camera, ImageIcon, Trash2, Loader2 } from 'lucide-react';
+import { buildStoragePath, parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 
 const MAX_PHOTOS = 7;
 
@@ -22,6 +23,15 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [displayUrls, setDisplayUrls] = useState<(string | null)[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(photos.map(p => getSignedUrl(p))).then(urls => {
+      if (!cancelled) setDisplayUrls(urls);
+    });
+    return () => { cancelled = true; };
+  }, [photos]);
 
   const uploadFile = async (file: globalThis.File) => {
     if (!user) {
@@ -48,11 +58,8 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('turnaround-files')
-        .getPublicUrl(fileName);
-
-      onChange([...photos, publicUrl]);
+      const storagePath = buildStoragePath('turnaround-files', fileName);
+      onChange([...photos, storagePath]);
       toast({ title: 'Foto subida correctamente' });
     } catch (err) {
       console.error('Upload error:', err);
@@ -65,9 +72,14 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
   const handleDelete = async (index: number) => {
     const url = photos[index];
     try {
-      const match = url.match(/turnaround-files\/(.+)$/);
-      if (match) {
-        await supabase.storage.from('turnaround-files').remove([match[1]]);
+      const parsed = parseStoragePath(url);
+      if (parsed) {
+        await supabase.storage.from(parsed.bucket).remove([parsed.path]);
+      } else {
+        const match = url.match(/turnaround-files\/(.+)$/);
+        if (match) {
+          await supabase.storage.from('turnaround-files').remove([match[1]]);
+        }
       }
     } catch {}
     onChange(photos.filter((_, i) => i !== index));
@@ -120,10 +132,10 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
           {photos.map((url, i) => (
             <div key={i} className="relative group">
               <img
-                src={url}
+                src={displayUrls[i] || ''}
                 alt={`Observación ${i + 1}`}
                 className="w-full h-32 object-cover rounded-lg border border-border cursor-pointer"
-                onClick={() => window.open(url, '_blank')}
+                onClick={() => displayUrls[i] && window.open(displayUrls[i]!, '_blank')}
               />
               <Button
                 type="button"

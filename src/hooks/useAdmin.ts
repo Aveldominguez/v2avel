@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import JSZip from 'jszip';
+import { getSignedUrl } from '@/utils/storageUrl';
 
 export interface UserProfile {
   id: string;
@@ -166,13 +167,16 @@ export const useAdmin = () => {
       const times = t.times as any;
       if (times?.loadingSheetUrl) {
         try {
-          const response = await fetch(times.loadingSheetUrl);
-          if (response.ok) {
-            const blob = await response.blob();
-            const ext = blob.type.includes('png') ? 'png' : 'jpg';
-            const filename = `${t.flight_number}_${t.date}.${ext}`;
-            photosFolder?.file(filename, blob);
-            photoCount++;
+          const signedUrl = await getSignedUrl(times.loadingSheetUrl);
+          if (signedUrl) {
+            const response = await fetch(signedUrl);
+            if (response.ok) {
+              const blob = await response.blob();
+              const ext = blob.type.includes('png') ? 'png' : 'jpg';
+              const filename = `${t.flight_number}_${t.date}.${ext}`;
+              photosFolder?.file(filename, blob);
+              photoCount++;
+            }
           }
         } catch (e) {
           console.warn(`No se pudo descargar foto de ${t.flight_number}:`, e);
@@ -180,13 +184,16 @@ export const useAdmin = () => {
       }
       if (times?.fileUrl) {
         try {
-          const response = await fetch(times.fileUrl);
-          if (response.ok) {
-            const blob = await response.blob();
-            const ext = blob.type.includes('png') ? 'png' : 'jpg';
-            const filename = `${t.flight_number}_${t.date}_file.${ext}`;
-            filesFolder?.file(filename, blob);
-            fileCount++;
+          const signedUrl = await getSignedUrl(times.fileUrl);
+          if (signedUrl) {
+            const response = await fetch(signedUrl);
+            if (response.ok) {
+              const blob = await response.blob();
+              const ext = blob.type.includes('png') ? 'png' : 'jpg';
+              const filename = `${t.flight_number}_${t.date}_file.${ext}`;
+              filesFolder?.file(filename, blob);
+              fileCount++;
+            }
           }
         } catch (e) {
           console.warn(`No se pudo descargar file de ${t.flight_number}:`, e);
@@ -195,13 +202,16 @@ export const useAdmin = () => {
       if (times?.observationPhotos && Array.isArray(times.observationPhotos)) {
         for (let i = 0; i < times.observationPhotos.length; i++) {
           try {
-            const response = await fetch(times.observationPhotos[i]);
-            if (response.ok) {
-              const blob = await response.blob();
-              const ext = blob.type.includes('png') ? 'png' : 'jpg';
-              const filename = `${t.flight_number}_${t.date}_obs_${i + 1}.${ext}`;
-              obsPhotosFolder?.file(filename, blob);
-              obsPhotoCount++;
+            const signedUrl = await getSignedUrl(times.observationPhotos[i]);
+            if (signedUrl) {
+              const response = await fetch(signedUrl);
+              if (response.ok) {
+                const blob = await response.blob();
+                const ext = blob.type.includes('png') ? 'png' : 'jpg';
+                const filename = `${t.flight_number}_${t.date}_obs_${i + 1}.${ext}`;
+                obsPhotosFolder?.file(filename, blob);
+                obsPhotoCount++;
+              }
             }
           } catch (e) {
             console.warn(`No se pudo descargar foto obs de ${t.flight_number}:`, e);
