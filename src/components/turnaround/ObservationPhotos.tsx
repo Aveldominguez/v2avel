@@ -33,37 +33,50 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
     return () => { cancelled = true; };
   }, [photos]);
 
-  const uploadFile = async (file: globalThis.File) => {
+  const uploadFiles = async (files: globalThis.File[]) => {
     if (!user) {
       toast({ title: 'Error', description: 'Debes iniciar sesión', variant: 'destructive' });
       return;
     }
-    if (photos.length >= MAX_PHOTOS) {
+    const remaining = MAX_PHOTOS - photos.length;
+    if (remaining <= 0) {
       toast({ title: 'Límite alcanzado', description: `Máximo ${MAX_PHOTOS} fotografías`, variant: 'destructive' });
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: 'Error', description: 'El archivo no puede superar 10MB', variant: 'destructive' });
-      return;
+    const batch = files.slice(0, remaining);
+    if (batch.length < files.length) {
+      toast({ title: 'Aviso', description: `Solo se subirán ${batch.length} de ${files.length} fotos (límite ${MAX_PHOTOS})` });
     }
 
     setUploading(true);
+    const newPaths: string[] = [];
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const fileName = `${user.id}/${turnaroundId || 'new'}-obs-${Date.now()}.${ext}`;
+      for (const file of batch) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ title: 'Error', description: `${file.name} supera 10MB, omitida`, variant: 'destructive' });
+          continue;
+        }
+        const ext = file.name.split('.').pop() || 'jpg';
+        const fileName = `${user.id}/${turnaroundId || 'new'}-obs-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('turnaround-files')
-        .upload(fileName, file, { upsert: true });
+        const { error: uploadError } = await supabase.storage
+          .from('turnaround-files')
+          .upload(fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
-
-      const storagePath = buildStoragePath('turnaround-files', fileName);
-      onChange([...photos, storagePath]);
-      toast({ title: 'Foto subida correctamente' });
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast({ title: 'Error', description: `No se pudo subir ${file.name}`, variant: 'destructive' });
+          continue;
+        }
+        newPaths.push(buildStoragePath('turnaround-files', fileName));
+      }
+      if (newPaths.length > 0) {
+        onChange([...photos, ...newPaths]);
+        toast({ title: `${newPaths.length} foto(s) subida(s) correctamente` });
+      }
     } catch (err) {
       console.error('Upload error:', err);
-      toast({ title: 'Error', description: 'No se pudo subir la foto', variant: 'destructive' });
+      toast({ title: 'Error', description: 'No se pudieron subir las fotos', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -86,8 +99,8 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadFile(file);
+    const files = e.target.files;
+    if (files && files.length > 0) uploadFiles(Array.from(files));
     e.target.value = '';
   };
 
@@ -163,6 +176,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={handleFileChange}
       />
