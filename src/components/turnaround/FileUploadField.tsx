@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Camera, ImageIcon, Trash2, Loader2, File } from 'lucide-react';
+import { buildStoragePath, parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 
 interface FileUploadFieldProps {
   turnaroundId?: string;
@@ -21,6 +22,17 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (imageUrl) {
+      getSignedUrl(imageUrl).then(url => { if (!cancelled) setDisplayUrl(url); });
+    } else {
+      setDisplayUrl(null);
+    }
+    return () => { cancelled = true; };
+  }, [imageUrl]);
 
   const uploadFile = async (file: globalThis.File) => {
     if (!user) {
@@ -51,11 +63,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('turnaround-files')
-        .getPublicUrl(fileName);
-
-      onChange(publicUrl);
+      onChange(buildStoragePath('turnaround-files', fileName));
       toast({ title: 'Archivo subido correctamente' });
     } catch (err) {
       console.error('Upload error:', err);
@@ -66,6 +74,8 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   };
 
   const extractPathFromUrl = (url: string): string | null => {
+    const parsed = parseStoragePath(url);
+    if (parsed && parsed.bucket === 'turnaround-files') return parsed.path;
     try {
       const match = url.match(/turnaround-files\/(.+)$/);
       return match ? match[1] : null;
@@ -104,10 +114,10 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         {imageUrl ? (
           <div className="relative">
             <img
-              src={imageUrl}
+              src={displayUrl || ''}
               alt="File"
               className="w-full rounded-lg border border-border object-contain max-h-[400px]"
-              onClick={() => window.open(imageUrl, '_blank')}
+              onClick={() => displayUrl && window.open(displayUrl, '_blank')}
             />
             <Button
               variant="destructive"

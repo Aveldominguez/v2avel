@@ -444,18 +444,20 @@ const TurnaroundForm: React.FC = () => {
           type="button"
           variant="outline"
           className="w-full gap-2 font-semibold"
-          onClick={() => generateTurnaroundPdf({
-            flightNumber,
-            date,
-            airline: selectedAirline,
-            aircraftModel,
-            isRemote,
-            remoteLocation,
-            tango,
-            times: getTimesWithFlightInfo(),
-            fieldValues,
-            observations,
-          })}
+          onClick={async () => {
+            await generateTurnaroundPdf({
+              flightNumber,
+              date,
+              airline: selectedAirline,
+              aircraftModel,
+              isRemote,
+              remoteLocation,
+              tango,
+              times: getTimesWithFlightInfo(),
+              fieldValues,
+              observations,
+            });
+          }}
         >
           <FileDown className="h-4 w-4" />
           Exportar PDF
