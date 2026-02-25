@@ -64,7 +64,15 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
 
   const isNilSet = (holdId: string) => {
     const entry = values.find(v => v.fieldDefinitionId === holdId);
-    return entry?.value === 'NIL' && entry?.previousValue !== undefined && entry?.previousValue !== null;
+    if (entry?.value !== 'NIL' || !entry?.previousValue) return false;
+    // Check 24h expiry
+    if (entry.nilSetAt) {
+      const setTime = new Date(entry.nilSetAt).getTime();
+      const now = Date.now();
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      if (now - setTime > TWENTY_FOUR_HOURS) return false;
+    }
+    return true;
   };
 
   const renderNilButton = (holdId: string) => {

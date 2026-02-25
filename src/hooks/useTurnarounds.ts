@@ -20,6 +20,8 @@ const mapDbToTurnaround = (db: {
   const fieldValues = (db.field_values as unknown as Array<{
     fieldDefinitionId: string;
     value: string;
+    previousValue?: string;
+    nilSetAt?: string;
     updatedAt: string;
     updatedBy?: string;
   }>) || [];
@@ -93,6 +95,8 @@ export const useTurnarounds = () => {
       const fieldValuesForDb = fieldValues.map(fv => ({
         fieldDefinitionId: fv.fieldDefinitionId,
         value: fv.value,
+        previousValue: fv.previousValue,
+        nilSetAt: fv.nilSetAt,
         updatedAt: fv.updatedAt.toISOString(),
         updatedBy: fv.updatedBy,
       }));
@@ -137,6 +141,8 @@ export const useTurnarounds = () => {
       const fieldValuesForDb = fieldValues.map(fv => ({
         fieldDefinitionId: fv.fieldDefinitionId,
         value: fv.value,
+        previousValue: fv.previousValue,
+        nilSetAt: fv.nilSetAt,
         updatedAt: fv.updatedAt.toISOString(),
         updatedBy: fv.updatedBy,
       }));

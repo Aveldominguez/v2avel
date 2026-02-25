@@ -184,6 +184,8 @@ const TurnaroundForm: React.FC = () => {
     const fieldValuesForDb = fieldValues.map(fv => ({
       fieldDefinitionId: fv.fieldDefinitionId,
       value: fv.value,
+      previousValue: fv.previousValue,
+      nilSetAt: fv.nilSetAt,
       updatedAt: fv.updatedAt.toISOString(),
       updatedBy: fv.updatedBy,
     }));
@@ -247,6 +249,8 @@ const TurnaroundForm: React.FC = () => {
     const fieldValuesForDb = fieldValues.map(fv => ({
       fieldDefinitionId: fv.fieldDefinitionId,
       value: fv.value,
+      previousValue: fv.previousValue,
+      nilSetAt: fv.nilSetAt,
       updatedAt: fv.updatedAt.toISOString(),
       updatedBy: fv.updatedBy,
     }));

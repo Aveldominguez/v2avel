@@ -52,6 +52,7 @@ export interface FieldValue {
   fieldDefinitionId: string;
   value: string;
   previousValue?: string;
+  nilSetAt?: string;           // ISO timestamp when NIL was set (expires after 24h)
   updatedAt: Date;
   updatedBy?: string;
 }

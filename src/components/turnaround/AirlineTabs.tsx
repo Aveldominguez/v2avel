@@ -28,18 +28,23 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
 
   const handleFieldChange = (fieldId: string, value: string, previousValue?: string | null) => {
     const existing = fieldValues.find(v => v.fieldDefinitionId === fieldId);
+    const isSettingNil = value === 'NIL' && previousValue !== undefined && previousValue !== null;
+    const isClearingNil = previousValue === null;
+    
     if (existing) {
       onChange(fieldValues.map(v => v.fieldDefinitionId === fieldId ? {
         ...v,
         value,
-        previousValue: previousValue === null ? undefined : (previousValue ?? v.previousValue),
+        previousValue: isClearingNil ? undefined : (previousValue ?? v.previousValue),
+        nilSetAt: isSettingNil ? new Date().toISOString() : (isClearingNil ? undefined : v.nilSetAt),
         updatedAt: new Date()
       } : v));
     } else {
       onChange([...fieldValues, {
         fieldDefinitionId: fieldId,
         value,
-        previousValue: previousValue === null ? undefined : previousValue,
+        previousValue: isClearingNil ? undefined : previousValue ?? undefined,
+        nilSetAt: isSettingNil ? new Date().toISOString() : undefined,
         updatedAt: new Date()
       }]);
     }
