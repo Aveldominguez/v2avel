@@ -9,7 +9,7 @@ import { AirlineCode } from '@/types/turnaround';
 interface CompartmentsTableProps {
   compartments: CompartmentDefinition[];
   values: FieldValue[];
-  onChange: (holdId: string, value: string) => void;
+  onChange: (holdId: string, value: string, previousValue?: string | null) => void;
   disabled?: boolean;
   airline?: AirlineCode;
 }
@@ -24,8 +24,6 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   airline,
 }) => {
   const showNilButton = airline !== 'FEDEX';
-  // Store previous values before NIL was set, keyed by hold id
-  const [previousValues, setPreviousValues] = useState<Record<string, string>>({});
   // Track extra field counts per compartment
   const [extraFieldCounts, setExtraFieldCounts] = useState<Record<string, number>>({});
 
@@ -55,21 +53,19 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
 
   const handleNil = (holdId: string) => {
     const current = getValue(holdId);
-    setPreviousValues(prev => ({ ...prev, [holdId]: current }));
-    onChange(holdId, 'NIL');
+    onChange(holdId, 'NIL', current);
   };
 
   const handleUndo = (holdId: string) => {
-    const prev = previousValues[holdId] ?? '';
-    onChange(holdId, prev);
-    setPreviousValues(p => {
-      const copy = { ...p };
-      delete copy[holdId];
-      return copy;
-    });
+    const entry = values.find(v => v.fieldDefinitionId === holdId);
+    const prev = entry?.previousValue ?? '';
+    onChange(holdId, prev, null);
   };
 
-  const isNilSet = (holdId: string) => getValue(holdId) === 'NIL' && holdId in previousValues;
+  const isNilSet = (holdId: string) => {
+    const entry = values.find(v => v.fieldDefinitionId === holdId);
+    return entry?.value === 'NIL' && entry?.previousValue !== undefined && entry?.previousValue !== null;
+  };
 
   const renderNilButton = (holdId: string) => {
     if (!showNilButton || disabled) return null;

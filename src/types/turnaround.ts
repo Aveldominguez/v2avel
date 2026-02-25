@@ -51,6 +51,7 @@ export interface FieldDefinition {
 export interface FieldValue {
   fieldDefinitionId: string;
   value: string;
+  previousValue?: string;
   updatedAt: Date;
   updatedBy?: string;
 }
