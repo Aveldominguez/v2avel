@@ -413,6 +413,12 @@ const TurnaroundForm: React.FC = () => {
                 <span className="font-semibold">T{tango}</span>
               </>
             )}
+            {matricula && (
+              <>
+                <span>|</span>
+                <span className="font-semibold">{matricula}</span>
+              </>
+            )}
             <Button
               variant="ghost"
               size="sm"
