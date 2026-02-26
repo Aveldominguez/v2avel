@@ -40,6 +40,7 @@ export interface TurnaroundDraft {
   fieldValues: FieldValue[];
   observations: string;
   tango: string;
+  matricula: string;
   isRemote: boolean;
   remoteLocation: string;
   step: number;
