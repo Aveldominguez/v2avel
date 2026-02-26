@@ -652,6 +652,11 @@ export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
 
 export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
+  if (airline === 'TAP') {
+    if (aircraftModel === 'A321') return TAP_A321_COMPARTMENTS;
+    if (aircraftModel === 'A320') return TAP_A320_COMPARTMENTS;
+    return [];
+  }
   if (airline === 'ITA') {
     if (aircraftModel === 'A321') return ITA_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return ITA_A320_COMPARTMENTS;
