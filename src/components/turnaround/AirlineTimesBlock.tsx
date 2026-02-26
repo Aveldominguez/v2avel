@@ -61,7 +61,6 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             <CountdownTimer chocksOnTime={times.chocksOnArrival} loadingEndTime={times.loadingEnd} durationMinutes={durationMinutes} cleaningMinutes={cleaningMins} />
           )}
         </CardTitle>
-        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
