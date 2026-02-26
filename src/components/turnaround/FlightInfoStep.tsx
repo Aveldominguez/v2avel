@@ -31,6 +31,8 @@ interface FlightInfoStepProps {
   setAircraftModel: (v: string) => void;
   matricula: string;
   setMatricula: (v: string) => void;
+  soloLlegada: boolean;
+  setSoloLlegada: (v: boolean) => void;
   onContinue: () => void;
   onCancel: () => void;
 }
@@ -52,6 +54,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setAircraftModel,
   matricula,
   setMatricula,
+  soloLlegada,
+  setSoloLlegada,
   onContinue,
   onCancel,
 }) => {
@@ -148,6 +152,26 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 />
               </div>
             )}
+
+            {/* Sólo llegada toggle */}
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Sólo Llegada
+              </Label>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={soloLlegada}
+                  onCheckedChange={setSoloLlegada}
+                  className="data-[state=checked]:bg-primary"
+                />
+                <span className={cn(
+                  'text-sm font-semibold',
+                  soloLlegada ? 'text-primary' : 'text-muted-foreground'
+                )}>
+                  {soloLlegada ? 'Sí' : 'No'}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Date */}

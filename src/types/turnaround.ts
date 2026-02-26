@@ -37,6 +37,7 @@ export interface TurnaroundTimes {
   fileUrl: string | null;               // File (archivo adjunto)
   observationPhotos: string[];          // Fotos de observaciones (máx 7)
   matricula: string | null;             // Matrícula de la aeronave
+  soloLlegada: boolean;                 // Sólo llegada (arrival only)
 }
 
 export interface FieldDefinition {
@@ -179,7 +180,18 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
 
 const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON'];
 
-export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean): TimeFieldConfig[] => {
+// Fields to keep in "Sólo llegada" mode (arrival only)
+const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
+  'chocksOnArrival',
+  'stairsTime',
+  'unloadingStart',
+  'unloadingEnd',
+  'firstBag',
+  'gpuOn',
+  'busArrival',
+]);
+
+export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
   let baseFields: TimeFieldConfig[];
 
   if (airline === 'FEDEX') {
@@ -211,6 +223,10 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean)
         baseFields = [chocksOn, chocksOffField, stairsField, retStairsField, ...rest];
       }
     }
+  }
+
+  if (soloLlegada) {
+    baseFields = baseFields.filter(f => ARRIVAL_ONLY_KEYS.has(f.key));
   }
 
   return baseFields;

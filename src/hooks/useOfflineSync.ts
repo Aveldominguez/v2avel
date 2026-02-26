@@ -42,6 +42,7 @@ export interface TurnaroundDraft {
   tango: string;
   matricula: string;
   isRemote: boolean;
+  soloLlegada: boolean;
   remoteLocation: string;
   step: number;
   savedAt: number;
