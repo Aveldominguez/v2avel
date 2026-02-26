@@ -5,6 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
 import { AirlineCode } from '@/types/turnaround';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface CompartmentsTableProps {
   compartments: CompartmentDefinition[];
@@ -15,6 +22,7 @@ interface CompartmentsTableProps {
 }
 
 const DEFAULT_EXTRA_FIELDS = 5;
+const ITA_TYPE_OPTIONS = ['AKH-AZ', 'PKC-AZ'];
 
 export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   compartments,
@@ -24,15 +32,12 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   airline,
 }) => {
   const showNilButton = airline !== 'FEDEX';
-  // Track extra field counts per compartment
   const [extraFieldCounts, setExtraFieldCounts] = useState<Record<string, number>>({});
 
-  // Initialize extra field counts and restore from existing values
   useEffect(() => {
     const counts: Record<string, number> = {};
     compartments.forEach((comp) => {
       if (comp.expandable) {
-        // Check if there are saved values beyond the default count
         const baseCount = comp.expandableDefault ?? DEFAULT_EXTRA_FIELDS;
         let maxIdx = baseCount;
         values.forEach((v) => {
@@ -65,7 +70,6 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   const isNilSet = (holdId: string) => {
     const entry = values.find(v => v.fieldDefinitionId === holdId);
     if (entry?.value !== 'NIL' || !entry?.previousValue) return false;
-    // Check 24h expiry
     if (entry.nilSetAt) {
       const setTime = new Date(entry.nilSetAt).getTime();
       const now = Date.now();
@@ -89,6 +93,62 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
       >
         {nilActive ? <Undo2 className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
       </Button>
+    );
+  };
+
+  // ITA-style hold: type selector + numeric field on top row, content field below
+  const renderItaHoldInput = (hold: { id: string; label: string }) => {
+    const typeFieldId = `${hold.id}-type`;
+    const numFieldId = `${hold.id}-num`;
+    const contentFieldId = `${hold.id}-content`;
+
+    return (
+      <div key={hold.id} className="border border-border rounded-lg p-3 space-y-2">
+        {/* Top row: label + type selector + numeric */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-foreground shrink-0 min-w-[2.5rem]">
+            {hold.label}:
+          </span>
+          <Select
+            value={getValue(typeFieldId) || undefined}
+            onValueChange={(val) => onChange(typeFieldId, val)}
+            disabled={disabled}
+          >
+            <SelectTrigger className="h-9 flex-1 min-w-0 font-mono text-sm bg-input border-border">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {ITA_TYPE_OPTIONS.map((opt) => (
+                <SelectItem key={opt} value={opt}>
+                  {opt}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="text"
+            inputMode="numeric"
+            maxLength={5}
+            value={getValue(numFieldId)}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '').slice(0, 5);
+              onChange(numFieldId, val);
+            }}
+            disabled={disabled}
+            placeholder="00000"
+            className="h-9 w-20 shrink-0 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30 text-center"
+          />
+        </div>
+        {/* Bottom row: content field */}
+        <Input
+          type="text"
+          value={getValue(contentFieldId)}
+          onChange={(e) => onChange(contentFieldId, e.target.value.toUpperCase())}
+          disabled={disabled}
+          placeholder="Contenido bodega"
+          className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+        />
+      </div>
     );
   };
 
@@ -194,6 +254,8 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     );
   };
 
+  const isItaStyle = (comp: CompartmentDefinition) => comp.holdStyle === 'ita';
+
   return (
     <div className="space-y-5">
       {compartments.map((comp) => (
@@ -203,9 +265,11 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           </h3>
           <div className="space-y-2">
             {comp.holds.map((hold, idx) =>
-              isPairedHold(hold)
-                ? renderPairedHold(hold, idx)
-                : renderHoldInput(hold)
+              isItaStyle(comp) && !isPairedHold(hold)
+                ? renderItaHoldInput(hold)
+                : isPairedHold(hold)
+                  ? renderPairedHold(hold, idx)
+                  : renderHoldInput(hold)
             )}
             {comp.expandable && renderExpandableFields(comp)}
           </div>
