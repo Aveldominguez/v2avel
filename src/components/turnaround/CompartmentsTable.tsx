@@ -119,7 +119,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
-              {ITA_TYPE_OPTIONS.map((opt) => (
+              {typeOptions.map((opt) => (
                 <SelectItem key={opt} value={opt}>
                   {opt}
                 </SelectItem>
