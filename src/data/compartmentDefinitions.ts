@@ -650,6 +650,86 @@ export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// TAP Air Portugal A321
+export const TAP_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'tap-a321-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 FWD', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a321-11'), label: '11 🚪' },
+      { id: createHoldId('TAP', 'a321-12'), label: '12' },
+    ],
+  },
+  {
+    id: 'tap-a321-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a321-21'), label: '21' },
+      { id: createHoldId('TAP', 'a321-22'), label: '22' },
+      { id: createHoldId('TAP', 'a321-23'), label: '23' },
+    ],
+  },
+  {
+    id: 'tap-a321-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3 AFT', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a321-31'), label: '31' },
+      { id: createHoldId('TAP', 'a321-32'), label: '32' },
+      { id: createHoldId('TAP', 'a321-33'), label: '33' },
+    ],
+  },
+  {
+    id: 'tap-a321-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a321-41'), label: '41 🚪' },
+      { id: createHoldId('TAP', 'a321-42'), label: '42' },
+    ],
+  },
+  {
+    id: 'tap-a321-bulk5', airline: 'TAP', compartmentName: 'Bulk 5', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a321-51'), label: '51' },
+      { id: createHoldId('TAP', 'a321-52'), label: '52 🚪' },
+      { id: createHoldId('TAP', 'a321-53'), label: '53' },
+    ],
+  },
+];
+
+// TAP Air Portugal A320
+export const TAP_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'tap-a320-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 FWD', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a320-11'), label: '11 🚪' },
+      { id: createHoldId('TAP', 'a320-12'), label: '12' },
+      { id: createHoldId('TAP', 'a320-13'), label: '13' },
+    ],
+  },
+  {
+    id: 'tap-a320-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3 AFT', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a320-31'), label: '31' },
+      { id: createHoldId('TAP', 'a320-32'), label: '32' },
+    ],
+  },
+  {
+    id: 'tap-a320-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a320-41'), label: '41 🚪' },
+      { id: createHoldId('TAP', 'a320-42'), label: '42' },
+    ],
+  },
+  {
+    id: 'tap-a320-bulk', airline: 'TAP', compartmentName: 'Bulk', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a320-5'), label: '5 🚪' },
+    ],
+  },
+];
+
+// Type options per airline for ITA-style holds
+export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
+  ITA: ['AKH-AZ', 'PKC-AZ'],
+  TAP: ['AKH-TP', 'PKC-TP'],
+};
+
 export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'TAP') {
