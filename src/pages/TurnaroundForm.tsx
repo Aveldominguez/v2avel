@@ -158,6 +158,7 @@ const TurnaroundForm: React.FC = () => {
       fieldValues,
       observations,
       tango,
+      matricula,
       isRemote,
       remoteLocation,
       step,
