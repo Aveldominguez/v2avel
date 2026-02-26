@@ -171,23 +171,57 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 </body>
 </html>`;
 
-  // Safari iOS blocks window.open / blob URL clicks from async contexts.
-  // Use a data URI approach with a download link as fallback.
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
+  // Detect standalone mode (PWA / home screen web app on iOS)
+  const isStandalone = (window.navigator as any).standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
 
-  // Try opening in a new tab first (works on most browsers)
-  const newWindow = window.open(url, '_blank');
+  if (isStandalone) {
+    // In standalone (PWA) mode, window.open and blob downloads are blocked.
+    // Open the HTML content in a full-screen overlay iframe.
+    const existingOverlay = document.getElementById('pdf-overlay');
+    if (existingOverlay) document.body.removeChild(existingOverlay);
 
-  if (!newWindow) {
-    // Fallback for Safari iOS: trigger a download instead
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `escala-${data.flightNumber}-${format(data.date, 'yyyyMMdd')}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const overlay = document.createElement('div');
+    overlay.id = 'pdf-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:white;display:flex;flex-direction:column;';
+
+    const toolbar = document.createElement('div');
+    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#1a1a2e;color:#fff;font-family:sans-serif;font-size:15px;';
+
+    const title = document.createElement('span');
+    title.textContent = `Escala ${data.flightNumber}`;
+    toolbar.appendChild(title);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ Cerrar';
+    closeBtn.style.cssText = 'background:#ef4444;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;';
+    closeBtn.onclick = () => document.body.removeChild(overlay);
+    toolbar.appendChild(closeBtn);
+
+    overlay.appendChild(toolbar);
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'flex:1;border:none;width:100%;';
+    iframe.srcdoc = html;
+    overlay.appendChild(iframe);
+
+    document.body.appendChild(overlay);
+  } else {
+    // Standard browser: try opening in a new tab
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank');
+
+    if (!newWindow) {
+      // Fallback: trigger download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `escala-${data.flightNumber}-${format(data.date, 'yyyyMMdd')}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
   }
-
-  setTimeout(() => URL.revokeObjectURL(url), 15000);
 };
