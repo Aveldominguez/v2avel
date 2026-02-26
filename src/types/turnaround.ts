@@ -204,9 +204,19 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
     baseFields = [...FIELDS_NO_STAIRS];
   }
 
+  // Amazon-specific overrides
+  if (airline === 'AMAZON') {
+    baseFields = baseFields.map(f =>
+      f.key === 'firstBag' ? { ...f, label: 'Envío 1ª Ristra' } : f
+    );
+  }
+
   if (isRemote) {
-    // Add remote fields
-    baseFields = [...baseFields, ...REMOTE_FIELDS];
+    // Add remote fields (exclude busArrival for Amazon)
+    const remoteToAdd = airline === 'AMAZON'
+      ? REMOTE_FIELDS.filter(f => f.key !== 'busArrival')
+      : [...REMOTE_FIELDS];
+    baseFields = [...baseFields, ...remoteToAdd];
 
     // Add stairs for airlines that don't normally have them (excluding FEDEX which already has them)
     if (!AIRLINES_WITH_STAIRS.includes(airline) && airline !== 'FEDEX') {
