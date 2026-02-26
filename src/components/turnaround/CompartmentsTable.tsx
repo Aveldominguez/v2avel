@@ -97,7 +97,8 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   };
 
   // ITA-style hold: type selector + numeric field on top row, content field below
-  const renderItaHoldInput = (hold: { id: string; label: string }) => {
+  const renderItaHoldInput = (hold: { id: string; label: string }, holdAirline?: AirlineCode) => {
+    const typeOptions = ITA_STYLE_TYPE_OPTIONS[holdAirline || ''] || ['AKH-AZ', 'PKC-AZ'];
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
     const contentFieldId = `${hold.id}-content`;
