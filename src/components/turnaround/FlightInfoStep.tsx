@@ -29,6 +29,8 @@ interface FlightInfoStepProps {
   setAirline: (v: AirlineCode) => void;
   aircraftModel: string;
   setAircraftModel: (v: string) => void;
+  matricula: string;
+  setMatricula: (v: string) => void;
   onContinue: () => void;
   onCancel: () => void;
 }
@@ -48,6 +50,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setAirline,
   aircraftModel,
   setAircraftModel,
+  matricula,
+  setMatricula,
   onContinue,
   onCancel,
 }) => {
@@ -120,10 +124,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                   Ubicación Remoto
                 </Label>
-                <Input
+              <Input
+                  type="text"
+                  inputMode="numeric"
                   value={remoteLocation}
-                  onChange={(e) => setRemoteLocation(e.target.value.toUpperCase())}
-                  placeholder="Ej: R1, R2..."
+                  onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Ej: 1, 2..."
                   className="input-operational font-mono"
                 />
               </div>
@@ -132,9 +138,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                   Tango
                 </Label>
-                <Input
+              <Input
+                  type="text"
+                  inputMode="numeric"
                   value={tango}
-                  onChange={(e) => setTango(e.target.value.toUpperCase())}
+                  onChange={(e) => setTango(e.target.value.replace(/\D/g, ''))}
                   placeholder="Tango"
                   className="input-operational font-mono"
                 />
@@ -213,6 +221,19 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Matrícula */}
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Matrícula
+            </Label>
+            <Input
+              value={matricula}
+              onChange={(e) => setMatricula(e.target.value.toUpperCase())}
+              placeholder="Matrícula de la aeronave"
+              className="input-operational font-mono"
+            />
           </div>
 
           {/* Continue */}
