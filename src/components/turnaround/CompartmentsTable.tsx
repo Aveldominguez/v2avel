@@ -22,7 +22,7 @@ interface CompartmentsTableProps {
 }
 
 const DEFAULT_EXTRA_FIELDS = 5;
-const ITA_TYPE_OPTIONS = ['AKH-AZ', 'PKC-AZ'];
+
 
 export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   compartments,
