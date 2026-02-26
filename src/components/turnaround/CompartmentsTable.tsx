@@ -267,7 +267,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="space-y-2">
             {comp.holds.map((hold, idx) =>
               isItaStyle(comp) && !isPairedHold(hold)
-                ? renderItaHoldInput(hold)
+                ? renderItaHoldInput(hold, comp.airline)
                 : isPairedHold(hold)
                   ? renderPairedHold(hold, idx)
                   : renderHoldInput(hold)
