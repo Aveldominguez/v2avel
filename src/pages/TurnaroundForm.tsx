@@ -44,6 +44,7 @@ const TurnaroundForm: React.FC = () => {
   const [aircraftModel, setAircraftModel] = useState('');
   const [remoteLocation, setRemoteLocation] = useState('');
   const [matricula, setMatricula] = useState('');
+  const [soloLlegada, setSoloLlegada] = useState(false);
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -85,6 +86,7 @@ const TurnaroundForm: React.FC = () => {
             setRemoteLocation(existing.times.remoteLocation || '');
             setAircraftModel(existing.times.aircraftModel || '');
             setMatricula(existing.times.matricula || '');
+            setSoloLlegada(existing.times.soloLlegada || false);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
@@ -118,6 +120,7 @@ const TurnaroundForm: React.FC = () => {
     setAirline(draft.airline);
     setAircraftModel(draft.aircraftModel || '');
     setMatricula(draft.matricula || '');
+    setSoloLlegada(draft.soloLlegada || false);
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -138,10 +141,11 @@ const TurnaroundForm: React.FC = () => {
     remoteLocation: isRemote ? (remoteLocation || null) : null,
     aircraftModel: aircraftModel || null,
     matricula: matricula || null,
+    soloLlegada,
     loadingSheetUrl,
     fileUrl,
     observationPhotos,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, loadingSheetUrl, fileUrl, observationPhotos]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, loadingSheetUrl, fileUrl, observationPhotos]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -161,6 +165,7 @@ const TurnaroundForm: React.FC = () => {
       tango,
       matricula,
       isRemote,
+      soloLlegada,
       remoteLocation,
       step,
       savedAt: Date.now(),
@@ -346,6 +351,8 @@ const TurnaroundForm: React.FC = () => {
         setAircraftModel={setAircraftModel}
         matricula={matricula}
         setMatricula={setMatricula}
+        soloLlegada={soloLlegada}
+        setSoloLlegada={setSoloLlegada}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
       />
@@ -445,12 +452,13 @@ const TurnaroundForm: React.FC = () => {
           airline={selectedAirline}
           aircraftModel={aircraftModel}
           isRemote={isRemote}
+          soloLlegada={soloLlegada}
           times={times}
           onChange={setTimes}
           errors={errors}
         />
 
-        {selectedAirline !== 'FEDEX' && (
+        {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <AirlineTabs
             airline={selectedAirline}
             aircraftModel={aircraftModel}
