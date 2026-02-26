@@ -189,6 +189,8 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'firstBag',
   'gpuOn',
   'busArrival',
+  'cargoArrival',
+  'mailArrival',
 ]);
 
 export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
