@@ -490,7 +490,7 @@ const TurnaroundForm: React.FC = () => {
           Exportar PDF
         </Button>
 
-        {selectedAirline !== 'FEDEX' && (
+        {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <LoadingSheetField
             turnaroundId={id}
             imageUrl={loadingSheetUrl}
