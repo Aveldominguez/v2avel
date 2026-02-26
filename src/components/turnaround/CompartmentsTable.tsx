@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FieldValue } from '@/types/turnaround';
-import { CompartmentDefinition, isPairedHold, HoldEntry } from '@/data/compartmentDefinitions';
+import { CompartmentDefinition, isPairedHold, HoldEntry, ITA_STYLE_TYPE_OPTIONS } from '@/data/compartmentDefinitions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
@@ -22,7 +22,7 @@ interface CompartmentsTableProps {
 }
 
 const DEFAULT_EXTRA_FIELDS = 5;
-const ITA_TYPE_OPTIONS = ['AKH-AZ', 'PKC-AZ'];
+
 
 export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   compartments,
@@ -97,7 +97,8 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   };
 
   // ITA-style hold: type selector + numeric field on top row, content field below
-  const renderItaHoldInput = (hold: { id: string; label: string }) => {
+  const renderItaHoldInput = (hold: { id: string; label: string }, holdAirline?: AirlineCode) => {
+    const typeOptions = ITA_STYLE_TYPE_OPTIONS[holdAirline || ''] || ['AKH-AZ', 'PKC-AZ'];
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
     const contentFieldId = `${hold.id}-content`;
@@ -118,7 +119,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
-              {ITA_TYPE_OPTIONS.map((opt) => (
+              {typeOptions.map((opt) => (
                 <SelectItem key={opt} value={opt}>
                   {opt}
                 </SelectItem>
@@ -266,7 +267,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="space-y-2">
             {comp.holds.map((hold, idx) =>
               isItaStyle(comp) && !isPairedHold(hold)
-                ? renderItaHoldInput(hold)
+                ? renderItaHoldInput(hold, comp.airline)
                 : isPairedHold(hold)
                   ? renderPairedHold(hold, idx)
                   : renderHoldInput(hold)
