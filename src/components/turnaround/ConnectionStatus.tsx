@@ -48,9 +48,8 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
 
   if (lastSaved) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-success">
-        <Check className="h-3.5 w-3.5" />
-        <span>Guardado</span>
+      <div className="flex items-center gap-1 text-xs text-success" title="Guardado">
+        <Check className="h-4 w-4" />
       </div>
     );
   }
