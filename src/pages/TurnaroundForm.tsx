@@ -43,6 +43,7 @@ const TurnaroundForm: React.FC = () => {
   const [isRemote, setIsRemote] = useState(false);
   const [aircraftModel, setAircraftModel] = useState('');
   const [remoteLocation, setRemoteLocation] = useState('');
+  const [matricula, setMatricula] = useState('');
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -83,6 +84,7 @@ const TurnaroundForm: React.FC = () => {
             setIsRemote(existing.times.isRemote || false);
             setRemoteLocation(existing.times.remoteLocation || '');
             setAircraftModel(existing.times.aircraftModel || '');
+            setMatricula(existing.times.matricula || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
@@ -115,6 +117,7 @@ const TurnaroundForm: React.FC = () => {
     setDate(new Date(draft.date));
     setAirline(draft.airline);
     setAircraftModel(draft.aircraftModel || '');
+    setMatricula(draft.matricula || '');
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -134,10 +137,11 @@ const TurnaroundForm: React.FC = () => {
     isRemote,
     remoteLocation: isRemote ? (remoteLocation || null) : null,
     aircraftModel: aircraftModel || null,
+    matricula: matricula || null,
     loadingSheetUrl,
     fileUrl,
     observationPhotos,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, loadingSheetUrl, fileUrl, observationPhotos]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, loadingSheetUrl, fileUrl, observationPhotos]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -155,6 +159,7 @@ const TurnaroundForm: React.FC = () => {
       fieldValues,
       observations,
       tango,
+      matricula,
       isRemote,
       remoteLocation,
       step,
@@ -175,7 +180,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation, loadingSheetUrl, fileUrl, observationPhotos]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, loadingSheetUrl, fileUrl, observationPhotos]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -339,6 +344,8 @@ const TurnaroundForm: React.FC = () => {
         setAirline={setAirline}
         aircraftModel={aircraftModel}
         setAircraftModel={setAircraftModel}
+        matricula={matricula}
+        setMatricula={setMatricula}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
       />
@@ -404,6 +411,12 @@ const TurnaroundForm: React.FC = () => {
               <>
                 <span>|</span>
                 <span className="font-semibold">T{tango}</span>
+              </>
+            )}
+            {matricula && (
+              <>
+                <span>|</span>
+                <span className="font-semibold">{matricula}</span>
               </>
             )}
             <Button
