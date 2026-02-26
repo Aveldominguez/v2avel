@@ -22,6 +22,7 @@ export interface CompartmentDefinition {
   holds: HoldEntry[];
   expandable?: boolean;
   expandableDefault?: number;
+  holdStyle?: 'default' | 'ita';
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
@@ -74,48 +75,53 @@ export const ITA_A321_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ita-a321-comp1',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a321-11'), label: 'Bodega 11 🚪' },
-      { id: createHoldId('ITA', 'a321-12'), label: 'Bodega 12' },
+      { id: createHoldId('ITA', 'a321-11'), label: '11 🚪' },
+      { id: createHoldId('ITA', 'a321-12'), label: '12' },
     ],
   },
   {
     id: 'ita-a321-comp2',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 2',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a321-21'), label: 'Bodega 21' },
-      { id: createHoldId('ITA', 'a321-22'), label: 'Bodega 22' },
-      { id: createHoldId('ITA', 'a321-23'), label: 'Bodega 23' },
+      { id: createHoldId('ITA', 'a321-21'), label: '21' },
+      { id: createHoldId('ITA', 'a321-22'), label: '22' },
+      { id: createHoldId('ITA', 'a321-23'), label: '23' },
     ],
   },
   {
     id: 'ita-a321-comp3',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a321-31'), label: 'Bodega 31' },
-      { id: createHoldId('ITA', 'a321-32'), label: 'Bodega 32' },
-      { id: createHoldId('ITA', 'a321-33'), label: 'Bodega 33' },
+      { id: createHoldId('ITA', 'a321-31'), label: '31' },
+      { id: createHoldId('ITA', 'a321-32'), label: '32' },
+      { id: createHoldId('ITA', 'a321-33'), label: '33' },
     ],
   },
   {
     id: 'ita-a321-comp4',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 4',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a321-41'), label: 'Bodega 41 🚪' },
-      { id: createHoldId('ITA', 'a321-42'), label: 'Bodega 42' },
+      { id: createHoldId('ITA', 'a321-41'), label: '41 🚪' },
+      { id: createHoldId('ITA', 'a321-42'), label: '42' },
     ],
   },
   {
     id: 'ita-a321-bulk5',
     airline: 'ITA',
     compartmentName: 'Bulk 5',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a321-51'), label: 'Bodega 51' },
-      { id: createHoldId('ITA', 'a321-52'), label: 'Bodega 52 🚪' },
-      { id: createHoldId('ITA', 'a321-53'), label: 'Bodega 53' },
+      { id: createHoldId('ITA', 'a321-51'), label: '51' },
+      { id: createHoldId('ITA', 'a321-52'), label: '52 🚪' },
+      { id: createHoldId('ITA', 'a321-53'), label: '53' },
     ],
   },
 ];
@@ -126,36 +132,40 @@ export const ITA_A320_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ita-a320-comp1',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a320-11'), label: 'Bodega 11 🚪' },
-      { id: createHoldId('ITA', 'a320-12'), label: 'Bodega 12' },
-      { id: createHoldId('ITA', 'a320-13'), label: 'Bodega 13' },
+      { id: createHoldId('ITA', 'a320-11'), label: '11 🚪' },
+      { id: createHoldId('ITA', 'a320-12'), label: '12' },
+      { id: createHoldId('ITA', 'a320-13'), label: '13' },
     ],
   },
   {
     id: 'ita-a320-comp3',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a320-31'), label: 'Bodega 31' },
-      { id: createHoldId('ITA', 'a320-32'), label: 'Bodega 32' },
+      { id: createHoldId('ITA', 'a320-31'), label: '31' },
+      { id: createHoldId('ITA', 'a320-32'), label: '32' },
     ],
   },
   {
     id: 'ita-a320-comp4',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO 4',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a320-41'), label: 'Bodega 41 🚪' },
-      { id: createHoldId('ITA', 'a320-42'), label: 'Bodega 42' },
+      { id: createHoldId('ITA', 'a320-41'), label: '41 🚪' },
+      { id: createHoldId('ITA', 'a320-42'), label: '42' },
     ],
   },
   {
     id: 'ita-a320-bulk',
     airline: 'ITA',
     compartmentName: 'Bulk',
+    holdStyle: 'ita',
     holds: [
-      { id: createHoldId('ITA', 'a320-5'), label: 'Bodega 5 🚪' },
+      { id: createHoldId('ITA', 'a320-5'), label: '5 🚪' },
     ],
   },
 ];
