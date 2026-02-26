@@ -43,6 +43,7 @@ const TurnaroundForm: React.FC = () => {
   const [isRemote, setIsRemote] = useState(false);
   const [aircraftModel, setAircraftModel] = useState('');
   const [remoteLocation, setRemoteLocation] = useState('');
+  const [matricula, setMatricula] = useState('');
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -83,6 +84,7 @@ const TurnaroundForm: React.FC = () => {
             setIsRemote(existing.times.isRemote || false);
             setRemoteLocation(existing.times.remoteLocation || '');
             setAircraftModel(existing.times.aircraftModel || '');
+            setMatricula(existing.times.matricula || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
@@ -134,10 +136,11 @@ const TurnaroundForm: React.FC = () => {
     isRemote,
     remoteLocation: isRemote ? (remoteLocation || null) : null,
     aircraftModel: aircraftModel || null,
+    matricula: matricula || null,
     loadingSheetUrl,
     fileUrl,
     observationPhotos,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, loadingSheetUrl, fileUrl, observationPhotos]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, loadingSheetUrl, fileUrl, observationPhotos]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -339,6 +342,8 @@ const TurnaroundForm: React.FC = () => {
         setAirline={setAirline}
         aircraftModel={aircraftModel}
         setAircraftModel={setAircraftModel}
+        matricula={matricula}
+        setMatricula={setMatricula}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
       />
