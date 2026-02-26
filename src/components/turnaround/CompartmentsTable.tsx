@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FieldValue } from '@/types/turnaround';
-import { CompartmentDefinition, isPairedHold, HoldEntry } from '@/data/compartmentDefinitions';
+import { CompartmentDefinition, isPairedHold, HoldEntry, ITA_STYLE_TYPE_OPTIONS } from '@/data/compartmentDefinitions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
