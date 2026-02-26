@@ -403,7 +403,7 @@ const TurnaroundForm: React.FC = () => {
             {!isRemote && tango && (
               <>
                 <span>|</span>
-                <span className="font-semibold">T: {tango}</span>
+                <span className="font-semibold">T{tango}</span>
               </>
             )}
             <Button
