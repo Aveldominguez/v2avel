@@ -117,6 +117,7 @@ const TurnaroundForm: React.FC = () => {
     setDate(new Date(draft.date));
     setAirline(draft.airline);
     setAircraftModel(draft.aircraftModel || '');
+    setMatricula(draft.matricula || '');
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -179,7 +180,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, isRemote, remoteLocation, loadingSheetUrl, fileUrl, observationPhotos]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, loadingSheetUrl, fileUrl, observationPhotos]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
