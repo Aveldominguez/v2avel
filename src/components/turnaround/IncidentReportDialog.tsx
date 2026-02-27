@@ -233,10 +233,10 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
             <Button
               onClick={handleExport}
               className="flex-1 gap-2 font-semibold"
-              disabled={!nombre.trim() || !descripcion.trim()}
+              disabled={!nombre.trim() || !descripcion.trim() || exporting}
             >
-              <FileDown className="h-4 w-4" />
-              Exportar PDF
+              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+              {exporting ? 'Generando...' : 'Descargar PDF'}
             </Button>
           </div>
         </div>
