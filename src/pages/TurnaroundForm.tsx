@@ -411,7 +411,7 @@ const TurnaroundForm: React.FC = () => {
             {isRemote && remoteLocation && (
               <>
                 <span>|</span>
-                <span className="text-warning font-semibold">Remoto: {remoteLocation}</span>
+                <span className="text-warning font-semibold">{remoteLocation}</span>
               </>
             )}
             {!isRemote && tango && (
