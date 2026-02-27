@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, FileDown, Save } from 'lucide-react';
+import { AlertTriangle, FileDown, Save, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export interface IncidentReportData {
   nombre: string;
