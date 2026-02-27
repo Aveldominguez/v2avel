@@ -30,7 +30,7 @@ interface IncidentReportDialogProps {
   onSave: (data: IncidentReportData) => void;
 }
 
-const generateIncidentPdf = (data: {
+const generateIncidentPdf = async (data: {
   nombre: string;
   vueloFecha: string;
   parking: string;
@@ -39,132 +39,80 @@ const generateIncidentPdf = (data: {
 }) => {
   const logoUrl = `${window.location.origin}/images/aviapartner-logo.jpeg`;
 
-  const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Informe Incidente — ${data.vueloFecha}</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  @page { size: A4; margin: 0; }
-  html, body { width: 210mm; height: 297mm; font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000; }
-  body { padding: 10mm; }
-  .page { border: 2px solid #000; padding: 0; position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
-  .header-table { width: 100%; border-collapse: collapse; flex-shrink: 0; }
-  .header-table td { border: 1px solid #000; padding: 6px 10px; vertical-align: middle; }
-  .logo-cell { width: 35%; text-align: center; }
-  .logo-cell img { max-height: 60px; }
-  .mad-cell { width: 20%; text-align: center; }
-  .mad-title { font-size: 22px; font-weight: bold; }
-  .mad-subtitle { font-size: 11px; font-weight: bold; margin-top: 4px; }
-  .info-cell { width: 45%; }
-  .info-label { font-weight: bold; font-size: 11px; }
-  .fields-table { width: 100%; border-collapse: collapse; flex-shrink: 0; }
-  .fields-table td { border: 1px solid #000; padding: 8px 10px; }
-  .fields-table .field-label { font-weight: bold; width: 33%; }
-  .desc-container { border: 1px solid #000; border-top: none; flex: 1; padding: 10px; display: flex; flex-direction: column; }
-  .desc-label { font-weight: bold; margin-bottom: 8px; }
-  .desc-text { white-space: pre-wrap; font-size: 12px; line-height: 1.6; flex: 1; }
-  .footer { flex-shrink: 0; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 9px; color: #333; border-top: 1px solid #ccc; }
-  .sidebar { position: absolute; left: -2px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: center; font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #555; white-space: nowrap; }
-  @media print {
-    body { padding: 0; }
+  // Create a hidden container to render HTML for capture
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;background:white;z-index:-1;';
+  container.innerHTML = `
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;padding:38px;width:794px;height:1123px;box-sizing:border-box;">
+      <div style="border:2px solid #000;width:100%;height:100%;display:flex;flex-direction:column;position:relative;">
+        <table style="width:100%;border-collapse:collapse;flex-shrink:0;">
+          <tr>
+            <td style="width:35%;text-align:center;border:1px solid #000;padding:6px 10px;vertical-align:middle;" rowspan="2">
+              <img src="${logoUrl}" alt="Aviapartner" style="max-height:60px;" />
+            </td>
+            <td style="width:20%;text-align:center;border:1px solid #000;padding:6px 10px;vertical-align:middle;" rowspan="2">
+              <div style="font-size:22px;font-weight:bold;">MAD</div>
+              <div style="font-size:11px;font-weight:bold;margin-top:4px;">INFORME<br>INCIDENTE</div>
+            </td>
+            <td style="width:45%;border:1px solid #000;padding:6px 10px;vertical-align:middle;">
+              <span style="font-weight:bold;font-size:11px;">DEPARTAMENTO:</span> Rampa
+            </td>
+          </tr>
+          <tr>
+            <td style="width:45%;border:1px solid #000;padding:6px 10px;vertical-align:middle;">
+              <div><span style="font-weight:bold;font-size:11px;">FECHA:</span> ${data.fecha}</div>
+              <div style="margin-top:4px;"><span style="font-weight:bold;font-size:11px;">Rev:</span></div>
+              <div style="margin-top:4px;"><span style="font-weight:bold;font-size:11px;">Página:</span> 1</div>
+            </td>
+          </tr>
+        </table>
+        <table style="width:100%;border-collapse:collapse;flex-shrink:0;">
+          <tr>
+            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:33%;">NOMBRE: <span style="font-weight:normal;">${data.nombre}</span></td>
+            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:33%;">VUELO/FECHA: <span style="font-weight:normal;">${data.vueloFecha}</span></td>
+            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:34%;">PARKING: <span style="font-weight:normal;">${data.parking}</span></td>
+          </tr>
+        </table>
+        <div style="border:1px solid #000;border-top:none;flex:1;padding:10px;display:flex;flex-direction:column;">
+          <div style="font-weight:bold;margin-bottom:8px;">DESCRIPCIÓN:</div>
+          <div style="white-space:pre-wrap;font-size:12px;line-height:1.6;flex:1;">${data.descripcion}</div>
+        </div>
+        <div style="position:absolute;left:-2px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:10px;font-weight:bold;letter-spacing:1px;color:#555;white-space:nowrap;">AVIAPARTNER (MAD)</div>
+        <div style="flex-shrink:0;display:flex;justify-content:space-between;padding:10px 16px;font-size:9px;color:#333;border-top:1px solid #ccc;">
+          <div>Management System Aviapartner<br>SPAIN-<br>APO A002.ed 170619.1.0</div>
+          <div>Uncontrolled Copy when not On Intranet</div>
+          <div style="text-align:right;">Validity date: 19/06/2017<br>Print date: ${format(new Date(), 'dd/MM/yyyy')}<br>Pag 1 of 1</div>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(container);
+
+  // Wait for logo to load
+  const img = container.querySelector('img');
+  if (img && !img.complete) {
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      setTimeout(resolve, 2000);
+    });
   }
-</style>
-</head>
-<body>
-  <div class="page">
-    <table class="header-table">
-      <tr>
-        <td class="logo-cell" rowspan="2">
-          <img src="${logoUrl}" alt="Aviapartner" />
-        </td>
-        <td class="mad-cell" rowspan="2">
-          <div class="mad-title">MAD</div>
-          <div class="mad-subtitle">INFORME<br>INCIDENTE</div>
-        </td>
-        <td class="info-cell"><span class="info-label">DEPARTAMENTO:</span> Rampa</td>
-      </tr>
-      <tr>
-        <td class="info-cell">
-          <div><span class="info-label">FECHA:</span> ${data.fecha}</div>
-          <div style="margin-top:4px;"><span class="info-label">Rev:</span></div>
-          <div style="margin-top:4px;"><span class="info-label">Página:</span> 1</div>
-        </td>
-      </tr>
-    </table>
 
-    <table class="fields-table">
-      <tr>
-        <td class="field-label">NOMBRE: <span style="font-weight:normal;">${data.nombre}</span></td>
-        <td class="field-label">VUELO/FECHA: <span style="font-weight:normal;">${data.vueloFecha}</span></td>
-        <td class="field-label">PARKING: <span style="font-weight:normal;">${data.parking}</span></td>
-      </tr>
-    </table>
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: 794,
+      height: 1123,
+    });
 
-    <div class="desc-container">
-      <div class="desc-label">DESCRIPCIÓN:</div>
-      <div class="desc-text">${data.descripcion}</div>
-    </div>
-
-    <div class="sidebar">AVIAPARTNER (MAD)</div>
-
-    <div class="footer">
-      <div>Management System Aviapartner<br>SPAIN-<br>APO A002.ed 170619.1.0</div>
-      <div>Uncontrolled Copy when not On Intranet</div>
-      <div style="text-align:right;">Validity date: 19/06/2017<br>Print date: ${format(new Date(), 'dd/MM/yyyy')}<br>Pag 1 of 1</div>
-    </div>
-  </div>
-</body>
-</html>`;
-
-  const isStandalone = (window.navigator as any).standalone === true ||
-    window.matchMedia('(display-mode: standalone)').matches;
-
-  if (isStandalone) {
-    const existingOverlay = document.getElementById('pdf-overlay');
-    if (existingOverlay) document.body.removeChild(existingOverlay);
-
-    const overlay = document.createElement('div');
-    overlay.id = 'pdf-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:white;display:flex;flex-direction:column;';
-
-    const toolbar = document.createElement('div');
-    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#1a1a2e;color:#fff;font-family:sans-serif;font-size:15px;';
-
-    const title = document.createElement('span');
-    title.textContent = 'Informe Incidente';
-    toolbar.appendChild(title);
-
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Cerrar';
-    closeBtn.style.cssText = 'background:#ef4444;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;';
-    closeBtn.onclick = () => document.body.removeChild(overlay);
-    toolbar.appendChild(closeBtn);
-
-    overlay.appendChild(toolbar);
-
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'flex:1;border:none;width:100%;';
-    iframe.srcdoc = html;
-    overlay.appendChild(iframe);
-
-    document.body.appendChild(overlay);
-  } else {
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
-
-    if (!newWindow) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `informe-incidente-${data.vueloFecha.replace(/\//g, '-')}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
-    setTimeout(() => URL.revokeObjectURL(url), 15000);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+    pdf.save(`informe-${data.vueloFecha.replace(/[\s/]/g, '-')}.pdf`);
+  } finally {
+    document.body.removeChild(container);
   }
 };
 
