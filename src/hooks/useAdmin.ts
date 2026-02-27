@@ -228,6 +228,7 @@ export const useAdmin = () => {
       photosCount: photoCount,
       filesCount: fileCount,
       obsPhotosCount: obsPhotoCount,
+      turnarounds: data,
     };
     zip.file('backup.json', JSON.stringify(backup, null, 2));
 
