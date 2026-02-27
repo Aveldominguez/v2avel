@@ -110,7 +110,7 @@ const generateIncidentPdf = async (data: {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgData = canvas.toDataURL('image/png');
     pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-    pdf.save(`informe-${data.vueloFecha.replace(/[\s/]/g, '-')}.pdf`);
+    return pdf.output('blob');
   } finally {
     document.body.removeChild(container);
   }
