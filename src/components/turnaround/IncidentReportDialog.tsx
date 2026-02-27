@@ -150,21 +150,67 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
     setOpen(false);
   };
 
+  const getPdfBlob = async () => {
+    return generateIncidentPdf({
+      nombre,
+      vueloFecha,
+      parking,
+      descripcion,
+      fecha: fechaFormateada,
+    });
+  };
+
+  const fileName = `informe-${vueloFecha.replace(/[\s/]/g, '-')}.pdf`;
+
   const handleExport = async () => {
     setExporting(true);
     try {
-      await generateIncidentPdf({
-        nombre,
-        vueloFecha,
-        parking,
-        descripcion,
-        fecha: fechaFormateada,
-      });
+      const blob = await getPdfBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       toast.success('PDF descargado');
     } catch (e) {
       toast.error('Error al generar el PDF');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleShare = async () => {
+    setSharing(true);
+    try {
+      const blob = await getPdfBlob();
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: `Informe — ${vueloFecha}`,
+          files: [file],
+        });
+      } else {
+        // Fallback: download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.info('Compartir no disponible, se ha descargado el PDF');
+      }
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') {
+        toast.error('Error al compartir');
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
