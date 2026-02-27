@@ -44,9 +44,11 @@ const generateIncidentPdf = (data: {
 <title>Informe Incidente — ${data.vueloFecha}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000; padding: 40px; }
-  .page { border: 2px solid #000; padding: 0; position: relative; min-height: 90vh; }
-  .header-table { width: 100%; border-collapse: collapse; }
+  @page { size: A4; margin: 0; }
+  html, body { width: 210mm; height: 297mm; font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000; }
+  body { padding: 10mm; }
+  .page { border: 2px solid #000; padding: 0; position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+  .header-table { width: 100%; border-collapse: collapse; flex-shrink: 0; }
   .header-table td { border: 1px solid #000; padding: 6px 10px; vertical-align: middle; }
   .logo-cell { width: 35%; text-align: center; }
   .logo-cell img { max-height: 60px; }
@@ -55,22 +57,16 @@ const generateIncidentPdf = (data: {
   .mad-subtitle { font-size: 11px; font-weight: bold; margin-top: 4px; }
   .info-cell { width: 45%; }
   .info-label { font-weight: bold; font-size: 11px; }
-
-  .fields-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .fields-table { width: 100%; border-collapse: collapse; flex-shrink: 0; }
   .fields-table td { border: 1px solid #000; padding: 8px 10px; }
   .fields-table .field-label { font-weight: bold; width: 33%; }
-
-  .desc-container { border: 1px solid #000; margin-top: 0; min-height: 500px; padding: 10px; }
+  .desc-container { border: 1px solid #000; border-top: none; flex: 1; padding: 10px; display: flex; flex-direction: column; }
   .desc-label { font-weight: bold; margin-bottom: 8px; }
-  .desc-text { white-space: pre-wrap; font-size: 12px; line-height: 1.6; }
-
-  .footer { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 9px; color: #333; border-top: 1px solid #ccc; }
-
+  .desc-text { white-space: pre-wrap; font-size: 12px; line-height: 1.6; flex: 1; }
+  .footer { flex-shrink: 0; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 9px; color: #333; border-top: 1px solid #ccc; }
   .sidebar { position: absolute; left: -2px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: center; font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #555; white-space: nowrap; }
-
   @media print {
     body { padding: 0; }
-    @page { margin: 12mm; }
   }
 </style>
 </head>
