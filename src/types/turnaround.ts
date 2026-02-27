@@ -10,7 +10,7 @@ export interface TurnaroundTimes {
   unloadingEnd: string | null;           // Fin Descarga
   loadingStart: string | null;           // Inicio Carga
   loadingEnd: string | null;             // Fin Carga
-  lastHandBag: string | null;            // Última de mano
+  lastHandBag: string | null;            // Cierre Coordinador
   specialEndLoading: string | null;      // Retirada Escalera
   chocksOff: string | null;              // Retirada Calzos
   busArrival: string | null;             // Llegada Jardinera
@@ -123,7 +123,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
-  { key: 'lastHandBag', label: 'Última de mano', clockColor: 'red', type: 'time' },
+  { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
@@ -140,7 +140,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
-  { key: 'lastHandBag', label: 'Última de mano', clockColor: 'red', type: 'time' },
+  { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
