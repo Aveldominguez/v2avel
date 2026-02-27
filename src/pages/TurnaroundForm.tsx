@@ -22,6 +22,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { generateTurnaroundPdf } from '@/utils/generateTurnaroundPdf';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { IncidentReportDialog } from '@/components/turnaround/IncidentReportDialog';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
@@ -506,11 +507,18 @@ const TurnaroundForm: React.FC = () => {
 
         <Card className="card-operational">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-muted">
-                <FileText className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="flex items-center justify-between text-lg">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-muted">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                </div>
+                Observaciones
               </div>
-              Observaciones
+              <IncidentReportDialog
+                flightNumber={flightNumber}
+                date={date}
+                parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
+              />
             </CardTitle>
           </CardHeader>
           <CardContent>
