@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,10 +15,17 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 
+export interface IncidentReportData {
+  nombre: string;
+  descripcion: string;
+}
+
 interface IncidentReportDialogProps {
   flightNumber: string;
   date: Date;
   parking: string;
+  reportData?: IncidentReportData | null;
+  onSave: (data: IncidentReportData) => void;
 }
 
 const generateIncidentPdf = (data: {
@@ -167,16 +174,33 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
   flightNumber,
   date,
   parking,
+  reportData,
+  onSave,
 }) => {
   const [open, setOpen] = useState(false);
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
 
+  // Load existing data when dialog opens
+  useEffect(() => {
+    if (open && reportData) {
+      setNombre(reportData.nombre);
+      setDescripcion(reportData.descripcion);
+    } else if (open && !reportData) {
+      setNombre('');
+      setDescripcion('');
+    }
+  }, [open, reportData]);
+
   const vueloFecha = `${flightNumber} / ${format(date, 'dd/MM/yyyy', { locale: es })}`;
   const fechaFormateada = format(date, 'dd/MM/yyyy', { locale: es });
 
+  const hasReport = Boolean(reportData?.nombre || reportData?.descripcion);
+
   const handleSave = () => {
+    onSave({ nombre, descripcion });
     toast.success('Informe guardado correctamente');
+    setOpen(false);
   };
 
   const handleExport = () => {
@@ -193,8 +217,11 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5">
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangle className={`h-4 w-4 ${hasReport ? 'text-warning' : ''}`} />
           Informe
+          {hasReport && (
+            <span className="ml-1 h-2 w-2 rounded-full bg-warning inline-block" />
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
