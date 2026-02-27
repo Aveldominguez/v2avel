@@ -150,14 +150,22 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
     setOpen(false);
   };
 
-  const handleExport = () => {
-    generateIncidentPdf({
-      nombre,
-      vueloFecha,
-      parking,
-      descripcion,
-      fecha: fechaFormateada,
-    });
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await generateIncidentPdf({
+        nombre,
+        vueloFecha,
+        parking,
+        descripcion,
+        fecha: fechaFormateada,
+      });
+      toast.success('PDF descargado');
+    } catch (e) {
+      toast.error('Error al generar el PDF');
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
