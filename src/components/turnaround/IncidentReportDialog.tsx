@@ -282,7 +282,16 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
               disabled={!nombre.trim() || !descripcion.trim() || exporting}
             >
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-              {exporting ? 'Generando...' : 'Descargar PDF'}
+              {exporting ? 'Generando...' : 'PDF'}
+            </Button>
+            <Button
+              onClick={handleShare}
+              variant="outline"
+              className="flex-1 gap-2 font-semibold"
+              disabled={!nombre.trim() || !descripcion.trim() || sharing}
+            >
+              {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+              {sharing ? 'Enviando...' : 'Compartir'}
             </Button>
           </div>
         </div>
