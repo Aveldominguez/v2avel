@@ -38,6 +38,10 @@ export interface TurnaroundTimes {
   observationPhotos: string[];          // Fotos de observaciones (máx 7)
   matricula: string | null;             // Matrícula de la aeronave
   soloLlegada: boolean;                 // Sólo llegada (arrival only)
+  incidentReport?: {                    // Informe de incidente
+    nombre: string;
+    descripcion: string;
+  } | null;
 }
 
 export interface FieldDefinition {
