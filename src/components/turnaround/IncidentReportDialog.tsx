@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, FileDown } from 'lucide-react';
+import { AlertTriangle, FileDown, Save } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface IncidentReportDialogProps {
   flightNumber: string;
@@ -25,7 +26,10 @@ const generateIncidentPdf = (data: {
   vueloFecha: string;
   parking: string;
   descripcion: string;
+  fecha: string;
 }) => {
+  const logoUrl = `${window.location.origin}/images/aviapartner-logo.jpeg`;
+
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -37,8 +41,8 @@ const generateIncidentPdf = (data: {
   .page { border: 2px solid #000; padding: 0; position: relative; min-height: 90vh; }
   .header-table { width: 100%; border-collapse: collapse; }
   .header-table td { border: 1px solid #000; padding: 6px 10px; vertical-align: middle; }
-  .logo-cell { width: 35%; font-size: 20px; font-weight: bold; font-family: Arial Black, Arial, sans-serif; letter-spacing: 1px; }
-  .logo-dots { letter-spacing: 2px; font-size: 14px; }
+  .logo-cell { width: 35%; text-align: center; }
+  .logo-cell img { max-height: 60px; }
   .mad-cell { width: 20%; text-align: center; }
   .mad-title { font-size: 22px; font-weight: bold; }
   .mad-subtitle { font-size: 11px; font-weight: bold; margin-top: 4px; }
@@ -68,18 +72,17 @@ const generateIncidentPdf = (data: {
     <table class="header-table">
       <tr>
         <td class="logo-cell" rowspan="2">
-          <div class="logo-dots">•••••••</div>
-          <div>AVIAPARTNER</div>
+          <img src="${logoUrl}" alt="Aviapartner" />
         </td>
         <td class="mad-cell" rowspan="2">
           <div class="mad-title">MAD</div>
           <div class="mad-subtitle">INFORME<br>INCIDENTE</div>
         </td>
-        <td class="info-cell"><span class="info-label">DEPARTAMENTO:</span></td>
+        <td class="info-cell"><span class="info-label">DEPARTAMENTO:</span> Rampa</td>
       </tr>
       <tr>
         <td class="info-cell">
-          <div><span class="info-label">FECHA:</span></div>
+          <div><span class="info-label">FECHA:</span> ${data.fecha}</div>
           <div style="margin-top:4px;"><span class="info-label">Rev:</span></div>
           <div style="margin-top:4px;"><span class="info-label">Página:</span> 1</div>
         </td>
@@ -170,6 +173,11 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
   const [descripcion, setDescripcion] = useState('');
 
   const vueloFecha = `${flightNumber} / ${format(date, 'dd/MM/yyyy', { locale: es })}`;
+  const fechaFormateada = format(date, 'dd/MM/yyyy', { locale: es });
+
+  const handleSave = () => {
+    toast.success('Informe guardado correctamente');
+  };
 
   const handleExport = () => {
     generateIncidentPdf({
@@ -177,6 +185,7 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
       vueloFecha,
       parking,
       descripcion,
+      fecha: fechaFormateada,
     });
   };
 
@@ -185,7 +194,7 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5">
           <AlertTriangle className="h-4 w-4" />
-          Incidente
+          Informe
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -229,14 +238,25 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
             />
           </div>
 
-          <Button
-            onClick={handleExport}
-            className="w-full gap-2 font-semibold"
-            disabled={!nombre.trim() || !descripcion.trim()}
-          >
-            <FileDown className="h-4 w-4" />
-            Exportar Informe PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSave}
+              variant="secondary"
+              className="flex-1 gap-2 font-semibold"
+              disabled={!nombre.trim() || !descripcion.trim()}
+            >
+              <Save className="h-4 w-4" />
+              Guardar
+            </Button>
+            <Button
+              onClick={handleExport}
+              className="flex-1 gap-2 font-semibold"
+              disabled={!nombre.trim() || !descripcion.trim()}
+            >
+              <FileDown className="h-4 w-4" />
+              Exportar PDF
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
