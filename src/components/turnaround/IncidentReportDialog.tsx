@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, FileDown, Save, Loader2 } from 'lucide-react';
+import { AlertTriangle, FileDown, Save, Loader2, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -110,7 +110,7 @@ const generateIncidentPdf = async (data: {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgData = canvas.toDataURL('image/png');
     pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-    pdf.save(`informe-${data.vueloFecha.replace(/[\s/]/g, '-')}.pdf`);
+    return pdf.output('blob');
   } finally {
     document.body.removeChild(container);
   }
@@ -127,7 +127,7 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [exporting, setExporting] = useState(false);
-
+  const [sharing, setSharing] = useState(false);
   // Load existing data when dialog opens
   useEffect(() => {
     if (open && reportData) {
@@ -150,21 +150,67 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
     setOpen(false);
   };
 
+  const getPdfBlob = async () => {
+    return generateIncidentPdf({
+      nombre,
+      vueloFecha,
+      parking,
+      descripcion,
+      fecha: fechaFormateada,
+    });
+  };
+
+  const fileName = `informe-${vueloFecha.replace(/[\s/]/g, '-')}.pdf`;
+
   const handleExport = async () => {
     setExporting(true);
     try {
-      await generateIncidentPdf({
-        nombre,
-        vueloFecha,
-        parking,
-        descripcion,
-        fecha: fechaFormateada,
-      });
+      const blob = await getPdfBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       toast.success('PDF descargado');
     } catch (e) {
       toast.error('Error al generar el PDF');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleShare = async () => {
+    setSharing(true);
+    try {
+      const blob = await getPdfBlob();
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: `Informe — ${vueloFecha}`,
+          files: [file],
+        });
+      } else {
+        // Fallback: download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.info('Compartir no disponible, se ha descargado el PDF');
+      }
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') {
+        toast.error('Error al compartir');
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -236,7 +282,16 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
               disabled={!nombre.trim() || !descripcion.trim() || exporting}
             >
               {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-              {exporting ? 'Generando...' : 'Descargar PDF'}
+              {exporting ? 'Generando...' : 'PDF'}
+            </Button>
+            <Button
+              onClick={handleShare}
+              variant="outline"
+              className="flex-1 gap-2 font-semibold"
+              disabled={!nombre.trim() || !descripcion.trim() || sharing}
+            >
+              {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+              {sharing ? 'Enviando...' : 'Compartir'}
             </Button>
           </div>
         </div>
