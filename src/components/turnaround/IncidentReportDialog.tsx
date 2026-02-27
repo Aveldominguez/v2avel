@@ -127,7 +127,7 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [exporting, setExporting] = useState(false);
-
+  const [sharing, setSharing] = useState(false);
   // Load existing data when dialog opens
   useEffect(() => {
     if (open && reportData) {
