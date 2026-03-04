@@ -96,16 +96,60 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     );
   };
 
+  const handleItaNil = (hold: { id: string }) => {
+    const typeFieldId = `${hold.id}-type`;
+    const numFieldId = `${hold.id}-num`;
+    const contentFieldId = `${hold.id}-content`;
+    [typeFieldId, numFieldId, contentFieldId].forEach((fid) => {
+      const current = getValue(fid);
+      onChange(fid, 'NIL', current);
+    });
+  };
+
+  const handleItaUndo = (hold: { id: string }) => {
+    const typeFieldId = `${hold.id}-type`;
+    const numFieldId = `${hold.id}-num`;
+    const contentFieldId = `${hold.id}-content`;
+    [typeFieldId, numFieldId, contentFieldId].forEach((fid) => {
+      const entry = values.find(v => v.fieldDefinitionId === fid);
+      const prev = entry?.previousValue ?? '';
+      onChange(fid, prev, null);
+    });
+  };
+
+  const isItaNilSet = (hold: { id: string }) => {
+    const typeFieldId = `${hold.id}-type`;
+    return isNilSet(typeFieldId);
+  };
+
+  const renderItaNilButton = (hold: { id: string }) => {
+    if (!showNilButton || disabled) return null;
+    const nilActive = isItaNilSet(hold);
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        onClick={() => nilActive ? handleItaUndo(hold) : handleItaNil(hold)}
+        className={`h-9 w-9 shrink-0 font-bold ${nilActive ? 'text-destructive hover:text-destructive/80 border-destructive/50' : 'text-muted-foreground hover:text-foreground'}`}
+        title={nilActive ? 'Deshacer NIL' : 'Escribir NIL'}
+      >
+        {nilActive ? <Undo2 className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
+      </Button>
+    );
+  };
+
   // ITA-style hold: type selector + numeric field on top row, content field below
   const renderItaHoldInput = (hold: { id: string; label: string }, holdAirline?: AirlineCode) => {
     const typeOptions = ITA_STYLE_TYPE_OPTIONS[holdAirline || ''] || ['AKH-AZ', 'PKC-AZ'];
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
     const contentFieldId = `${hold.id}-content`;
+    const nilActive = isItaNilSet(hold);
 
     return (
       <div key={hold.id} className="border border-border rounded-lg p-3 space-y-2">
-        {/* Top row: label + type selector + numeric */}
+        {/* Top row: label + type selector + numeric + NIL button */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-foreground shrink-0 min-w-[2.5rem]">
             {hold.label}:
@@ -113,7 +157,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <Select
             value={getValue(typeFieldId) || undefined}
             onValueChange={(val) => onChange(typeFieldId, val)}
-            disabled={disabled}
+            disabled={disabled || nilActive}
           >
             <SelectTrigger className="h-9 flex-1 min-w-0 font-mono text-sm bg-input border-border">
               <SelectValue placeholder="Tipo" />
@@ -130,22 +174,23 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             type="text"
             inputMode="numeric"
             maxLength={5}
-            value={getValue(numFieldId)}
+            value={nilActive ? 'NIL' : getValue(numFieldId)}
             onChange={(e) => {
               const val = e.target.value.replace(/\D/g, '').slice(0, 5);
               onChange(numFieldId, val);
             }}
-            disabled={disabled}
+            disabled={disabled || nilActive}
             placeholder="00000"
             className="h-9 w-20 shrink-0 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30 text-center"
           />
+          {renderItaNilButton(hold)}
         </div>
         {/* Bottom row: content field */}
         <Input
           type="text"
-          value={getValue(contentFieldId)}
+          value={nilActive ? 'NIL' : getValue(contentFieldId)}
           onChange={(e) => onChange(contentFieldId, e.target.value.toUpperCase())}
-          disabled={disabled}
+          disabled={disabled || nilActive}
           placeholder="Contenido bodega"
           className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
         />
