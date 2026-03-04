@@ -69,7 +69,8 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
 
   const isNilSet = (holdId: string) => {
     const entry = values.find(v => v.fieldDefinitionId === holdId);
-    if (entry?.value !== 'NIL' || !entry?.previousValue) return false;
+    if (entry?.value !== 'NIL') return false;
+    if (entry.previousValue === undefined || entry.previousValue === null) return false;
     if (entry.nilSetAt) {
       const setTime = new Date(entry.nilSetAt).getTime();
       const now = Date.now();
