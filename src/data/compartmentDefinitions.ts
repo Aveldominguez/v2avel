@@ -117,7 +117,6 @@ export const ITA_A321_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ita-a321-bulk5',
     airline: 'ITA',
     compartmentName: 'Bulk 5',
-    holdStyle: 'ita',
     holds: [
       { id: createHoldId('ITA', 'a321-51'), label: '51' },
       { id: createHoldId('ITA', 'a321-52'), label: '52 🚪' },
@@ -163,7 +162,6 @@ export const ITA_A320_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ita-a320-bulk',
     airline: 'ITA',
     compartmentName: 'Bulk',
-    holdStyle: 'ita',
     holds: [
       { id: createHoldId('ITA', 'a320-5'), label: '5 🚪' },
     ],
@@ -683,7 +681,7 @@ export const TAP_A321_COMPARTMENTS: CompartmentDefinition[] = [
     ],
   },
   {
-    id: 'tap-a321-bulk5', airline: 'TAP', compartmentName: 'Bulk 5', holdStyle: 'ita',
+    id: 'tap-a321-bulk5', airline: 'TAP', compartmentName: 'Bulk 5',
     holds: [
       { id: createHoldId('TAP', 'a321-51'), label: '51' },
       { id: createHoldId('TAP', 'a321-52'), label: '52 🚪' },
@@ -717,7 +715,7 @@ export const TAP_A320_COMPARTMENTS: CompartmentDefinition[] = [
     ],
   },
   {
-    id: 'tap-a320-bulk', airline: 'TAP', compartmentName: 'Bulk', holdStyle: 'ita',
+    id: 'tap-a320-bulk', airline: 'TAP', compartmentName: 'Bulk',
     holds: [
       { id: createHoldId('TAP', 'a320-5'), label: '5 🚪' },
     ],
