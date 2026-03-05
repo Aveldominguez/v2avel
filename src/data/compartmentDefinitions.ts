@@ -651,31 +651,27 @@ export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
 // TAP Air Portugal EMB90
 export const TAP_EMB90_COMPARTMENTS: CompartmentDefinition[] = [
   {
-    id: 'tap-emb90-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    id: 'tap-emb90-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 - FWD',
     holds: [
-      { id: createHoldId('TAP', 'emb90-11'), label: 'Bodega 11 🚪' },
-      { id: createHoldId('TAP', 'emb90-12'), label: 'Bodega 12' },
+      { id: createHoldId('TAP', 'emb90-11'), label: 'Bodega 1 🚪' },
     ],
   },
   {
-    id: 'tap-emb90-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2 FWD',
+    id: 'tap-emb90-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2',
     holds: [
-      { id: createHoldId('TAP', 'emb90-21'), label: 'Bodega 21' },
-      { id: createHoldId('TAP', 'emb90-22'), label: 'Bodega 22' },
+      { id: createHoldId('TAP', 'emb90-21'), label: 'Bodega 2' },
     ],
   },
   {
     id: 'tap-emb90-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3 AFT',
     holds: [
-      { id: createHoldId('TAP', 'emb90-31'), label: 'Bodega 31' },
-      { id: createHoldId('TAP', 'emb90-32'), label: 'Bodega 32' },
+      { id: createHoldId('TAP', 'emb90-31'), label: 'Bodega 3' },
     ],
   },
   {
-    id: 'tap-emb90-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4 AFT',
+    id: 'tap-emb90-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4',
     holds: [
-      { id: createHoldId('TAP', 'emb90-41'), label: 'Bodega 41 🚪' },
-      { id: createHoldId('TAP', 'emb90-42'), label: 'Bodega 42' },
+      { id: createHoldId('TAP', 'emb90-41'), label: 'Bodega 4 🚪' },
     ],
   },
 ];
