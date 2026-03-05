@@ -26,28 +26,35 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
   const airlineInfo = AIRLINES.find(a => a.code === airline);
   const compartments = getCompartmentsByAirline(airline, aircraftModel);
 
-  const handleFieldChange = (fieldId: string, value: string, previousValue?: string | null) => {
-    const existing = fieldValues.find(v => v.fieldDefinitionId === fieldId);
-    const isSettingNil = value === 'NIL' && previousValue !== undefined && previousValue !== null;
-    const isClearingNil = previousValue === null;
-    
-    if (existing) {
-      onChange(fieldValues.map(v => v.fieldDefinitionId === fieldId ? {
-        ...v,
-        value,
-        previousValue: isClearingNil ? undefined : (previousValue ?? v.previousValue),
-        nilSetAt: isSettingNil ? new Date().toISOString() : (isClearingNil ? undefined : v.nilSetAt),
+  const handleFieldChange = (fieldId: string | string[], value: string | string[], previousValue?: string | null | (string | null | undefined)[]) => {
+    // Support batch updates: if fieldId is an array, apply all changes at once
+    const ids = Array.isArray(fieldId) ? fieldId : [fieldId];
+    const vals = Array.isArray(value) ? value : [value];
+    const prevs = Array.isArray(previousValue) ? previousValue : [previousValue];
+
+    let updated = [...fieldValues];
+    ids.forEach((fid, i) => {
+      const val = vals[i] ?? vals[0];
+      const prev = prevs[i] ?? prevs[0];
+      const isSettingNil = val === 'NIL' && prev !== undefined && prev !== null;
+      const isClearingNil = prev === null;
+      const existingIdx = updated.findIndex(v => v.fieldDefinitionId === fid);
+
+      const entry: FieldValue = {
+        fieldDefinitionId: fid,
+        value: val,
+        previousValue: isClearingNil ? undefined : (prev ?? (existingIdx >= 0 ? updated[existingIdx].previousValue : undefined)),
+        nilSetAt: isSettingNil ? new Date().toISOString() : (isClearingNil ? undefined : (existingIdx >= 0 ? updated[existingIdx].nilSetAt : undefined)),
         updatedAt: new Date()
-      } : v));
-    } else {
-      onChange([...fieldValues, {
-        fieldDefinitionId: fieldId,
-        value,
-        previousValue: isClearingNil ? undefined : previousValue ?? undefined,
-        nilSetAt: isSettingNil ? new Date().toISOString() : undefined,
-        updatedAt: new Date()
-      }]);
-    }
+      };
+
+      if (existingIdx >= 0) {
+        updated[existingIdx] = entry;
+      } else {
+        updated.push(entry);
+      }
+    });
+    onChange(updated);
   };
 
   return (
