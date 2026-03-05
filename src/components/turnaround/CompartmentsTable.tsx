@@ -101,21 +101,23 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
     const contentFieldId = `${hold.id}-content`;
-    [typeFieldId, numFieldId, contentFieldId].forEach((fid) => {
-      const current = getValue(fid);
-      onChange(fid, 'NIL', current);
-    });
+    const ids = [typeFieldId, numFieldId, contentFieldId];
+    const currents = ids.map(fid => getValue(fid));
+    // Batch call: pass arrays so parent applies all 3 changes atomically
+    (onChange as any)(ids, ['NIL', 'NIL', 'NIL'], currents);
   };
 
   const handleItaUndo = (hold: { id: string }) => {
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
     const contentFieldId = `${hold.id}-content`;
-    [typeFieldId, numFieldId, contentFieldId].forEach((fid) => {
+    const ids = [typeFieldId, numFieldId, contentFieldId];
+    const prevs = ids.map(fid => {
       const entry = values.find(v => v.fieldDefinitionId === fid);
-      const prev = entry?.previousValue ?? '';
-      onChange(fid, prev, null);
+      return entry?.previousValue ?? '';
     });
+    // Batch call: pass null as previousValue marker to clear NIL state
+    (onChange as any)(ids, prevs, [null, null, null]);
   };
 
   const isItaNilSet = (hold: { id: string }) => {
