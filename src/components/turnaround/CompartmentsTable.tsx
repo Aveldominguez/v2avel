@@ -156,7 +156,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             {hold.label}:
           </span>
           <Select
-            value={getValue(typeFieldId) || undefined}
+            value={nilActive ? undefined : getValue(typeFieldId) || undefined}
             onValueChange={(val) => onChange(typeFieldId, val)}
             disabled={disabled || nilActive}
           >
