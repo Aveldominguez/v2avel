@@ -202,7 +202,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   };
 
   const renderHoldInput = (hold: { id: string; label: string }, isBulk?: boolean) => (
-    <div key={hold.id} className={`flex ${isBulk ? 'flex-col' : 'items-center'} gap-2`}>
+    <div key={hold.id} className="space-y-2">
       <div className="flex items-center gap-3">
         <label className="text-sm font-medium text-foreground/80 w-24 shrink-0">
           {hold.label}:
@@ -217,17 +217,20 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
           />
         )}
-        {renderNilButton(hold.id)}
+        {!isBulk && renderNilButton(hold.id)}
       </div>
       {isBulk && (
-        <textarea
-          value={getValue(hold.id)}
-          onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
-          disabled={disabled}
-          placeholder="Contenido bodega"
-          rows={Math.max(2, (getValue(hold.id).match(/\n/g) || []).length + 1)}
-          className="w-full font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50"
-        />
+        <div className="flex gap-2">
+          <textarea
+            value={getValue(hold.id)}
+            onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
+            disabled={disabled}
+            placeholder="Contenido bodega"
+            rows={Math.max(2, (getValue(hold.id).match(/\n/g) || []).length + 1)}
+            className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          {renderNilButton(hold.id)}
+        </div>
       )}
     </div>
   );
