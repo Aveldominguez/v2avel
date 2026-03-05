@@ -23,6 +23,7 @@ export interface CompartmentDefinition {
   expandable?: boolean;
   expandableDefault?: number;
   holdStyle?: 'default' | 'ita';
+  bulk?: boolean;
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
@@ -651,27 +652,55 @@ export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
 // TAP Air Portugal EMB90
 export const TAP_EMB90_COMPARTMENTS: CompartmentDefinition[] = [
   {
-    id: 'tap-emb90-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 - FWD',
+    id: 'tap-emb90-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 - FWD', bulk: true,
     holds: [
       { id: createHoldId('TAP', 'emb90-11'), label: 'Bodega 1 🚪' },
     ],
   },
   {
-    id: 'tap-emb90-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2',
+    id: 'tap-emb90-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2', bulk: true,
     holds: [
       { id: createHoldId('TAP', 'emb90-21'), label: 'Bodega 2' },
     ],
   },
   {
-    id: 'tap-emb90-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    id: 'tap-emb90-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3 AFT', bulk: true,
     holds: [
       { id: createHoldId('TAP', 'emb90-31'), label: 'Bodega 3' },
     ],
   },
   {
-    id: 'tap-emb90-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4',
+    id: 'tap-emb90-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4', bulk: true,
     holds: [
       { id: createHoldId('TAP', 'emb90-41'), label: 'Bodega 4 🚪' },
+    ],
+  },
+];
+
+// TAP Air Portugal EMB95
+export const TAP_EMB95_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'tap-emb95-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 - FWD', bulk: true,
+    holds: [
+      { id: createHoldId('TAP', 'emb95-11'), label: 'Bodega 1 🚪' },
+    ],
+  },
+  {
+    id: 'tap-emb95-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2', bulk: true,
+    holds: [
+      { id: createHoldId('TAP', 'emb95-21'), label: 'Bodega 2' },
+    ],
+  },
+  {
+    id: 'tap-emb95-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3 AFT', bulk: true,
+    holds: [
+      { id: createHoldId('TAP', 'emb95-31'), label: 'Bodega 3' },
+    ],
+  },
+  {
+    id: 'tap-emb95-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4', bulk: true,
+    holds: [
+      { id: createHoldId('TAP', 'emb95-41'), label: 'Bodega 4 🚪' },
     ],
   },
 ];
@@ -760,6 +789,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'TAP') {
     if (aircraftModel === 'EMB90') return TAP_EMB90_COMPARTMENTS;
+    if (aircraftModel === 'EMB95') return TAP_EMB95_COMPARTMENTS;
     if (aircraftModel === 'A321') return TAP_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return TAP_A320_COMPARTMENTS;
     return [];
