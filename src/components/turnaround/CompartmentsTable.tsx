@@ -191,7 +191,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         {/* Bottom row: content field */}
         <Input
           type="text"
-           value={nilActive ? '' : getValue(contentFieldId)}
+           value={nilActive ? 'NIL' : getValue(contentFieldId)}
           onChange={(e) => onChange(contentFieldId, e.target.value.toUpperCase())}
           disabled={disabled || nilActive}
           placeholder="Contenido bodega"
