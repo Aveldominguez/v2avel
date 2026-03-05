@@ -156,7 +156,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             {hold.label}:
           </span>
           <Select
-            value={getValue(typeFieldId) || undefined}
+            value={nilActive ? undefined : getValue(typeFieldId) || undefined}
             onValueChange={(val) => onChange(typeFieldId, val)}
             disabled={disabled || nilActive}
           >
@@ -175,7 +175,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             type="text"
             inputMode="numeric"
             maxLength={5}
-            value={nilActive ? 'NIL' : getValue(numFieldId)}
+             value={nilActive ? '' : getValue(numFieldId)}
             onChange={(e) => {
               const val = e.target.value.replace(/\D/g, '').slice(0, 5);
               onChange(numFieldId, val);
@@ -189,7 +189,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         {/* Bottom row: content field */}
         <Input
           type="text"
-          value={nilActive ? 'NIL' : getValue(contentFieldId)}
+           value={nilActive ? '' : getValue(contentFieldId)}
           onChange={(e) => onChange(contentFieldId, e.target.value.toUpperCase())}
           disabled={disabled || nilActive}
           placeholder="Contenido bodega"
