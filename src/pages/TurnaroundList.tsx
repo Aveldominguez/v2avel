@@ -36,7 +36,7 @@ import {
   Search, 
   Calendar as CalendarIcon, 
   Plane, 
-  Eye, 
+   
   Trash2, 
   Filter,
   X,
@@ -293,13 +293,13 @@ const TurnaroundList: React.FC = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <Table className="table-operational">
+                <Table className="table-operational w-full table-fixed">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-12"></TableHead>
-                      <TableHead>Vuelo</TableHead>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
+                      <TableHead className="w-8 px-2"></TableHead>
+                      <TableHead className="px-2">Vuelo</TableHead>
+                      <TableHead className="px-2">Fecha</TableHead>
+                      <TableHead className="w-12 px-2"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -308,41 +308,39 @@ const TurnaroundList: React.FC = () => {
                       
                       return (
                         <TableRow key={t.id} className="hover:bg-secondary/30">
-                          <TableCell className="w-12">
+                          <TableCell className="w-8 px-2">
                             <Circle
                               className={cn(
-                                'h-4 w-4',
+                                'h-3.5 w-3.5',
                                 status === 'completed' && 'fill-success text-success',
                                 status === 'in-progress' && 'fill-warning text-warning',
                                 status === 'pending' && 'fill-muted text-muted-foreground'
                               )}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-2">
                             <button
                               onClick={() => navigate(`/turnaround/${t.id}`)}
-                              className="font-mono font-bold text-lg text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
+                              className="font-mono font-bold text-base text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
                             >
                               {t.flightNumber}
                             </button>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2 text-sm">
-                              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                              {formatDate(t.date)}
+                          <TableCell className="px-2">
+                            <div className="flex items-center gap-1.5 text-sm">
+                              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <span className="whitespace-nowrap">{formatDate(t.date)}</span>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-end">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeleteId(t.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                          <TableCell className="w-12 px-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteId(t.id)}
+                              className="text-destructive hover:text-destructive h-8 w-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );
