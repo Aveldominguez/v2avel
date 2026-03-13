@@ -124,7 +124,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   // Resolve signed URLs for images
   const loadingSheetSignedUrl = await getSignedUrl(data.times.loadingSheetUrl);
-  const fileSignedUrl = await getSignedUrl(data.times.fileUrl);
+  const fileUrls = data.times.fileUrls?.length ? data.times.fileUrls : (data.times.fileUrl ? [data.times.fileUrl] : []);
+  const fileSignedUrls = fileUrls.length ? await getSignedUrls(fileUrls) : [];
   const obsPhotoSignedUrls = data.times.observationPhotos?.length
     ? await getSignedUrls(data.times.observationPhotos)
     : [];
