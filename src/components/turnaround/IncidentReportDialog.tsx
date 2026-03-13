@@ -217,7 +217,7 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5 uppercase bg-destructive text-destructive-foreground border-destructive hover:bg-black hover:text-white hover:border-black active:bg-black active:text-white">
           <AlertTriangle className={`h-4 w-4 ${hasReport ? 'text-warning' : ''}`} />
           Informe
           {hasReport && (

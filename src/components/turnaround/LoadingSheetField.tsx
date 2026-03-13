@@ -133,7 +133,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
           <div className="flex gap-2">
             <Button
               variant="outline"
-              className="flex-1 gap-2"
+              className="flex-1 gap-2 dark:bg-accent dark:text-accent-foreground dark:border-accent dark:hover:bg-black dark:hover:text-white dark:hover:border-black dark:active:bg-black dark:active:text-white"
               onClick={() => cameraInputRef.current?.click()}
               disabled={uploading}
             >
@@ -142,7 +142,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
             </Button>
             <Button
               variant="outline"
-              className="flex-1 gap-2"
+              className="flex-1 gap-2 dark:bg-accent dark:text-accent-foreground dark:border-accent dark:hover:bg-black dark:hover:text-white dark:hover:border-black dark:active:bg-black dark:active:text-white"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
