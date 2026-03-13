@@ -518,8 +518,8 @@ const TurnaroundForm: React.FC = () => {
 
         <FileUploadField
           turnaroundId={id}
-          imageUrl={fileUrl}
-          onChange={setFileUrl}
+          fileUrls={fileUrls}
+          onChange={setFileUrls}
         />
 
         <Card className="card-operational">
