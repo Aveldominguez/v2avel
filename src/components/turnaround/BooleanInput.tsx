@@ -20,7 +20,7 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
 }) => {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+      <Label className="text-xs font-semibold text-foreground uppercase tracking-wide">
         {label}
       </Label>
       <div className="flex items-center gap-3 h-12 px-3 bg-input rounded-md border-2 border-border">
