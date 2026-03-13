@@ -13,6 +13,55 @@ interface GeneralTimesBlockProps {
   disabled?: boolean;
 }
 
+const BUS_KEYS: (keyof TurnaroundTimes)[] = ['busArrival', 'bus2', 'bus3', 'bus4', 'bus5', 'bus6'];
+const getBusLabel = (index: number) => `${index + 1}ª Jardinera`;
+
+const DynamicJardineraFields: React.FC<{
+  times: TurnaroundTimes;
+  updateTime: (field: keyof TurnaroundTimes, value: string | null | boolean) => void;
+  getError: (field: string) => string | undefined;
+  disabled: boolean;
+}> = ({ times, updateTime, getError, disabled }) => {
+  const existingCount = BUS_KEYS.filter(k => times[k]).length;
+  const [visibleCount, setVisibleCount] = useState(Math.max(1, existingCount));
+  const canAddMore = visibleCount < BUS_KEYS.length;
+
+  return (
+    <>
+      {BUS_KEYS.slice(0, visibleCount).map((key, idx) => (
+        <div key={key} className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {getBusLabel(idx)}
+            </label>
+            {idx === visibleCount - 1 && canAddMore && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                onClick={() => setVisibleCount(v => v + 1)}
+                disabled={disabled}
+                className="h-6 w-6 shrink-0"
+                title={`Añadir ${getBusLabel(visibleCount)}`}
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+          <TimeInput
+            label=""
+            value={times[key] as string | null}
+            onChange={(v) => updateTime(key, v)}
+            error={getError(String(key))}
+            disabled={disabled}
+            hideLabel
+          />
+        </div>
+      ))}
+    </>
+  );
+};
+
 export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
   times,
   onChange,
