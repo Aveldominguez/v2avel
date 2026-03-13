@@ -118,7 +118,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              className="gap-1.5"
+              className="gap-1.5 dark:bg-accent dark:text-accent-foreground dark:border-accent dark:hover:bg-black dark:hover:text-white dark:hover:border-black dark:active:bg-black dark:active:text-white"
               onClick={() => cameraInputRef.current?.click()}
               disabled={uploading}
             >
