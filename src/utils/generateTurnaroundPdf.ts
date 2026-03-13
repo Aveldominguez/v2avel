@@ -190,10 +190,10 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   <h2>Observaciones</h2>
   <div class="obs">${data.observations}</div>` : ''}
 
-  ${loadingSheetSignedUrl ? `
+  ${loadingSheetSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Hoja de Carga</h2>
-  <div style="text-align:center;">
-    <img src="${loadingSheetSignedUrl}" alt="Hoja de carga" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
+  <div style="text-align:center; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+    ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Hoja de carga ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
   </div>` : ''}
 
   ${fileSignedUrls.filter(Boolean).length > 0 ? `
