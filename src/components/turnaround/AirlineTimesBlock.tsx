@@ -48,6 +48,11 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
   const [showDock4, setShowDock4] = useState(!!times.dock4);
 
+  // Show extra ristras for Amazon
+  const [showRistra2, setShowRistra2] = useState(!!times.ristra2 || !!times.ristra3 || !!times.ristra4);
+  const [showRistra3, setShowRistra3] = useState(!!times.ristra3 || !!times.ristra4);
+  const [showRistra4, setShowRistra4] = useState(!!times.ristra4);
+
   const updateTime = (field: keyof TurnaroundTimes, value: string | null | boolean) => {
     onChange({ ...times, [field]: value });
   };
