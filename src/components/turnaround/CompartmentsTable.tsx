@@ -53,6 +53,25 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     setExtraFieldCounts(counts);
   }, [compartments.map(c => c.id).join(',')]);
 
+  const evaluateMath = (text: string): string => {
+    // Process each line: if a line ends with "=", evaluate the expression before it
+    return text.split('\n').map(line => {
+      if (line.trimEnd().endsWith('=')) {
+        const expr = line.trimEnd().slice(0, -1).trim();
+        try {
+          // Only allow numbers, operators, parentheses, spaces and dots
+          if (/^[\d+\-*/().\s]+$/.test(expr) && expr.length > 0) {
+            const result = Function('"use strict"; return (' + expr + ')')();
+            if (typeof result === 'number' && isFinite(result)) {
+              return String(result);
+            }
+          }
+        } catch { /* ignore invalid expressions */ }
+      }
+      return line;
+    }).join('\n');
+  };
+
   const getValue = (holdId: string): string =>
     values.find(v => v.fieldDefinitionId === holdId)?.value || '';
 
