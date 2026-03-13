@@ -45,8 +45,12 @@ export const validateTimes = (times: TurnaroundTimes): TimeValidationError[] => 
   // Validate stairs after arrival
   checkOrder('chocksOnArrival', 'stairsTime', 'Calzos Llegada', 'Puesta Escalera');
 
-  // Validate bus times
-  checkOrder('busArrival', 'lastBus', 'Llegada Jardinera', 'Última Jardinera');
+  // Validate jardinera sequence
+  checkOrder('busArrival', 'bus2', '1ª Jardinera', '2ª Jardinera');
+  checkOrder('bus2', 'bus3', '2ª Jardinera', '3ª Jardinera');
+  checkOrder('bus3', 'bus4', '3ª Jardinera', '4ª Jardinera');
+  checkOrder('bus4', 'bus5', '4ª Jardinera', '5ª Jardinera');
+  checkOrder('bus5', 'bus6', '5ª Jardinera', '6ª Jardinera');
 
   return errors;
 };
