@@ -1,4 +1,4 @@
-import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, FieldValue } from '@/types/turnaround';
+import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, getPushBackField, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { format } from 'date-fns';
@@ -20,7 +20,10 @@ interface PdfData {
 
 export const generateTurnaroundPdf = async (data: PdfData) => {
   const airlineInfo = AIRLINES.find(a => a.code === data.airline);
-  const timeFields = getTimeFieldsForAirline(data.airline, data.isRemote);
+  const baseTimeFields = getTimeFieldsForAirline(data.airline, data.isRemote, data.times.soloLlegada);
+  // Append Push Back field if applicable (parking T always, or remote with toggle on)
+  const showPushBack = !data.isRemote || data.times.pushBack;
+  const timeFields = showPushBack ? [...baseTimeFields, getPushBackField()] : baseTimeFields;
   const fields = getFieldsByAirline(data.airline);
   const compartments = getCompartmentsByAirline(data.airline, data.aircraftModel);
 
