@@ -49,12 +49,11 @@ const DynamicJardineraFields: React.FC<{
             )}
           </div>
           <TimeInput
-            label=""
+            label={getBusLabel(idx)}
             value={times[key] as string | null}
             onChange={(v) => updateTime(key, v)}
             error={getError(String(key))}
             disabled={disabled}
-            hideLabel
           />
         </div>
       ))}
