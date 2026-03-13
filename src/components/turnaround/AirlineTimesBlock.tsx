@@ -48,6 +48,11 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
   const [showDock4, setShowDock4] = useState(!!times.dock4);
 
+  // Show extra ristras for Amazon
+  const [showRistra2, setShowRistra2] = useState(!!times.ristra2 || !!times.ristra3 || !!times.ristra4);
+  const [showRistra3, setShowRistra3] = useState(!!times.ristra3 || !!times.ristra4);
+  const [showRistra4, setShowRistra4] = useState(!!times.ristra4);
+
   const updateTime = (field: keyof TurnaroundTimes, value: string | null | boolean) => {
     onChange({ ...times, [field]: value });
   };
@@ -179,6 +184,79 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                       value={times.dock4 as string | null}
                       onChange={(v) => updateTime('dock4', v)}
                       error={getError('dock4')}
+                      disabled={disabled}
+                      clockColor="green"
+                    />
+                  )}
+                </React.Fragment>
+              );
+            }
+
+            // Render firstBag with + button for Amazon (Envío Ristras)
+            if (field.key === 'firstBag' && airline === 'AMAZON') {
+              const nextRistra = !showRistra2 ? 'ristra2' : !showRistra3 ? 'ristra3' : !showRistra4 ? 'ristra4' : null;
+              return (
+                <React.Fragment key={field.key}>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {field.label}
+                      </label>
+                      {nextRistra && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => {
+                            if (nextRistra === 'ristra2') setShowRistra2(true);
+                            else if (nextRistra === 'ristra3') setShowRistra3(true);
+                            else if (nextRistra === 'ristra4') setShowRistra4(true);
+                          }}
+                          disabled={disabled}
+                          className="h-6 w-6 shrink-0"
+                          title={`Añadir Envío ${nextRistra === 'ristra2' ? '2ª' : nextRistra === 'ristra3' ? '3ª' : '4ª'} Ristra`}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <TimeInput
+                      value={times.firstBag as string | null}
+                      onChange={(v) => updateTime('firstBag', v)}
+                      error={getError('firstBag')}
+                      disabled={disabled}
+                      clockColor={field.clockColor || 'default'}
+                    />
+                  </div>
+                  {showRistra2 && (
+                    <TimeInput
+                      key="ristra2"
+                      label="Envío 2ª Ristra"
+                      value={times.ristra2 as string | null}
+                      onChange={(v) => updateTime('ristra2', v)}
+                      error={getError('ristra2')}
+                      disabled={disabled}
+                      clockColor="green"
+                    />
+                  )}
+                  {showRistra3 && (
+                    <TimeInput
+                      key="ristra3"
+                      label="Envío 3ª Ristra"
+                      value={times.ristra3 as string | null}
+                      onChange={(v) => updateTime('ristra3', v)}
+                      error={getError('ristra3')}
+                      disabled={disabled}
+                      clockColor="green"
+                    />
+                  )}
+                  {showRistra4 && (
+                    <TimeInput
+                      key="ristra4"
+                      label="Envío 4ª Ristra"
+                      value={times.ristra4 as string | null}
+                      onChange={(v) => updateTime('ristra4', v)}
+                      error={getError('ristra4')}
                       disabled={disabled}
                       clockColor="green"
                     />

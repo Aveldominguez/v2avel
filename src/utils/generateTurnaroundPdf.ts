@@ -43,7 +43,24 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
       return `<tr><td>${f.label}</td><td>${boolVal ? `SÍ — ${textVal || '—'}` : 'NO'}</td></tr>`;
     }
     const val = data.times[f.key] as string | null;
-    return `<tr><td>${f.label}</td><td>${val || '—'}</td></tr>`;
+    let row = `<tr><td>${f.label}</td><td>${val || '—'}</td></tr>`;
+
+    // Add extra ristra rows for Amazon after firstBag
+    if (f.key === 'firstBag' && data.airline === 'AMAZON') {
+      const ristraFields: { key: keyof TurnaroundTimes; label: string }[] = [
+        { key: 'ristra2', label: 'Envío 2ª Ristra' },
+        { key: 'ristra3', label: 'Envío 3ª Ristra' },
+        { key: 'ristra4', label: 'Envío 4ª Ristra' },
+      ];
+      for (const r of ristraFields) {
+        const rVal = data.times[r.key] as string | null;
+        if (rVal) {
+          row += `<tr><td>${r.label}</td><td>${rVal}</td></tr>`;
+        }
+      }
+    }
+
+    return row;
   }).join('');
 
   // Build compartments

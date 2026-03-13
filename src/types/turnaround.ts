@@ -17,7 +17,10 @@ export interface TurnaroundTimes {
   lastBus: string | null;                // Ultima Jardinera
   cargoArrival: boolean;                 // Cargo de llegada
   cargoDeparture: boolean;               // Cargo de salida
-  firstBag: string | null;               // 1ª Maleta
+  firstBag: string | null;               // 1ª Maleta / Envío 1ª Ristra
+  ristra2: string | null;                // Envío 2ª Ristra (Amazon)
+  ristra3: string | null;                // Envío 3ª Ristra (Amazon)
+  ristra4: string | null;                // Envío 4ª Ristra (Amazon)
   gpuOn: string | null;                  // Puesta de GPU
   gpuOff: string | null;                 // Retirada de GPU
   mailArrival: boolean;                  // Correo Llegada
