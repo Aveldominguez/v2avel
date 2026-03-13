@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline } from '@/types/turnaround';
+import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
@@ -39,6 +39,10 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
+  // Add Push Back field if pushBack is enabled and not remote
+  const pushBackEnabled = !isRemote && times.pushBack;
+  const allFields = pushBackEnabled ? [...fields, getPushBackField()] : fields;
+
   // Show extra docks if they have a value or user clicked +
   const [showDock2, setShowDock2] = useState(!!times.dock2 || !!times.dock3 || !!times.dock4);
   const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
@@ -64,7 +68,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {fields.map((field) => {
+          {allFields.map((field) => {
             if (field.type === 'boolean-text') {
               const boolVal = times[field.key] as boolean;
               const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;

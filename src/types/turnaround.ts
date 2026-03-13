@@ -38,6 +38,8 @@ export interface TurnaroundTimes {
   observationPhotos: string[];          // Fotos de observaciones (máx 7)
   matricula: string | null;             // Matrícula de la aeronave
   soloLlegada: boolean;                 // Sólo llegada (arrival only)
+  pushBack: boolean;                    // Push Back requerido (parking T)
+  pushBackTime: string | null;          // Hora de Push Back
   incidentReport?: {                    // Informe de incidente
     nombre: string;
     descripcion: string;
@@ -248,3 +250,11 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 
   return baseFields;
 };
+
+// Get push back field (shown when pushBack=true and not remote)
+export const getPushBackField = (): TimeFieldConfig => ({
+  key: 'pushBackTime',
+  label: 'Push Back',
+  clockColor: 'red',
+  type: 'time',
+});

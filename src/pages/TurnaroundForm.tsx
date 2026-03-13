@@ -46,6 +46,7 @@ const TurnaroundForm: React.FC = () => {
   const [remoteLocation, setRemoteLocation] = useState('');
   const [matricula, setMatricula] = useState('');
   const [soloLlegada, setSoloLlegada] = useState(false);
+  const [pushBack, setPushBack] = useState(false);
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -89,6 +90,7 @@ const TurnaroundForm: React.FC = () => {
             setAircraftModel(existing.times.aircraftModel || '');
             setMatricula(existing.times.matricula || '');
             setSoloLlegada(existing.times.soloLlegada || false);
+            setPushBack(existing.times.pushBack || false);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
@@ -124,6 +126,7 @@ const TurnaroundForm: React.FC = () => {
     setAircraftModel(draft.aircraftModel || '');
     setMatricula(draft.matricula || '');
     setSoloLlegada(draft.soloLlegada || false);
+    setPushBack(draft.times?.pushBack || false);
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -145,11 +148,12 @@ const TurnaroundForm: React.FC = () => {
     aircraftModel: aircraftModel || null,
     matricula: matricula || null,
     soloLlegada,
+    pushBack: !isRemote ? pushBack : false,
     loadingSheetUrl,
     fileUrl,
     observationPhotos,
     incidentReport,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, loadingSheetUrl, fileUrl, observationPhotos, incidentReport]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrl, fileUrl, observationPhotos, incidentReport]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -189,7 +193,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, loadingSheetUrl, fileUrl, observationPhotos, incidentReport]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, loadingSheetUrl, fileUrl, observationPhotos, incidentReport]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -347,6 +351,8 @@ const TurnaroundForm: React.FC = () => {
         setIsRemote={setIsRemote}
         remoteLocation={remoteLocation}
         setRemoteLocation={setRemoteLocation}
+        pushBack={pushBack}
+        setPushBack={setPushBack}
         date={date}
         setDate={setDate}
         airline={airline}
@@ -457,7 +463,7 @@ const TurnaroundForm: React.FC = () => {
           aircraftModel={aircraftModel}
           isRemote={isRemote}
           soloLlegada={soloLlegada}
-          times={times}
+          times={{ ...times, pushBack: !isRemote ? pushBack : false }}
           onChange={setTimes}
           errors={errors}
         />
