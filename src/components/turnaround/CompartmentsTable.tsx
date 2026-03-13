@@ -230,7 +230,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         </label>
         <textarea
           value={val}
-          onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
+          onChange={(e) => onChange(hold.id, evaluateMath(e.target.value.toUpperCase()))}
           disabled={disabled}
           placeholder="—"
           rows={lineCount}
