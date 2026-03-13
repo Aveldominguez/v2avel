@@ -1,4 +1,4 @@
-import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, FieldValue } from '@/types/turnaround';
+import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, getPushBackField, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { format } from 'date-fns';
