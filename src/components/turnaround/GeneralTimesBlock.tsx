@@ -139,23 +139,8 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             clockColor="red"
           />
 
-          {/* Llegada Jardinera */}
-          <TimeInput
-            label="Llegada Jardinera"
-            value={times.busArrival}
-            onChange={(v) => updateTime('busArrival', v)}
-            error={getError('busArrival')}
-            disabled={disabled}
-          />
-
-          {/* Última Jardinera */}
-          <TimeInput
-            label="Última Jardinera"
-            value={times.lastBus}
-            onChange={(v) => updateTime('lastBus', v)}
-            error={getError('lastBus')}
-            disabled={disabled}
-          />
+          {/* Jardineras dinámicas */}
+          <DynamicJardineraFields times={times} updateTime={updateTime} getError={getError} disabled={disabled} />
 
           {/* Cargo booleans */}
           <BooleanInput
