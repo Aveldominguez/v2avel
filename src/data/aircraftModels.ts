@@ -48,6 +48,10 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: 'A321', label: 'A321', turnaroundMinutes: 45 },
     { model: 'B737', label: 'B737', turnaroundMinutes: 40 },
   ],
+  NILE_AIR: [
+    { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
+    { model: 'A321', label: 'A321', turnaroundMinutes: 45 },
+  ],
   AZUL: [
     { model: 'B767', label: 'B767', turnaroundMinutes: 105 },
     { model: 'A339', label: 'A339', turnaroundMinutes: 105 },
