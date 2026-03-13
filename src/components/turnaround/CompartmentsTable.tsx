@@ -54,12 +54,11 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   }, [compartments.map(c => c.id).join(',')]);
 
   const evaluateMath = (text: string): string => {
-    // Find math expressions ending with "=" anywhere in the text and append the result
-    // Supports +, -, *, / and parentheses
-    return text.replace(/([\d\s+\-*\/().]+)=(?!\d)/g, (match, expr) => {
+    // Only evaluate when the user just typed "=" at the very end
+    if (!text.endsWith('=')) return text;
+    return text.replace(/([\d\s+\-*\/().]+)=$/g, (match, expr) => {
       const trimmed = expr.trim();
       try {
-        // Validate: must contain at least one operator and only safe chars
         if (/^[\d\s+\-*\/().]+$/.test(trimmed) && /[+\-*\/]/.test(trimmed) && trimmed.length > 0) {
           const result = Function('"use strict"; return (' + trimmed + ')')();
           if (typeof result === 'number' && isFinite(result)) {
