@@ -306,7 +306,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               <Input
                 type="text"
                 value={getValue(fieldId)}
-                onChange={(e) => onChange(fieldId, e.target.value.toUpperCase())}
+                onChange={(e) => onChange(fieldId, evaluateMath(e.target.value.toUpperCase()))}
                 disabled={disabled}
                 placeholder="—"
                 className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
