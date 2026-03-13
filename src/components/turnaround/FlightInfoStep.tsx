@@ -48,6 +48,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setIsRemote,
   remoteLocation,
   setRemoteLocation,
+  pushBack,
+  setPushBack,
   date,
   setDate,
   airline,
