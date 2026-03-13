@@ -60,6 +60,23 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
       }
     }
 
+    // Add extra jardinera rows after busArrival
+    if (f.key === 'busArrival') {
+      const busFields: { key: keyof TurnaroundTimes; label: string }[] = [
+        { key: 'bus2', label: '2ª Jardinera' },
+        { key: 'bus3', label: '3ª Jardinera' },
+        { key: 'bus4', label: '4ª Jardinera' },
+        { key: 'bus5', label: '5ª Jardinera' },
+        { key: 'bus6', label: '6ª Jardinera' },
+      ];
+      for (const b of busFields) {
+        const bVal = data.times[b.key] as string | null;
+        if (bVal) {
+          row += `<tr><td>${b.label}</td><td>${bVal}</td></tr>`;
+        }
+      }
+    }
+
     return row;
   }).join('');
 

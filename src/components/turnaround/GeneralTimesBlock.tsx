@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TurnaroundTimes, TimeValidationError } from '@/types/turnaround';
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plane, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Plane, Clock, Plus } from 'lucide-react';
 
 interface GeneralTimesBlockProps {
   times: TurnaroundTimes;
@@ -11,6 +12,49 @@ interface GeneralTimesBlockProps {
   errors: TimeValidationError[];
   disabled?: boolean;
 }
+
+const BUS_KEYS: (keyof TurnaroundTimes)[] = ['busArrival', 'bus2', 'bus3', 'bus4', 'bus5', 'bus6'];
+const getBusLabel = (index: number) => `${index + 1}ª Jardinera`;
+
+const DynamicJardineraFields: React.FC<{
+  times: TurnaroundTimes;
+  updateTime: (field: keyof TurnaroundTimes, value: string | null | boolean) => void;
+  getError: (field: string) => string | undefined;
+  disabled: boolean;
+}> = ({ times, updateTime, getError, disabled }) => {
+  const existingCount = BUS_KEYS.filter(k => times[k]).length;
+  const [visibleCount, setVisibleCount] = useState(Math.max(1, existingCount));
+  const canAddMore = visibleCount < BUS_KEYS.length;
+
+  return (
+    <>
+      {BUS_KEYS.slice(0, visibleCount).map((key, idx) => (
+        <div key={key} className="relative">
+          <TimeInput
+            label={getBusLabel(idx)}
+            value={times[key] as string | null}
+            onChange={(v) => updateTime(key, v)}
+            error={getError(String(key))}
+            disabled={disabled}
+          />
+          {idx === visibleCount - 1 && canAddMore && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              onClick={() => setVisibleCount(v => v + 1)}
+              disabled={disabled}
+              className="h-5 w-5 shrink-0 absolute top-0 right-0"
+              title={`Añadir ${getBusLabel(visibleCount)}`}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      ))}
+    </>
+  );
+};
 
 export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
   times,
@@ -138,23 +182,8 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             clockColor="red"
           />
 
-          {/* Llegada Jardinera */}
-          <TimeInput
-            label="Llegada Jardinera"
-            value={times.busArrival}
-            onChange={(v) => updateTime('busArrival', v)}
-            error={getError('busArrival')}
-            disabled={disabled}
-          />
-
-          {/* Última Jardinera */}
-          <TimeInput
-            label="Última Jardinera"
-            value={times.lastBus}
-            onChange={(v) => updateTime('lastBus', v)}
-            error={getError('lastBus')}
-            disabled={disabled}
-          />
+          {/* Jardineras dinámicas */}
+          <DynamicJardineraFields times={times} updateTime={updateTime} getError={getError} disabled={disabled} />
 
           {/* Cargo booleans */}
           <BooleanInput

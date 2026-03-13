@@ -48,7 +48,11 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
   const [showDock4, setShowDock4] = useState(!!times.dock4);
 
-  // Show extra ristras for Amazon
+  // Dynamic jardinera fields for remote
+  const BUS_KEYS: (keyof TurnaroundTimes)[] = ['busArrival', 'bus2', 'bus3', 'bus4', 'bus5', 'bus6'];
+  const existingBusCount = BUS_KEYS.filter(k => times[k]).length;
+  const [visibleBusCount, setVisibleBusCount] = useState(Math.max(1, existingBusCount));
+
   const [showRistra2, setShowRistra2] = useState(!!times.ristra2 || !!times.ristra3 || !!times.ristra4);
   const [showRistra3, setShowRistra3] = useState(!!times.ristra3 || !!times.ristra4);
   const [showRistra4, setShowRistra4] = useState(!!times.ristra4);
@@ -116,6 +120,38 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                   onChange={(v) => updateTime(field.key, v)}
                   disabled={disabled}
                 />
+              );
+            }
+
+            // Dynamic jardinera fields
+            if (field.key === 'busArrival') {
+              return (
+                <React.Fragment key="jardineras">
+                  {BUS_KEYS.slice(0, visibleBusCount).map((bKey, bIdx) => (
+                    <div key={bKey} className="relative">
+                      <TimeInput
+                        label={`${bIdx + 1}ª Jardinera`}
+                        value={times[bKey] as string | null}
+                        onChange={(v) => updateTime(bKey, v)}
+                        error={getError(String(bKey))}
+                        disabled={disabled}
+                      />
+                      {bIdx === visibleBusCount - 1 && visibleBusCount < BUS_KEYS.length && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => setVisibleBusCount(v => v + 1)}
+                          disabled={disabled}
+                          className="h-5 w-5 shrink-0 absolute top-0 right-0"
+                          title={`Añadir ${visibleBusCount + 1}ª Jardinera`}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </React.Fragment>
               );
             }
 
