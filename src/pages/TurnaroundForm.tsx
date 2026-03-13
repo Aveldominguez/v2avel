@@ -154,7 +154,7 @@ const TurnaroundForm: React.FC = () => {
     aircraftModel: aircraftModel || null,
     matricula: matricula || null,
     soloLlegada,
-    pushBack: !isRemote ? pushBack : false,
+    pushBack,
     loadingSheetUrl,
     fileUrl: fileUrls[0] || null,
     fileUrls,
