@@ -124,7 +124,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   // Resolve signed URLs for images
   const loadingSheetSignedUrl = await getSignedUrl(data.times.loadingSheetUrl);
-  const fileSignedUrl = await getSignedUrl(data.times.fileUrl);
+  const fileUrls = data.times.fileUrls?.length ? data.times.fileUrls : (data.times.fileUrl ? [data.times.fileUrl] : []);
+  const fileSignedUrls = fileUrls.length ? await getSignedUrls(fileUrls) : [];
   const obsPhotoSignedUrls = data.times.observationPhotos?.length
     ? await getSignedUrls(data.times.observationPhotos)
     : [];
@@ -194,10 +195,10 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     <img src="${loadingSheetSignedUrl}" alt="Hoja de carga" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
   </div>` : ''}
 
-  ${fileSignedUrl ? `
-  <h2>File</h2>
-  <div style="text-align:center;">
-    <img src="${fileSignedUrl}" alt="File" style="max-width:100%;max-height:600px;border:1px solid #ccc;border-radius:4px;" />
+  ${fileSignedUrls.filter(Boolean).length > 0 ? `
+  <h2>Adjuntar File</h2>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+    ${fileSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="File ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
   </div>` : ''}
 
   ${obsPhotoSignedUrls.filter(Boolean).length > 0 ? `

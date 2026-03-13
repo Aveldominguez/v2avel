@@ -43,6 +43,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   aircraftModel: null,
   loadingSheetUrl: null,
   fileUrl: null,
+  fileUrls: [],
   observationPhotos: [],
   matricula: null,
   soloLlegada: false,

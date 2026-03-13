@@ -118,7 +118,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              className="gap-1.5 dark:bg-accent dark:text-accent-foreground dark:border-accent dark:hover:bg-black dark:hover:text-white dark:hover:border-black dark:active:bg-black dark:active:text-white"
+              className="gap-1.5 bg-primary text-primary-foreground border-primary hover:bg-primary/80 hover:border-primary/80"
               onClick={() => cameraInputRef.current?.click()}
               disabled={uploading}
             >
@@ -129,7 +129,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
               type="button"
               variant="outline"
               size="sm"
-              className="gap-1.5 dark:bg-accent dark:text-accent-foreground dark:border-accent dark:hover:bg-black dark:hover:text-white dark:hover:border-black dark:active:bg-black dark:active:text-white"
+              className="gap-1.5 bg-success text-success-foreground border-success hover:bg-success/80 hover:border-success/80"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
