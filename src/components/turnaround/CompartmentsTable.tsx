@@ -54,22 +54,19 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   }, [compartments.map(c => c.id).join(',')]);
 
   const evaluateMath = (text: string): string => {
-    // Process each line: if a line ends with "=", evaluate the expression before it
-    return text.split('\n').map(line => {
-      if (line.trimEnd().endsWith('=')) {
-        const expr = line.trimEnd().slice(0, -1).trim();
-        try {
-          // Only allow numbers, operators, parentheses, spaces and dots
-          if (/^[\d+\-*/().\s]+$/.test(expr) && expr.length > 0) {
-            const result = Function('"use strict"; return (' + expr + ')')();
-            if (typeof result === 'number' && isFinite(result)) {
-              return expr + '=' + result;
-            }
+    // Find math expressions ending with "=" anywhere in the text and append the result
+    return text.replace(/([\d+\-*/().\s]{2,})=(?!\d)/g, (match, expr) => {
+      const trimmed = expr.trim();
+      try {
+        if (/^[\d+\-*/().\s]+$/.test(trimmed) && trimmed.length > 0) {
+          const result = Function('"use strict"; return (' + trimmed + ')')();
+          if (typeof result === 'number' && isFinite(result)) {
+            return expr + '=' + result;
           }
-        } catch { /* ignore invalid expressions */ }
-      }
-      return line;
-    }).join('\n');
+        }
+      } catch { /* ignore invalid expressions */ }
+      return match;
+    });
   };
 
   const getValue = (holdId: string): string =>
