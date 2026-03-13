@@ -272,7 +272,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="flex gap-1">
             <textarea
               value={rightVal}
-              onChange={(e) => onChange(entry.right.id, e.target.value.toUpperCase())}
+              onChange={(e) => onChange(entry.right.id, evaluateMath(e.target.value.toUpperCase()))}
               disabled={disabled}
               placeholder="—"
               rows={rightLines}
