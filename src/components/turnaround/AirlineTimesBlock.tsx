@@ -123,6 +123,38 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
               );
             }
 
+            // Dynamic jardinera fields
+            if (field.key === 'busArrival') {
+              return (
+                <React.Fragment key="jardineras">
+                  {BUS_KEYS.slice(0, visibleBusCount).map((bKey, bIdx) => (
+                    <div key={bKey} className="relative">
+                      <TimeInput
+                        label={`${bIdx + 1}ª Jardinera`}
+                        value={times[bKey] as string | null}
+                        onChange={(v) => updateTime(bKey, v)}
+                        error={getError(String(bKey))}
+                        disabled={disabled}
+                      />
+                      {bIdx === visibleBusCount - 1 && visibleBusCount < BUS_KEYS.length && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => setVisibleBusCount(v => v + 1)}
+                          disabled={disabled}
+                          className="h-5 w-5 shrink-0 absolute top-0 right-0"
+                          title={`Añadir ${visibleBusCount + 1}ª Jardinera`}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </React.Fragment>
+              );
+            }
+
             // Render dock1 with a + button to add dock2
             if (field.key === 'dock1') {
               const nextDockToShow = !showDock2 ? 'dock2' : !showDock3 ? 'dock3' : !showDock4 ? 'dock4' : null;
