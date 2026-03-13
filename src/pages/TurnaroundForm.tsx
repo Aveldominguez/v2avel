@@ -50,7 +50,7 @@ const TurnaroundForm: React.FC = () => {
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
-  const [loadingSheetUrl, setLoadingSheetUrl] = useState<string | null>(null);
+  const [loadingSheetUrls, setLoadingSheetUrls] = useState<string[]>([]);
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [observationPhotos, setObservationPhotos] = useState<string[]>([]);
   const [incidentReport, setIncidentReport] = useState<IncidentReportData | null>(null);
