@@ -10,13 +10,13 @@
   :root {
     /* Dark industrial theme - primary mode */
     --background: 222 22% 9%;
-    --foreground: 210 25% 96%;
+    --foreground: 0 0% 98%;
 
     --card: 222 20% 12%;
-    --card-foreground: 210 25% 96%;
+    --card-foreground: 0 0% 98%;
 
     --popover: 222 20% 14%;
-    --popover-foreground: 210 25% 96%;
+    --popover-foreground: 0 0% 98%;
 
     /* Aviation blue - primary action */
     --primary: 210 100% 55%;
@@ -24,10 +24,10 @@
 
     /* Steel gray - secondary */
     --secondary: 222 16% 20%;
-    --secondary-foreground: 210 25% 92%;
+    --secondary-foreground: 0 0% 95%;
 
     --muted: 222 16% 16%;
-    --muted-foreground: 215 15% 58%;
+    --muted-foreground: 215 15% 72%;
 
     /* Amber accent - for highlights */
     --accent: 38 92% 50%;
