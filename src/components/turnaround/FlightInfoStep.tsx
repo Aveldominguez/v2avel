@@ -68,13 +68,48 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const models = airline ? getModelsForAirline(airline) : [];
 
-  const canContinue = flightNumber.trim() !== '' && airline !== '' && aircraftModel;
+  const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+    FEDEX: '3V',
+    AIR_CANADA: 'AC',
+    TRANSAVIA: 'TO',
+    WIZZ: 'W',
+    TAP: 'TP',
+    ITA: 'AZ0',
+    NILE_AIR: 'NP',
+    AEGEAN: 'A',
+    PEGASUS: 'PC',
+    SKYEXPRESS: 'GQ',
+    AMAZON: 'ABR',
+    A_JET: 'VF',
+    ALBASTAR: 'AP',
+    ICELANDAIR: 'FI',
+    AZUL: 'AD',
+  };
+
+  const currentPrefix = airline ? AIRLINE_PREFIXES[airline] || '' : '';
+
+  // Extract numeric part from flightNumber (strip any existing prefix)
+  const getNumericPart = (fn: string): string => {
+    if (!currentPrefix) return fn.replace(/\D/g, '');
+    if (fn.startsWith(currentPrefix)) return fn.slice(currentPrefix.length);
+    return fn.replace(/\D/g, '');
+  };
+
+  const canContinue = flightNumber.trim() !== '' && airline !== '';
 
   const handleAirlineChange = (v: AirlineCode) => {
     setAirline(v);
-    // Reset model when airline changes
     const newModels = getModelsForAirline(v);
     setAircraftModel(newModels.length === 1 ? newModels[0].model : '');
+    // Update flight number with new prefix
+    const prefix = AIRLINE_PREFIXES[v] || '';
+    const numPart = flightNumber.replace(/^[A-Z]*/i, '');
+    setFlightNumber(prefix + numPart.replace(/\D/g, ''));
+  };
+
+  const handleFlightNumberChange = (digits: string) => {
+    const cleanDigits = digits.replace(/\D/g, '');
+    setFlightNumber(currentPrefix + cleanDigits);
   };
 
   return (
@@ -95,17 +130,65 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Flight Number */}
+          {/* Airline — FIRST */}
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Número de Vuelo <span className="text-destructive">*</span>
+              Aerolínea <span className="text-destructive">*</span>
             </Label>
-            <Input
-              value={flightNumber}
-              onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-              placeholder="Introducir vuelo"
-              className="input-operational font-mono"
-            />
+            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
+              <SelectTrigger className="input-operational">
+                <SelectValue placeholder="Seleccionar Aerolínea" />
+              </SelectTrigger>
+              <SelectContent>
+                {AIRLINES.map((a) => (
+                  <SelectItem key={a.code} value={a.code}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Flight Number + Aircraft Model side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Número de Vuelo <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                {currentPrefix && (
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm font-semibold text-foreground pointer-events-none">
+                    {currentPrefix}
+                  </span>
+                )}
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={getNumericPart(flightNumber)}
+                  onChange={(e) => handleFlightNumberChange(e.target.value)}
+                  placeholder="Nº vuelo"
+                  className="input-operational font-mono"
+                  style={currentPrefix ? { paddingLeft: `${currentPrefix.length * 0.65 + 0.75}rem` } : undefined}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Modelo de Avión
+              </Label>
+              <Select value={aircraftModel} onValueChange={setAircraftModel}>
+                <SelectTrigger className="input-operational">
+                  <SelectValue placeholder="Modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {models.map((m) => (
+                    <SelectItem key={m.model} value={m.model}>
+                      {m.label} — {m.turnaroundMinutes} min
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Tango / Remote toggle */}
@@ -239,43 +322,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </div>
           )}
 
-          {/* Airline */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Aerolínea <span className="text-destructive">*</span>
-            </Label>
-            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
-              <SelectTrigger className="input-operational">
-                <SelectValue placeholder="Seleccionar Aerolínea" />
-              </SelectTrigger>
-              <SelectContent>
-                {AIRLINES.map((a) => (
-                  <SelectItem key={a.code} value={a.code}>
-                    {a.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Aircraft Model */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Modelo de Aeronave <span className="text-destructive">*</span>
-            </Label>
-            <Select value={aircraftModel} onValueChange={setAircraftModel}>
-              <SelectTrigger className="input-operational">
-                <SelectValue placeholder="Seleccionar modelo" />
-              </SelectTrigger>
-              <SelectContent>
-                {models.map((m) => (
-                  <SelectItem key={m.model} value={m.model}>
-                    {m.label} — {m.turnaroundMinutes} min
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Airline and Aircraft Model already rendered above */}
 
           {/* Matrícula */}
           <div className="space-y-2">
