@@ -29,25 +29,7 @@ const DynamicJardineraFields: React.FC<{
   return (
     <>
       {BUS_KEYS.slice(0, visibleCount).map((key, idx) => (
-        <div key={key} className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {getBusLabel(idx)}
-            </label>
-            {idx === visibleCount - 1 && canAddMore && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                onClick={() => setVisibleCount(v => v + 1)}
-                disabled={disabled}
-                className="h-6 w-6 shrink-0"
-                title={`Añadir ${getBusLabel(visibleCount)}`}
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
+        <div key={key} className="relative">
           <TimeInput
             label={getBusLabel(idx)}
             value={times[key] as string | null}
@@ -55,6 +37,19 @@ const DynamicJardineraFields: React.FC<{
             error={getError(String(key))}
             disabled={disabled}
           />
+          {idx === visibleCount - 1 && canAddMore && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              onClick={() => setVisibleCount(v => v + 1)}
+              disabled={disabled}
+              className="h-5 w-5 shrink-0 absolute top-0 right-0"
+              title={`Añadir ${getBusLabel(visibleCount)}`}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          )}
         </div>
       ))}
     </>
