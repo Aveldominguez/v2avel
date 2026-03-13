@@ -201,42 +201,33 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     );
   };
 
-  const renderHoldInput = (hold: { id: string; label: string }, isBulk?: boolean) => (
-    <div key={hold.id} className="space-y-2">
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-foreground/80 w-24 shrink-0">
+  const renderHoldInput = (hold: { id: string; label: string }) => {
+    const val = getValue(hold.id);
+    const lineCount = (val.match(/\n/g) || []).length + 1;
+    return (
+      <div key={hold.id} className="flex items-start gap-3">
+        <label className="text-sm font-medium text-foreground/80 w-24 shrink-0 pt-2">
           {hold.label}:
         </label>
-        {!isBulk && (
-          <Input
-            type="text"
-            value={getValue(hold.id)}
-            onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
-            disabled={disabled}
-            placeholder="—"
-            className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
-          />
-        )}
-        {!isBulk && renderNilButton(hold.id)}
+        <textarea
+          value={val}
+          onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
+          disabled={disabled}
+          placeholder="—"
+          rows={lineCount}
+          className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6"
+        />
+        {renderNilButton(hold.id)}
       </div>
-      {isBulk && (
-        <div className="flex gap-2">
-          <textarea
-            value={getValue(hold.id)}
-            onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
-            disabled={disabled}
-            placeholder="Contenido bodega"
-            rows={Math.max(2, (getValue(hold.id).match(/\n/g) || []).length + 1)}
-            className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          {renderNilButton(hold.id)}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderPairedHold = (entry: HoldEntry, idx: number) => {
     if (!isPairedHold(entry)) return null;
+    const leftVal = getValue(entry.left.id);
+    const rightVal = getValue(entry.right.id);
+    const leftLines = (leftVal.match(/\n/g) || []).length + 1;
+    const rightLines = (rightVal.match(/\n/g) || []).length + 1;
     return (
       <div key={`pair-${idx}`} className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
@@ -244,13 +235,13 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             {entry.left.label}
           </label>
           <div className="flex gap-1">
-            <Input
-              type="text"
-              value={getValue(entry.left.id)}
+            <textarea
+              value={leftVal}
               onChange={(e) => onChange(entry.left.id, e.target.value.toUpperCase())}
               disabled={disabled}
               placeholder="—"
-              className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+              rows={leftLines}
+              className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6"
             />
             {renderNilButton(entry.left.id)}
           </div>
@@ -260,13 +251,13 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             {entry.right.label}
           </label>
           <div className="flex gap-1">
-            <Input
-              type="text"
-              value={getValue(entry.right.id)}
+            <textarea
+              value={rightVal}
               onChange={(e) => onChange(entry.right.id, e.target.value.toUpperCase())}
               disabled={disabled}
               placeholder="—"
-              className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+              rows={rightLines}
+              className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6"
             />
             {renderNilButton(entry.right.id)}
           </div>
@@ -336,7 +327,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                 ? renderItaHoldInput(hold, comp.airline)
                 : isPairedHold(hold)
                   ? renderPairedHold(hold, idx)
-                  : renderHoldInput(hold, isBulk);
+                  : renderHoldInput(hold);
             })}
             {comp.expandable && renderExpandableFields(comp)}
           </div>
