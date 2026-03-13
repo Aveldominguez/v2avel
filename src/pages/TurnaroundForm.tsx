@@ -126,6 +126,7 @@ const TurnaroundForm: React.FC = () => {
     setAircraftModel(draft.aircraftModel || '');
     setMatricula(draft.matricula || '');
     setSoloLlegada(draft.soloLlegada || false);
+    setPushBack(draft.times?.pushBack || false);
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
