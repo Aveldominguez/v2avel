@@ -779,6 +779,86 @@ export const TAP_A320_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Nile Air A321
+export const NILE_AIR_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'nileair-a321-comp1',
+    airline: 'NILE_AIR',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a321-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('NILE_AIR', 'a321-12'), label: 'Bodega 12' },
+    ],
+  },
+  {
+    id: 'nileair-a321-comp3',
+    airline: 'NILE_AIR',
+    compartmentName: 'COMPARTIMIENTO 3 AFT (hasta 90 maletas)',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a321-31'), label: 'Bodega 31' },
+      { id: createHoldId('NILE_AIR', 'a321-32'), label: 'Bodega 32' },
+      { id: createHoldId('NILE_AIR', 'a321-33'), label: 'Bodega 33' },
+    ],
+  },
+  {
+    id: 'nileair-a321-comp4',
+    airline: 'NILE_AIR',
+    compartmentName: 'COMPARTIMIENTO 4 (Resto aquí)',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a321-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('NILE_AIR', 'a321-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'nileair-a321-bulk5',
+    airline: 'NILE_AIR',
+    compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a321-51'), label: 'Bodega 51' },
+    ],
+  },
+];
+
+// Nile Air A320
+export const NILE_AIR_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'nileair-a320-comp1',
+    airline: 'NILE_AIR',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a320-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('NILE_AIR', 'a320-12'), label: 'Bodega 12' },
+      { id: createHoldId('NILE_AIR', 'a320-13'), label: 'Bodega 13' },
+    ],
+  },
+  {
+    id: 'nileair-a320-comp3',
+    airline: 'NILE_AIR',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a320-31'), label: 'Bodega 31' },
+      { id: createHoldId('NILE_AIR', 'a320-32'), label: 'Bodega 32' },
+    ],
+  },
+  {
+    id: 'nileair-a320-comp4',
+    airline: 'NILE_AIR',
+    compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a320-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('NILE_AIR', 'a320-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'nileair-a320-bulk',
+    airline: 'NILE_AIR',
+    compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('NILE_AIR', 'a320-5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
 // Type options per airline for ITA-style holds
 export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   ITA: ['AKH-AZ', 'PKC-AZ'],
