@@ -224,6 +224,10 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
 
   const renderPairedHold = (entry: HoldEntry, idx: number) => {
     if (!isPairedHold(entry)) return null;
+    const leftVal = getValue(entry.left.id);
+    const rightVal = getValue(entry.right.id);
+    const leftLines = (leftVal.match(/\n/g) || []).length + 1;
+    const rightLines = (rightVal.match(/\n/g) || []).length + 1;
     return (
       <div key={`pair-${idx}`} className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
@@ -231,13 +235,13 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             {entry.left.label}
           </label>
           <div className="flex gap-1">
-            <Input
-              type="text"
-              value={getValue(entry.left.id)}
+            <textarea
+              value={leftVal}
               onChange={(e) => onChange(entry.left.id, e.target.value.toUpperCase())}
               disabled={disabled}
               placeholder="—"
-              className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+              rows={leftLines}
+              className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6"
             />
             {renderNilButton(entry.left.id)}
           </div>
@@ -247,13 +251,13 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             {entry.right.label}
           </label>
           <div className="flex gap-1">
-            <Input
-              type="text"
-              value={getValue(entry.right.id)}
+            <textarea
+              value={rightVal}
               onChange={(e) => onChange(entry.right.id, e.target.value.toUpperCase())}
               disabled={disabled}
               placeholder="—"
-              className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
+              rows={rightLines}
+              className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6"
             />
             {renderNilButton(entry.right.id)}
           </div>
