@@ -41,7 +41,8 @@ export interface TurnaroundTimes {
   asu: boolean;                          // ASU activo
   asuData: string | null;               // Datos ASU
   aircraftModel: string | null;         // Modelo de avión
-  loadingSheetUrl: string | null;       // Hoja de carga (foto)
+  loadingSheetUrl: string | null;       // Hoja de carga (legacy single - backward compat)
+  loadingSheetUrls: string[];           // Hoja de carga (múltiples, máx 7)
   fileUrl: string | null;               // File (legacy single - backward compat)
   fileUrls: string[];                   // Adjuntar File (múltiples, máx 7)
   observationPhotos: string[];          // Fotos de observaciones (máx 7)
