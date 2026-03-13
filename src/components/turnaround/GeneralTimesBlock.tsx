@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TurnaroundTimes, TimeValidationError } from '@/types/turnaround';
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plane, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Plane, Clock, Plus } from 'lucide-react';
 
 interface GeneralTimesBlockProps {
   times: TurnaroundTimes;
