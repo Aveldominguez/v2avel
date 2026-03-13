@@ -907,6 +907,11 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A320_AIRBALTIC') return A_JET_A320_AIRBALTIC_COMPARTMENTS;
     return [];
   }
+  if (airline === 'NILE_AIR') {
+    if (aircraftModel === 'A321') return NILE_AIR_A321_COMPARTMENTS;
+    if (aircraftModel === 'A320') return NILE_AIR_A320_COMPARTMENTS;
+    return [];
+  }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
   return SKYEXPRESS_COMPARTMENTS;
 };

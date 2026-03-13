@@ -133,6 +133,19 @@ export const ALBASTAR_FIELDS: FieldDefinition[] = createSharedFields('ALBASTAR')
 export const ICELANDAIR_FIELDS: FieldDefinition[] = createSharedFields('ICELANDAIR');
 export const AZUL_FIELDS: FieldDefinition[] = createSharedFields('AZUL');
 export const AMAZON_FIELDS: FieldDefinition[] = createSharedFields('AMAZON');
+export const NILE_AIR_FIELDS: FieldDefinition[] = [
+  createField('NILE_AIR', 'BT', 'Tránsito', 1),
+  createField('NILE_AIR', 'BY', 'Local', 2),
+  createField('NILE_AIR', 'BG', 'Gate / Mano / Puerta', 3),
+  createField('NILE_AIR', 'BP', 'Priority', 4),
+  createField('NILE_AIR', 'DAA', 'Delivery at Aircraft (Carrito)', 5),
+  createField('NILE_AIR', 'D', 'Crew', 6),
+  createField('NILE_AIR', 'E', 'Equipment', 7),
+  createField('NILE_AIR', 'BH', 'Grupo (Varios tránsitos mismo destino)', 8),
+  createField('NILE_AIR', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
+  createField('NILE_AIR', 'WCH', 'Wheelchair', 10),
+  createField('NILE_AIR', 'WDB', 'Wheelchair – Dry Battery', 11),
+];
 
 // All field definitions combined
 export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
@@ -149,6 +162,7 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...ICELANDAIR_FIELDS,
   ...AZUL_FIELDS,
   ...AMAZON_FIELDS,
+  ...NILE_AIR_FIELDS,
 ];
 
 // Get fields by airline
