@@ -23,6 +23,8 @@ interface FlightInfoStepProps {
   setIsRemote: (v: boolean) => void;
   remoteLocation: string;
   setRemoteLocation: (v: string) => void;
+  pushBack: boolean;
+  setPushBack: (v: boolean) => void;
   date: Date;
   setDate: (v: Date) => void;
   airline: AirlineCode | '';
