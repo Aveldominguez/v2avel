@@ -94,7 +94,13 @@ const TurnaroundForm: React.FC = () => {
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
-            setFileUrl(existing.times.fileUrl || null);
+            // Backward compat: migrate fileUrl to fileUrls
+            const existingFileUrls = existing.times.fileUrls || [];
+            if (existingFileUrls.length === 0 && existing.times.fileUrl) {
+              setFileUrls([existing.times.fileUrl]);
+            } else {
+              setFileUrls(existingFileUrls);
+            }
             setObservationPhotos(existing.times.observationPhotos || []);
             setIncidentReport(existing.times.incidentReport || null);
             setLastSaved(existing.updatedAt);
