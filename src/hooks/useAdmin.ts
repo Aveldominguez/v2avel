@@ -182,15 +182,17 @@ export const useAdmin = () => {
           console.warn(`No se pudo descargar foto de ${t.flight_number}:`, e);
         }
       }
-      if (times?.fileUrl) {
+      // Handle fileUrls (array) with backward compat for fileUrl (single)
+      const fileUrlsList = times?.fileUrls?.length ? times.fileUrls : (times?.fileUrl ? [times.fileUrl] : []);
+      for (let i = 0; i < fileUrlsList.length; i++) {
         try {
-          const signedUrl = await getSignedUrl(times.fileUrl);
+          const signedUrl = await getSignedUrl(fileUrlsList[i]);
           if (signedUrl) {
             const response = await fetch(signedUrl);
             if (response.ok) {
               const blob = await response.blob();
               const ext = blob.type.includes('png') ? 'png' : 'jpg';
-              const filename = `${t.flight_number}_${t.date}_file.${ext}`;
+              const filename = `${t.flight_number}_${t.date}_file_${i + 1}.${ext}`;
               filesFolder?.file(filename, blob);
               fileCount++;
             }
