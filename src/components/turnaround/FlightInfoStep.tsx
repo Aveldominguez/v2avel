@@ -322,43 +322,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </div>
           )}
 
-          {/* Airline */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Aerolínea <span className="text-destructive">*</span>
-            </Label>
-            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
-              <SelectTrigger className="input-operational">
-                <SelectValue placeholder="Seleccionar Aerolínea" />
-              </SelectTrigger>
-              <SelectContent>
-                {AIRLINES.map((a) => (
-                  <SelectItem key={a.code} value={a.code}>
-                    {a.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Aircraft Model */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Modelo de Aeronave <span className="text-destructive">*</span>
-            </Label>
-            <Select value={aircraftModel} onValueChange={setAircraftModel}>
-              <SelectTrigger className="input-operational">
-                <SelectValue placeholder="Seleccionar modelo" />
-              </SelectTrigger>
-              <SelectContent>
-                {models.map((m) => (
-                  <SelectItem key={m.model} value={m.model}>
-                    {m.label} — {m.turnaroundMinutes} min
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Airline and Aircraft Model already rendered above */}
 
           {/* Matrícula */}
           <div className="space-y-2">
