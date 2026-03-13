@@ -327,7 +327,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                 ? renderItaHoldInput(hold, comp.airline)
                 : isPairedHold(hold)
                   ? renderPairedHold(hold, idx)
-                  : renderHoldInput(hold, isBulk);
+                  : renderHoldInput(hold);
             })}
             {comp.expandable && renderExpandableFields(comp)}
           </div>
