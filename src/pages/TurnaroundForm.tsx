@@ -148,11 +148,12 @@ const TurnaroundForm: React.FC = () => {
     aircraftModel: aircraftModel || null,
     matricula: matricula || null,
     soloLlegada,
+    pushBack: !isRemote ? pushBack : false,
     loadingSheetUrl,
     fileUrl,
     observationPhotos,
     incidentReport,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, loadingSheetUrl, fileUrl, observationPhotos, incidentReport]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrl, fileUrl, observationPhotos, incidentReport]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
