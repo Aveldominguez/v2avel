@@ -518,8 +518,8 @@ const TurnaroundForm: React.FC = () => {
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <LoadingSheetField
             turnaroundId={id}
-            imageUrl={loadingSheetUrl}
-            onChange={setLoadingSheetUrl}
+            imageUrls={loadingSheetUrls}
+            onChange={setLoadingSheetUrls}
           />
         )}
 
