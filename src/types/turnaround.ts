@@ -13,8 +13,13 @@ export interface TurnaroundTimes {
   lastHandBag: string | null;            // Cierre Coordinador
   specialEndLoading: string | null;      // Retirada Escalera
   chocksOff: string | null;              // Retirada Calzos
-  busArrival: string | null;             // Llegada Jardinera
-  lastBus: string | null;                // Ultima Jardinera
+  busArrival: string | null;             // 1ª Jardinera
+  lastBus: string | null;                // (legacy - no longer used)
+  bus2: string | null;                   // 2ª Jardinera
+  bus3: string | null;                   // 3ª Jardinera
+  bus4: string | null;                   // 4ª Jardinera
+  bus5: string | null;                   // 5ª Jardinera
+  bus6: string | null;                   // 6ª Jardinera
   cargoArrival: boolean;                 // Cargo de llegada
   cargoDeparture: boolean;               // Cargo de salida
   firstBag: string | null;               // 1ª Maleta / Envío 1ª Ristra
