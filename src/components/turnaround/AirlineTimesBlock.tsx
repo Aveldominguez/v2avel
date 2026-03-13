@@ -68,7 +68,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {fields.map((field) => {
+          {allFields.map((field) => {
             if (field.type === 'boolean-text') {
               const boolVal = times[field.key] as boolean;
               const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;

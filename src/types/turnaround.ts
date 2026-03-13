@@ -250,3 +250,11 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 
   return baseFields;
 };
+
+// Get push back field (shown when pushBack=true and not remote)
+export const getPushBackField = (): TimeFieldConfig => ({
+  key: 'pushBackTime',
+  label: 'Push Back',
+  clockColor: 'red',
+  type: 'time',
+});
