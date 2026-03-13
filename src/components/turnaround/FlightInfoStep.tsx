@@ -130,17 +130,65 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Flight Number */}
+          {/* Airline — FIRST */}
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Número de Vuelo <span className="text-destructive">*</span>
+              Aerolínea <span className="text-destructive">*</span>
             </Label>
-            <Input
-              value={flightNumber}
-              onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-              placeholder="Introducir vuelo"
-              className="input-operational font-mono"
-            />
+            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
+              <SelectTrigger className="input-operational">
+                <SelectValue placeholder="Seleccionar Aerolínea" />
+              </SelectTrigger>
+              <SelectContent>
+                {AIRLINES.map((a) => (
+                  <SelectItem key={a.code} value={a.code}>
+                    {a.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Flight Number + Aircraft Model side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Número de Vuelo <span className="text-destructive">*</span>
+              </Label>
+              <div className="relative">
+                {currentPrefix && (
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm font-semibold text-foreground pointer-events-none">
+                    {currentPrefix}
+                  </span>
+                )}
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={getNumericPart(flightNumber)}
+                  onChange={(e) => handleFlightNumberChange(e.target.value)}
+                  placeholder="Nº vuelo"
+                  className="input-operational font-mono"
+                  style={currentPrefix ? { paddingLeft: `${currentPrefix.length * 0.65 + 0.75}rem` } : undefined}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Modelo de Avión
+              </Label>
+              <Select value={aircraftModel} onValueChange={setAircraftModel}>
+                <SelectTrigger className="input-operational">
+                  <SelectValue placeholder="Modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {models.map((m) => (
+                    <SelectItem key={m.model} value={m.model}>
+                      {m.label} — {m.turnaroundMinutes} min
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Tango / Remote toggle */}
