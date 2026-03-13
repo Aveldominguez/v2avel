@@ -202,40 +202,42 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </div>
           </div>
 
-          {/* Date */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Fecha del Vuelo
-            </Label>
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'input-operational w-full justify-start text-left font-normal',
-                    !date && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-5 w-5" />
-                  {date ? format(date, 'PPP', { locale: es }) : 'Seleccionar fecha'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(d) => {
-                    if (d) {
-                      setDate(d);
-                      setIsCalendarOpen(false);
-                    }
-                  }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          {/* Date — only visible when editing an existing turnaround */}
+          {isEditing && (
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Fecha del Vuelo
+              </Label>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'input-operational w-full justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-5 w-5" />
+                    {date ? format(date, 'PPP', { locale: es }) : 'Seleccionar fecha'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(d) => {
+                      if (d) {
+                        setDate(d);
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
 
           {/* Airline */}
           <div className="space-y-2">
