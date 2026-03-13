@@ -348,6 +348,8 @@ const TurnaroundForm: React.FC = () => {
         setIsRemote={setIsRemote}
         remoteLocation={remoteLocation}
         setRemoteLocation={setRemoteLocation}
+        pushBack={pushBack}
+        setPushBack={setPushBack}
         date={date}
         setDate={setDate}
         airline={airline}
