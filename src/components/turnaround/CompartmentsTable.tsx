@@ -63,7 +63,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           if (/^[\d+\-*/().\s]+$/.test(expr) && expr.length > 0) {
             const result = Function('"use strict"; return (' + expr + ')')();
             if (typeof result === 'number' && isFinite(result)) {
-              return String(result);
+              return expr + '=' + result;
             }
           }
         } catch { /* ignore invalid expressions */ }
