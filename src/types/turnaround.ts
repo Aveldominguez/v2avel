@@ -184,8 +184,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
 // Remote-only fields
 const REMOTE_FIELDS: TimeFieldConfig[] = [
   { key: 'gpuOn', label: 'Puesta de GPU', type: 'time' },
-  { key: 'busArrival', label: 'Llegada Jardinera', type: 'time' },
-  { key: 'lastBus', label: 'Última Jardinera', type: 'time' },
+  { key: 'busArrival', label: '1ª Jardinera', type: 'time' },
 ];
 
 const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
