@@ -68,13 +68,48 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const models = airline ? getModelsForAirline(airline) : [];
 
-  const canContinue = flightNumber.trim() !== '' && airline !== '' && aircraftModel;
+  const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+    FEDEX: '3V',
+    AIR_CANADA: 'AC',
+    TRANSAVIA: 'TO',
+    WIZZ: 'W',
+    TAP: 'TP',
+    ITA: 'AZ0',
+    NILE_AIR: 'NP',
+    AEGEAN: 'A',
+    PEGASUS: 'PC',
+    SKYEXPRESS: 'GQ',
+    AMAZON: 'ABR',
+    A_JET: 'VF',
+    ALBASTAR: 'AP',
+    ICELANDAIR: 'FI',
+    AZUL: 'AD',
+  };
+
+  const currentPrefix = airline ? AIRLINE_PREFIXES[airline] || '' : '';
+
+  // Extract numeric part from flightNumber (strip any existing prefix)
+  const getNumericPart = (fn: string): string => {
+    if (!currentPrefix) return fn.replace(/\D/g, '');
+    if (fn.startsWith(currentPrefix)) return fn.slice(currentPrefix.length);
+    return fn.replace(/\D/g, '');
+  };
+
+  const canContinue = flightNumber.trim() !== '' && airline !== '';
 
   const handleAirlineChange = (v: AirlineCode) => {
     setAirline(v);
-    // Reset model when airline changes
     const newModels = getModelsForAirline(v);
     setAircraftModel(newModels.length === 1 ? newModels[0].model : '');
+    // Update flight number with new prefix
+    const prefix = AIRLINE_PREFIXES[v] || '';
+    const numPart = flightNumber.replace(/^[A-Z]*/i, '');
+    setFlightNumber(prefix + numPart.replace(/\D/g, ''));
+  };
+
+  const handleFlightNumberChange = (digits: string) => {
+    const cleanDigits = digits.replace(/\D/g, '');
+    setFlightNumber(currentPrefix + cleanDigits);
   };
 
   return (
