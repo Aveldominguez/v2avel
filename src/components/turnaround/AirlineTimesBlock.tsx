@@ -39,6 +39,10 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
+  // Add Push Back field if pushBack is enabled and not remote
+  const pushBackEnabled = !isRemote && times.pushBack;
+  const allFields = pushBackEnabled ? [...fields, getPushBackField()] : fields;
+
   // Show extra docks if they have a value or user clicked +
   const [showDock2, setShowDock2] = useState(!!times.dock2 || !!times.dock3 || !!times.dock4);
   const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
