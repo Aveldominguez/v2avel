@@ -7,72 +7,32 @@ import { toast } from '@/hooks/use-toast';
 import { Camera, ImageIcon, Trash2, Loader2, FileImage } from 'lucide-react';
 import { buildStoragePath, parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 
+const MAX_FILES = 7;
+
 interface LoadingSheetFieldProps {
   turnaroundId?: string;
-  imageUrl: string | null;
-  onChange: (url: string | null) => void;
+  imageUrls: string[];
+  onChange: (urls: string[]) => void;
 }
 
 export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   turnaroundId,
-  imageUrl,
+  imageUrls,
   onChange,
 }) => {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+  const [displayUrls, setDisplayUrls] = useState<(string | null)[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    if (imageUrl) {
-      getSignedUrl(imageUrl).then(url => { if (!cancelled) setDisplayUrl(url); });
-    } else {
-      setDisplayUrl(null);
-    }
+    Promise.all(imageUrls.map(u => getSignedUrl(u))).then(urls => {
+      if (!cancelled) setDisplayUrls(urls);
+    });
     return () => { cancelled = true; };
-  }, [imageUrl]);
-
-  const uploadFile = async (file: File) => {
-    if (!user) {
-      toast({ title: 'Error', description: 'Debes iniciar sesión', variant: 'destructive' });
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: 'Error', description: 'La imagen no puede superar 10MB', variant: 'destructive' });
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const fileName = `${user.id}/${turnaroundId || 'new'}-${Date.now()}.${ext}`;
-
-      // Delete old file if exists
-      if (imageUrl) {
-        const oldPath = extractPathFromUrl(imageUrl);
-        if (oldPath) {
-          await supabase.storage.from('loading-sheets').remove([oldPath]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('loading-sheets')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      onChange(buildStoragePath('loading-sheets', fileName));
-      toast({ title: 'Foto subida correctamente' });
-    } catch (err) {
-      console.error('Upload error:', err);
-      toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' });
-    } finally {
-      setUploading(false);
-    }
-  };
+  }, [imageUrls]);
 
   const extractPathFromUrl = (url: string): string | null => {
     const parsed = parseStoragePath(url);
@@ -85,21 +45,69 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
     }
   };
 
-  const handleDelete = async () => {
-    if (imageUrl) {
-      const path = extractPathFromUrl(imageUrl);
+  const uploadFiles = async (files: globalThis.File[]) => {
+    if (!user) {
+      toast({ title: 'Error', description: 'Debes iniciar sesión', variant: 'destructive' });
+      return;
+    }
+    const remaining = MAX_FILES - imageUrls.length;
+    if (remaining <= 0) {
+      toast({ title: 'Límite alcanzado', description: `Máximo ${MAX_FILES} imágenes`, variant: 'destructive' });
+      return;
+    }
+    const batch = files.slice(0, remaining);
+    if (batch.length < files.length) {
+      toast({ title: 'Aviso', description: `Solo se subirán ${batch.length} de ${files.length} imágenes (límite ${MAX_FILES})` });
+    }
+
+    setUploading(true);
+    const newPaths: string[] = [];
+    try {
+      for (const file of batch) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ title: 'Error', description: `${file.name} supera 10MB, omitido`, variant: 'destructive' });
+          continue;
+        }
+        const ext = file.name.split('.').pop() || 'jpg';
+        const fileName = `${user.id}/${turnaroundId || 'new'}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('loading-sheets')
+          .upload(fileName, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+        newPaths.push(buildStoragePath('loading-sheets', fileName));
+      }
+      if (newPaths.length > 0) {
+        onChange([...imageUrls, ...newPaths]);
+        toast({ title: `${newPaths.length} foto(s) subida(s)` });
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (index: number) => {
+    const url = imageUrls[index];
+    if (url) {
+      const path = extractPathFromUrl(url);
       if (path) {
         await supabase.storage.from('loading-sheets').remove([path]);
       }
     }
-    onChange(null);
+    onChange(imageUrls.filter((_, i) => i !== index));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadFile(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) uploadFiles(files);
     e.target.value = '';
   };
+
+  const canAdd = imageUrls.length < MAX_FILES;
 
   return (
     <Card className="card-operational">
@@ -109,27 +117,38 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
             <FileImage className="h-5 w-5 text-muted-foreground" />
           </div>
           Hoja de carga
+          <span className="text-xs text-muted-foreground font-normal ml-auto">
+            {imageUrls.length}/{MAX_FILES}
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {imageUrl ? (
-          <div className="relative">
-            <img
-              src={displayUrl || ''}
-              alt="Hoja de carga"
-              className="w-full rounded-lg border border-border object-contain max-h-[400px]"
-              onClick={() => displayUrl && window.open(displayUrl, '_blank')}
-            />
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute top-2 right-2 h-8 w-8"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+        {/* Thumbnails grid */}
+        {imageUrls.length > 0 && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {imageUrls.map((url, idx) => (
+              <div key={url} className="relative group">
+                <img
+                  src={displayUrls[idx] || ''}
+                  alt={`Hoja de carga ${idx + 1}`}
+                  className="w-full aspect-square rounded-lg border border-border object-cover cursor-pointer"
+                  onClick={() => displayUrls[idx] && window.open(displayUrls[idx]!, '_blank')}
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-1 right-1 h-6 w-6 opacity-80 group-hover:opacity-100"
+                  onClick={() => handleDelete(idx)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
           </div>
-        ) : (
+        )}
+
+        {/* Upload buttons */}
+        {canAdd && (
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -164,6 +183,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={handleFileChange}
         />

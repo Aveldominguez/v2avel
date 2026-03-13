@@ -50,7 +50,7 @@ const TurnaroundForm: React.FC = () => {
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
-  const [loadingSheetUrl, setLoadingSheetUrl] = useState<string | null>(null);
+  const [loadingSheetUrls, setLoadingSheetUrls] = useState<string[]>([]);
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [observationPhotos, setObservationPhotos] = useState<string[]>([]);
   const [incidentReport, setIncidentReport] = useState<IncidentReportData | null>(null);
@@ -93,7 +93,13 @@ const TurnaroundForm: React.FC = () => {
             setPushBack(existing.times.pushBack || false);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
-            setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
+            // Backward compat: migrate loadingSheetUrl to loadingSheetUrls
+            const existingLsUrls = existing.times.loadingSheetUrls || [];
+            if (existingLsUrls.length === 0 && existing.times.loadingSheetUrl) {
+              setLoadingSheetUrls([existing.times.loadingSheetUrl]);
+            } else {
+              setLoadingSheetUrls(existingLsUrls);
+            }
             // Backward compat: migrate fileUrl to fileUrls
             const existingFileUrls = existing.times.fileUrls || [];
             if (existingFileUrls.length === 0 && existing.times.fileUrl) {
@@ -155,12 +161,13 @@ const TurnaroundForm: React.FC = () => {
     matricula: matricula || null,
     soloLlegada,
     pushBack,
-    loadingSheetUrl,
+    loadingSheetUrl: loadingSheetUrls[0] || null,
+    loadingSheetUrls,
     fileUrl: fileUrls[0] || null,
     fileUrls,
     observationPhotos,
     incidentReport,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrl, fileUrls, observationPhotos, incidentReport]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -200,7 +207,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, loadingSheetUrl, fileUrls, observationPhotos, incidentReport]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -511,8 +518,8 @@ const TurnaroundForm: React.FC = () => {
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <LoadingSheetField
             turnaroundId={id}
-            imageUrl={loadingSheetUrl}
-            onChange={setLoadingSheetUrl}
+            imageUrls={loadingSheetUrls}
+            onChange={setLoadingSheetUrls}
           />
         )}
 

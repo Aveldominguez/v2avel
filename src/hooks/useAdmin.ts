@@ -165,15 +165,16 @@ export const useAdmin = () => {
     let obsPhotoCount = 0;
     for (const t of data) {
       const times = t.times as any;
-      if (times?.loadingSheetUrl) {
+      const lsUrlsList = times?.loadingSheetUrls?.length ? times.loadingSheetUrls : (times?.loadingSheetUrl ? [times.loadingSheetUrl] : []);
+      for (let i = 0; i < lsUrlsList.length; i++) {
         try {
-          const signedUrl = await getSignedUrl(times.loadingSheetUrl);
+          const signedUrl = await getSignedUrl(lsUrlsList[i]);
           if (signedUrl) {
             const response = await fetch(signedUrl);
             if (response.ok) {
               const blob = await response.blob();
               const ext = blob.type.includes('png') ? 'png' : 'jpg';
-              const filename = `${t.flight_number}_${t.date}.${ext}`;
+              const filename = `${t.flight_number}_${t.date}_hc_${i + 1}.${ext}`;
               photosFolder?.file(filename, blob);
               photoCount++;
             }
