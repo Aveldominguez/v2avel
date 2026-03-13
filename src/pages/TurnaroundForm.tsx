@@ -93,7 +93,13 @@ const TurnaroundForm: React.FC = () => {
             setPushBack(existing.times.pushBack || false);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
-            setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
+            // Backward compat: migrate loadingSheetUrl to loadingSheetUrls
+            const existingLsUrls = existing.times.loadingSheetUrls || [];
+            if (existingLsUrls.length === 0 && existing.times.loadingSheetUrl) {
+              setLoadingSheetUrls([existing.times.loadingSheetUrl]);
+            } else {
+              setLoadingSheetUrls(existingLsUrls);
+            }
             // Backward compat: migrate fileUrl to fileUrls
             const existingFileUrls = existing.times.fileUrls || [];
             if (existingFileUrls.length === 0 && existing.times.fileUrl) {
