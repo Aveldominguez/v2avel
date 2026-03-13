@@ -128,36 +128,22 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </div>
 
             {isRemote ? (
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Ubicación Remoto
-                </Label>
-              <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={remoteLocation}
-                  onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Ej: 1, 2..."
-                  className="input-operational font-mono"
-                />
-              </div>
-            ) : (
               <div className="space-y-3">
                 <div className="space-y-2">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Tango
+                    Ubicación Remoto
                   </Label>
                   <Input
                     type="text"
                     inputMode="numeric"
-                    value={tango}
-                    onChange={(e) => setTango(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Tango"
+                    value={remoteLocation}
+                    onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Ej: 1, 2..."
                     className="input-operational font-mono"
                   />
                 </div>
 
-                {/* Push Back toggle — only in parking T (not remote) */}
+                {/* Push Back toggle — only when remote */}
                 <div className="flex items-center justify-between">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                     Push Back
@@ -176,6 +162,20 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     </span>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Tango
+                </Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  value={tango}
+                  onChange={(e) => setTango(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Tango"
+                  className="input-operational font-mono"
+                />
               </div>
             )}
 
