@@ -90,6 +90,7 @@ const TurnaroundForm: React.FC = () => {
             setAircraftModel(existing.times.aircraftModel || '');
             setMatricula(existing.times.matricula || '');
             setSoloLlegada(existing.times.soloLlegada || false);
+            setPushBack(existing.times.pushBack || false);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             setLoadingSheetUrl(existing.times.loadingSheetUrl || null);
