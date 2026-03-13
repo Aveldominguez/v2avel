@@ -53,6 +53,25 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     setExtraFieldCounts(counts);
   }, [compartments.map(c => c.id).join(',')]);
 
+  const evaluateMath = (text: string): string => {
+    // Process each line: if a line ends with "=", evaluate the expression before it
+    return text.split('\n').map(line => {
+      if (line.trimEnd().endsWith('=')) {
+        const expr = line.trimEnd().slice(0, -1).trim();
+        try {
+          // Only allow numbers, operators, parentheses, spaces and dots
+          if (/^[\d+\-*/().\s]+$/.test(expr) && expr.length > 0) {
+            const result = Function('"use strict"; return (' + expr + ')')();
+            if (typeof result === 'number' && isFinite(result)) {
+              return String(result);
+            }
+          }
+        } catch { /* ignore invalid expressions */ }
+      }
+      return line;
+    }).join('\n');
+  };
+
   const getValue = (holdId: string): string =>
     values.find(v => v.fieldDefinitionId === holdId)?.value || '';
 
@@ -192,7 +211,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         <Input
           type="text"
            value={nilActive ? 'NIL' : getValue(contentFieldId)}
-          onChange={(e) => onChange(contentFieldId, e.target.value.toUpperCase())}
+          onChange={(e) => onChange(contentFieldId, evaluateMath(e.target.value.toUpperCase()))}
           disabled={disabled || nilActive}
           placeholder="Contenido bodega"
           className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
@@ -211,7 +230,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         </label>
         <textarea
           value={val}
-          onChange={(e) => onChange(hold.id, e.target.value.toUpperCase())}
+          onChange={(e) => onChange(hold.id, evaluateMath(e.target.value.toUpperCase()))}
           disabled={disabled}
           placeholder="—"
           rows={lineCount}
@@ -237,7 +256,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="flex gap-1">
             <textarea
               value={leftVal}
-              onChange={(e) => onChange(entry.left.id, e.target.value.toUpperCase())}
+              onChange={(e) => onChange(entry.left.id, evaluateMath(e.target.value.toUpperCase()))}
               disabled={disabled}
               placeholder="—"
               rows={leftLines}
@@ -253,7 +272,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="flex gap-1">
             <textarea
               value={rightVal}
-              onChange={(e) => onChange(entry.right.id, e.target.value.toUpperCase())}
+              onChange={(e) => onChange(entry.right.id, evaluateMath(e.target.value.toUpperCase()))}
               disabled={disabled}
               placeholder="—"
               rows={rightLines}
@@ -287,7 +306,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               <Input
                 type="text"
                 value={getValue(fieldId)}
-                onChange={(e) => onChange(fieldId, e.target.value.toUpperCase())}
+                onChange={(e) => onChange(fieldId, evaluateMath(e.target.value.toUpperCase()))}
                 disabled={disabled}
                 placeholder="—"
                 className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
