@@ -481,7 +481,7 @@ const TurnaroundForm: React.FC = () => {
         <Button
           type="button"
           variant="outline"
-          className="w-full gap-2 font-semibold"
+          className="w-full gap-2 font-semibold bg-accent text-accent-foreground hover:bg-black hover:text-white active:bg-black active:text-white border-accent hover:border-black"
           onClick={async () => {
             await generateTurnaroundPdf({
               flightNumber,
