@@ -471,7 +471,7 @@ const TurnaroundForm: React.FC = () => {
           aircraftModel={aircraftModel}
           isRemote={isRemote}
           soloLlegada={soloLlegada}
-          times={{ ...times, pushBack: !isRemote ? pushBack : false }}
+          times={{ ...times, pushBack }}
           onChange={setTimes}
           errors={errors}
         />
