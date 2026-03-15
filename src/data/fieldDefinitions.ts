@@ -147,6 +147,8 @@ export const NILE_AIR_FIELDS: FieldDefinition[] = [
   createField('NILE_AIR', 'WDB', 'Wheelchair – Dry Battery', 11),
 ];
 
+export const SIN_MARCA_FIELDS: FieldDefinition[] = createSharedFields('SIN_MARCA');
+
 // All field definitions combined
 export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...A_JET_FIELDS,
@@ -163,6 +165,7 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...AZUL_FIELDS,
   ...AMAZON_FIELDS,
   ...NILE_AIR_FIELDS,
+  ...SIN_MARCA_FIELDS,
 ];
 
 // Get fields by airline

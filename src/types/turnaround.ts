@@ -1,6 +1,6 @@
 // Types for Turnaround (Scale) Management
 
-export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR';
+export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'SIN_MARCA';
 
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
@@ -115,6 +115,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'NILE_AIR', name: 'Nile Air', shortName: 'NILE AIR', color: 'hsl(15, 80%, 50%)' },
   { code: 'ITA', name: 'ITA Airways', shortName: 'ITA', color: 'hsl(210, 100%, 52%)' },
   { code: 'PEGASUS', name: 'Pegasus Airlines', shortName: 'PEGASUS', color: 'hsl(30, 90%, 50%)' },
+  { code: 'SIN_MARCA', name: 'Sin Marca', shortName: 'SIN MARCA', color: 'hsl(0, 0%, 55%)' },
   { code: 'SKYEXPRESS', name: 'Sky Express', shortName: 'SKY EXPRESS', color: 'hsl(220, 80%, 55%)' },
   { code: 'TAP', name: 'TAP Air Portugal', shortName: 'TAP', color: 'hsl(142, 76%, 36%)' },
   { code: 'TRANSAVIA', name: 'Transavia', shortName: 'TRANSAVIA', color: 'hsl(145, 70%, 40%)' },
@@ -194,7 +195,7 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
 ];
 
-const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS'];
+const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA'];
 
 // Fields to keep in "Sólo llegada" mode (arrival only)
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([

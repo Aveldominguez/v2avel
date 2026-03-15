@@ -77,6 +77,24 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
   FEDEX: [
     { model: 'OTHER', label: 'Genérico', turnaroundMinutes: 60 },
   ],
+  SIN_MARCA: [
+    { model: 'A220', label: 'A220', turnaroundMinutes: 45 },
+    { model: 'A319', label: 'A319', turnaroundMinutes: 45 },
+    { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
+    { model: 'A321', label: 'A321', turnaroundMinutes: 50 },
+    { model: 'A333', label: 'A333', turnaroundMinutes: 90 },
+    { model: 'A339', label: 'A339', turnaroundMinutes: 105 },
+    { model: 'B734', label: 'B734', turnaroundMinutes: 75 },
+    { model: 'B737', label: 'B737', turnaroundMinutes: 45 },
+    { model: '737-800', label: '737-800', turnaroundMinutes: 45 },
+    { model: 'B767', label: 'B767', turnaroundMinutes: 105 },
+    { model: 'B777', label: 'B777', turnaroundMinutes: 85 },
+    { model: '787-800', label: '787-800', turnaroundMinutes: 85 },
+    { model: '787-900', label: '787-900', turnaroundMinutes: 95 },
+    { model: 'EMB90', label: 'EMB90', turnaroundMinutes: 45 },
+    { model: 'EMB95', label: 'EMB95', turnaroundMinutes: 45 },
+    { model: 'OTHER', label: 'Genérico', turnaroundMinutes: 50 },
+  ],
 };
 
 export const getModelsForAirline = (airline: AirlineCode): AircraftModelConfig[] => {

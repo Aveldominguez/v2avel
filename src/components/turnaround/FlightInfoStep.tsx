@@ -84,6 +84,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     ALBASTAR: 'AP',
     ICELANDAIR: 'FI',
     AZUL: 'AD',
+    SIN_MARCA: 'SM',
   };
 
   const currentPrefix = airline ? AIRLINE_PREFIXES[airline] || '' : '';

@@ -859,6 +859,153 @@ export const NILE_AIR_A320_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Sin Marca compartments (reuse common layouts per model)
+export const SIN_MARCA_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-a320-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a320-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a320-12'), label: 'Bodega 12' },
+      { id: createHoldId('SIN_MARCA', 'a320-13'), label: 'Bodega 13' },
+    ],
+  },
+  { id: 'sinmarca-a320-comp3', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a320-31'), label: 'Bodega 31' },
+      { id: createHoldId('SIN_MARCA', 'a320-32'), label: 'Bodega 32' },
+    ],
+  },
+  { id: 'sinmarca-a320-comp4', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a320-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a320-42'), label: 'Bodega 42' },
+    ],
+  },
+  { id: 'sinmarca-a320-bulk', airline: 'SIN_MARCA', compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a320-5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
+export const SIN_MARCA_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-a321-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a321-12'), label: 'Bodega 12' },
+    ],
+  },
+  { id: 'sinmarca-a321-comp3', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321-31'), label: 'Bodega 31' },
+      { id: createHoldId('SIN_MARCA', 'a321-32'), label: 'Bodega 32' },
+      { id: createHoldId('SIN_MARCA', 'a321-33'), label: 'Bodega 33' },
+    ],
+  },
+  { id: 'sinmarca-a321-comp4', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a321-42'), label: 'Bodega 42' },
+    ],
+  },
+  { id: 'sinmarca-a321-bulk5', airline: 'SIN_MARCA', compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321-51'), label: 'Bodega 51' },
+    ],
+  },
+];
+
+export const SIN_MARCA_737_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-737-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('SIN_MARCA', '737-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('SIN_MARCA', '737-12'), label: 'Bodega 12' },
+      { id: createHoldId('SIN_MARCA', '737-13'), label: 'Bodega 13' },
+    ],
+  },
+  { id: 'sinmarca-737-comp3', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SIN_MARCA', '737-31'), label: 'Bodega 31' },
+      { id: createHoldId('SIN_MARCA', '737-32'), label: 'Bodega 32' },
+    ],
+  },
+  { id: 'sinmarca-737-comp4', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('SIN_MARCA', '737-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('SIN_MARCA', '737-42'), label: 'Bodega 42' },
+    ],
+  },
+  { id: 'sinmarca-737-bulk', airline: 'SIN_MARCA', compartmentName: 'Bulk',
+    holds: [
+      { id: createHoldId('SIN_MARCA', '737-5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
+export const SIN_MARCA_EMB_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-emb-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 - FWD', bulk: true,
+    holds: [{ id: createHoldId('SIN_MARCA', 'emb-11'), label: 'Bodega 1 🚪' }],
+  },
+  { id: 'sinmarca-emb-comp2', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 2', bulk: true,
+    holds: [{ id: createHoldId('SIN_MARCA', 'emb-21'), label: 'Bodega 2' }],
+  },
+  { id: 'sinmarca-emb-comp3', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 3 AFT', bulk: true,
+    holds: [{ id: createHoldId('SIN_MARCA', 'emb-31'), label: 'Bodega 3' }],
+  },
+  { id: 'sinmarca-emb-comp4', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 4', bulk: true,
+    holds: [{ id: createHoldId('SIN_MARCA', 'emb-41'), label: 'Bodega 4 🚪' }],
+  },
+];
+
+export const SIN_MARCA_A333_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-a333-fwd', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO FWD',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a333-11p'), label: '11 P 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a333-12p'), label: '12 P' },
+      { id: createHoldId('SIN_MARCA', 'a333-21p'), label: '21 P' },
+      { id: createHoldId('SIN_MARCA', 'a333-22p'), label: '22 P' },
+      { id: createHoldId('SIN_MARCA', 'a333-23p'), label: '23 P' },
+      { id: createHoldId('SIN_MARCA', 'a333-24p'), label: '24 P' },
+    ],
+  },
+  { id: 'sinmarca-a333-aft', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO AFT',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a333-31p'), label: '31 P' },
+      { id: createHoldId('SIN_MARCA', 'a333-41'), label: '41' },
+      { id: createHoldId('SIN_MARCA', 'a333-42'), label: '42' },
+      { id: createHoldId('SIN_MARCA', 'a333-43'), label: '43 🚪' },
+    ],
+  },
+  { id: 'sinmarca-a333-bulk', airline: 'SIN_MARCA', compartmentName: 'Bulk',
+    holds: [{ id: createHoldId('SIN_MARCA', 'a333-53'), label: '53 🚪' }],
+    expandable: true, expandableDefault: 5,
+  },
+];
+
+export const SIN_MARCA_GENERIC_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-gen-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'gen-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('SIN_MARCA', 'gen-12'), label: 'Bodega 12' },
+      { id: createHoldId('SIN_MARCA', 'gen-13'), label: 'Bodega 13' },
+    ],
+  },
+  { id: 'sinmarca-gen-comp3', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'gen-31'), label: 'Bodega 31' },
+      { id: createHoldId('SIN_MARCA', 'gen-32'), label: 'Bodega 32' },
+    ],
+  },
+  { id: 'sinmarca-gen-comp4', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'gen-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('SIN_MARCA', 'gen-42'), label: 'Bodega 42' },
+    ],
+  },
+  { id: 'sinmarca-gen-bulk', airline: 'SIN_MARCA', compartmentName: 'Bulk',
+    holds: [{ id: createHoldId('SIN_MARCA', 'gen-5'), label: 'Bodega 5 🚪' }],
+  },
+];
+
 // Type options per airline for ITA-style holds
 export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   ITA: ['AKH-AZ', 'PKC-AZ'],
@@ -911,6 +1058,15 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A321') return NILE_AIR_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return NILE_AIR_A320_COMPARTMENTS;
     return [];
+  }
+  if (airline === 'SIN_MARCA') {
+    if (aircraftModel === 'A320' || aircraftModel === 'A319' || aircraftModel === 'A220') return SIN_MARCA_A320_COMPARTMENTS;
+    if (aircraftModel === 'A321') return SIN_MARCA_A321_COMPARTMENTS;
+    if (aircraftModel === '737-800' || aircraftModel === 'B737' || aircraftModel === 'B734') return SIN_MARCA_737_COMPARTMENTS;
+    if (aircraftModel === 'EMB90' || aircraftModel === 'EMB95') return SIN_MARCA_EMB_COMPARTMENTS;
+    if (aircraftModel === 'A333') return SIN_MARCA_A333_COMPARTMENTS;
+    if (aircraftModel === 'B777' || aircraftModel === '787-800' || aircraftModel === '787-900' || aircraftModel === 'B767' || aircraftModel === 'A339') return SIN_MARCA_A333_COMPARTMENTS;
+    return SIN_MARCA_GENERIC_COMPARTMENTS;
   }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
   return SKYEXPRESS_COMPARTMENTS;
