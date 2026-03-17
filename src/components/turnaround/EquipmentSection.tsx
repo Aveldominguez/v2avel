@@ -5,16 +5,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Wrench, Plus, X } from 'lucide-react';
-import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
+import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
+import { AirlineCode } from '@/types/turnaround';
 
 interface EquipmentSectionProps {
+  airline: AirlineCode;
   aircraftModel: string | null;
+  isRemote: boolean;
   equipment: EquipmentSelection[];
   onChange: (equipment: EquipmentSelection[]) => void;
 }
 
-const EquipmentSection: React.FC<EquipmentSectionProps> = ({ aircraftModel, equipment, onChange }) => {
-  const categories = useMemo(() => getEquipmentCategories(aircraftModel), [aircraftModel]);
+const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftModel, isRemote, equipment, onChange }) => {
+  const categories = useMemo(() => getFilteredEquipmentCategories(airline, isRemote, aircraftModel), [airline, isRemote, aircraftModel]);
 
   const getSelections = (categoryId: string): EquipmentSelection[] => {
     return equipment.filter(e => e.categoryId === categoryId);

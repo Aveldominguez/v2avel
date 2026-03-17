@@ -1,3 +1,5 @@
+import { AirlineCode } from '@/types/turnaround';
+
 export interface EquipmentItem {
   id: string;
   label: string;
@@ -163,6 +165,124 @@ export const getEquipmentCategories = (aircraftModel: string | null): EquipmentC
       ],
     },
   ];
+};
+
+// ── Airline-specific equipment visibility rules ──
+
+type CategoryVisibility = 'always' | 'remote' | 'never';
+
+interface AirlineEquipmentRules {
+  TRACTORES: CategoryVisibility;
+  CINTAS: CategoryVisibility;
+  ESCALERAS: CategoryVisibility;
+  FURGONETAS: CategoryVisibility;
+  GPUS: CategoryVisibility;
+  PUSHBACK: CategoryVisibility;
+  PLATAFORMAS_GD: CategoryVisibility;
+  PLATAFORMAS_PQ: CategoryVisibility;
+  TRANSFER: CategoryVisibility;
+  JARDINERAS: CategoryVisibility;
+}
+
+// Group 1: most short-haul airlines
+const STANDARD_RULES: AirlineEquipmentRules = {
+  TRACTORES: 'always',
+  CINTAS: 'always',
+  ESCALERAS: 'remote',
+  FURGONETAS: 'always',
+  GPUS: 'remote',
+  PUSHBACK: 'never',
+  PLATAFORMAS_GD: 'never',
+  PLATAFORMAS_PQ: 'never',
+  TRANSFER: 'never',
+  JARDINERAS: 'remote',
+};
+
+// Group 2: widebody / long-haul
+const WIDEBODY_RULES: AirlineEquipmentRules = {
+  TRACTORES: 'always',
+  CINTAS: 'always',
+  ESCALERAS: 'always',
+  FURGONETAS: 'always',
+  GPUS: 'remote',
+  PUSHBACK: 'always',
+  PLATAFORMAS_GD: 'always',
+  PLATAFORMAS_PQ: 'never',
+  TRANSFER: 'always',
+  JARDINERAS: 'remote',
+};
+
+// Cargo airlines: all always, no jardinera
+const CARGO_RULES: AirlineEquipmentRules = {
+  TRACTORES: 'always',
+  CINTAS: 'always',
+  ESCALERAS: 'always',
+  FURGONETAS: 'always',
+  GPUS: 'always',
+  PUSHBACK: 'always',
+  PLATAFORMAS_GD: 'always',
+  PLATAFORMAS_PQ: 'never',
+  TRANSFER: 'always',
+  JARDINERAS: 'never',
+};
+
+// All categories always (Sin Marca)
+const ALL_RULES: AirlineEquipmentRules = {
+  TRACTORES: 'always',
+  CINTAS: 'always',
+  ESCALERAS: 'always',
+  FURGONETAS: 'always',
+  GPUS: 'always',
+  PUSHBACK: 'always',
+  PLATAFORMAS_GD: 'always',
+  PLATAFORMAS_PQ: 'always',
+  TRANSFER: 'always',
+  JARDINERAS: 'always',
+};
+
+const AIRLINE_RULES: Record<AirlineCode, AirlineEquipmentRules> = {
+  TRANSAVIA: STANDARD_RULES,
+  WIZZ: STANDARD_RULES,
+  NILE_AIR: STANDARD_RULES,
+  AEGEAN: STANDARD_RULES,
+  PEGASUS: STANDARD_RULES,
+  SKYEXPRESS: STANDARD_RULES,
+  A_JET: STANDARD_RULES,
+  ALBASTAR: STANDARD_RULES,
+  ICELANDAIR: STANDARD_RULES,
+  AZUL: WIDEBODY_RULES,
+  AIR_CANADA: WIDEBODY_RULES,
+  TAP: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never' },
+  ITA: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never' },
+  AMAZON: CARGO_RULES,
+  FEDEX: CARGO_RULES,
+  SIN_MARCA: ALL_RULES,
+};
+
+/**
+ * Returns only the equipment categories visible for a given airline/remote/model combo.
+ */
+export const getFilteredEquipmentCategories = (
+  airline: AirlineCode,
+  isRemote: boolean,
+  aircraftModel: string | null,
+): EquipmentCategory[] => {
+  const all = getEquipmentCategories(aircraftModel);
+  const rules = AIRLINE_RULES[airline] ?? ALL_RULES;
+
+  return all.filter(cat => {
+    const vis = rules[cat.id as keyof AirlineEquipmentRules];
+    if (!vis || vis === 'always') return true;
+    if (vis === 'never') return false;
+    // 'remote' → show only when isRemote
+    return isRemote;
+  }).filter(cat => {
+    // TAP / ITA: Plataformas Pequeñas only for A320/A321
+    if (cat.id === 'PLATAFORMAS_PQ' && (airline === 'TAP' || airline === 'ITA')) {
+      return aircraftModel === 'A320' || aircraftModel === 'A321';
+    }
+    return true;
+  });
 };
 
 export interface EquipmentSelection {
