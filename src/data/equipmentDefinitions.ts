@@ -19,8 +19,8 @@ const SMALL_PUSHBACK_MODELS = new Set([
 ]);
 
 export const isSmallAircraft = (model: string | null): boolean => {
-  if (!model) return true; // default to small if unknown
-  return SMALL_AIRCRAFT_MODELS.has(model);
+  if (!model) return false; // default to all pushbacks if unknown
+  return SMALL_PUSHBACK_MODELS.has(model);
 };
 
 const ALL_PUSHBACK_ITEMS: EquipmentItem[] = [
