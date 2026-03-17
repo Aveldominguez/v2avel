@@ -118,6 +118,43 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     }).join('');
   }
 
+  // Build equipment section
+  let equipmentHtml = '';
+  const equipmentSelections = (data.times.equipment || []) as EquipmentSelection[];
+  const filledEquipment = equipmentSelections.filter(e => e.equipmentId);
+  if (filledEquipment.length > 0) {
+    const allCategories = getEquipmentCategories(data.aircraftModel);
+    const grouped = new Map<string, { label: string; items: { label: string; percentage: string }[] }>();
+    
+    for (const sel of filledEquipment) {
+      const cat = allCategories.find(c => c.id === sel.categoryId);
+      if (!cat) continue;
+      const item = cat.items.find(i => i.id === sel.equipmentId);
+      if (!item) continue;
+      
+      if (!grouped.has(sel.categoryId)) {
+        grouped.set(sel.categoryId, { label: cat.label, items: [] });
+      }
+      grouped.get(sel.categoryId)!.items.push({
+        label: item.label,
+        percentage: sel.percentage || '—',
+      });
+    }
+    
+    const rows = Array.from(grouped.values()).map(g =>
+      g.items.map(item =>
+        `<tr><td>${g.label}</td><td>${item.label}</td><td style="text-align:center;">${item.percentage}${item.percentage !== '—' ? '%' : ''}</td></tr>`
+      ).join('')
+    ).join('');
+    
+    equipmentHtml = `
+      <h2>Equipos Utilizados</h2>
+      <table class="data-table">
+        <tr style="background:#e5e5e5;font-weight:bold;"><td>Categoría</td><td>Equipo</td><td style="text-align:center;">%</td></tr>
+        ${rows}
+      </table>`;
+  }
+
   // Build codes table
   const codesHtml = fields.map(f =>
     `<tr><td class="code">${f.code}</td><td>${f.label}</td></tr>`
