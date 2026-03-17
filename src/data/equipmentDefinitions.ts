@@ -252,7 +252,7 @@ const AIRLINE_RULES: Record<AirlineCode, AirlineEquipmentRules> = {
   ICELANDAIR: STANDARD_RULES,
   AZUL: WIDEBODY_RULES,
   AIR_CANADA: WIDEBODY_RULES,
-  TAP: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never' },
+  TAP: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never', TRANSFER: 'never' },
   ITA: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never' },
   AMAZON: CARGO_RULES,
   FEDEX: CARGO_RULES,
@@ -266,11 +266,15 @@ export const getFilteredEquipmentCategories = (
   airline: AirlineCode,
   isRemote: boolean,
   aircraftModel: string | null,
+  needsPushBack: boolean = false,
 ): EquipmentCategory[] => {
   const all = getEquipmentCategories(aircraftModel);
   const rules = AIRLINE_RULES[airline] ?? ALL_RULES;
 
   return all.filter(cat => {
+    // Pushback category: show when needsPushBack is true (regardless of airline rules)
+    if (cat.id === 'PUSHBACK') return needsPushBack;
+
     const vis = rules[cat.id as keyof AirlineEquipmentRules];
     if (!vis || vis === 'always') return true;
     if (vis === 'never') return false;

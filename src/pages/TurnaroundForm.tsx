@@ -501,6 +501,7 @@ const TurnaroundForm: React.FC = () => {
           airline={selectedAirline}
           aircraftModel={aircraftModel || null}
           isRemote={isRemote}
+          pushBack={pushBack}
           equipment={equipmentSelections}
           onChange={setEquipmentSelections}
         />

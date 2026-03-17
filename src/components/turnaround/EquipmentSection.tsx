@@ -12,12 +12,13 @@ interface EquipmentSectionProps {
   airline: AirlineCode;
   aircraftModel: string | null;
   isRemote: boolean;
+  pushBack: boolean;
   equipment: EquipmentSelection[];
   onChange: (equipment: EquipmentSelection[]) => void;
 }
 
-const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftModel, isRemote, equipment, onChange }) => {
-  const categories = useMemo(() => getFilteredEquipmentCategories(airline, isRemote, aircraftModel), [airline, isRemote, aircraftModel]);
+const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftModel, isRemote, pushBack, equipment, onChange }) => {
+  const categories = useMemo(() => getFilteredEquipmentCategories(airline, isRemote, aircraftModel, pushBack), [airline, isRemote, aircraftModel, pushBack]);
 
   const getSelections = (categoryId: string): EquipmentSelection[] => {
     return equipment.filter(e => e.categoryId === categoryId);
