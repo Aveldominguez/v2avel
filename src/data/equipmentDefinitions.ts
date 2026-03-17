@@ -266,6 +266,7 @@ export const getFilteredEquipmentCategories = (
   airline: AirlineCode,
   isRemote: boolean,
   aircraftModel: string | null,
+  needsPushBack: boolean = false,
 ): EquipmentCategory[] => {
   const all = getEquipmentCategories(aircraftModel);
   const rules = AIRLINE_RULES[airline] ?? ALL_RULES;
