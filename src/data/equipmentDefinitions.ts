@@ -12,17 +12,15 @@ export interface EquipmentCategory {
   items: EquipmentItem[];
 }
 
-// Small (narrow-body) aircraft models — pushback limited to PQ 8501/8500
-const SMALL_AIRCRAFT_MODELS = new Set([
-  'A220', 'A319', 'A320', 'A321',
-  'B737', '737-800', 'B734',
+// Aircraft models restricted to PQ 8501/8500 pushback only
+const SMALL_PUSHBACK_MODELS = new Set([
+  'B737', '737-800',
   'EMB90', 'EMB95',
-  'A320_AIRBALTIC',
 ]);
 
 export const isSmallAircraft = (model: string | null): boolean => {
-  if (!model) return true; // default to small if unknown
-  return SMALL_AIRCRAFT_MODELS.has(model);
+  if (!model) return false; // default to all pushbacks if unknown
+  return SMALL_PUSHBACK_MODELS.has(model);
 };
 
 const ALL_PUSHBACK_ITEMS: EquipmentItem[] = [
