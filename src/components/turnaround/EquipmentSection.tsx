@@ -9,7 +9,9 @@ import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equip
 import { AirlineCode } from '@/types/turnaround';
 
 interface EquipmentSectionProps {
+  airline: AirlineCode;
   aircraftModel: string | null;
+  isRemote: boolean;
   equipment: EquipmentSelection[];
   onChange: (equipment: EquipmentSelection[]) => void;
 }
