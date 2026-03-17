@@ -5,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Wrench, Plus, X } from 'lucide-react';
-import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
+import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
+import { AirlineCode } from '@/types/turnaround';
 
 interface EquipmentSectionProps {
   aircraftModel: string | null;
