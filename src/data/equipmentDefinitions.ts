@@ -272,6 +272,9 @@ export const getFilteredEquipmentCategories = (
   const rules = AIRLINE_RULES[airline] ?? ALL_RULES;
 
   return all.filter(cat => {
+    // Pushback category: show when needsPushBack is true (regardless of airline rules)
+    if (cat.id === 'PUSHBACK') return needsPushBack;
+
     const vis = rules[cat.id as keyof AirlineEquipmentRules];
     if (!vis || vis === 'always') return true;
     if (vis === 'never') return false;
