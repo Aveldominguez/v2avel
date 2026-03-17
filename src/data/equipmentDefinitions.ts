@@ -272,8 +272,9 @@ export const getFilteredEquipmentCategories = (
   const rules = AIRLINE_RULES[airline] ?? ALL_RULES;
 
   return all.filter(cat => {
-    // Pushback category: show when needsPushBack is true (regardless of airline rules)
-    if (cat.id === 'PUSHBACK') return needsPushBack;
+    // Pushback in equipment follows same logic as in Control de Horas:
+    // always in parking T (!isRemote), or in remote when pushBack toggle is on
+    if (cat.id === 'PUSHBACK') return !isRemote || needsPushBack;
 
     const vis = rules[cat.id as keyof AirlineEquipmentRules];
     if (!vis || vis === 'always') return true;
