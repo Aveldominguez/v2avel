@@ -51,6 +51,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   pushBack: false,
   pushBackTime: null,
   incidentReport: null,
+  equipment: [],
 });
 
 // Create a new turnaround

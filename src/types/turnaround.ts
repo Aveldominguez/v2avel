@@ -54,6 +54,11 @@ export interface TurnaroundTimes {
     nombre: string;
     descripcion: string;
   } | null;
+  equipment?: Array<{                   // Equipos utilizados
+    categoryId: string;
+    equipmentId: string;
+    percentage: string;
+  }>;
 }
 
 export interface FieldDefinition {
