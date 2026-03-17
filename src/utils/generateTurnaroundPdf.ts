@@ -1,6 +1,7 @@
 import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, getPushBackField, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
+import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { format } from 'date-fns';
 import { getSignedUrl, getSignedUrls } from '@/utils/storageUrl';
 import { es } from 'date-fns/locale';
