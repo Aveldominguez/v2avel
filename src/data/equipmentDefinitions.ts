@@ -1,3 +1,5 @@
+import { AirlineCode } from '@/types/turnaround';
+
 export interface EquipmentItem {
   id: string;
   label: string;
