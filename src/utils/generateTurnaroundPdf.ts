@@ -218,6 +218,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   ${compartmentsHtml ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
 
+  ${equipmentHtml}
+
   ${codesHtml ? `
   <h2>Códigos de Carga</h2>
   <table class="data-table">
