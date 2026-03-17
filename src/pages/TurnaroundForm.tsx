@@ -56,6 +56,7 @@ const TurnaroundForm: React.FC = () => {
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [observationPhotos, setObservationPhotos] = useState<string[]>([]);
   const [incidentReport, setIncidentReport] = useState<IncidentReportData | null>(null);
+  const [equipmentSelections, setEquipmentSelections] = useState<EquipmentSelection[]>([]);
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
