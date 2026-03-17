@@ -497,6 +497,12 @@ const TurnaroundForm: React.FC = () => {
           />
         )}
 
+        <EquipmentSection
+          aircraftModel={aircraftModel || null}
+          equipment={equipmentSelections}
+          onChange={setEquipmentSelections}
+        />
+
         <Button
           type="button"
           variant="outline"
