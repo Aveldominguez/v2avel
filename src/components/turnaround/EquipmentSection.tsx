@@ -79,7 +79,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     <Card className="card-operational">
       <Accordion type="single" collapsible>
         <AccordionItem value="equipment" className="border-none">
-          <CardHeader className="pb-0">
+          <CardHeader className="pb-3">
             <AccordionTrigger className="py-0 hover:no-underline">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 rounded-lg bg-muted">
