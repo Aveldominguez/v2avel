@@ -16,8 +16,8 @@ interface EquipmentSectionProps {
   onChange: (equipment: EquipmentSelection[]) => void;
 }
 
-const EquipmentSection: React.FC<EquipmentSectionProps> = ({ aircraftModel, equipment, onChange }) => {
-  const categories = useMemo(() => getEquipmentCategories(aircraftModel), [aircraftModel]);
+const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftModel, isRemote, equipment, onChange }) => {
+  const categories = useMemo(() => getFilteredEquipmentCategories(airline, isRemote, aircraftModel), [airline, isRemote, aircraftModel]);
 
   const getSelections = (categoryId: string): EquipmentSelection[] => {
     return equipment.filter(e => e.categoryId === categoryId);
