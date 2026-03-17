@@ -13,6 +13,8 @@ import { ConnectionStatus } from '@/components/turnaround/ConnectionStatus';
 import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
+import EquipmentSection from '@/components/turnaround/EquipmentSection';
+import { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +56,7 @@ const TurnaroundForm: React.FC = () => {
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const [observationPhotos, setObservationPhotos] = useState<string[]>([]);
   const [incidentReport, setIncidentReport] = useState<IncidentReportData | null>(null);
+  const [equipmentSelections, setEquipmentSelections] = useState<EquipmentSelection[]>([]);
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
@@ -109,6 +112,7 @@ const TurnaroundForm: React.FC = () => {
             }
             setObservationPhotos(existing.times.observationPhotos || []);
             setIncidentReport(existing.times.incidentReport || null);
+            setEquipmentSelections(existing.times.equipment || []);
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
@@ -167,7 +171,8 @@ const TurnaroundForm: React.FC = () => {
     fileUrls,
     observationPhotos,
     incidentReport,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport]);
+    equipment: equipmentSelections,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -207,7 +212,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -491,6 +496,12 @@ const TurnaroundForm: React.FC = () => {
             onChange={setFieldValues}
           />
         )}
+
+        <EquipmentSection
+          aircraftModel={aircraftModel || null}
+          equipment={equipmentSelections}
+          onChange={setEquipmentSelections}
+        />
 
         <Button
           type="button"
