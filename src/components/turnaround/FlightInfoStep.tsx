@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
+import { TimeInput } from './TimeInput';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,8 @@ interface FlightInfoStepProps {
   setMatricula: (v: string) => void;
   soloLlegada: boolean;
   setSoloLlegada: (v: boolean) => void;
+  departureTime: string | null;
+  setDepartureTime: (v: string | null) => void;
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;
@@ -61,6 +64,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setMatricula,
   soloLlegada,
   setSoloLlegada,
+  departureTime,
+  setDepartureTime,
   isEditing = false,
   onContinue,
   onCancel,
@@ -325,16 +330,23 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
           {/* Airline and Aircraft Model already rendered above */}
 
-          {/* Matrícula */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Matrícula
-            </Label>
-            <Input
-              value={matricula}
-              onChange={(e) => setMatricula(e.target.value.toUpperCase())}
-              placeholder="Matrícula de la aeronave"
-              className="input-operational font-mono"
+          {/* Matrícula + Hora Salida side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Matrícula
+              </Label>
+              <Input
+                value={matricula}
+                onChange={(e) => setMatricula(e.target.value.toUpperCase())}
+                placeholder="Matrícula"
+                className="input-operational font-mono"
+              />
+            </div>
+            <TimeInput
+              label="Hora Salida"
+              value={departureTime}
+              onChange={setDepartureTime}
             />
           </div>
 

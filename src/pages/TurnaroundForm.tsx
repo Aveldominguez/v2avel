@@ -49,6 +49,7 @@ const TurnaroundForm: React.FC = () => {
   const [matricula, setMatricula] = useState('');
   const [soloLlegada, setSoloLlegada] = useState(false);
   const [pushBack, setPushBack] = useState(false);
+  const [departureTime, setDepartureTime] = useState<string | null>(null);
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -94,6 +95,7 @@ const TurnaroundForm: React.FC = () => {
             setMatricula(existing.times.matricula || '');
             setSoloLlegada(existing.times.soloLlegada || false);
             setPushBack(existing.times.pushBack || false);
+            setDepartureTime(existing.times.departureTime || null);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             // Backward compat: migrate loadingSheetUrl to loadingSheetUrls
@@ -143,6 +145,7 @@ const TurnaroundForm: React.FC = () => {
     setMatricula(draft.matricula || '');
     setSoloLlegada(draft.soloLlegada || false);
     setPushBack(draft.times?.pushBack || false);
+    setDepartureTime(draft.times?.departureTime || null);
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -165,6 +168,7 @@ const TurnaroundForm: React.FC = () => {
     matricula: matricula || null,
     soloLlegada,
     pushBack,
+    departureTime,
     loadingSheetUrl: loadingSheetUrls[0] || null,
     loadingSheetUrls,
     fileUrl: fileUrls[0] || null,
@@ -172,7 +176,7 @@ const TurnaroundForm: React.FC = () => {
     observationPhotos,
     incidentReport,
     equipment: equipmentSelections,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -212,7 +216,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -382,6 +386,8 @@ const TurnaroundForm: React.FC = () => {
         setMatricula={setMatricula}
         soloLlegada={soloLlegada}
         setSoloLlegada={setSoloLlegada}
+        departureTime={departureTime}
+        setDepartureTime={setDepartureTime}
         isEditing={isEditing}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
@@ -486,6 +492,8 @@ const TurnaroundForm: React.FC = () => {
           times={{ ...times, pushBack }}
           onChange={setTimes}
           errors={errors}
+          departureTime={departureTime}
+          onDepartureTimeChange={setDepartureTime}
         />
 
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
