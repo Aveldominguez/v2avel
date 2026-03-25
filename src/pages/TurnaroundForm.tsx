@@ -385,6 +385,8 @@ const TurnaroundForm: React.FC = () => {
         setMatricula={setMatricula}
         soloLlegada={soloLlegada}
         setSoloLlegada={setSoloLlegada}
+        departureTime={departureTime}
+        setDepartureTime={setDepartureTime}
         isEditing={isEditing}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
