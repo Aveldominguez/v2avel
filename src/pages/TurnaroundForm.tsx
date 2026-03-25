@@ -49,6 +49,7 @@ const TurnaroundForm: React.FC = () => {
   const [matricula, setMatricula] = useState('');
   const [soloLlegada, setSoloLlegada] = useState(false);
   const [pushBack, setPushBack] = useState(false);
+  const [departureTime, setDepartureTime] = useState<string | null>(null);
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
