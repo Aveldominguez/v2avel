@@ -23,6 +23,8 @@ interface AirlineTimesBlockProps {
   onChange: (times: TurnaroundTimes) => void;
   errors: TimeValidationError[];
   disabled?: boolean;
+  departureTime?: string | null;
+  onDepartureTimeChange?: (value: string | null) => void;
 }
 
 export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
