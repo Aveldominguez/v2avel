@@ -167,6 +167,7 @@ const TurnaroundForm: React.FC = () => {
     matricula: matricula || null,
     soloLlegada,
     pushBack,
+    departureTime,
     loadingSheetUrl: loadingSheetUrls[0] || null,
     loadingSheetUrls,
     fileUrl: fileUrls[0] || null,
@@ -174,7 +175,7 @@ const TurnaroundForm: React.FC = () => {
     observationPhotos,
     incidentReport,
     equipment: equipmentSelections,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {

@@ -330,16 +330,23 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
           {/* Airline and Aircraft Model already rendered above */}
 
-          {/* Matrícula */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              Matrícula
-            </Label>
-            <Input
-              value={matricula}
-              onChange={(e) => setMatricula(e.target.value.toUpperCase())}
-              placeholder="Matrícula de la aeronave"
-              className="input-operational font-mono"
+          {/* Matrícula + Hora Salida side by side */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Matrícula
+              </Label>
+              <Input
+                value={matricula}
+                onChange={(e) => setMatricula(e.target.value.toUpperCase())}
+                placeholder="Matrícula"
+                className="input-operational font-mono"
+              />
+            </div>
+            <TimeInput
+              label="Hora Salida"
+              value={departureTime}
+              onChange={setDepartureTime}
             />
           </div>
 
