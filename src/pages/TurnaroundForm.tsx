@@ -95,6 +95,7 @@ const TurnaroundForm: React.FC = () => {
             setMatricula(existing.times.matricula || '');
             setSoloLlegada(existing.times.soloLlegada || false);
             setPushBack(existing.times.pushBack || false);
+            setDepartureTime(existing.times.departureTime || null);
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             // Backward compat: migrate loadingSheetUrl to loadingSheetUrls
