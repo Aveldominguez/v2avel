@@ -50,6 +50,7 @@ export interface TurnaroundTimes {
   soloLlegada: boolean;                 // Sólo llegada (arrival only)
   pushBack: boolean;                    // Push Back requerido (parking T)
   pushBackTime: string | null;          // Hora de Push Back
+  departureTime: string | null;         // Hora de salida programada
   incidentReport?: {                    // Informe de incidente
     nombre: string;
     descripcion: string;
