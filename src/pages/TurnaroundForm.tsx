@@ -491,6 +491,8 @@ const TurnaroundForm: React.FC = () => {
           times={{ ...times, pushBack }}
           onChange={setTimes}
           errors={errors}
+          departureTime={departureTime}
+          onDepartureTimeChange={setDepartureTime}
         />
 
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
