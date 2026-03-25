@@ -71,6 +71,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setMatricula,
   soloLlegada,
   setSoloLlegada,
+  departureTime,
+  setDepartureTime,
   isEditing = false,
   onContinue,
   onCancel,
