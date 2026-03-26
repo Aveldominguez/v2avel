@@ -427,12 +427,15 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Matrícula
+                {autofilledFields.has('matricula') && (
+                  <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                )}
               </Label>
               <Input
                 value={matricula}
-                onChange={(e) => setMatricula(e.target.value.toUpperCase())}
+                onChange={(e) => { clearAutofillFor('matricula'); setMatricula(e.target.value.toUpperCase()); }}
                 placeholder="Matrícula"
-                className="input-operational font-mono"
+                className={cn("input-operational font-mono", autofilledFields.has('matricula') && "ring-1 ring-primary/40 bg-primary/5")}
               />
             </div>
             <TimeInput
