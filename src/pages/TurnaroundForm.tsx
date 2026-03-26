@@ -500,6 +500,7 @@ const TurnaroundForm: React.FC = () => {
           aircraftModel={aircraftModel}
           isRemote={isRemote}
           soloLlegada={soloLlegada}
+          soloSalida={soloSalida}
           times={{ ...times, pushBack }}
           onChange={setTimes}
           errors={errors}
