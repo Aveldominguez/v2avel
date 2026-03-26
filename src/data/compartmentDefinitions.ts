@@ -1006,6 +1006,35 @@ export const SIN_MARCA_GENERIC_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Pegasus A321
+export const PEGASUS_A321_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'pegasus-a321-comp1', airline: 'PEGASUS', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('PEGASUS', 'a321-11'), label: 'Bodega 1 🚪' },
+      { id: createHoldId('PEGASUS', 'a321-12'), label: 'Bodega 2' },
+    ],
+  },
+  {
+    id: 'pegasus-a321-comp3', airline: 'PEGASUS', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('PEGASUS', 'a321-31'), label: 'Bodega 3' },
+    ],
+  },
+  {
+    id: 'pegasus-a321-comp4', airline: 'PEGASUS', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('PEGASUS', 'a321-41'), label: 'Bodega 4 🚪' },
+    ],
+  },
+  {
+    id: 'pegasus-a321-bulk5', airline: 'PEGASUS', compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('PEGASUS', 'a321-51'), label: 'Bodega 5' },
+    ],
+  },
+];
+
 // Type options per airline for ITA-style holds
 export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   ITA: ['AKH-AZ', 'PKC-AZ'],
@@ -1067,6 +1096,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A333') return SIN_MARCA_A333_COMPARTMENTS;
     if (aircraftModel === 'B777' || aircraftModel === '787-800' || aircraftModel === '787-900' || aircraftModel === 'B767' || aircraftModel === 'A339') return SIN_MARCA_A333_COMPARTMENTS;
     return SIN_MARCA_GENERIC_COMPARTMENTS;
+  }
+  if (airline === 'PEGASUS') {
+    if (aircraftModel === 'A321') return PEGASUS_A321_COMPARTMENTS;
+    return SKYEXPRESS_COMPARTMENTS;
   }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
   return SKYEXPRESS_COMPARTMENTS;
