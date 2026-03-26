@@ -194,9 +194,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               Aerolínea <span className="text-destructive">*</span>
+              {autofilledFields.has('airline') && (
+                <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+              )}
             </Label>
-            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
-              <SelectTrigger className="input-operational">
+            <Select value={airline || undefined} onValueChange={(v) => { clearAutofillFor('airline'); handleAirlineChange(v as AirlineCode); }}>
+              <SelectTrigger className={cn("input-operational", autofilledFields.has('airline') && "ring-1 ring-primary/40 bg-primary/5")}>
                 <SelectValue placeholder="Seleccionar Aerolínea" />
               </SelectTrigger>
               <SelectContent>
@@ -227,17 +230,26 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   value={getNumericPart(flightNumber)}
                   onChange={(e) => handleFlightNumberChange(e.target.value)}
                   placeholder="Nº vuelo"
-                  className="input-operational font-mono"
+                  className="input-operational font-mono pr-8"
                   style={currentPrefix ? { paddingLeft: `${currentPrefix.length * 0.65 + 0.75}rem` } : undefined}
                 />
+                {lookupLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
               </div>
+              {lookupError && (
+                <p className="text-xs text-destructive mt-1">{lookupError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Modelo de Avión
+                {autofilledFields.has('aircraftModel') && (
+                  <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                )}
               </Label>
-              <Select value={aircraftModel} onValueChange={setAircraftModel}>
-                <SelectTrigger className="input-operational">
+              <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
+                <SelectTrigger className={cn("input-operational", autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5")}>
                   <SelectValue placeholder="Modelo" />
                 </SelectTrigger>
                 <SelectContent>
