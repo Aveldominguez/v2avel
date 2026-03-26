@@ -225,6 +225,18 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'mailArrival',
 ]);
 
+// Fields to keep in "Sólo salida" mode (departure only)
+const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
+  'chocksOff',
+  'specialEndLoading',
+  'loadingStart',
+  'loadingEnd',
+  'lirReception',
+  'dock1',
+  'pushBackTime',
+  'asu',
+]);
+
 export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
   let baseFields: TimeFieldConfig[];
 
