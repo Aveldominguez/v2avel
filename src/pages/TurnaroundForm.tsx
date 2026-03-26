@@ -205,6 +205,7 @@ const TurnaroundForm: React.FC = () => {
       matricula,
       isRemote,
       soloLlegada,
+      soloSalida,
       remoteLocation,
       step,
       savedAt: Date.now(),
