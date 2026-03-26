@@ -41,7 +41,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   departureTime,
   onDepartureTimeChange,
 }) => {
-  const fields = getTimeFieldsForAirline(airline, isRemote, soloLlegada);
+  const fields = getTimeFieldsForAirline(airline, isRemote, soloLlegada, soloSalida);
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
