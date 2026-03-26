@@ -285,6 +285,10 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
     baseFields = baseFields.filter(f => ARRIVAL_ONLY_KEYS.has(f.key));
   }
 
+  if (soloSalida) {
+    baseFields = baseFields.filter(f => DEPARTURE_ONLY_KEYS.has(f.key));
+  }
+
   return baseFields;
 };
 

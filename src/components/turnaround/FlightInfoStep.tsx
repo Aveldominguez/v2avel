@@ -282,7 +282,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               <div className="flex items-center gap-2">
                 <Switch
                   checked={soloLlegada}
-                  onCheckedChange={setSoloLlegada}
+                  onCheckedChange={(v) => {
+                    setSoloLlegada(v);
+                    if (v) setSoloSalida(false);
+                  }}
                   className="data-[state=checked]:bg-primary"
                 />
                 <span className={cn(
@@ -290,6 +293,29 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   soloLlegada ? 'text-primary' : 'text-muted-foreground'
                 )}>
                   {soloLlegada ? 'Sí' : 'No'}
+                </span>
+              </div>
+            </div>
+
+            {/* Sólo salida toggle */}
+            <div className="flex items-center justify-between">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Sólo Salida
+              </Label>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={soloSalida}
+                  onCheckedChange={(v) => {
+                    setSoloSalida(v);
+                    if (v) setSoloLlegada(false);
+                  }}
+                  className="data-[state=checked]:bg-primary"
+                />
+                <span className={cn(
+                  'text-sm font-semibold',
+                  soloSalida ? 'text-primary' : 'text-muted-foreground'
+                )}>
+                  {soloSalida ? 'Sí' : 'No'}
                 </span>
               </div>
             </div>

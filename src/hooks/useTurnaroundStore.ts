@@ -48,6 +48,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   observationPhotos: [],
   matricula: null,
   soloLlegada: false,
+  soloSalida: false,
   pushBack: false,
   pushBackTime: null,
   incidentReport: null,
