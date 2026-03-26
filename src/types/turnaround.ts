@@ -237,7 +237,7 @@ const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'asu',
 ]);
 
-export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
+export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false, soloSalida: boolean = false): TimeFieldConfig[] => {
   let baseFields: TimeFieldConfig[];
 
   if (airline === 'FEDEX') {
