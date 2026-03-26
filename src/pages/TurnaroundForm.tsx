@@ -14,6 +14,7 @@ import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
+import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
