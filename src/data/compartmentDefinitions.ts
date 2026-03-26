@@ -1097,6 +1097,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'B777' || aircraftModel === '787-800' || aircraftModel === '787-900' || aircraftModel === 'B767' || aircraftModel === 'A339') return SIN_MARCA_A333_COMPARTMENTS;
     return SIN_MARCA_GENERIC_COMPARTMENTS;
   }
+  if (airline === 'PEGASUS') {
+    if (aircraftModel === 'A321') return PEGASUS_A321_COMPARTMENTS;
+    return SKYEXPRESS_COMPARTMENTS;
+  }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
   return SKYEXPRESS_COMPARTMENTS;
 };
