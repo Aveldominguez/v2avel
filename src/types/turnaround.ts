@@ -48,6 +48,7 @@ export interface TurnaroundTimes {
   observationPhotos: string[];          // Fotos de observaciones (máx 7)
   matricula: string | null;             // Matrícula de la aeronave
   soloLlegada: boolean;                 // Sólo llegada (arrival only)
+  soloSalida: boolean;                  // Sólo salida (departure only)
   pushBack: boolean;                    // Push Back requerido (parking T)
   pushBackTime: string | null;          // Hora de Push Back
   departureTime: string | null;         // Hora de salida programada
