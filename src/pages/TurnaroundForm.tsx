@@ -395,6 +395,8 @@ const TurnaroundForm: React.FC = () => {
         setMatricula={setMatricula}
         soloLlegada={soloLlegada}
         setSoloLlegada={setSoloLlegada}
+        soloSalida={soloSalida}
+        setSoloSalida={setSoloSalida}
         departureTime={departureTime}
         setDepartureTime={setDepartureTime}
         isEditing={isEditing}
