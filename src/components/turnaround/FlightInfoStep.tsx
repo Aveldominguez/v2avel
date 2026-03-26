@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plane, Calendar as CalendarIcon, ArrowRight, X } from 'lucide-react';
+import { Plane, Calendar as CalendarIcon, ArrowRight, X, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -14,6 +14,7 @@ import { TimeInput } from './TimeInput';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useFlightLookup } from '@/hooks/useFlightLookup';
 
 interface FlightInfoStepProps {
   flightNumber: string;
@@ -75,6 +76,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   onCancel,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+  const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const models = airline ? getModelsForAirline(airline) : [];
 
   const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
@@ -97,6 +99,54 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   };
 
   const currentPrefix = airline ? AIRLINE_PREFIXES[airline] || '' : '';
+
+  // Flight lookup hook
+  const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
+
+  // Apply autofill when result changes
+  const lastAppliedRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!lookupResult || lastAppliedRef.current === flightNumber) return;
+    lastAppliedRef.current = flightNumber;
+
+    const filled = new Set<string>();
+
+    if (lookupResult.airlineCode) {
+      setAirline(lookupResult.airlineCode);
+      const newModels = getModelsForAirline(lookupResult.airlineCode);
+      if (newModels.length === 1) setAircraftModel(newModels[0].model);
+      filled.add('airline');
+    }
+
+    if (lookupResult.aircraftModel) {
+      // Try to match the IATA code to our model list
+      const currentModels = lookupResult.airlineCode ? getModelsForAirline(lookupResult.airlineCode) : models;
+      const match = currentModels.find(
+        (m) => m.model.toLowerCase() === lookupResult.aircraftModel!.toLowerCase() ||
+               m.label.toLowerCase() === lookupResult.aircraftModel!.toLowerCase()
+      );
+      if (match) {
+        setAircraftModel(match.model);
+        filled.add('aircraftModel');
+      }
+    }
+
+    if (lookupResult.registration) {
+      setMatricula(lookupResult.registration.toUpperCase());
+      filled.add('matricula');
+    }
+
+    setAutofilledFields(filled);
+  }, [lookupResult]);
+
+  // Clear autofill markers when user manually edits a field
+  const clearAutofillFor = (field: string) => {
+    setAutofilledFields((prev) => {
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  };
 
   // Extract numeric part from flightNumber (strip any existing prefix)
   const getNumericPart = (fn: string): string => {
@@ -144,9 +194,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               Aerolínea <span className="text-destructive">*</span>
+              {autofilledFields.has('airline') && (
+                <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+              )}
             </Label>
-            <Select value={airline || undefined} onValueChange={(v) => handleAirlineChange(v as AirlineCode)}>
-              <SelectTrigger className="input-operational">
+            <Select value={airline || undefined} onValueChange={(v) => { clearAutofillFor('airline'); handleAirlineChange(v as AirlineCode); }}>
+              <SelectTrigger className={cn("input-operational", autofilledFields.has('airline') && "ring-1 ring-primary/40 bg-primary/5")}>
                 <SelectValue placeholder="Seleccionar Aerolínea" />
               </SelectTrigger>
               <SelectContent>
@@ -177,17 +230,26 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   value={getNumericPart(flightNumber)}
                   onChange={(e) => handleFlightNumberChange(e.target.value)}
                   placeholder="Nº vuelo"
-                  className="input-operational font-mono"
+                  className="input-operational font-mono pr-8"
                   style={currentPrefix ? { paddingLeft: `${currentPrefix.length * 0.65 + 0.75}rem` } : undefined}
                 />
+                {lookupLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
               </div>
+              {lookupError && (
+                <p className="text-xs text-destructive mt-1">{lookupError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Modelo de Avión
+                {autofilledFields.has('aircraftModel') && (
+                  <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                )}
               </Label>
-              <Select value={aircraftModel} onValueChange={setAircraftModel}>
-                <SelectTrigger className="input-operational">
+              <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
+                <SelectTrigger className={cn("input-operational", autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5")}>
                   <SelectValue placeholder="Modelo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -365,12 +427,15 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Matrícula
+                {autofilledFields.has('matricula') && (
+                  <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                )}
               </Label>
               <Input
                 value={matricula}
-                onChange={(e) => setMatricula(e.target.value.toUpperCase())}
+                onChange={(e) => { clearAutofillFor('matricula'); setMatricula(e.target.value.toUpperCase()); }}
                 placeholder="Matrícula"
-                className="input-operational font-mono"
+                className={cn("input-operational font-mono", autofilledFields.has('matricula') && "ring-1 ring-primary/40 bg-primary/5")}
               />
             </div>
             <TimeInput

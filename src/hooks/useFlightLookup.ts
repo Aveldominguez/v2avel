@@ -1,0 +1,143 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { AirlineCode, AIRLINES } from '@/types/turnaround';
+
+const API_KEY = import.meta.env.VITE_AVIATION_API_KEY || '5c24136d0c04f0c731e536447632d2be';
+
+interface FlightLookupResult {
+  airlineName: string | null;
+  airlineCode: AirlineCode | null;
+  aircraftModel: string | null;
+  registration: string | null;
+}
+
+interface UseFlightLookupReturn {
+  isLoading: boolean;
+  error: string | null;
+  result: FlightLookupResult | null;
+  autofilledFields: Set<string>;
+  clearAutofill: () => void;
+}
+
+// Map API airline names to our internal codes
+const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
+  'tap portugal': 'TAP',
+  'tap air portugal': 'TAP',
+  'wizz air': 'WIZZ',
+  'ita airways': 'ITA',
+  'aegean airlines': 'AEGEAN',
+  'aegean': 'AEGEAN',
+  'pegasus airlines': 'PEGASUS',
+  'pegasus': 'PEGASUS',
+  'transavia': 'TRANSAVIA',
+  'transavia france': 'TRANSAVIA',
+  'sky express': 'SKYEXPRESS',
+  'fedex': 'FEDEX',
+  'federal express': 'FEDEX',
+  'air canada': 'AIR_CANADA',
+  'albastar': 'ALBASTAR',
+  'icelandair': 'ICELANDAIR',
+  'azul': 'AZUL',
+  'azul brazilian airlines': 'AZUL',
+  'amazon air': 'AMAZON',
+  'amazon': 'AMAZON',
+  'a jet': 'A_JET',
+  'ajet': 'A_JET',
+  'nile air': 'NILE_AIR',
+};
+
+function matchAirlineCode(name: string): AirlineCode | null {
+  if (!name) return null;
+  const lower = name.toLowerCase().trim();
+
+  // Direct match
+  if (AIRLINE_NAME_MAP[lower]) return AIRLINE_NAME_MAP[lower];
+
+  // Partial match
+  for (const [key, code] of Object.entries(AIRLINE_NAME_MAP)) {
+    if (lower.includes(key) || key.includes(lower)) return code;
+  }
+
+  // Match against our AIRLINES array
+  const found = AIRLINES.find(
+    (a) => a.name.toLowerCase() === lower || a.shortName.toLowerCase() === lower
+  );
+  return found ? found.code : null;
+}
+
+export function useFlightLookup(flightIata: string, debounceMs = 600): UseFlightLookupReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<FlightLookupResult | null>(null);
+  const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
+  const abortRef = useRef<AbortController | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAutofill = useCallback(() => {
+    setAutofilledFields(new Set());
+    setResult(null);
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    // Clean flight code - need at least 2 chars (e.g. "TP1")
+    const clean = flightIata.trim().replace(/\s/g, '');
+    if (clean.length < 3) {
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    timerRef.current = setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const url = `https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&flight_iata=${encodeURIComponent(clean)}&limit=1`;
+        const res = await fetch(url, { signal: controller.signal });
+
+        if (!res.ok) throw new Error('Error al consultar la API');
+
+        const json = await res.json();
+
+        if (!json.data || json.data.length === 0) {
+          setError('Vuelo no encontrado');
+          setResult(null);
+          setIsLoading(false);
+          return;
+        }
+
+        const flight = json.data[0];
+        const filled = new Set<string>();
+
+        const airlineName = flight.airline?.name || null;
+        const airlineCode = airlineName ? matchAirlineCode(airlineName) : null;
+        const aircraftModel = flight.aircraft?.iata || null;
+        const registration = flight.aircraft?.registration || null;
+
+        if (airlineCode) filled.add('airline');
+        if (aircraftModel) filled.add('aircraftModel');
+        if (registration) filled.add('matricula');
+
+        setResult({ airlineName, airlineCode, aircraftModel, registration });
+        setAutofilledFields(filled);
+        setIsLoading(false);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setError('Error al buscar el vuelo');
+        setIsLoading(false);
+      }
+    }, debounceMs);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [flightIata, debounceMs]);
+
+  return { isLoading, error, result, autofilledFields, clearAutofill };
+}
