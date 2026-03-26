@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
-
-const API_KEY = import.meta.env.VITE_AVIATION_API_KEY || '5c24136d0c04f0c731e536447632d2be';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FlightLookupResult {
   airlineName: string | null;
