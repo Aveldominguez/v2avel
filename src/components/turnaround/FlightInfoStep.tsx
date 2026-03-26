@@ -36,6 +36,8 @@ interface FlightInfoStepProps {
   setMatricula: (v: string) => void;
   soloLlegada: boolean;
   setSoloLlegada: (v: boolean) => void;
+  soloSalida: boolean;
+  setSoloSalida: (v: boolean) => void;
   departureTime: string | null;
   setDepartureTime: (v: string | null) => void;
   isEditing?: boolean;
