@@ -117,6 +117,7 @@ const TurnaroundForm: React.FC = () => {
             setObservationPhotos(existing.times.observationPhotos || []);
             setIncidentReport(existing.times.incidentReport || null);
             setEquipmentSelections(existing.times.equipment || []);
+            setBodegasData(existing.times.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
