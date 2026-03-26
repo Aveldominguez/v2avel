@@ -48,6 +48,7 @@ export interface TurnaroundTimes {
   observationPhotos: string[];          // Fotos de observaciones (máx 7)
   matricula: string | null;             // Matrícula de la aeronave
   soloLlegada: boolean;                 // Sólo llegada (arrival only)
+  soloSalida: boolean;                  // Sólo salida (departure only)
   pushBack: boolean;                    // Push Back requerido (parking T)
   pushBackTime: string | null;          // Hora de Push Back
   departureTime: string | null;         // Hora de salida programada
@@ -224,7 +225,19 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'mailArrival',
 ]);
 
-export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
+// Fields to keep in "Sólo salida" mode (departure only)
+const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
+  'chocksOff',
+  'specialEndLoading',
+  'loadingStart',
+  'loadingEnd',
+  'lirReception',
+  'dock1',
+  'pushBackTime',
+  'asu',
+]);
+
+export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false, soloSalida: boolean = false): TimeFieldConfig[] => {
   let baseFields: TimeFieldConfig[];
 
   if (airline === 'FEDEX') {
@@ -270,6 +283,10 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 
   if (soloLlegada) {
     baseFields = baseFields.filter(f => ARRIVAL_ONLY_KEYS.has(f.key));
+  }
+
+  if (soloSalida) {
+    baseFields = baseFields.filter(f => DEPARTURE_ONLY_KEYS.has(f.key));
   }
 
   return baseFields;

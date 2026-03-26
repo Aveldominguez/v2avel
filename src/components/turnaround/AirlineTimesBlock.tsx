@@ -19,6 +19,7 @@ interface AirlineTimesBlockProps {
   aircraftModel: string;
   isRemote: boolean;
   soloLlegada?: boolean;
+  soloSalida?: boolean;
   times: TurnaroundTimes;
   onChange: (times: TurnaroundTimes) => void;
   errors: TimeValidationError[];
@@ -32,6 +33,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   aircraftModel,
   isRemote,
   soloLlegada = false,
+  soloSalida = false,
   times,
   onChange,
   errors,
@@ -39,7 +41,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   departureTime,
   onDepartureTimeChange,
 }) => {
-  const fields = getTimeFieldsForAirline(airline, isRemote, soloLlegada);
+  const fields = getTimeFieldsForAirline(airline, isRemote, soloLlegada, soloSalida);
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
@@ -74,7 +76,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between text-xl">
           <span>Control de Horas ⏰</span>
-          {!soloLlegada && (
+          {!soloLlegada && !soloSalida && (
             <CountdownTimer
               chocksOnTime={times.chocksOnArrival}
               loadingEndTime={times.loadingEnd}

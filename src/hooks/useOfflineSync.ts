@@ -43,6 +43,7 @@ export interface TurnaroundDraft {
   matricula: string;
   isRemote: boolean;
   soloLlegada: boolean;
+  soloSalida: boolean;
   remoteLocation: string;
   step: number;
   savedAt: number;
