@@ -19,6 +19,7 @@ interface AirlineTimesBlockProps {
   aircraftModel: string;
   isRemote: boolean;
   soloLlegada?: boolean;
+  soloSalida?: boolean;
   times: TurnaroundTimes;
   onChange: (times: TurnaroundTimes) => void;
   errors: TimeValidationError[];
