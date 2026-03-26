@@ -179,7 +179,8 @@ const TurnaroundForm: React.FC = () => {
     observationPhotos,
     incidentReport,
     equipment: equipmentSelections,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections]);
+    bodegasData,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
