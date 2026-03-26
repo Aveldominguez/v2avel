@@ -76,6 +76,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   onCancel,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+  const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const models = airline ? getModelsForAirline(airline) : [];
 
   const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
@@ -98,6 +99,54 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   };
 
   const currentPrefix = airline ? AIRLINE_PREFIXES[airline] || '' : '';
+
+  // Flight lookup hook
+  const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
+
+  // Apply autofill when result changes
+  const lastAppliedRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!lookupResult || lastAppliedRef.current === flightNumber) return;
+    lastAppliedRef.current = flightNumber;
+
+    const filled = new Set<string>();
+
+    if (lookupResult.airlineCode) {
+      setAirline(lookupResult.airlineCode);
+      const newModels = getModelsForAirline(lookupResult.airlineCode);
+      if (newModels.length === 1) setAircraftModel(newModels[0].model);
+      filled.add('airline');
+    }
+
+    if (lookupResult.aircraftModel) {
+      // Try to match the IATA code to our model list
+      const currentModels = lookupResult.airlineCode ? getModelsForAirline(lookupResult.airlineCode) : models;
+      const match = currentModels.find(
+        (m) => m.model.toLowerCase() === lookupResult.aircraftModel!.toLowerCase() ||
+               m.label.toLowerCase() === lookupResult.aircraftModel!.toLowerCase()
+      );
+      if (match) {
+        setAircraftModel(match.model);
+        filled.add('aircraftModel');
+      }
+    }
+
+    if (lookupResult.registration) {
+      setMatricula(lookupResult.registration.toUpperCase());
+      filled.add('matricula');
+    }
+
+    setAutofilledFields(filled);
+  }, [lookupResult]);
+
+  // Clear autofill markers when user manually edits a field
+  const clearAutofillFor = (field: string) => {
+    setAutofilledFields((prev) => {
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  };
 
   // Extract numeric part from flightNumber (strip any existing prefix)
   const getNumericPart = (fn: string): string => {
