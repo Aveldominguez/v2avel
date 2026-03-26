@@ -256,8 +256,8 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
   }
 
   if (isRemote) {
-    // Add remote fields (exclude busArrival for Amazon)
-    const remoteToAdd = airline === 'AMAZON'
+    // Add remote fields (exclude busArrival for Amazon and FedEx)
+    const remoteToAdd = (airline === 'AMAZON' || airline === 'FEDEX')
       ? REMOTE_FIELDS.filter(f => f.key !== 'busArrival')
       : [...REMOTE_FIELDS];
     baseFields = [...baseFields, ...remoteToAdd];
