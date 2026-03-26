@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
-
-const API_KEY = import.meta.env.VITE_AVIATION_API_KEY || '5c24136d0c04f0c731e536447632d2be';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FlightLookupResult {
   airlineName: string | null;
@@ -98,12 +97,13 @@ export function useFlightLookup(flightIata: string, debounceMs = 600): UseFlight
       setError(null);
 
       try {
-        const url = `https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&flight_iata=${encodeURIComponent(clean)}&limit=1`;
-        const res = await fetch(url, { signal: controller.signal });
+        const { data: responseData, error: fnError } = await supabase.functions.invoke('flight-lookup', {
+          body: { flight_iata: clean },
+        });
 
-        if (!res.ok) throw new Error('Error al consultar la API');
+        if (fnError) throw new Error('Error al consultar la API');
 
-        const json = await res.json();
+        const json = responseData;
 
         if (!json.data || json.data.length === 0) {
           setError('Vuelo no encontrado');
