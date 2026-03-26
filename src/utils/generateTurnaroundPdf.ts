@@ -21,7 +21,7 @@ interface PdfData {
 
 export const generateTurnaroundPdf = async (data: PdfData) => {
   const airlineInfo = AIRLINES.find(a => a.code === data.airline);
-  const baseTimeFields = getTimeFieldsForAirline(data.airline, data.isRemote, data.times.soloLlegada);
+  const baseTimeFields = getTimeFieldsForAirline(data.airline, data.isRemote, data.times.soloLlegada, data.times.soloSalida);
   // Append Push Back field if applicable (parking T always, or remote with toggle on)
   const showPushBack = !data.isRemote || data.times.pushBack;
   const timeFields = showPushBack ? [...baseTimeFields, getPushBackField()] : baseTimeFields;
