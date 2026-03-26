@@ -500,6 +500,13 @@ const TurnaroundForm: React.FC = () => {
           onDepartureTimeChange={setDepartureTime}
         />
 
+        {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
+          <BodegasSection
+            data={bodegasData}
+            onChange={setBodegasData}
+          />
+        )}
+
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <AirlineTabs
             airline={selectedAirline}
