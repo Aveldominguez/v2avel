@@ -33,6 +33,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   aircraftModel,
   isRemote,
   soloLlegada = false,
+  soloSalida = false,
   times,
   onChange,
   errors,
