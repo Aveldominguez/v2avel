@@ -53,6 +53,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   incidentReport: null,
   equipment: [],
   departureTime: null,
+  bodegasData: { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' },
 });
 
 // Create a new turnaround

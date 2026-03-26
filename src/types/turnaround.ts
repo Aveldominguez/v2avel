@@ -60,6 +60,14 @@ export interface TurnaroundTimes {
     equipmentId: string;
     percentage: string;
   }>;
+  bodegasData?: {                       // Bodegas AFT y FWD (FedEx/Amazon)
+    f1: string;
+    f2: string;
+    f3: string;
+    a1: string;
+    a2: string;
+    a3: string;
+  };
 }
 
 export interface FieldDefinition {
