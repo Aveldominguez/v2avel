@@ -79,7 +79,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const models = airline ? getModelsForAirline(airline) : [];
 
-  // Prefix map kept for reference but no longer forced into input
   const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
     FEDEX: '3V',
     AIR_CANADA: 'AC',
@@ -98,6 +97,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     AZUL: 'AD',
     SIN_MARCA: 'SM',
   };
+
+  const activePrefix = airline ? AIRLINE_PREFIXES[airline] : '';
+  // Whether the field is in "prefixed numeric" mode
+  const isPrefixedMode = airline !== '';
 
   // Flight lookup hook
   const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
