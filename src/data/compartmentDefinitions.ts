@@ -1121,6 +1121,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'B777' || aircraftModel === '787-800' || aircraftModel === '787-900' || aircraftModel === 'B767' || aircraftModel === 'A339') return SIN_MARCA_A333_COMPARTMENTS;
     return SIN_MARCA_GENERIC_COMPARTMENTS;
   }
+  if (airline === 'ALBASTAR') {
+    if (aircraftModel === 'B737') return ALBASTAR_B737_COMPARTMENTS;
+    return [];
+  }
   if (airline === 'PEGASUS') {
     if (aircraftModel === 'A321') return PEGASUS_A321_COMPARTMENTS;
     return SKYEXPRESS_COMPARTMENTS;
