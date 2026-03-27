@@ -1006,6 +1006,30 @@ export const SIN_MARCA_GENERIC_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// AlbaStar B737
+export const ALBASTAR_B737_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'albastar-b737-comp1', airline: 'ALBASTAR', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('ALBASTAR', 'b737-1'), label: 'Bodega 1' },
+      { id: createHoldId('ALBASTAR', 'b737-2'), label: 'Bodega 2' },
+    ],
+  },
+  {
+    id: 'albastar-b737-comp3', airline: 'ALBASTAR', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('ALBASTAR', 'b737-3'), label: 'Bodega 3' },
+      { id: createHoldId('ALBASTAR', 'b737-4'), label: 'Bodega 4' },
+    ],
+  },
+  {
+    id: 'albastar-b737-comp5', airline: 'ALBASTAR', compartmentName: 'COMPARTIMIENTO 5',
+    holds: [
+      { id: createHoldId('ALBASTAR', 'b737-5'), label: 'Bodega 5' },
+    ],
+  },
+];
+
 // Pegasus A321
 export const PEGASUS_A321_COMPARTMENTS: CompartmentDefinition[] = [
   {
@@ -1096,6 +1120,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A333') return SIN_MARCA_A333_COMPARTMENTS;
     if (aircraftModel === 'B777' || aircraftModel === '787-800' || aircraftModel === '787-900' || aircraftModel === 'B767' || aircraftModel === 'A339') return SIN_MARCA_A333_COMPARTMENTS;
     return SIN_MARCA_GENERIC_COMPARTMENTS;
+  }
+  if (airline === 'ALBASTAR') {
+    if (aircraftModel === 'B737') return ALBASTAR_B737_COMPARTMENTS;
+    return [];
   }
   if (airline === 'PEGASUS') {
     if (aircraftModel === 'A321') return PEGASUS_A321_COMPARTMENTS;
