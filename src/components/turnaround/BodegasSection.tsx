@@ -66,14 +66,26 @@ const BodegasSection: React.FC<BodegasSectionProps> = ({ data, onChange }) => {
     await new Promise(r => setTimeout(r, 100));
 
     try {
-      const scanner = new Html5Qrcode(scannerContainerId);
+      const scanner = new Html5Qrcode(scannerContainerId, {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.PDF_417,
+          Html5QrcodeSupportedFormats.DATA_MATRIX,
+          Html5QrcodeSupportedFormats.AZTEC,
+        ],
+        useBarCodeDetectorIfSupported: true,
+      });
       scannerRef.current = scanner;
 
       await scanner.start(
         { facingMode: 'environment' },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 150 },
+          fps: 15,
+          qrbox: { width: 300, height: 200 },
           aspectRatio: 1.5,
         },
         (decodedText) => {
