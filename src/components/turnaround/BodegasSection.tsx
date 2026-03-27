@@ -98,15 +98,44 @@ const BodegasSection: React.FC<BodegasSectionProps> = ({ data, onChange }) => {
 
   const toggleFlash = useCallback(async () => {
     if (!scannerRef.current) return;
+    const newFlash = !flashOn;
     try {
-      const track = (scannerRef.current as any).getRunningTrackCameraCapabilities?.();
-      if (track?.torchFeature?.().isSupported()) {
-        const newFlash = !flashOn;
-        await track.torchFeature().apply(newFlash);
+      // Method 1: Use applyVideoConstraints (most cross-browser compatible)
+      try {
+        await (scannerRef.current as any).applyVideoConstraints({
+          advanced: [{ torch: newFlash } as any],
+        } as MediaTrackConstraints);
         setFlashOn(newFlash);
-      } else {
-        toast({ title: 'Flash no disponible', description: 'Este dispositivo no soporta flash.', variant: 'destructive' });
-      }
+        return;
+      } catch { /* fallback to method 2 */ }
+
+      // Method 2: Direct track constraint (works on many Android browsers)
+      try {
+        const settings = (scannerRef.current as any).getRunningTrackSettings?.();
+        if (settings) {
+          const videoElement = document.querySelector(`#${scannerContainerId} video`) as HTMLVideoElement | null;
+          const track = videoElement?.srcObject instanceof MediaStream
+            ? videoElement.srcObject.getVideoTracks()[0]
+            : null;
+          if (track) {
+            await track.applyConstraints({ advanced: [{ torch: newFlash } as any] });
+            setFlashOn(newFlash);
+            return;
+          }
+        }
+      } catch { /* fallback to method 3 */ }
+
+      // Method 3: getRunningTrackCameraCapabilities (works on iOS Safari)
+      try {
+        const caps = (scannerRef.current as any).getRunningTrackCameraCapabilities?.();
+        if (caps?.torchFeature?.().isSupported()) {
+          await caps.torchFeature().apply(newFlash);
+          setFlashOn(newFlash);
+          return;
+        }
+      } catch { /* no more fallbacks */ }
+
+      toast({ title: 'Flash no disponible', description: 'Este dispositivo o navegador no soporta flash.', variant: 'destructive' });
     } catch {
       toast({ title: 'Flash no disponible', description: 'No se pudo activar el flash.', variant: 'destructive' });
     }
