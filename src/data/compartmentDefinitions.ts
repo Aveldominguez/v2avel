@@ -331,35 +331,31 @@ export const TRANSAVIA_A320_COMPARTMENTS: CompartmentDefinition[] = [
     airline: 'TRANSAVIA',
     compartmentName: 'COMPARTIMIENTO 1 FWD',
     holds: [
-      { id: createHoldId('TRANSAVIA', 'a320-11'), label: 'Bodega 11 🚪' },
-      { id: createHoldId('TRANSAVIA', 'a320-12'), label: 'Bodega 12' },
+      { id: createHoldId('TRANSAVIA', 'a320-1'), label: 'Bodega 1' },
     ],
   },
   {
     id: 'transavia-a320-comp3',
     airline: 'TRANSAVIA',
-    compartmentName: 'COMPARTIMIENTO 3 AFT (hasta 90 maletas)',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
     holds: [
-      { id: createHoldId('TRANSAVIA', 'a320-31'), label: 'Bodega 31' },
-      { id: createHoldId('TRANSAVIA', 'a320-32'), label: 'Bodega 32' },
-      { id: createHoldId('TRANSAVIA', 'a320-33'), label: 'Bodega 33' },
+      { id: createHoldId('TRANSAVIA', 'a320-3'), label: 'Bodega 3' },
     ],
   },
   {
     id: 'transavia-a320-comp4',
     airline: 'TRANSAVIA',
-    compartmentName: 'COMPARTIMIENTO 4 (Resto aquí)',
+    compartmentName: 'COMPARTIMIENTO 4',
     holds: [
-      { id: createHoldId('TRANSAVIA', 'a320-41'), label: 'Bodega 41 🚪' },
-      { id: createHoldId('TRANSAVIA', 'a320-42'), label: 'Bodega 42' },
+      { id: createHoldId('TRANSAVIA', 'a320-4'), label: 'Bodega 4' },
     ],
   },
   {
-    id: 'transavia-a320-bulk5',
+    id: 'transavia-a320-comp5',
     airline: 'TRANSAVIA',
-    compartmentName: 'Bulk 5',
+    compartmentName: 'COMPARTIMIENTO 5',
     holds: [
-      { id: createHoldId('TRANSAVIA', 'a320-51'), label: 'Bodega 51' },
+      { id: createHoldId('TRANSAVIA', 'a320-5'), label: 'Bodega 5' },
     ],
   },
 ];
