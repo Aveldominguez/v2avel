@@ -78,7 +78,8 @@ const BodegasSection: React.FC<BodegasSectionProps> = ({ data, onChange }) => {
           Html5QrcodeSupportedFormats.AZTEC,
         ],
         useBarCodeDetectorIfSupported: true,
-      });
+        verbose: false,
+      } as any);
       scannerRef.current = scanner;
 
       await scanner.start(
