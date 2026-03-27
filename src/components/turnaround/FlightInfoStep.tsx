@@ -102,6 +102,23 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   // Flight lookup hook
   const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
 
+  // IATA aircraft type codes to our internal model names
+  const IATA_TO_MODEL: Record<string, string> = {
+    '32B': 'A321', '321': 'A321', '32Q': 'A321',
+    '320': 'A320', '32A': 'A320', '32N': 'A320',
+    '319': 'A319',
+    '223': 'A220', '22B': 'A220',
+    '738': '737-800', '73H': '737-800',
+    '73G': 'B737', '737': 'B737', '73W': 'B737',
+    '734': 'B734',
+    '333': 'A333',
+    '339': 'A339',
+    '767': 'B767', '763': 'B767', '76W': 'B767',
+    '777': 'B777', '77W': 'B777', '772': 'B777',
+    '788': '787-800', '789': '787-900',
+    'E90': 'EMB90', 'E95': 'EMB95',
+  };
+
   // Apply autofill when result changes
   const lastAppliedRef = React.useRef<string | null>(null);
   React.useEffect(() => {
@@ -112,22 +129,33 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     if (lookupResult.airlineCode) {
       setAirline(lookupResult.airlineCode);
-      const newModels = getModelsForAirline(lookupResult.airlineCode);
-      if (newModels.length === 1) setAircraftModel(newModels[0].model);
       filled.add('airline');
     }
 
+    // Resolve aircraft model using IATA code mapping
+    const targetAirline = lookupResult.airlineCode || (airline as AirlineCode);
+    const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];
+
     if (lookupResult.aircraftModel) {
-      // Try to match the IATA code to our model list
-      const currentModels = lookupResult.airlineCode ? getModelsForAirline(lookupResult.airlineCode) : models;
+      const iataCode = lookupResult.aircraftModel.toUpperCase();
+      const mappedModel = IATA_TO_MODEL[iataCode];
+
+      // Try mapped name first, then direct match
       const match = currentModels.find(
-        (m) => m.model.toLowerCase() === lookupResult.aircraftModel!.toLowerCase() ||
-               m.label.toLowerCase() === lookupResult.aircraftModel!.toLowerCase()
+        (m) => m.model === mappedModel ||
+               m.model.toLowerCase() === iataCode.toLowerCase() ||
+               m.label.toLowerCase() === iataCode.toLowerCase()
       );
       if (match) {
         setAircraftModel(match.model);
         filled.add('aircraftModel');
       }
+    }
+
+    // If airline was set and only one model exists, auto-select it
+    if (!filled.has('aircraftModel') && currentModels.length === 1) {
+      setAircraftModel(currentModels[0].model);
+      filled.add('aircraftModel');
     }
 
     if (lookupResult.registration) {
