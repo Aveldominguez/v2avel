@@ -79,7 +79,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const models = airline ? getModelsForAirline(airline) : [];
 
-  // Prefix map kept for reference but no longer forced into input
   const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
     FEDEX: '3V',
     AIR_CANADA: 'AC',
@@ -98,6 +97,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     AZUL: 'AD',
     SIN_MARCA: 'SM',
   };
+
+  const activePrefix = airline ? AIRLINE_PREFIXES[airline] : '';
+  // Whether the field is in "prefixed numeric" mode
+  const isPrefixedMode = airline !== '';
 
   // Flight lookup hook
   const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
@@ -178,13 +181,31 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const canContinue = flightNumber.trim() !== '' && airline !== '';
 
   const handleAirlineChange = (v: AirlineCode) => {
+    // Strip old prefix from flight number if present
+    const oldPrefix = airline ? AIRLINE_PREFIXES[airline as AirlineCode] : '';
+    let numericPart = flightNumber;
+    if (oldPrefix && numericPart.startsWith(oldPrefix)) {
+      numericPart = numericPart.slice(oldPrefix.length);
+    }
+    // Remove any non-digit characters from the numeric part
+    numericPart = numericPart.replace(/\D/g, '');
+
     setAirline(v);
+    const newPrefix = AIRLINE_PREFIXES[v];
+    setFlightNumber(newPrefix + numericPart);
+
     const newModels = getModelsForAirline(v);
     setAircraftModel(newModels.length === 1 ? newModels[0].model : '');
   };
 
   const handleFlightNumberChange = (value: string) => {
-    setFlightNumber(value.toUpperCase());
+    if (isPrefixedMode) {
+      // Only allow digits after the prefix
+      const digits = value.slice(activePrefix.length).replace(/\D/g, '');
+      setFlightNumber(activePrefix + digits);
+    } else {
+      setFlightNumber(value.toUpperCase());
+    }
   };
 
   return (
@@ -233,18 +254,25 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Número de Vuelo <span className="text-destructive">*</span>
               </Label>
-              <div className="relative">
-                <Input
-                  type="text"
-                  value={flightNumber}
-                  onChange={(e) => handleFlightNumberChange(e.target.value)}
-                  placeholder="Ej: TP1234"
-                  className="input-operational font-mono pr-8"
-                />
-                {lookupLoading && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                )}
-              </div>
+                <div className="relative flex items-center">
+                  {isPrefixedMode && (
+                    <span className="absolute left-3 text-sm font-mono font-semibold text-primary z-10 pointer-events-none">
+                      {activePrefix}
+                    </span>
+                  )}
+                  <Input
+                    type="text"
+                    inputMode={isPrefixedMode ? 'numeric' : 'text'}
+                    value={isPrefixedMode ? flightNumber.slice(activePrefix.length) : flightNumber}
+                    onChange={(e) => handleFlightNumberChange(isPrefixedMode ? activePrefix + e.target.value : e.target.value)}
+                    placeholder={isPrefixedMode ? '1234' : 'Ej: TP1234'}
+                    className={cn("input-operational font-mono pr-8", isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]")}
+                    style={isPrefixedMode ? { paddingLeft: `${12 + activePrefix.length * 9}px` } : undefined}
+                  />
+                  {lookupLoading && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
               {lookupError && (
                 <p className="text-xs text-destructive mt-1">{lookupError}</p>
               )}
