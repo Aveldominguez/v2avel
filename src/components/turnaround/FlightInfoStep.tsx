@@ -181,13 +181,31 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const canContinue = flightNumber.trim() !== '' && airline !== '';
 
   const handleAirlineChange = (v: AirlineCode) => {
+    // Strip old prefix from flight number if present
+    const oldPrefix = airline ? AIRLINE_PREFIXES[airline as AirlineCode] : '';
+    let numericPart = flightNumber;
+    if (oldPrefix && numericPart.startsWith(oldPrefix)) {
+      numericPart = numericPart.slice(oldPrefix.length);
+    }
+    // Remove any non-digit characters from the numeric part
+    numericPart = numericPart.replace(/\D/g, '');
+
     setAirline(v);
+    const newPrefix = AIRLINE_PREFIXES[v];
+    setFlightNumber(newPrefix + numericPart);
+
     const newModels = getModelsForAirline(v);
     setAircraftModel(newModels.length === 1 ? newModels[0].model : '');
   };
 
   const handleFlightNumberChange = (value: string) => {
-    setFlightNumber(value.toUpperCase());
+    if (isPrefixedMode) {
+      // Only allow digits after the prefix
+      const digits = value.slice(activePrefix.length).replace(/\D/g, '');
+      setFlightNumber(activePrefix + digits);
+    } else {
+      setFlightNumber(value.toUpperCase());
+    }
   };
 
   return (
