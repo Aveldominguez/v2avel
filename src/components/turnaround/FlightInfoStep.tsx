@@ -206,19 +206,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 Número de Vuelo <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                {currentPrefix && (
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm font-semibold text-foreground pointer-events-none">
-                    {currentPrefix}
-                  </span>
-                )}
                 <Input
                   type="text"
-                  inputMode="numeric"
-                  value={getNumericPart(flightNumber)}
+                  value={flightNumber}
                   onChange={(e) => handleFlightNumberChange(e.target.value)}
-                  placeholder="Nº vuelo"
+                  placeholder="Ej: TP1234"
                   className="input-operational font-mono pr-8"
-                  style={currentPrefix ? { paddingLeft: `${currentPrefix.length * 0.65 + 0.75}rem` } : undefined}
                 />
                 {lookupLoading && (
                   <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
