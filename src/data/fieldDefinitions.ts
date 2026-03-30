@@ -133,6 +133,19 @@ export const ALBASTAR_FIELDS: FieldDefinition[] = createSharedFields('ALBASTAR')
 export const ICELANDAIR_FIELDS: FieldDefinition[] = createSharedFields('ICELANDAIR');
 export const AZUL_FIELDS: FieldDefinition[] = createSharedFields('AZUL');
 export const AMAZON_FIELDS: FieldDefinition[] = createSharedFields('AMAZON');
+export const EUROWINGS_FIELDS: FieldDefinition[] = [
+  createField('EUROWINGS', 'BT', 'Tránsito', 1),
+  createField('EUROWINGS', 'BY', 'Local', 2),
+  createField('EUROWINGS', 'BG', 'Gate / Mano / Puerta', 3),
+  createField('EUROWINGS', 'BP', 'Priority', 4),
+  createField('EUROWINGS', 'DAA', 'Delivery at Aircraft (Carrito)', 5),
+  createField('EUROWINGS', 'D', 'Crew', 6),
+  createField('EUROWINGS', 'E', 'Equipment', 7),
+  createField('EUROWINGS', 'BH', 'Grupo (Varios tránsitos mismo destino)', 8),
+  createField('EUROWINGS', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
+  createField('EUROWINGS', 'WCH', 'Wheelchair', 10),
+  createField('EUROWINGS', 'WDB', 'Wheelchair – Dry Battery', 11),
+];
 export const NILE_AIR_FIELDS: FieldDefinition[] = [
   createField('NILE_AIR', 'BT', 'Tránsito', 1),
   createField('NILE_AIR', 'BY', 'Local', 2),
