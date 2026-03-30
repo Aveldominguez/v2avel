@@ -125,6 +125,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'ALBASTAR', name: 'AlbaStar', shortName: 'ALBASTAR', color: 'hsl(45, 80%, 50%)' },
   { code: 'AMAZON', name: 'Amazon Air', shortName: 'AMAZON', color: 'hsl(35, 100%, 50%)' },
   { code: 'AZUL', name: 'Azul', shortName: 'AZUL', color: 'hsl(220, 90%, 55%)' },
+  { code: 'EUROWINGS', name: 'Eurowings', shortName: 'EUROWINGS', color: 'hsl(340, 75%, 50%)' },
   { code: 'FEDEX', name: 'FedEx', shortName: 'FEDEX', color: 'hsl(270, 60%, 45%)' },
   { code: 'ICELANDAIR', name: 'Icelandair', shortName: 'ICELANDAIR', color: 'hsl(210, 60%, 45%)' },
   { code: 'NILE_AIR', name: 'Nile Air', shortName: 'NILE AIR', color: 'hsl(15, 80%, 50%)' },

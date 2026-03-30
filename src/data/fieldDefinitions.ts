@@ -177,6 +177,7 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...ICELANDAIR_FIELDS,
   ...AZUL_FIELDS,
   ...AMAZON_FIELDS,
+  ...EUROWINGS_FIELDS,
   ...NILE_AIR_FIELDS,
   ...SIN_MARCA_FIELDS,
 ];
