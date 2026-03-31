@@ -1121,6 +1121,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'B737') return ALBASTAR_B737_COMPARTMENTS;
     return [];
   }
+  if (airline === 'CROATIA') {
+    if (aircraftModel === 'A220-300') return CROATIA_A220_COMPARTMENTS;
+    return [];
+  }
   if (airline === 'EUROWINGS') {
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS.map(c => ({ ...c, id: c.id.replace('wizz', 'eurowings'), airline: 'EUROWINGS' as AirlineCode }));
     if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS.map(c => ({ ...c, id: c.id.replace('wizz', 'eurowings'), airline: 'EUROWINGS' as AirlineCode }));
