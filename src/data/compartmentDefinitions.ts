@@ -1055,7 +1055,27 @@ export const PEGASUS_A321_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
-// Type options per airline for ITA-style holds
+// Croatia Airlines A220-300
+export const CROATIA_A220_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'croatia-a220-comp0', airline: 'CROATIA', compartmentName: 'COMPARTIMIENTO 0',
+    holds: [{ id: createHoldId('CROATIA', 'a220-0'), label: 'Bodega 0' }],
+  },
+  {
+    id: 'croatia-a220-comp1', airline: 'CROATIA', compartmentName: 'COMPARTIMIENTO 1',
+    holds: [{ id: createHoldId('CROATIA', 'a220-1'), label: 'Bodega 1' }],
+  },
+  {
+    id: 'croatia-a220-comp2', airline: 'CROATIA', compartmentName: 'COMPARTIMIENTO 2',
+    holds: [{ id: createHoldId('CROATIA', 'a220-2'), label: 'Bodega 2' }],
+  },
+  {
+    id: 'croatia-a220-comp4', airline: 'CROATIA', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [{ id: createHoldId('CROATIA', 'a220-4'), label: 'Bodega 4' }],
+  },
+];
+
+
 export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   ITA: ['AKH-AZ', 'PKC-AZ'],
   TAP: ['AKH-TP', 'PKC-TP'],
