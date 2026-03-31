@@ -1126,7 +1126,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'EMB95') return TAP_EMB95_COMPARTMENTS;
     if (aircraftModel === 'A321') return TAP_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return TAP_A320_COMPARTMENTS;
-    if (aircraftModel === '221_GRANEL') return TAP_221_GRANEL_COMPARTMENTS;
+    if (aircraftModel === '321_GRANEL') return TAP_321_GRANEL_COMPARTMENTS;
     return [];
   }
   if (airline === 'ITA') {

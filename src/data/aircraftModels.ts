@@ -24,7 +24,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: 'A319', label: 'A319', turnaroundMinutes: 45 },
     { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 50, cleaningMinutes: 5 },
-    { model: '221_GRANEL', label: '221 Granel', turnaroundMinutes: 45 },
+    { model: '321_GRANEL', label: '321 Granel', turnaroundMinutes: 45 },
   ],
   AIR_CANADA: [
     { model: 'A333', label: 'A333', turnaroundMinutes: 90 },
