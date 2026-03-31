@@ -86,6 +86,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
   ],
   SIN_MARCA: [
     { model: 'A220', label: 'A220', turnaroundMinutes: 45 },
+    { model: 'A220-300', label: 'A220-300', turnaroundMinutes: 45 },
     { model: 'A319', label: 'A319', turnaroundMinutes: 45 },
     { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 50 },
