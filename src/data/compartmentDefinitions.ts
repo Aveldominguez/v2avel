@@ -1075,41 +1075,41 @@ export const CROATIA_A220_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
-// TAP 221 Granel
-export const TAP_221_GRANEL_COMPARTMENTS: CompartmentDefinition[] = [
+// TAP 321 Granel
+export const TAP_321_GRANEL_COMPARTMENTS: CompartmentDefinition[] = [
   {
-    id: 'tap-221g-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1',
+    id: 'tap-321g-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1',
     holds: [
-      { id: createHoldId('TAP', '221g-11'), label: 'Bodega 11' },
-      { id: createHoldId('TAP', '221g-12'), label: 'Bodega 12' },
+      { id: createHoldId('TAP', '321g-11'), label: 'Bodega 11' },
+      { id: createHoldId('TAP', '321g-12'), label: 'Bodega 12' },
     ],
   },
   {
-    id: 'tap-221g-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2',
+    id: 'tap-321g-comp2', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 2',
     holds: [
-      { id: createHoldId('TAP', '221g-21'), label: 'Bodega 21' },
-      { id: createHoldId('TAP', '221g-22'), label: 'Bodega 22' },
+      { id: createHoldId('TAP', '321g-21'), label: 'Bodega 21' },
+      { id: createHoldId('TAP', '321g-22'), label: 'Bodega 22' },
     ],
   },
   {
-    id: 'tap-221g-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3',
+    id: 'tap-321g-comp3', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 3',
     holds: [
-      { id: createHoldId('TAP', '221g-31'), label: 'Bodega 31' },
+      { id: createHoldId('TAP', '321g-31'), label: 'Bodega 31' },
     ],
   },
   {
-    id: 'tap-221g-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4',
+    id: 'tap-321g-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4',
     holds: [
-      { id: createHoldId('TAP', '221g-41'), label: 'Bodega 41' },
-      { id: createHoldId('TAP', '221g-42'), label: 'Bodega 42' },
+      { id: createHoldId('TAP', '321g-41'), label: 'Bodega 41' },
+      { id: createHoldId('TAP', '321g-42'), label: 'Bodega 42' },
     ],
   },
   {
-    id: 'tap-221g-comp5', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 5',
+    id: 'tap-321g-comp5', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 5',
     holds: [
-      { id: createHoldId('TAP', '221g-51'), label: 'Bodega 51' },
-      { id: createHoldId('TAP', '221g-52'), label: 'Bodega 52' },
-      { id: createHoldId('TAP', '221g-53'), label: 'Bodega 53' },
+      { id: createHoldId('TAP', '321g-51'), label: 'Bodega 51' },
+      { id: createHoldId('TAP', '321g-52'), label: 'Bodega 52' },
+      { id: createHoldId('TAP', '321g-53'), label: 'Bodega 53' },
     ],
   },
 ];
@@ -1126,7 +1126,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'EMB95') return TAP_EMB95_COMPARTMENTS;
     if (aircraftModel === 'A321') return TAP_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return TAP_A320_COMPARTMENTS;
-    if (aircraftModel === '221_GRANEL') return TAP_221_GRANEL_COMPARTMENTS;
+    if (aircraftModel === '321_GRANEL') return TAP_321_GRANEL_COMPARTMENTS;
     return [];
   }
   if (airline === 'ITA') {
