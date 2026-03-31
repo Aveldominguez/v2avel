@@ -43,6 +43,8 @@ const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
   'ajet': 'A_JET',
   'nile air': 'NILE_AIR',
   'eurowings': 'EUROWINGS',
+  'croatia airlines': 'CROATIA',
+  'croatia': 'CROATIA',
 };
 
 function matchAirlineCode(name: string): AirlineCode | null {
