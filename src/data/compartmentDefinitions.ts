@@ -641,8 +641,7 @@ export const A_JET_737_MAX_COMPARTMENTS: CompartmentDefinition[] = [
     holds: [{ id: createHoldId('A_JET', '737max-4'), label: 'Bodega 4' }],
   },
 ];
-
-
+export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
   {
     id: 'ajet-a320ab-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
     holds: [
