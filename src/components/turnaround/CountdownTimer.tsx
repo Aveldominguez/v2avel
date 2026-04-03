@@ -69,15 +69,27 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       const endDate = parseTimeToDate(departureTime!);
 
       const tick = () => {
-        const now = new Date();
-        const diff = Math.floor((endDate.getTime() - now.getTime()) / 1000);
+        const nowMs = Date.now();
+        const diffMs = endDate.getTime() - nowMs;
+        // Use Math.ceil so the timer shows "1:00" until the exact second boundary,
+        // and reaches "0:00" precisely at the target time
+        const diff = Math.ceil(diffMs / 1000);
         setRemainingSeconds(diff);
         liveSecondsRef.current = diff;
       };
 
       tick();
-      intervalRef.current = setInterval(tick, 1000);
-      return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+      // Align the first interval tick to the next whole second boundary for precision
+      const msUntilNextSecond = 1000 - (Date.now() % 1000);
+      const alignTimeout = setTimeout(() => {
+        tick();
+        intervalRef.current = setInterval(tick, 1000);
+      }, msUntilNextSecond);
+
+      return () => {
+        clearTimeout(alignTimeout);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      };
     }
 
     // Default mode: chocksOn + duration
@@ -91,8 +103,9 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
     const tick = () => {
-      const now = new Date();
-      const diff = Math.floor((endDate.getTime() - now.getTime()) / 1000);
+      const nowMs = Date.now();
+      const diffMs = endDate.getTime() - nowMs;
+      const diff = Math.ceil(diffMs / 1000);
       if (diff <= 0) {
         setRemainingSeconds(0);
         liveSecondsRef.current = 0;
@@ -104,9 +117,14 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     };
 
     tick();
-    intervalRef.current = setInterval(tick, 1000);
+    const msUntilNextSecond = 1000 - (Date.now() % 1000);
+    const alignTimeout = setTimeout(() => {
+      tick();
+      intervalRef.current = setInterval(tick, 1000);
+    }, msUntilNextSecond);
 
     return () => {
+      clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [chocksOnTime, durationMinutes, stoppedDisplay, useDepartureMode, departureTime]);
