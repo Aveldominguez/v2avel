@@ -1,11 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
-import { Camera, ImageIcon, Trash2, Loader2, FileImage } from 'lucide-react';
-import { buildStoragePath, parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
+import { Camera, ImageIcon, Trash2, Loader2, FileImage, RefreshCw } from 'lucide-react';
+import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
+import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
 const MAX_FILES = 7;
 
@@ -20,11 +19,18 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   imageUrls,
   onChange,
 }) => {
-  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
   const [displayUrls, setDisplayUrls] = useState<(string | null)[]>([]);
+
+  const { pending, addFiles, removePending, retryFailed, isUploading } = useBackgroundUpload({
+    bucket: 'loading-sheets',
+    filePrefix: 'ls',
+    maxFiles: MAX_FILES,
+    turnaroundId,
+    serverUrls: imageUrls,
+    onUrlsChange: onChange,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -34,68 +40,12 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
     return () => { cancelled = true; };
   }, [imageUrls]);
 
-  const extractPathFromUrl = (url: string): string | null => {
-    const parsed = parseStoragePath(url);
-    if (parsed && parsed.bucket === 'loading-sheets') return parsed.path;
-    try {
-      const match = url.match(/loading-sheets\/(.+)$/);
-      return match ? match[1] : null;
-    } catch {
-      return null;
-    }
-  };
-
-  const uploadFiles = async (files: globalThis.File[]) => {
-    if (!user) {
-      toast({ title: 'Error', description: 'Debes iniciar sesión', variant: 'destructive' });
-      return;
-    }
-    const remaining = MAX_FILES - imageUrls.length;
-    if (remaining <= 0) {
-      toast({ title: 'Límite alcanzado', description: `Máximo ${MAX_FILES} imágenes`, variant: 'destructive' });
-      return;
-    }
-    const batch = files.slice(0, remaining);
-    if (batch.length < files.length) {
-      toast({ title: 'Aviso', description: `Solo se subirán ${batch.length} de ${files.length} imágenes (límite ${MAX_FILES})` });
-    }
-
-    setUploading(true);
-    const newPaths: string[] = [];
-    try {
-      for (const file of batch) {
-        if (file.size > 10 * 1024 * 1024) {
-          toast({ title: 'Error', description: `${file.name} supera 10MB, omitido`, variant: 'destructive' });
-          continue;
-        }
-        const ext = file.name.split('.').pop() || 'jpg';
-        const fileName = `${user.id}/${turnaroundId || 'new'}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('loading-sheets')
-          .upload(fileName, file, { upsert: true });
-
-        if (uploadError) throw uploadError;
-        newPaths.push(buildStoragePath('loading-sheets', fileName));
-      }
-      if (newPaths.length > 0) {
-        onChange([...imageUrls, ...newPaths]);
-        toast({ title: `${newPaths.length} foto(s) subida(s)` });
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleDelete = async (index: number) => {
     const url = imageUrls[index];
     if (url) {
-      const path = extractPathFromUrl(url);
-      if (path) {
-        await supabase.storage.from('loading-sheets').remove([path]);
+      const parsed = parseStoragePath(url);
+      if (parsed) {
+        await supabase.storage.from(parsed.bucket).remove([parsed.path]);
       }
     }
     onChange(imageUrls.filter((_, i) => i !== index));
@@ -103,11 +53,12 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) uploadFiles(files);
+    if (files.length > 0) addFiles(files);
     e.target.value = '';
   };
 
-  const canAdd = imageUrls.length < MAX_FILES;
+  const totalCount = imageUrls.length + pending.filter(p => p.status !== 'error').length;
+  const canAdd = totalCount < MAX_FILES;
 
   return (
     <Card className="card-operational">
@@ -119,12 +70,12 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
           Hoja de carga
           <span className="text-xs text-muted-foreground font-normal ml-auto">
             {imageUrls.length}/{MAX_FILES}
+            {isUploading && <Loader2 className="inline h-3 w-3 ml-1 animate-spin" />}
           </span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Thumbnails grid */}
-        {imageUrls.length > 0 && (
+        {(imageUrls.length > 0 || pending.length > 0) && (
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {imageUrls.map((url, idx) => (
               <div key={url} className="relative group">
@@ -144,49 +95,59 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
                 </Button>
               </div>
             ))}
+            {/* Pending local images */}
+            {pending.map((p) => (
+              <div key={p.localUrl} className="relative group">
+                <img
+                  src={p.localUrl}
+                  alt="Subiendo..."
+                  className={`w-full aspect-square rounded-lg border object-cover ${
+                    p.status === 'error' ? 'border-destructive opacity-60' : 'border-primary/50 opacity-80'
+                  }`}
+                />
+                {p.status === 'uploading' && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/40 rounded-lg">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                )}
+                {p.status === 'error' && (
+                  <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/40 rounded-lg">
+                    <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => retryFailed(p.localUrl)}>
+                      <RefreshCw className="h-3 w-3" />
+                    </Button>
+                    <Button size="icon" variant="destructive" className="h-6 w-6" onClick={() => removePending(p.localUrl)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Upload buttons */}
         {canAdd && (
           <div className="flex gap-2">
             <Button
               variant="outline"
               className="flex-1 gap-2 bg-primary text-primary-foreground border-primary hover:bg-primary/80 hover:border-primary/80"
               onClick={() => cameraInputRef.current?.click()}
-              disabled={uploading}
             >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              <Camera className="h-4 w-4" />
               Cámara
             </Button>
             <Button
               variant="outline"
               className="flex-1 gap-2 bg-success text-success-foreground border-success hover:bg-success/80 hover:border-success/80"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
             >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+              <ImageIcon className="h-4 w-4" />
               Galería
             </Button>
           </div>
         )}
 
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
       </CardContent>
     </Card>
   );
