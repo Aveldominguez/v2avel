@@ -1093,6 +1093,26 @@ export const CROATIA_A220_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Eurowings A320
+export const EUROWINGS_A320_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'eurowings-a320-comp1', airline: 'EUROWINGS', compartmentName: 'COMPARTIMIENTO 1',
+    holds: [{ id: createHoldId('EUROWINGS', 'a320-1'), label: 'Bodega 1' }],
+  },
+  {
+    id: 'eurowings-a320-comp3', airline: 'EUROWINGS', compartmentName: 'COMPARTIMIENTO 3',
+    holds: [{ id: createHoldId('EUROWINGS', 'a320-3'), label: 'Bodega 3' }],
+  },
+  {
+    id: 'eurowings-a320-comp4', airline: 'EUROWINGS', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [{ id: createHoldId('EUROWINGS', 'a320-4'), label: 'Bodega 4' }],
+  },
+  {
+    id: 'eurowings-a320-comp5', airline: 'EUROWINGS', compartmentName: 'COMPARTIMIENTO 5',
+    holds: [{ id: createHoldId('EUROWINGS', 'a320-5'), label: 'Bodega 5' }],
+  },
+];
+
 // TAP 321 Granel
 export const TAP_321_GRANEL_COMPARTMENTS: CompartmentDefinition[] = [
   {
