@@ -623,7 +623,26 @@ export const A_JET_737_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
-export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
+export const A_JET_737_MAX_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'ajet-737max-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1',
+    holds: [{ id: createHoldId('A_JET', '737max-1'), label: 'Bodega 1' }],
+  },
+  {
+    id: 'ajet-737max-comp2', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 2',
+    holds: [{ id: createHoldId('A_JET', '737max-2'), label: 'Bodega 2' }],
+  },
+  {
+    id: 'ajet-737max-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3',
+    holds: [{ id: createHoldId('A_JET', '737max-3'), label: 'Bodega 3' }],
+  },
+  {
+    id: 'ajet-737max-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [{ id: createHoldId('A_JET', '737max-4'), label: 'Bodega 4' }],
+  },
+];
+
+
   {
     id: 'ajet-a320ab-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
     holds: [
