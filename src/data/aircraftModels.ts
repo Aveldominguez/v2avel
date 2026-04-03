@@ -12,6 +12,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 50 },
     { model: '737-800', label: '737-800', turnaroundMinutes: 45 },
+    { model: '737_MAX', label: '737 Max', turnaroundMinutes: 45 },
     { model: 'A320_AIRBALTIC', label: 'A320 airBaltic', turnaroundMinutes: 45 },
   ],
   AEGEAN: [
