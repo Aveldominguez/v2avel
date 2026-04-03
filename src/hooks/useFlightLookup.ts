@@ -66,7 +66,16 @@ function matchAirlineCode(name: string): AirlineCode | null {
   return found ? found.code : null;
 }
 
-export function useFlightLookup(flightIata: string, debounceMs = 600): UseFlightLookupReturn {
+// Expected number of numeric digits after the airline prefix
+const EXPECTED_DIGITS = 4;
+
+// Extract the numeric suffix length from a flight code
+function getDigitCount(flight: string): number {
+  const match = flight.match(/(\d+)$/);
+  return match ? match[1].length : 0;
+}
+
+export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlightLookupReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<FlightLookupResult | null>(null);
@@ -81,9 +90,11 @@ export function useFlightLookup(flightIata: string, debounceMs = 600): UseFlight
   }, []);
 
   useEffect(() => {
-    // Clean flight code - need at least 2 chars (e.g. "TP1")
     const clean = flightIata.trim().replace(/\s/g, '');
-    if (clean.length < 3) {
+    const digits = getDigitCount(clean);
+
+    // Only call API when the flight number has exactly the expected digits
+    if (clean.length < 3 || digits !== EXPECTED_DIGITS) {
       setError(null);
       setIsLoading(false);
       return;
