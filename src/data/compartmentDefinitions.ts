@@ -1205,7 +1205,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   }
   if (airline === 'EUROWINGS') {
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS.map(c => ({ ...c, id: c.id.replace('wizz', 'eurowings'), airline: 'EUROWINGS' as AirlineCode }));
-    if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS.map(c => ({ ...c, id: c.id.replace('wizz', 'eurowings'), airline: 'EUROWINGS' as AirlineCode }));
+    if (aircraftModel === 'A320') return EUROWINGS_A320_COMPARTMENTS;
     return [];
   }
   if (airline === 'PEGASUS') {
