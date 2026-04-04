@@ -132,7 +132,6 @@ export const ITA_A220_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ita-a220-fwd',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO FWD',
-    holdStyle: 'ita',
     holds: [
       { id: createHoldId('ITA', 'a220-a'), label: 'Bodega A' },
       { id: createHoldId('ITA', 'a220-b'), label: 'Bodega B' },
@@ -142,7 +141,6 @@ export const ITA_A220_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ita-a220-aft',
     airline: 'ITA',
     compartmentName: 'COMPARTIMIENTO AFT',
-    holdStyle: 'ita',
     holds: [
       { id: createHoldId('ITA', 'a220-c'), label: 'Bodega C' },
       { id: createHoldId('ITA', 'a220-f'), label: 'Bodega F' },
