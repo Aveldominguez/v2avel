@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { Timer, SprayCan } from 'lucide-react';
+import { Timer, SprayCan, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface CountdownTimerProps {
   chocksOnTime: string | null;
   loadingEndTime: string | null;
+  chocksOffTime: string | null;
   durationMinutes?: number;
   cleaningMinutes?: number;
   departureTime?: string | null;
@@ -24,96 +25,90 @@ const isValidTime = (time: string): boolean => {
   return /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(time);
 };
 
+type TimerStatus = 'running' | 'warning' | 'on-time' | 'overtime' | 'expired';
+
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   chocksOnTime,
   loadingEndTime,
+  chocksOffTime,
   durationMinutes = 40,
   cleaningMinutes,
   departureTime,
   onDepartureTimeChange,
 }) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-  const [stoppedDisplay, setStoppedDisplay] = useState<number | null>(null);
+  const [frozenRemaining, setFrozenRemaining] = useState<number | null>(null);
+  const [delaySeconds, setDelaySeconds] = useState<number | null>(null);
+  const [frozenDelay, setFrozenDelay] = useState<number | null>(null);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const liveSecondsRef = useRef<number | null>(null);
-  const prevLoadingEndRef = useRef<string | null>(loadingEndTime);
+  const delayIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<Date | null>(null);
+  const reachedZeroRef = useRef(false);
+  const prevLoadingEndRef = useRef<string | null>(loadingEndTime);
 
-  // Determine if we use departureTime-based countdown or chocksOn+duration
   const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
+  const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
+  const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
 
-  // Capture freeze on loadingEndTime transition from empty to filled
+  // Compute the target end date
+  useEffect(() => {
+    if (useDepartureMode) {
+      endDateRef.current = parseTimeToDate(departureTime!);
+    } else if (chocksOnTime && /^\d{2}:\d{2}$/.test(chocksOnTime)) {
+      const startDate = parseTimeToDate(chocksOnTime);
+      endDateRef.current = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+    } else {
+      endDateRef.current = null;
+    }
+  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime]);
+
+  // Freeze countdown when loadingEnd is filled
   useEffect(() => {
     const wasEmpty = !prevLoadingEndRef.current || !/^\d{2}:\d{2}$/.test(prevLoadingEndRef.current);
-    const isFilled = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
+    const isFilled = hasLoadingEnd;
 
-    if (wasEmpty && isFilled && liveSecondsRef.current !== null) {
-      setStoppedDisplay(liveSecondsRef.current);
-      setRemainingSeconds(null);
+    if (wasEmpty && isFilled && endDateRef.current) {
+      // Calculate remaining at the moment loadingEnd was set
+      const endMs = endDateRef.current.getTime();
+      const nowMs = Date.now();
+      const diff = Math.ceil((endMs - nowMs) / 1000);
+      const clamped = Math.max(0, diff);
+      setFrozenRemaining(clamped);
+      // Stop main countdown
       if (intervalRef.current) clearInterval(intervalRef.current);
-    } else if (!isFilled && stoppedDisplay !== null) {
-      setStoppedDisplay(null);
+    } else if (!isFilled) {
+      setFrozenRemaining(null);
     }
 
     prevLoadingEndRef.current = loadingEndTime;
-  }, [loadingEndTime]);
+  }, [loadingEndTime, hasLoadingEnd]);
 
+  // Main countdown timer
   useEffect(() => {
-    if (stoppedDisplay !== null) return;
+    if (frozenRemaining !== null) return; // frozen, no ticking
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    // Departure mode: countdown to departureTime
-    if (useDepartureMode) {
-      const endDate = parseTimeToDate(departureTime!);
-
-      const tick = () => {
-        const nowMs = Date.now();
-        const diffMs = endDate.getTime() - nowMs;
-        // Use Math.ceil so the timer shows "1:00" until the exact second boundary,
-        // and reaches "0:00" precisely at the target time
-        const diff = Math.ceil(diffMs / 1000);
-        setRemainingSeconds(diff);
-        liveSecondsRef.current = diff;
-      };
-
-      tick();
-      // Align the first interval tick to the next whole second boundary for precision
-      const msUntilNextSecond = 1000 - (Date.now() % 1000);
-      const alignTimeout = setTimeout(() => {
-        tick();
-        intervalRef.current = setInterval(tick, 1000);
-      }, msUntilNextSecond);
-
-      return () => {
-        clearTimeout(alignTimeout);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-      };
-    }
-
-    // Default mode: chocksOn + duration
-    if (!chocksOnTime || !/^\d{2}:\d{2}$/.test(chocksOnTime)) {
+    if (!endDateRef.current) {
       setRemainingSeconds(null);
-      liveSecondsRef.current = null;
+      reachedZeroRef.current = false;
       return;
     }
 
-    const startDate = parseTimeToDate(chocksOnTime);
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+    const endMs = endDateRef.current.getTime();
 
     const tick = () => {
       const nowMs = Date.now();
-      const diffMs = endDate.getTime() - nowMs;
+      const diffMs = endMs - nowMs;
       const diff = Math.ceil(diffMs / 1000);
-      if (diff <= 0) {
-        setRemainingSeconds(0);
-        liveSecondsRef.current = 0;
+      const clamped = Math.max(0, diff);
+      setRemainingSeconds(clamped);
+      if (clamped <= 0) {
+        reachedZeroRef.current = true;
         if (intervalRef.current) clearInterval(intervalRef.current);
-        return;
       }
-      setRemainingSeconds(diff);
-      liveSecondsRef.current = diff;
     };
 
     tick();
@@ -127,8 +122,69 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, durationMinutes, stoppedDisplay, useDepartureMode, departureTime]);
+  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, frozenRemaining]);
 
+  // Delay counter: starts when countdown reaches 0 and chocksOff is not set
+  useEffect(() => {
+    if (delayIntervalRef.current) clearInterval(delayIntervalRef.current);
+
+    // If chocksOff is filled, freeze delay
+    if (hasChocksOff && endDateRef.current) {
+      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const delayMs = chocksOffDate.getTime() - endDateRef.current.getTime();
+      const delaySecs = Math.max(0, Math.floor(delayMs / 1000));
+      setFrozenDelay(delaySecs);
+      setDelaySeconds(null);
+      return;
+    }
+
+    setFrozenDelay(null);
+
+    // Start delay counter only if countdown has reached zero and loadingEnd is not what stopped it
+    const mainDisplay = frozenRemaining !== null ? frozenRemaining : remainingSeconds;
+    const isAtZero = mainDisplay === 0 && !hasLoadingEnd;
+    // Also start if loadingEnd was filled but after zero (frozenRemaining === 0)
+    const isLoadingEndAfterZero = frozenRemaining === 0;
+
+    if ((isAtZero || (reachedZeroRef.current && !hasChocksOff)) && endDateRef.current) {
+      const endMs = endDateRef.current.getTime();
+
+      const tick = () => {
+        const nowMs = Date.now();
+        const diff = Math.max(0, Math.floor((nowMs - endMs) / 1000));
+        setDelaySeconds(diff);
+      };
+
+      tick();
+      delayIntervalRef.current = setInterval(tick, 1000);
+
+      return () => {
+        if (delayIntervalRef.current) clearInterval(delayIntervalRef.current);
+      };
+    } else {
+      setDelaySeconds(null);
+    }
+  }, [remainingSeconds, frozenRemaining, hasChocksOff, chocksOffTime, hasLoadingEnd]);
+
+  // Determine status
+  const getStatus = (): TimerStatus => {
+    const display = frozenRemaining !== null ? frozenRemaining : remainingSeconds;
+    if (display === null) return 'running';
+
+    if (hasLoadingEnd) {
+      if (frozenRemaining === 0) return 'overtime'; // red - filled after 0:00
+      if (frozenRemaining !== null && frozenRemaining <= 300) return 'warning'; // orange - ≤5 min
+      return 'on-time'; // green
+    }
+
+    if (display <= 0) return 'expired';
+    if (display <= 300) return 'warning';
+    return 'running';
+  };
+
+  const status = getStatus();
+
+  // Edit handlers
   const handleTimerClick = () => {
     if (!onDepartureTimeChange) return;
     setEditValue(departureTime || '');
@@ -151,7 +207,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     if (editValue === '') {
       onDepartureTimeChange(null);
     } else if (isValidTime(editValue)) {
-      // Normalize to HH:MM
       const [h, m] = editValue.split(':');
       const normalized = `${h.padStart(2, '0')}:${m}`;
       onDepartureTimeChange(normalized);
@@ -163,7 +218,16 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     if (e.key === 'Escape') setEditing(false);
   };
 
-  const displaySeconds = stoppedDisplay !== null ? stoppedDisplay : remainingSeconds;
+  // Format seconds to MM:SS
+  const formatTime = (secs: number): string => {
+    const mins = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const displaySeconds = frozenRemaining !== null ? frozenRemaining : remainingSeconds;
+  const showDelay = (frozenDelay !== null ? frozenDelay : delaySeconds);
+  const showDelayCounter = showDelay !== null && showDelay > 0;
 
   if (editing) {
     return (
@@ -201,33 +265,34 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     );
   }
 
-  const isStopped = stoppedDisplay !== null;
-  const isOvertime = isStopped && displaySeconds <= 0;
-  const isOnTime = isStopped && displaySeconds > 0;
-  const isExpired = !isStopped && displaySeconds <= 0;
-  const isWarning = !isExpired && !isStopped && displaySeconds <= 300;
-  const absSecs = Math.abs(displaySeconds);
-  const mins = Math.floor(absSecs / 60);
-  const secs = absSecs % 60;
-  const display = `${displaySeconds < 0 ? '-' : ''}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
   return (
     <div className="flex items-center gap-2">
+      {/* Main countdown */}
       <div
         className={cn(
           'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-mono font-bold',
-          isOnTime && 'bg-success/20 text-success',
-          isOvertime && 'bg-destructive/20 text-destructive',
-          isExpired && 'bg-destructive/20 text-destructive',
-          isWarning && 'bg-warning/20 text-warning',
-          !isExpired && !isWarning && !isStopped && 'bg-success/20 text-success',
+          status === 'on-time' && 'bg-success/20 text-success',
+          status === 'warning' && 'bg-warning/20 text-warning',
+          status === 'overtime' && 'bg-destructive/20 text-destructive',
+          status === 'expired' && 'bg-destructive/20 text-destructive',
+          status === 'running' && 'bg-success/20 text-success',
           onDepartureTimeChange && 'cursor-pointer hover:opacity-80 active:scale-95 transition-transform'
         )}
         onClick={handleTimerClick}
       >
         <Timer className="h-4 w-4" />
-        <span>{display}</span>
+        <span>{formatTime(displaySeconds)}</span>
       </div>
+
+      {/* Delay counter (red, counts up from 0:00 until chocksOff) */}
+      {showDelayCounter && (
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-destructive/20 text-destructive text-sm font-mono font-bold animate-pulse">
+          <AlertTriangle className="h-4 w-4" />
+          <span>+{formatTime(showDelay)}</span>
+        </div>
+      )}
+
+      {/* Cleaning badge */}
       {cleaningMinutes != null && (
         <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent/20 text-accent-foreground text-xs font-semibold">
           <SprayCan className="h-3.5 w-3.5" />
