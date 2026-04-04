@@ -324,6 +324,9 @@ const TurnaroundList: React.FC = () => {
                               className="font-mono font-bold text-base text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
                             >
                               {t.flightNumber}
+                              {t.observations && t.observations.trim() !== '' && (
+                                <span className="text-destructive ml-0.5">*</span>
+                              )}
                             </button>
                           </TableCell>
                           <TableCell className="px-2">
