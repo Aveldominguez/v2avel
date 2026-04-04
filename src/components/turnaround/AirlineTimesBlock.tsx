@@ -80,6 +80,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             <CountdownTimer
               chocksOnTime={times.chocksOnArrival}
               loadingEndTime={times.loadingEnd}
+              chocksOffTime={times.chocksOff}
               durationMinutes={durationMinutes}
               cleaningMinutes={cleaningMins}
               departureTime={departureTime}
