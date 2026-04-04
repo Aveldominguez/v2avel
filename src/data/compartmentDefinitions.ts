@@ -1194,6 +1194,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   if (airline === 'ITA') {
     if (aircraftModel === 'A321') return ITA_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return ITA_A320_COMPARTMENTS;
+    if (aircraftModel === 'A220') return ITA_A220_COMPARTMENTS;
     return [];
   }
   if (airline === 'WIZZ') {
