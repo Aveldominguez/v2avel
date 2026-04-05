@@ -51,6 +51,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: 'B737', label: 'B737', turnaroundMinutes: 40 },
   ],
   EUROWINGS: [
+    { model: 'A319', label: 'A319', turnaroundMinutes: 40 },
     { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 45 },
   ],
