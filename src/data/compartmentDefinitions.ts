@@ -1115,6 +1115,21 @@ export const CROATIA_A220_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Eurowings A319
+export const EUROWINGS_A319_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'eurowings-a319-comp-fwd', airline: 'EUROWINGS', compartmentName: 'COMPARTIMIENTO DELANTERO',
+    holds: [{ id: createHoldId('EUROWINGS', 'a319-1'), label: 'Bodega 1' }],
+  },
+  {
+    id: 'eurowings-a319-comp-aft', airline: 'EUROWINGS', compartmentName: 'COMPARTIMIENTO TRASERO',
+    holds: [
+      { id: createHoldId('EUROWINGS', 'a319-4'), label: 'Bodega 4' },
+      { id: createHoldId('EUROWINGS', 'a319-5'), label: 'Bodega 5' },
+    ],
+  },
+];
+
 // Eurowings A320
 export const EUROWINGS_A320_COMPARTMENTS: CompartmentDefinition[] = [
   {
@@ -1247,6 +1262,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     return [];
   }
   if (airline === 'EUROWINGS') {
+    if (aircraftModel === 'A319') return EUROWINGS_A319_COMPARTMENTS;
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS.map(c => ({ ...c, id: c.id.replace('wizz', 'eurowings'), airline: 'EUROWINGS' as AirlineCode }));
     if (aircraftModel === 'A320') return EUROWINGS_A320_COMPARTMENTS;
     return [];
