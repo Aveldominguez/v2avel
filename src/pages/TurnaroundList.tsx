@@ -169,6 +169,19 @@ const TurnaroundList: React.FC = () => {
                 <p className="text-sm text-muted-foreground">
                   Usuario: {user?.email}
                 </p>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground font-mono">v{APP_VERSION}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={checkForUpdate}
+                    disabled={updating}
+                    title="Actualizar app"
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", updating && "animate-spin")} />
+                  </Button>
+                </div>
               </div>
               <div className="w-10" /> {/* spacer */}
             </div>
