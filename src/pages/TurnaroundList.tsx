@@ -49,6 +49,9 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { APP_VERSION } from '@/config/version';
+import { useAppUpdate } from '@/hooks/useAppUpdate';
+import { RefreshCw } from 'lucide-react';
 
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
