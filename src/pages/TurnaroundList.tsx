@@ -58,6 +58,7 @@ const TurnaroundList: React.FC = () => {
   const { user, signOut } = useAuth();
   const { turnarounds, loading, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
+  const { updating, checkForUpdate } = useAppUpdate();
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
   
   // Pagination
