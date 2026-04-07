@@ -1,8 +1,10 @@
 {
+  "id": "/",
   "name": "Control Rampa",
   "short_name": "Control Rampa",
   "description": "Control de horas de rampa",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#131820",
   "theme_color": "#1a8cff",
