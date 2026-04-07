@@ -36,7 +36,6 @@ import {
   Search, 
   Calendar as CalendarIcon, 
   Plane, 
-   
   Trash2, 
   Filter,
   X,
@@ -44,6 +43,7 @@ import {
   Loader2,
   Circle,
   Shield,
+  RefreshCw,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -51,7 +51,6 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
-import { RefreshCw } from 'lucide-react';
 
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
