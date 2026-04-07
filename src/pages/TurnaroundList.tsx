@@ -157,8 +157,28 @@ const TurnaroundList: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Update banner */}
+      {updateAvailable && (
+        <div className="sticky top-0 z-[60] bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between gap-2 animate-in slide-in-from-top">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <RefreshCw className="h-4 w-4" />
+            <span>Nueva versión disponible</span>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 text-xs font-semibold"
+            onClick={applyUpdate}
+            disabled={updating}
+          >
+            {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+            Actualizar
+          </Button>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
+      <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-between w-full">
