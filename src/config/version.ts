@@ -1,3 +1,2 @@
-// Increment this version string with each meaningful release
-export const APP_VERSION = '1.0.0';
-export const APP_BUILD_DATE = '__BUILD_DATE__';
+// Auto-incremented on each build
+export const APP_VERSION = '2.0.5';
