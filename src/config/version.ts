@@ -1,5 +1,5 @@
 // Auto-incremented on each build
-export const APP_VERSION = '2.0.6';
+export const APP_VERSION = '2.0.7';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
