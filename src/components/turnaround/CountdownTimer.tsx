@@ -25,7 +25,7 @@ const isValidTime = (time: string): boolean => {
   return /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(time);
 };
 
-type TimerStatus = 'running' | 'warning' | 'on-time' | 'overtime' | 'expired';
+type TimerStatus = 'running' | 'warning' | 'expired';
 
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   chocksOnTime,
@@ -48,7 +48,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const reachedZeroRef = useRef(false);
 
   const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
-  const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
 
   // Compute the target end date
@@ -63,30 +62,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     }
   }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime]);
 
-  // Freeze countdown when loadingEnd is filled
+  // Main countdown timer - always runs until 0
   useEffect(() => {
-    const wasEmpty = !prevLoadingEndRef.current || !/^\d{2}:\d{2}$/.test(prevLoadingEndRef.current);
-    const isFilled = hasLoadingEnd;
-
-    if (wasEmpty && isFilled && endDateRef.current) {
-      // Calculate remaining at the moment loadingEnd was set
-      const endMs = endDateRef.current.getTime();
-      const nowMs = Date.now();
-      const diff = Math.ceil((endMs - nowMs) / 1000);
-      const clamped = Math.max(0, diff);
-      setFrozenRemaining(clamped);
-      // Stop main countdown
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    } else if (!isFilled) {
-      setFrozenRemaining(null);
-    }
-
-    prevLoadingEndRef.current = loadingEndTime;
-  }, [loadingEndTime, hasLoadingEnd]);
-
-  // Main countdown timer
-  useEffect(() => {
-    if (frozenRemaining !== null) return; // frozen, no ticking
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     if (!endDateRef.current) {
@@ -120,7 +97,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, frozenRemaining]);
+  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime]);
 
   // Delay counter: starts when countdown reaches 0 and chocksOff is not set
   useEffect(() => {
@@ -138,13 +115,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     setFrozenDelay(null);
 
-    // Start delay counter only if countdown has reached zero and loadingEnd is not what stopped it
-    const mainDisplay = frozenRemaining !== null ? frozenRemaining : remainingSeconds;
-    const isAtZero = mainDisplay === 0 && !hasLoadingEnd;
-    // Also start if loadingEnd was filled but after zero (frozenRemaining === 0)
-    const isLoadingEndAfterZero = frozenRemaining === 0;
-
-    if ((isAtZero || (reachedZeroRef.current && !hasChocksOff)) && endDateRef.current) {
+    // Start delay counter when countdown reached zero
+    if (reachedZeroRef.current && remainingSeconds === 0 && !hasChocksOff && endDateRef.current) {
       const endMs = endDateRef.current.getTime();
 
       const tick = () => {
@@ -162,21 +134,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     } else {
       setDelaySeconds(null);
     }
-  }, [remainingSeconds, frozenRemaining, hasChocksOff, chocksOffTime, hasLoadingEnd]);
+  }, [remainingSeconds, hasChocksOff, chocksOffTime]);
 
   // Determine status
   const getStatus = (): TimerStatus => {
-    const display = frozenRemaining !== null ? frozenRemaining : remainingSeconds;
-    if (display === null) return 'running';
-
-    if (hasLoadingEnd) {
-      if (frozenRemaining === 0) return 'overtime'; // red - filled after 0:00
-      if (frozenRemaining !== null && frozenRemaining <= 300) return 'warning'; // orange - ≤5 min
-      return 'on-time'; // green
-    }
-
-    if (display <= 0) return 'expired';
-    if (display <= 300) return 'warning';
+    if (remainingSeconds === null) return 'running';
+    if (remainingSeconds <= 0) return 'expired';
+    if (remainingSeconds <= 300) return 'warning';
     return 'running';
   };
 
@@ -223,7 +187,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     return `${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  const displaySeconds = frozenRemaining !== null ? frozenRemaining : remainingSeconds;
   const showDelay = (frozenDelay !== null ? frozenDelay : delaySeconds);
   const showDelayCounter = showDelay !== null && showDelay > 0;
 
@@ -248,7 +211,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     );
   }
 
-  if (displaySeconds === null) {
+  if (remainingSeconds === null) {
     return (
       <div
         className={cn(
@@ -269,9 +232,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       <div
         className={cn(
           'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-mono font-bold',
-          status === 'on-time' && 'bg-success/20 text-success',
           status === 'warning' && 'bg-warning/20 text-warning',
-          status === 'overtime' && 'bg-destructive/20 text-destructive',
           status === 'expired' && 'bg-destructive/20 text-destructive',
           status === 'running' && 'bg-success/20 text-success',
           onDepartureTimeChange && 'cursor-pointer hover:opacity-80 active:scale-95 transition-transform'
@@ -279,7 +240,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         onClick={handleTimerClick}
       >
         <Timer className="h-4 w-4" />
-        <span>{formatTime(displaySeconds)}</span>
+        <span>{formatTime(remainingSeconds)}</span>
       </div>
 
       {/* Delay counter (red, counts up from 0:00 until chocksOff) */}
