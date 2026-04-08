@@ -37,7 +37,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   onDepartureTimeChange,
 }) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-  const [frozenRemaining, setFrozenRemaining] = useState<number | null>(null);
   const [delaySeconds, setDelaySeconds] = useState<number | null>(null);
   const [frozenDelay, setFrozenDelay] = useState<number | null>(null);
   const [editing, setEditing] = useState(false);
@@ -47,7 +46,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<Date | null>(null);
   const reachedZeroRef = useRef(false);
-  const prevLoadingEndRef = useRef<string | null>(loadingEndTime);
 
   const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
   const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
