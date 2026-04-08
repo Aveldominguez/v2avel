@@ -22,6 +22,20 @@ function autoIncrementVersion() {
           `APP_VERSION = '${newVersion}'`
         );
         fs.writeFileSync(versionFile, newContent, 'utf-8');
+
+        // Extract changelog from version.ts
+        const changelogMatch = newContent.match(/APP_CHANGELOG:\s*string\[\]\s*=\s*\[([\s\S]*?)\];/);
+        let changelog: string[] = [];
+        if (changelogMatch) {
+          const entries = changelogMatch[1].match(/'([^']+)'/g);
+          if (entries) {
+            changelog = entries.map(e => e.replace(/'/g, ''));
+          }
+        }
+
+        // Write version.json to public folder
+        const versionJson = JSON.stringify({ version: newVersion, changelog }, null, 2);
+        fs.writeFileSync(path.resolve(__dirname, 'public/version.json'), versionJson, 'utf-8');
       }
     },
   };
