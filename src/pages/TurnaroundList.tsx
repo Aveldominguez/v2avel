@@ -57,7 +57,8 @@ const TurnaroundList: React.FC = () => {
   const { user, signOut } = useAuth();
   const { turnarounds, loading, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
-  const { updating, updateAvailable, checkForUpdate, applyUpdate } = useAppUpdate();
+  const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
+  const [showChangelog, setShowChangelog] = useState(false);
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
   
   // Pagination
@@ -159,21 +160,38 @@ const TurnaroundList: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Update banner */}
       {updateAvailable && (
-        <div className="sticky top-0 z-[60] bg-primary text-primary-foreground px-4 py-2 flex items-center justify-between gap-2 animate-in slide-in-from-top">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <RefreshCw className="h-4 w-4" />
-            <span>Nueva versión disponible</span>
+        <div className="sticky top-0 z-[60] bg-primary text-primary-foreground px-4 py-2 animate-in slide-in-from-top">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium flex-1 min-w-0">
+              <RefreshCw className="h-4 w-4 flex-shrink-0" />
+              <button 
+                className="text-left underline underline-offset-2 truncate"
+                onClick={() => setShowChangelog(!showChangelog)}
+              >
+                Nueva versión {remoteVersion ? `v${remoteVersion}` : ''} disponible
+              </button>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs font-semibold flex-shrink-0"
+              onClick={applyUpdate}
+              disabled={updating}
+            >
+              {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              Actualizar
+            </Button>
           </div>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-7 text-xs font-semibold"
-            onClick={applyUpdate}
-            disabled={updating}
-          >
-            {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-            Actualizar
-          </Button>
+          {showChangelog && remoteChangelog.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-primary-foreground/20">
+              <p className="text-xs font-semibold mb-1">Cambios incluidos:</p>
+              <ul className="text-xs space-y-0.5 list-disc list-inside opacity-90">
+                {remoteChangelog.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
