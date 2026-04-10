@@ -295,35 +295,47 @@ const TurnaroundForm: React.FC = () => {
     }
 
     setSaving(true);
-    const finalTimes = getTimesWithFlightInfo();
-    const fieldValuesForDb = fieldValues.map(fv => ({
-      fieldDefinitionId: fv.fieldDefinitionId,
-      value: fv.value,
-      previousValue: fv.previousValue,
-      nilSetAt: fv.nilSetAt,
-      updatedAt: fv.updatedAt.toISOString(),
-      updatedBy: fv.updatedBy,
-    }));
+    try {
+      const finalTimes = getTimesWithFlightInfo();
+      const fieldValuesForDb = fieldValues.map(fv => ({
+        fieldDefinitionId: fv.fieldDefinitionId,
+        value: fv.value,
+        previousValue: fv.previousValue,
+        nilSetAt: fv.nilSetAt,
+        updatedAt: fv.updatedAt.toISOString(),
+        updatedBy: fv.updatedBy,
+      }));
 
-    if (isOnline) {
-      try {
-        if (isEditing && id) {
-          await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
-          setLastSaved(new Date());
-          clearDraft(id);
-          // saved successfully
-        } else {
-          const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
-          clearDraft();
-          savedAndNavigating.current = true;
-          // saved successfully
-          if (created) {
-            navigate(`/turnaround/${created.id}`, { replace: true });
+      if (isOnline) {
+        try {
+          if (isEditing && id) {
+            await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
+            setLastSaved(new Date());
+            clearDraft(id);
+          } else {
+            const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
+            clearDraft();
+            savedAndNavigating.current = true;
+            if (created) {
+              navigate(`/turnaround/${created.id}`, { replace: true });
+            }
           }
+        } catch (err) {
+          console.error('Error saving:', err);
+          enqueue({
+            type: isEditing ? 'update' : 'create',
+            turnaroundId: id,
+            data: {
+              flightNumber,
+              date: date.toISOString().split('T')[0],
+              airline: selectedAirline,
+              times: finalTimes,
+              fieldValues: fieldValuesForDb,
+              observations,
+            },
+          });
         }
-      } catch (err) {
-        console.error('Error saving:', err);
-        // Fallback to offline queue
+      } else {
         enqueue({
           type: isEditing ? 'update' : 'create',
           turnaroundId: id,
@@ -336,31 +348,19 @@ const TurnaroundForm: React.FC = () => {
             observations,
           },
         });
-        // saved locally
+        if (!isEditing) {
+          clearDraft();
+        } else {
+          setLastSaved(new Date());
+          clearDraft(id);
+        }
       }
-    } else {
-      // Offline: queue the operation
-      enqueue({
-        type: isEditing ? 'update' : 'create',
-        turnaroundId: id,
-        data: {
-          flightNumber,
-          date: date.toISOString().split('T')[0],
-          airline: selectedAirline,
-          times: finalTimes,
-          fieldValues: fieldValuesForDb,
-          observations,
-        },
-      });
-      // saved locally
-      if (!isEditing) {
-        clearDraft();
-      } else {
-        setLastSaved(new Date());
-        clearDraft(id);
-      }
+    } catch (err) {
+      console.error('Unexpected error in handleSave:', err);
+      toast({ title: 'Error', description: 'Error inesperado al guardar', variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }, [flightNumber, date, airline, fieldValues, observations, isEditing, id, navigate, createTurnaround, updateTurnaround, getTimesWithFlightInfo, isOnline, enqueue]);
 
   if (loading) {
