@@ -3,12 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { buildStoragePath } from '@/utils/storageUrl';
 import { toast } from '@/hooks/use-toast';
+import { saveImageBackup, removeImageBackup } from '@/utils/imageBackupStore';
 
 export interface PendingUpload {
   localUrl: string;   // blob: URL for instant preview
   file: File;
   status: 'uploading' | 'done' | 'error';
   serverPath?: string; // set once uploaded
+  backupId?: string;   // IndexedDB backup key
 }
 
 interface UseBackgroundUploadOptions {
@@ -32,7 +34,6 @@ export function useBackgroundUpload({
   const [pending, setPending] = useState<PendingUpload[]>([]);
   const uploadQueueRef = useRef<PendingUpload[]>([]);
   const isProcessingRef = useRef(false);
-  // Keep a ref to the latest serverUrls to avoid stale closures
   const serverUrlsRef = useRef(serverUrls);
   serverUrlsRef.current = serverUrls;
 
@@ -65,28 +66,30 @@ export function useBackgroundUpload({
         item.serverPath = serverPath;
         item.status = 'done';
 
-        // Update parent with the new server path
+        // Remove backup from IndexedDB on success
+        if (item.backupId) {
+          removeImageBackup(item.backupId).catch(() => {});
+        }
+
         const currentUrls = serverUrlsRef.current;
         onUrlsChange([...currentUrls, serverPath]);
 
-        // Remove from pending after a brief moment so transition is smooth
         setPending(prev => prev.filter(p => p.localUrl !== item.localUrl));
         URL.revokeObjectURL(item.localUrl);
       } catch (err) {
         console.error('Background upload error:', err);
         item.status = 'error';
         setPending(prev => prev.map(p => p.localUrl === item.localUrl ? { ...p, status: 'error' } : p));
-        toast({ title: 'Error', description: `No se pudo subir ${item.file.name}`, variant: 'destructive' });
+        toast({ title: 'Error', description: `No se pudo subir ${item.file.name}. La imagen se guardó localmente.`, variant: 'destructive' });
       }
 
-      // Remove processed item from queue
       uploadQueueRef.current = uploadQueueRef.current.slice(1);
     }
 
     isProcessingRef.current = false;
   }, [user, bucket, filePrefix, turnaroundId, onUrlsChange]);
 
-  const addFiles = useCallback((files: File[]) => {
+  const addFiles = useCallback(async (files: File[]) => {
     if (!user) {
       toast({ title: 'Error', description: 'Debes iniciar sesión', variant: 'destructive' });
       return;
@@ -112,24 +115,48 @@ export function useBackgroundUpload({
       toast({ title: 'Aviso', description: `Solo se subirán ${batch.length} de ${files.length} archivos (límite ${maxFiles})` });
     }
 
-    const newPending: PendingUpload[] = batch.map(file => ({
-      localUrl: URL.createObjectURL(file),
-      file,
-      status: 'uploading' as const,
-    }));
+    const newPending: PendingUpload[] = [];
+    for (const file of batch) {
+      const backupId = `${turnaroundId || 'new'}-${filePrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const localUrl = URL.createObjectURL(file);
+
+      // Save to IndexedDB as backup
+      try {
+        await saveImageBackup({
+          id: backupId,
+          turnaroundId: turnaroundId || 'new',
+          filePrefix,
+          fileName: file.name,
+          blob: file,
+          createdAt: Date.now(),
+        });
+      } catch (e) {
+        console.warn('Could not save image backup to IndexedDB:', e);
+      }
+
+      newPending.push({
+        localUrl,
+        file,
+        status: 'uploading' as const,
+        backupId,
+      });
+    }
 
     setPending(prev => [...prev, ...newPending]);
     uploadQueueRef.current = [...uploadQueueRef.current, ...newPending];
 
-    // Start processing queue
     processQueue();
-  }, [user, serverUrls.length, pending, maxFiles, processQueue]);
+  }, [user, serverUrls.length, pending, maxFiles, processQueue, turnaroundId, filePrefix]);
 
   const removePending = useCallback((localUrl: string) => {
+    const item = pending.find(p => p.localUrl === localUrl);
+    if (item?.backupId) {
+      removeImageBackup(item.backupId).catch(() => {});
+    }
     URL.revokeObjectURL(localUrl);
     setPending(prev => prev.filter(p => p.localUrl !== localUrl));
     uploadQueueRef.current = uploadQueueRef.current.filter(p => p.localUrl !== localUrl);
-  }, []);
+  }, [pending]);
 
   const retryFailed = useCallback((localUrl: string) => {
     setPending(prev => prev.map(p =>
