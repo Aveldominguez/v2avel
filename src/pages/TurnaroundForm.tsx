@@ -273,7 +273,7 @@ const TurnaroundForm: React.FC = () => {
         turnaroundId: id,
         data: {
           flightNumber,
-          date: date.toISOString().split('T')[0],
+          date: safeDate.toISOString().split('T')[0],
           airline: selectedAirline,
           times: finalTimes,
           fieldValues: fieldValuesForDb,
