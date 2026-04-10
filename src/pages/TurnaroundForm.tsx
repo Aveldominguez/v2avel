@@ -314,11 +314,11 @@ const TurnaroundForm: React.FC = () => {
       if (isOnline) {
         try {
           if (isEditing && id) {
-            await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
+            await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
             setLastSaved(new Date());
             clearDraft(id);
           } else {
-            const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
+            const created = await createTurnaround(flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
             clearDraft();
             savedAndNavigating.current = true;
             if (created) {
@@ -332,7 +332,7 @@ const TurnaroundForm: React.FC = () => {
             turnaroundId: id,
             data: {
               flightNumber,
-              date: date.toISOString().split('T')[0],
+              date: safeDate.toISOString().split('T')[0],
               airline: selectedAirline,
               times: finalTimes,
               fieldValues: fieldValuesForDb,
@@ -346,7 +346,7 @@ const TurnaroundForm: React.FC = () => {
           turnaroundId: id,
           data: {
             flightNumber,
-            date: date.toISOString().split('T')[0],
+            date: safeDate.toISOString().split('T')[0],
             airline: selectedAirline,
             times: finalTimes,
             fieldValues: fieldValuesForDb,
