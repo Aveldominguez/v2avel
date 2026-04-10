@@ -308,12 +308,12 @@ const TurnaroundForm: React.FC = () => {
     if (isOnline) {
       try {
         if (isEditing && id) {
-          await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
+          await updateTurnaround(id, flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
           setLastSaved(new Date());
           clearDraft(id);
           // saved successfully
         } else {
-          const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations);
+          const created = await createTurnaround(flightNumber, date, selectedAirline, finalTimes, fieldValues, observations.trim());
           clearDraft();
           savedAndNavigating.current = true;
           // saved successfully
