@@ -297,7 +297,12 @@ const TurnaroundForm: React.FC = () => {
     setSaving(true);
     try {
       const finalTimes = getTimesWithFlightInfo();
-      const fieldValuesForDb = fieldValues.map(fv => ({
+      const safeDate = date instanceof Date ? date : new Date(date);
+      const safeFvs: FieldValue[] = fieldValues.map(fv => ({
+        ...fv,
+        updatedAt: fv.updatedAt instanceof Date ? fv.updatedAt : new Date(fv.updatedAt),
+      }));
+      const fieldValuesForDb = safeFvs.map(fv => ({
         fieldDefinitionId: fv.fieldDefinitionId,
         value: fv.value,
         previousValue: fv.previousValue,
