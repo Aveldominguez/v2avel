@@ -97,7 +97,7 @@ export const useTurnarounds = () => {
         value: fv.value,
         previousValue: fv.previousValue,
         nilSetAt: fv.nilSetAt,
-        updatedAt: fv.updatedAt.toISOString(),
+        updatedAt: (fv.updatedAt instanceof Date ? fv.updatedAt : new Date(fv.updatedAt)).toISOString(),
         updatedBy: fv.updatedBy,
       }));
 
