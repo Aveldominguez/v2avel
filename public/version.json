@@ -1,9 +1,9 @@
 {
-  "version": "2.0.22",
+  "version": "2.0.23",
   "changelog": [
-    "Control de Horas reorganizado en bloques diferenciados de llegada y salida",
-    "Ajuste operativo: 1ª Maleta permanece en llegada y 1ª Muelle en salida",
-    "Corrección visual del campo 1ª Muelle para igualarlo al resto",
-    "Versionado automático sincronizado entre edición, caché local y publicación"
+    "Amazon: eliminada sección Carga de SALIDA",
+    "Amazon y FedEx: eliminado botón Comoditys",
+    "Amazon: eliminado Envío 1ª Ristra en modos Sólo Llegada y Sólo Salida",
+    "AVI Salida y ASU alineados en la misma fila"
   ]
 }
