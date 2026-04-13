@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, PlaneLanding, PlaneTakeoff } from 'lucide-react';
 
 const getDockLabel = (airline: AirlineCode, dockNum: number): string => {
-  const term = airline === 'FEDEX' ? 'Ristra' : 'Muelle';
+  const term = (airline === 'FEDEX' || airline === 'AMAZON') ? 'Ristra' : 'Muelle';
   return `${dockNum}ª ${term}`;
 };
 
