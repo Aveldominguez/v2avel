@@ -389,9 +389,10 @@ const TurnaroundForm: React.FC = () => {
         });
         if (!isEditing) {
           clearDraft();
+          savedAndNavigating.current = true;
+          navigate('/', { replace: true });
         } else {
           setLastSaved(new Date());
-          // Keep draft as backup when offline
         }
         toast({
           title: '📱 Guardado localmente',
