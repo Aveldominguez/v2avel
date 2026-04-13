@@ -550,6 +550,7 @@ const TurnaroundForm: React.FC = () => {
           errors={errors}
           departureTime={departureTime}
           onDepartureTimeChange={setDepartureTime}
+          flightNumber={flightNumber}
         />
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
