@@ -1,8 +1,9 @@
 {
-  "version": "2.0.11",
+  "version": "2.0.16",
   "changelog": [
-    "Corrección pérdida de datos: restauración completa de borradores locales",
-    "Guardado local resiliente ante conexión inestable",
-    "Feedback visual al guardar sin conexión"
+    "Control de Horas reorganizado en bloques diferenciados de llegada y salida",
+    "Ajuste operativo: 1ª Maleta permanece en llegada y 1ª Muelle en salida",
+    "Corrección visual del campo 1ª Muelle para igualarlo al resto",
+    "Versionado automático sincronizado entre edición, caché local y publicación"
   ]
 }
