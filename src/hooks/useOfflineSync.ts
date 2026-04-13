@@ -101,10 +101,22 @@ export const useOfflineSync = () => {
 
   const enqueue = useCallback((op: Omit<PendingOperation, 'id' | 'timestamp'>) => {
     const queue = getQueue();
-    // For updates, replace existing pending op for same turnaround
-    const filtered = op.type === 'update' && op.turnaroundId
-      ? queue.filter(q => !(q.type === 'update' && q.turnaroundId === op.turnaroundId))
-      : queue;
+    let filtered: PendingOperation[];
+
+    if (op.type === 'update' && op.turnaroundId) {
+      // For updates, replace existing pending op for same turnaround
+      filtered = queue.filter(q => !(q.type === 'update' && q.turnaroundId === op.turnaroundId));
+    } else if (op.type === 'create') {
+      // For creates, deduplicate by flight_number + date + airline to prevent duplicates
+      filtered = queue.filter(q => !(
+        q.type === 'create' &&
+        q.data.flightNumber === op.data.flightNumber &&
+        q.data.date === op.data.date &&
+        q.data.airline === op.data.airline
+      ));
+    } else {
+      filtered = queue;
+    }
     
     filtered.push({
       ...op,
