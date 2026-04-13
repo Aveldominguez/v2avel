@@ -392,6 +392,9 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 
   if (soloSalida) {
     baseFields = baseFields.filter(f => DEPARTURE_ONLY_KEYS.has(f.key));
+    if (airline === 'AMAZON') {
+      baseFields = baseFields.filter(f => f.key !== 'firstBag');
+    }
   }
 
   return baseFields;
