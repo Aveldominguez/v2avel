@@ -323,7 +323,6 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'cargoArrival',
   'mailArrival',
   'aviArrival',
-  'dock1',
 ]);
 
 // Fields to keep in "Sólo salida" mode (departure only)
