@@ -134,7 +134,7 @@ const FieldRenderer: React.FC<{
       <React.Fragment key={field.key}>
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            <label className="text-xs font-semibold text-foreground uppercase tracking-wide">
               {field.label}
             </label>
             {nextDockToShow && (
