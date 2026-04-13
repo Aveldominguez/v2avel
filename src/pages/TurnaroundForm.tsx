@@ -80,11 +80,16 @@ const TurnaroundForm: React.FC = () => {
         setLoading(true);
         // Try loading from draft first (offline edits)
         const draft = loadDraft(id);
-        const existing = await getTurnaroundById(id);
+        let existing = null;
+        try {
+          existing = await getTurnaroundById(id);
+        } catch (err) {
+          console.warn('Failed to fetch from server, will use draft if available:', err);
+        }
         
         if (isMounted) {
-          // Use draft if it's newer than server data
-          if (draft && existing && draft.savedAt > existing.updatedAt.getTime()) {
+          // Use draft if it's newer than server data, or if server is unavailable
+          if (draft && (!existing || draft.savedAt > existing.updatedAt.getTime())) {
             applyDraft(draft);
           } else if (existing) {
             setFlightNumber(existing.flightNumber);
@@ -123,6 +128,7 @@ const TurnaroundForm: React.FC = () => {
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
+            toast({ title: '📱 Sin conexión', description: 'Cargado desde borrador local' });
           } else {
             toast({ title: 'Error', description: 'No se encontró la escala', variant: 'destructive' });
             navigate('/');
@@ -159,6 +165,18 @@ const TurnaroundForm: React.FC = () => {
     setFieldValues(draft.fieldValues);
     setObservations(draft.observations);
     setStep(draft.step);
+    // Restore fields stored inside times that have separate state
+    if (draft.times) {
+      const t = draft.times;
+      const lsUrls = t.loadingSheetUrls || [];
+      setLoadingSheetUrls(lsUrls.length === 0 && t.loadingSheetUrl ? [t.loadingSheetUrl] : lsUrls);
+      const fUrls = t.fileUrls || [];
+      setFileUrls(fUrls.length === 0 && t.fileUrl ? [t.fileUrl] : fUrls);
+      setObservationPhotos(t.observationPhotos || []);
+      setIncidentReport(t.incidentReport || null);
+      setEquipmentSelections(t.equipment || []);
+      setBodegasData(t.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
+    }
   };
 
   useEffect(() => {
@@ -250,7 +268,7 @@ const TurnaroundForm: React.FC = () => {
         await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
         setLastSaved(new Date());
         hasUnsavedChanges.current = false;
-        clearDraft(id);
+        // Don't clear draft on auto-save; keep as safety net until explicit manual save
       } catch (err) {
         console.warn('Auto-save to server failed, queuing offline:', err);
         enqueue({
@@ -344,6 +362,10 @@ const TurnaroundForm: React.FC = () => {
               observations,
             },
           });
+          toast({
+            title: '📱 Guardado localmente',
+            description: 'Se sincronizará automáticamente cuando haya conexión estable',
+          });
         }
       } else {
         enqueue({
@@ -362,8 +384,12 @@ const TurnaroundForm: React.FC = () => {
           clearDraft();
         } else {
           setLastSaved(new Date());
-          clearDraft(id);
+          // Keep draft as backup when offline
         }
+        toast({
+          title: '📱 Guardado localmente',
+          description: 'Se sincronizará cuando haya conexión',
+        });
       }
     } catch (err) {
       console.error('Unexpected error in handleSave:', err);

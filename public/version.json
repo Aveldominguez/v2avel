@@ -1,8 +1,8 @@
 {
-  "version": "2.0.8",
+  "version": "2.0.11",
   "changelog": [
-    "Corrección asterisco observaciones en Android",
-    "Aviso de instalación PWA en móviles Android",
-    "Backup local de imágenes ante fallos de subida"
+    "Corrección pérdida de datos: restauración completa de borradores locales",
+    "Guardado local resiliente ante conexión inestable",
+    "Feedback visual al guardar sin conexión"
   ]
 }
