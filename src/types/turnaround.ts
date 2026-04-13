@@ -12,7 +12,7 @@ export interface TurnaroundTimes {
   loadingEnd: string | null;             // Fin Carga
   lastHandBag: string | null;            // Cierre Coordinador
   specialEndLoading: string | null;      // Retirada Escalera
-  chocksOff: string | null;              // Retirada Calzos
+  chocksOff: string | null;              // Calzos Salida
   busArrival: string | null;             // 1ª Jardinera
   lastBus: string | null;                // (legacy - no longer used)
   bus2: string | null;                   // 2ª Jardinera
