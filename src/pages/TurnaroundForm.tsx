@@ -471,10 +471,6 @@ const TurnaroundForm: React.FC = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}
-              <div className="flex items-center gap-1.5">
-                <Plane className="h-4 w-4 text-primary shrink-0" />
-                <span className="font-mono font-bold text-lg">{flightNumber}</span>
-              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
