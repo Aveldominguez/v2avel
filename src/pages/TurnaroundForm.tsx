@@ -159,6 +159,18 @@ const TurnaroundForm: React.FC = () => {
     setFieldValues(draft.fieldValues);
     setObservations(draft.observations);
     setStep(draft.step);
+    // Restore fields stored inside times that have separate state
+    if (draft.times) {
+      const t = draft.times;
+      const lsUrls = t.loadingSheetUrls || [];
+      setLoadingSheetUrls(lsUrls.length === 0 && t.loadingSheetUrl ? [t.loadingSheetUrl] : lsUrls);
+      const fUrls = t.fileUrls || [];
+      setFileUrls(fUrls.length === 0 && t.fileUrl ? [t.fileUrl] : fUrls);
+      setObservationPhotos(t.observationPhotos || []);
+      setIncidentReport(t.incidentReport || null);
+      setEquipmentSelections(t.equipment || []);
+      setBodegasData(t.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
+    }
   };
 
   useEffect(() => {
@@ -250,7 +262,7 @@ const TurnaroundForm: React.FC = () => {
         await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
         setLastSaved(new Date());
         hasUnsavedChanges.current = false;
-        clearDraft(id);
+        // Don't clear draft on auto-save; keep as safety net until explicit manual save
       } catch (err) {
         console.warn('Auto-save to server failed, queuing offline:', err);
         enqueue({
@@ -344,6 +356,10 @@ const TurnaroundForm: React.FC = () => {
               observations,
             },
           });
+          toast({
+            title: '📱 Guardado localmente',
+            description: 'Se sincronizará automáticamente cuando haya conexión estable',
+          });
         }
       } else {
         enqueue({
@@ -362,8 +378,12 @@ const TurnaroundForm: React.FC = () => {
           clearDraft();
         } else {
           setLastSaved(new Date());
-          clearDraft(id);
+          // Keep draft as backup when offline
         }
+        toast({
+          title: '📱 Guardado localmente',
+          description: 'Se sincronizará cuando haya conexión',
+        });
       }
     } catch (err) {
       console.error('Unexpected error in handleSave:', err);
