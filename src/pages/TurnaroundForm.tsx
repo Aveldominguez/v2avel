@@ -350,6 +350,7 @@ const TurnaroundForm: React.FC = () => {
           }
         } catch (err) {
           console.error('Error saving:', err);
+          // Only enqueue if there isn't already a pending create for this flight
           enqueue({
             type: isEditing ? 'update' : 'create',
             turnaroundId: id,
@@ -366,6 +367,12 @@ const TurnaroundForm: React.FC = () => {
             title: '📱 Guardado localmente',
             description: 'Se sincronizará automáticamente cuando haya conexión estable',
           });
+          // Prevent duplicate creates: after queueing a create, navigate away
+          if (!isEditing) {
+            clearDraft();
+            savedAndNavigating.current = true;
+            navigate('/', { replace: true });
+          }
         }
       } else {
         enqueue({
