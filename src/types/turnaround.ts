@@ -12,7 +12,7 @@ export interface TurnaroundTimes {
   loadingEnd: string | null;             // Fin Carga
   lastHandBag: string | null;            // Cierre Coordinador
   specialEndLoading: string | null;      // Retirada Escalera
-  chocksOff: string | null;              // Retirada Calzos
+  chocksOff: string | null;              // Calzos Salida
   busArrival: string | null;             // 1ª Jardinera
   lastBus: string | null;                // (legacy - no longer used)
   bus2: string | null;                   // 2ª Jardinera
@@ -29,6 +29,10 @@ export interface TurnaroundTimes {
   gpuOn: string | null;                  // Puesta de GPU
   gpuOff: string | null;                 // Retirada de GPU
   mailArrival: boolean;                  // Correo Llegada
+  mailDeparture: boolean;                // Correo Salida
+  aviArrival: boolean;                   // AVI Llegada
+  aviDeparture: boolean;                 // AVI Salida
+  departureFlightNumber: string | null;  // Número de vuelo de salida
   dock1: string | null;                   // 1ª Muelle
   dock2: string | null;                   // 2ª Muelle
   dock3: string | null;                   // 3ª Muelle
@@ -147,10 +151,60 @@ export interface TimeFieldConfig {
   type: 'time' | 'boolean' | 'boolean-text';
 }
 
-// Base fields for TAP/AEGEAN/ITA (with stairs)
+// Arrival fields (for non-FedEx/Amazon split layout)
+const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
+  { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
+  { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
+  { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
+  { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
+  { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
+  { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
+  { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
+  { key: 'aviArrival', label: 'AVI Llegada', type: 'boolean' },
+];
+
+const ARRIVAL_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
+  { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
+  { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
+  { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
+  { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
+  { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
+  { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
+  { key: 'aviArrival', label: 'AVI Llegada', type: 'boolean' },
+];
+
+// Departure fields (for non-FedEx/Amazon split layout)
+const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
+  { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
+  { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
+  { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
+  { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
+  { key: 'cargoDeparture', label: 'Cargo Salida', type: 'boolean' },
+  { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
+  { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
+];
+
+const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
+  { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
+  { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
+  { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
+  { key: 'cargoDeparture', label: 'Cargo Salida', type: 'boolean' },
+  { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
+  { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
+  { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
+];
+
+// Base fields for TAP/AEGEAN/ITA (with stairs) - kept for FedEx/Amazon legacy
 const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
-  { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
+  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
@@ -166,10 +220,10 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
-// Fields without stairs (WIZZ, PEGASUS, TRANSAVIA, SKYEXPRESS)
+// Fields without stairs (WIZZ, etc.) - kept for FedEx/Amazon legacy
 const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
-  { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
+  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
@@ -183,17 +237,16 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
 ];
 
-// FedEx-specific fields (same order as stairs airlines, no cargo/mail/1ª Maleta)
+// FedEx-specific fields
 const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
-  { key: 'chocksOff', label: 'Retirada Calzos', clockColor: 'red', type: 'time' },
+  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
-  
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'dock1', label: '1ª Ristra', clockColor: 'green', type: 'time' },
   { key: 'parkingArrival', label: 'Llegada a Parking', clockColor: 'green', type: 'time' },
@@ -214,6 +267,48 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
 
 const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET'];
 
+// Airlines that use the split layout (all except FedEx and Amazon)
+const SPLIT_LAYOUT_EXCLUDED: AirlineCode[] = ['FEDEX', 'AMAZON'];
+
+export const usesSplitLayout = (airline: AirlineCode): boolean => {
+  return !SPLIT_LAYOUT_EXCLUDED.includes(airline);
+};
+
+// Get arrival fields for split layout
+export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeFieldConfig[] => {
+  const hasStairs = AIRLINES_WITH_STAIRS.includes(airline);
+  let fields = hasStairs ? [...ARRIVAL_FIELDS_WITH_STAIRS] : [...ARRIVAL_FIELDS_NO_STAIRS];
+
+  if (isRemote) {
+    // Add GPU On and 1ª Jardinera for remote
+    fields.push({ key: 'gpuOn', label: 'Puesta de GPU', type: 'time' });
+    fields.push({ key: 'busArrival', label: '1ª Jardinera', type: 'time' });
+
+    // Add stairs for remote airlines that don't normally have them
+    if (!hasStairs) {
+      // Insert stairs after chocksOnArrival
+      const stairsField: TimeFieldConfig = { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' };
+      const chocksIdx = fields.findIndex(f => f.key === 'chocksOnArrival');
+      fields.splice(chocksIdx + 1, 0, stairsField);
+    }
+  }
+
+  return fields;
+};
+
+// Get departure fields for split layout
+export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): TimeFieldConfig[] => {
+  const hasStairs = AIRLINES_WITH_STAIRS.includes(airline) || isRemote;
+  let fields = hasStairs ? [...DEPARTURE_FIELDS_WITH_STAIRS] : [...DEPARTURE_FIELDS_NO_STAIRS];
+
+  if (isRemote) {
+    // Add GPU Off for remote departure
+    fields.splice(fields.length - 1, 0, { key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
+  }
+
+  return fields;
+};
+
 // Fields to keep in "Sólo llegada" mode (arrival only)
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
@@ -225,6 +320,8 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'busArrival',
   'cargoArrival',
   'mailArrival',
+  'aviArrival',
+  'dock1',
 ]);
 
 // Fields to keep in "Sólo salida" mode (departure only)
@@ -234,9 +331,14 @@ const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'loadingStart',
   'loadingEnd',
   'lirReception',
+  'lastHandBag',
   'dock1',
   'pushBackTime',
   'asu',
+  'cargoDeparture',
+  'mailDeparture',
+  'aviDeparture',
+  'gpuOff',
 ]);
 
 export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false, soloSalida: boolean = false): TimeFieldConfig[] => {
@@ -258,18 +360,15 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
   }
 
   if (isRemote) {
-    // Add remote fields (exclude busArrival for Amazon and FedEx)
     const remoteToAdd = (airline === 'AMAZON' || airline === 'FEDEX')
       ? REMOTE_FIELDS.filter(f => f.key !== 'busArrival')
       : [...REMOTE_FIELDS];
     baseFields = [...baseFields, ...remoteToAdd];
 
-    // Add stairs for airlines that don't normally have them (excluding FEDEX which already has them)
     if (!AIRLINES_WITH_STAIRS.includes(airline) && airline !== 'FEDEX') {
       baseFields.push(...REMOTE_STAIRS_FIELDS);
     }
 
-    // Reorder: Calzos Llegada (1), Puesta Escalera (2), Retirada Escalera (3), Retirada Calzos (4), rest...
     if (airline !== 'FEDEX') {
       const stairsField = baseFields.find(f => f.key === 'stairsTime');
       const retStairsField = baseFields.find(f => f.key === 'specialEndLoading');
@@ -292,6 +391,28 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
   }
 
   return baseFields;
+};
+
+// Airline prefixes for flight numbers
+export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+  FEDEX: '3V',
+  AIR_CANADA: 'AC',
+  TRANSAVIA: 'TO',
+  WIZZ: 'W',
+  TAP: 'TP',
+  ITA: 'AZ0',
+  NILE_AIR: 'NP',
+  AEGEAN: 'A',
+  PEGASUS: 'PC',
+  SKYEXPRESS: 'GQ',
+  AMAZON: 'ABR',
+  A_JET: 'VF',
+  ALBASTAR: 'AP',
+  ICELANDAIR: 'FI',
+  AZUL: 'AD',
+  EUROWINGS: 'EW',
+  CROATIA: 'OU',
+  SIN_MARCA: 'SM',
 };
 
 // Get push back field (shown when pushBack=true and not remote)
