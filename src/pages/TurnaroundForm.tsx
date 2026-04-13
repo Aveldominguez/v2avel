@@ -80,11 +80,16 @@ const TurnaroundForm: React.FC = () => {
         setLoading(true);
         // Try loading from draft first (offline edits)
         const draft = loadDraft(id);
-        const existing = await getTurnaroundById(id);
+        let existing = null;
+        try {
+          existing = await getTurnaroundById(id);
+        } catch (err) {
+          console.warn('Failed to fetch from server, will use draft if available:', err);
+        }
         
         if (isMounted) {
-          // Use draft if it's newer than server data
-          if (draft && existing && draft.savedAt > existing.updatedAt.getTime()) {
+          // Use draft if it's newer than server data, or if server is unavailable
+          if (draft && (!existing || draft.savedAt > existing.updatedAt.getTime())) {
             applyDraft(draft);
           } else if (existing) {
             setFlightNumber(existing.flightNumber);
@@ -123,6 +128,7 @@ const TurnaroundForm: React.FC = () => {
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
+            toast({ title: '📱 Sin conexión', description: 'Cargado desde borrador local' });
           } else {
             toast({ title: 'Error', description: 'No se encontró la escala', variant: 'destructive' });
             navigate('/');
