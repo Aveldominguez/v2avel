@@ -54,7 +54,7 @@ const FieldRenderer: React.FC<{
     const boolVal = times[field.key] as boolean;
     const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;
     return (
-      <div key={field.key} className="col-span-2 flex items-end gap-3">
+      <div key={field.key} className={boolVal ? "col-span-2 flex items-end gap-3" : "flex items-end gap-3"}>
         <BooleanInput
           label={field.label}
           value={boolVal}
