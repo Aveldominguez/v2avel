@@ -22,9 +22,25 @@ export const useAppUpdate = () => {
         setUpdateAvailable(true);
         setRemoteVersion(data.version);
         setRemoteChangelog(data.changelog || []);
+
+        // Send local notification if permission granted
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Nueva versión disponible', {
+            body: `v${data.version} — ${(data.changelog || [])[0] || 'Mejoras y correcciones'}`,
+            icon: '/icons/icon-192x192.png',
+            tag: 'app-update',
+          });
+        }
       }
     } catch {
       // ignore network errors
+    }
+  }, []);
+
+  useEffect(() => {
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   }, []);
 
