@@ -29,6 +29,10 @@ export interface TurnaroundTimes {
   gpuOn: string | null;                  // Puesta de GPU
   gpuOff: string | null;                 // Retirada de GPU
   mailArrival: boolean;                  // Correo Llegada
+  mailDeparture: boolean;                // Correo Salida
+  aviArrival: boolean;                   // AVI Llegada
+  aviDeparture: boolean;                 // AVI Salida
+  departureFlightNumber: string | null;  // Número de vuelo de salida
   dock1: string | null;                   // 1ª Muelle
   dock2: string | null;                   // 2ª Muelle
   dock3: string | null;                   // 3ª Muelle
