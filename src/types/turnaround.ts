@@ -384,10 +384,6 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 
   if (soloLlegada) {
     baseFields = baseFields.filter(f => ARRIVAL_ONLY_KEYS.has(f.key));
-    // Amazon: remove firstBag (Envío 1ª Ristra) in arrival-only mode
-    if (airline === 'AMAZON') {
-      baseFields = baseFields.filter(f => f.key !== 'firstBag');
-    }
   }
 
   if (soloSalida) {
