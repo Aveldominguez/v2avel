@@ -1,9 +1,8 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.33';
+export const APP_VERSION = '2.0.35';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'PDF: eliminada la sección Códigos de Carga',
-  'PDF: añadidos vuelo de llegada y vuelo de salida identificados',
-  'PDF: añadida la matrícula de la aeronave',
+  'Control de Horas: título encima de los relojes en pantallas estrechas',
+  'Botón de editar escala movido junto al selector de tema',
 ];

@@ -292,8 +292,8 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         {/* Header with countdown */}
         <Card className="card-operational">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center justify-between text-xl">
-              <span>Control de Horas ⏰</span>
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
+              <span className="shrink-0">Control de Horas ⏰</span>
               {!soloLlegada && (
                 <CountdownTimer
                   chocksOnTime={times.chocksOnArrival}
@@ -373,8 +373,8 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   return (
     <Card className="card-operational">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center justify-between text-xl">
-          <span>Control de Horas ⏰</span>
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
+          <span className="shrink-0">Control de Horas ⏰</span>
           {!soloLlegada && (
             <CountdownTimer
               chocksOnTime={times.chocksOnArrival}
