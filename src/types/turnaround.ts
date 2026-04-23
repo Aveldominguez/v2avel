@@ -421,7 +421,7 @@ export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
 // Get push back field (shown when pushBack=true and not remote)
 export const getPushBackField = (): TimeFieldConfig => ({
   key: 'pushBackTime',
-  label: 'Push Back',
+  label: 'Fin Push Back',
   clockColor: 'red',
   type: 'time',
 });
