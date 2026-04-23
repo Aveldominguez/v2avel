@@ -155,10 +155,7 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
       </table>`;
   }
 
-  // Build codes table
-  const codesHtml = fields.map(f =>
-    `<tr><td class="code">${f.code}</td><td>${f.label}</td></tr>`
-  ).join('');
+  // Códigos de carga eliminados de la exportación PDF a petición del usuario
 
   // Resolve signed URLs for images
   const loadingSheetUrlsList = data.times.loadingSheetUrls?.length ? data.times.loadingSheetUrls : (data.times.loadingSheetUrl ? [data.times.loadingSheetUrl] : []);
@@ -219,12 +216,6 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   ${compartmentsHtml ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
 
   ${equipmentHtml}
-
-  ${codesHtml ? `
-  <h2>Códigos de Carga</h2>
-  <table class="data-table">
-    ${codesHtml}
-  </table>` : ''}
 
   ${data.observations ? `
   <h2>Observaciones</h2>
