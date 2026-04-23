@@ -1,8 +1,7 @@
 {
-  "version": "2.0.34",
+  "version": "2.0.35",
   "changelog": [
-    "PDF: eliminada la sección Códigos de Carga",
-    "PDF: añadidos vuelo de llegada y vuelo de salida identificados",
-    "PDF: añadida la matrícula de la aeronave"
+    "Control de Horas: título encima de los relojes en pantallas estrechas",
+    "Botón de editar escala movido junto al selector de tema"
   ]
 }
