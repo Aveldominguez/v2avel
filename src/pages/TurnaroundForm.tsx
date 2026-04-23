@@ -474,6 +474,15 @@ const TurnaroundForm: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setStep(1)}
+                className="shrink-0 text-muted-foreground hover:text-primary"
+                title="Editar datos del vuelo"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
               <ThemeToggle />
               <ConnectionStatus
                 isOnline={isOnline}
@@ -513,14 +522,6 @@ const TurnaroundForm: React.FC = () => {
                 <span className="font-semibold">{matricula}</span>
               </>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setStep(1)}
-              className="h-5 w-5 p-0 ml-1 text-muted-foreground hover:text-primary"
-            >
-              <Pencil className="h-3 w-3" />
-            </Button>
             {errors.length > 0 && (
               <>
                 <span>|</span>
