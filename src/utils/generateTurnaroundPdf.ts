@@ -195,10 +195,15 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 <body>
   <div class="header">
     <div class="header-left">
-      <h1>✈️ ${data.flightNumber}</h1>
+      <h1>✈️ Escala</h1>
+      <div class="meta">
+        <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}</span>
+        <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}</span>
+      </div>
       <div class="meta">
         <span><b>Aerolínea:</b> ${airlineInfo?.name || data.airline}</span>
         <span><b>Modelo:</b> ${data.aircraftModel || '—'}</span>
+        <span><b>Matrícula:</b> ${data.times.matricula || '—'}</span>
         <span><b>Fecha:</b> ${format(data.date, "dd 'de' MMMM yyyy", { locale: es })}</span>
       </div>
       <div class="meta">
