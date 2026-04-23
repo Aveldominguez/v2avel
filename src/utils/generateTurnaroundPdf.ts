@@ -1,5 +1,5 @@
 import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, getPushBackField, FieldValue } from '@/types/turnaround';
-import { getFieldsByAirline } from '@/data/fieldDefinitions';
+// getFieldsByAirline removed: códigos de carga ya no se exportan en PDF
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { format } from 'date-fns';
@@ -25,7 +25,7 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   // Append Push Back field if applicable (parking T always, or remote with toggle on)
   const showPushBack = !data.isRemote || data.times.pushBack;
   const timeFields = showPushBack ? [...baseTimeFields, getPushBackField()] : baseTimeFields;
-  const fields = getFieldsByAirline(data.airline);
+  // const fields = getFieldsByAirline(data.airline); // eliminado del PDF
   const compartments = getCompartmentsByAirline(data.airline, data.aircraftModel);
 
   const getValue = (fieldId: string): string =>
