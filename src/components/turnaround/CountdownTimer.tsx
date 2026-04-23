@@ -25,7 +25,7 @@ const isValidTime = (time: string): boolean => {
   return /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(time);
 };
 
-type TimerStatus = 'running' | 'warning' | 'expired';
+type TimerStatus = 'running' | 'warning' | 'expired' | 'completed';
 
 export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   chocksOnTime,
@@ -49,6 +49,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
   const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
+  const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
 
   // Compute the target end date
   useEffect(() => {
@@ -62,7 +63,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     }
   }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime]);
 
-  // Main countdown timer - always runs until 0
+  // Main countdown timer - stops when chocksOff is marked or reaches 0
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -73,6 +74,17 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     }
 
     const endMs = endDateRef.current.getTime();
+
+    // If chocksOff is marked, freeze the countdown to the value at chocksOff time
+    if (hasChocksOff) {
+      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const diffMs = endMs - chocksOffDate.getTime();
+      const diff = Math.ceil(diffMs / 1000);
+      const clamped = Math.max(0, diff);
+      setRemainingSeconds(clamped);
+      reachedZeroRef.current = clamped <= 0;
+      return;
+    }
 
     const tick = () => {
       const nowMs = Date.now();
@@ -97,13 +109,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime]);
+  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, hasChocksOff, chocksOffTime]);
 
   // Delay counter: starts when countdown reaches 0 and chocksOff is not set
   useEffect(() => {
     if (delayIntervalRef.current) clearInterval(delayIntervalRef.current);
 
-    // If chocksOff is filled, freeze delay
+    // If chocksOff is filled, freeze delay (stop counting)
     if (hasChocksOff && endDateRef.current) {
       const chocksOffDate = parseTimeToDate(chocksOffTime!);
       const delayMs = chocksOffDate.getTime() - endDateRef.current.getTime();
@@ -139,6 +151,16 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   // Determine status
   const getStatus = (): TimerStatus => {
     if (remainingSeconds === null) return 'running';
+
+    // If chocksOff is marked: green if completed before/at deadline, red if after
+    if (hasChocksOff && endDateRef.current) {
+      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      return chocksOffDate.getTime() <= endDateRef.current.getTime() ? 'completed' : 'expired';
+    }
+
+    // If loadingEnd was marked while there was still time, keep green status
+    if (hasLoadingEnd && remainingSeconds > 0) return 'completed';
+
     if (remainingSeconds <= 0) return 'expired';
     if (remainingSeconds <= 300) return 'warning';
     return 'running';
@@ -235,6 +257,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           status === 'warning' && 'bg-warning/20 text-warning',
           status === 'expired' && 'bg-destructive/20 text-destructive',
           status === 'running' && 'bg-success/20 text-success',
+          status === 'completed' && 'bg-success/20 text-success',
           onDepartureTimeChange && 'cursor-pointer hover:opacity-80 active:scale-95 transition-transform'
         )}
         onClick={handleTimerClick}
@@ -245,7 +268,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
       {/* Delay counter (red, counts up from 0:00 until chocksOff) */}
       {showDelayCounter && (
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-destructive/20 text-destructive text-sm font-mono font-bold animate-pulse">
+        <div
+          className={cn(
+            'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-destructive/20 text-destructive text-sm font-mono font-bold',
+            !hasChocksOff && 'animate-pulse'
+          )}
+        >
           <AlertTriangle className="h-4 w-4" />
           <span>+{formatTime(showDelay)}</span>
         </div>
