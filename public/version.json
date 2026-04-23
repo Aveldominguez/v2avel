@@ -1,8 +1,6 @@
 {
-  "version": "2.0.27",
+  "version": "2.0.30",
   "changelog": [
-    "Cronómetro: se mantiene en verde al marcar Fin de Carga antes de tiempo",
-    "Cronómetro: se detiene al marcar Calzos Salida (no continúa contando)",
-    "Contador de demora: se congela al marcar Calzos Salida"
+    "Cronómetro de cuenta atrás visible también en modo Sólo Salida"
   ]
 }
