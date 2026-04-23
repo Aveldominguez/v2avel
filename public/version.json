@@ -1,7 +1,7 @@
 {
-  "version": "2.0.35",
+  "version": "2.0.36",
   "changelog": [
-    "Control de Horas: título encima de los relojes en pantallas estrechas",
-    "Botón de editar escala movido junto al selector de tema"
+    "Forzado aviso de nueva versión",
+    "Mejoras de sincronización de versión"
   ]
 }
