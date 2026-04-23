@@ -294,7 +294,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-xl">
               <span>Control de Horas ⏰</span>
-              {!soloLlegada && !soloSalida && (
+              {!soloLlegada && (
                 <CountdownTimer
                   chocksOnTime={times.chocksOnArrival}
                   loadingEndTime={times.loadingEnd}
