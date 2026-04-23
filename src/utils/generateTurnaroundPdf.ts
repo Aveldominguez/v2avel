@@ -1,5 +1,5 @@
 import { TurnaroundTimes, AirlineCode, AIRLINES, getTimeFieldsForAirline, getPushBackField, FieldValue } from '@/types/turnaround';
-import { getFieldsByAirline } from '@/data/fieldDefinitions';
+// getFieldsByAirline removed: códigos de carga ya no se exportan en PDF
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { format } from 'date-fns';
@@ -25,7 +25,7 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   // Append Push Back field if applicable (parking T always, or remote with toggle on)
   const showPushBack = !data.isRemote || data.times.pushBack;
   const timeFields = showPushBack ? [...baseTimeFields, getPushBackField()] : baseTimeFields;
-  const fields = getFieldsByAirline(data.airline);
+  // const fields = getFieldsByAirline(data.airline); // eliminado del PDF
   const compartments = getCompartmentsByAirline(data.airline, data.aircraftModel);
 
   const getValue = (fieldId: string): string =>
@@ -155,10 +155,7 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
       </table>`;
   }
 
-  // Build codes table
-  const codesHtml = fields.map(f =>
-    `<tr><td class="code">${f.code}</td><td>${f.label}</td></tr>`
-  ).join('');
+  // Códigos de carga eliminados de la exportación PDF a petición del usuario
 
   // Resolve signed URLs for images
   const loadingSheetUrlsList = data.times.loadingSheetUrls?.length ? data.times.loadingSheetUrls : (data.times.loadingSheetUrl ? [data.times.loadingSheetUrl] : []);
@@ -198,10 +195,15 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 <body>
   <div class="header">
     <div class="header-left">
-      <h1>✈️ ${data.flightNumber}</h1>
+      <h1>✈️ Escala</h1>
+      <div class="meta">
+        <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}</span>
+        <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}</span>
+      </div>
       <div class="meta">
         <span><b>Aerolínea:</b> ${airlineInfo?.name || data.airline}</span>
         <span><b>Modelo:</b> ${data.aircraftModel || '—'}</span>
+        <span><b>Matrícula:</b> ${data.times.matricula || '—'}</span>
         <span><b>Fecha:</b> ${format(data.date, "dd 'de' MMMM yyyy", { locale: es })}</span>
       </div>
       <div class="meta">
@@ -219,12 +221,6 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   ${compartmentsHtml ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
 
   ${equipmentHtml}
-
-  ${codesHtml ? `
-  <h2>Códigos de Carga</h2>
-  <table class="data-table">
-    ${codesHtml}
-  </table>` : ''}
 
   ${data.observations ? `
   <h2>Observaciones</h2>
