@@ -100,7 +100,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     // If chocksOff is marked, freeze the countdown to the value at chocksOff time
     if (hasChocksOff) {
-      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
       const diffMs = endMs - chocksOffDate.getTime();
       const diff = Math.ceil(diffMs / 1000);
       const clamped = Math.max(0, diff);
