@@ -20,6 +20,20 @@ const parseTimeToDate = (timeStr: string): Date => {
   return now;
 };
 
+// Parse a time as a Date relative to a reference Date, handling day rollover.
+// If the parsed time is more than 12h before the reference, assume it's the next day.
+const parseTimeRelativeTo = (timeStr: string, reference: Date): Date => {
+  const d = parseTimeToDate(timeStr);
+  // Align day to reference first
+  d.setFullYear(reference.getFullYear(), reference.getMonth(), reference.getDate());
+  if (d.getTime() < reference.getTime() - 12 * 60 * 60 * 1000) {
+    d.setDate(d.getDate() + 1);
+  } else if (d.getTime() > reference.getTime() + 12 * 60 * 60 * 1000) {
+    d.setDate(d.getDate() - 1);
+  }
+  return d;
+};
+
 const isValidTime = (time: string): boolean => {
   if (!time) return true;
   return /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(time);
