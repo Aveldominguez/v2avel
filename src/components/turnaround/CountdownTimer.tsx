@@ -177,7 +177,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     // If chocksOff is marked: green if completed before/at deadline, red if after
     if (hasChocksOff && endDateRef.current) {
-      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
       return chocksOffDate.getTime() <= endDateRef.current.getTime() ? 'completed' : 'expired';
     }
 
