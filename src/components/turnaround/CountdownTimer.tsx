@@ -140,7 +140,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     // If chocksOff is filled, freeze delay (stop counting)
     if (hasChocksOff && endDateRef.current) {
-      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
       const delayMs = chocksOffDate.getTime() - endDateRef.current.getTime();
       const delaySecs = Math.max(0, Math.floor(delayMs / 1000));
       setFrozenDelay(delaySecs);
