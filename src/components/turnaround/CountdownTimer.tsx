@@ -51,12 +51,21 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
   const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
 
-  // Compute the target end date
+  // Compute the target end date (handles midnight rollover by comparing to "now")
   useEffect(() => {
     if (useDepartureMode) {
-      endDateRef.current = parseTimeToDate(departureTime!);
+      const dep = parseTimeToDate(departureTime!);
+      // If departure time is in the past by more than 12h, assume it's tomorrow
+      if (dep.getTime() < Date.now() - 12 * 60 * 60 * 1000) {
+        dep.setDate(dep.getDate() + 1);
+      }
+      endDateRef.current = dep;
     } else if (chocksOnTime && /^\d{2}:\d{2}$/.test(chocksOnTime)) {
       const startDate = parseTimeToDate(chocksOnTime);
+      // If chocksOn is "in the future" relative to now by more than 12h, it actually was yesterday
+      if (startDate.getTime() > Date.now() + 12 * 60 * 60 * 1000) {
+        startDate.setDate(startDate.getDate() - 1);
+      }
       endDateRef.current = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
     } else {
       endDateRef.current = null;
