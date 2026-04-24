@@ -20,6 +20,20 @@ const parseTimeToDate = (timeStr: string): Date => {
   return now;
 };
 
+// Parse a time as a Date relative to a reference Date, handling day rollover.
+// If the parsed time is more than 12h before the reference, assume it's the next day.
+const parseTimeRelativeTo = (timeStr: string, reference: Date): Date => {
+  const d = parseTimeToDate(timeStr);
+  // Align day to reference first
+  d.setFullYear(reference.getFullYear(), reference.getMonth(), reference.getDate());
+  if (d.getTime() < reference.getTime() - 12 * 60 * 60 * 1000) {
+    d.setDate(d.getDate() + 1);
+  } else if (d.getTime() > reference.getTime() + 12 * 60 * 60 * 1000) {
+    d.setDate(d.getDate() - 1);
+  }
+  return d;
+};
+
 const isValidTime = (time: string): boolean => {
   if (!time) return true;
   return /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/.test(time);
@@ -51,12 +65,21 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
   const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
 
-  // Compute the target end date
+  // Compute the target end date (handles midnight rollover by comparing to "now")
   useEffect(() => {
     if (useDepartureMode) {
-      endDateRef.current = parseTimeToDate(departureTime!);
+      const dep = parseTimeToDate(departureTime!);
+      // If departure time is in the past by more than 12h, assume it's tomorrow
+      if (dep.getTime() < Date.now() - 12 * 60 * 60 * 1000) {
+        dep.setDate(dep.getDate() + 1);
+      }
+      endDateRef.current = dep;
     } else if (chocksOnTime && /^\d{2}:\d{2}$/.test(chocksOnTime)) {
       const startDate = parseTimeToDate(chocksOnTime);
+      // If chocksOn is "in the future" relative to now by more than 12h, it actually was yesterday
+      if (startDate.getTime() > Date.now() + 12 * 60 * 60 * 1000) {
+        startDate.setDate(startDate.getDate() - 1);
+      }
       endDateRef.current = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
     } else {
       endDateRef.current = null;
@@ -77,7 +100,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     // If chocksOff is marked, freeze the countdown to the value at chocksOff time
     if (hasChocksOff) {
-      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
       const diffMs = endMs - chocksOffDate.getTime();
       const diff = Math.ceil(diffMs / 1000);
       const clamped = Math.max(0, diff);
@@ -117,7 +140,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     // If chocksOff is filled, freeze delay (stop counting)
     if (hasChocksOff && endDateRef.current) {
-      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
       const delayMs = chocksOffDate.getTime() - endDateRef.current.getTime();
       const delaySecs = Math.max(0, Math.floor(delayMs / 1000));
       setFrozenDelay(delaySecs);
@@ -154,7 +177,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     // If chocksOff is marked: green if completed before/at deadline, red if after
     if (hasChocksOff && endDateRef.current) {
-      const chocksOffDate = parseTimeToDate(chocksOffTime!);
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
       return chocksOffDate.getTime() <= endDateRef.current.getTime() ? 'completed' : 'expired';
     }
 

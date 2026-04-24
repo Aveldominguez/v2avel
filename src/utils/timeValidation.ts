@@ -12,7 +12,9 @@ const parseTimeToMinutes = (time: string | null): number | null => {
 export const validateTimes = (times: TurnaroundTimes): TimeValidationError[] => {
   const errors: TimeValidationError[] = [];
 
-  // Helper to compare times
+  // Helper to compare times — handles day rollover (e.g. start 23:50, end 00:10 next day)
+  // If end < start, we assume the end happened on the next day, as long as the
+  // implied gap is operationally plausible (<= 12h). Otherwise it's an error.
   const checkOrder = (
     startField: keyof TurnaroundTimes,
     endField: keyof TurnaroundTimes,
@@ -22,11 +24,19 @@ export const validateTimes = (times: TurnaroundTimes): TimeValidationError[] => 
     const startMinutes = parseTimeToMinutes(times[startField] as string | null);
     const endMinutes = parseTimeToMinutes(times[endField] as string | null);
 
-    if (startMinutes !== null && endMinutes !== null && startMinutes > endMinutes) {
-      errors.push({
-        field: endField,
-        message: `${endLabel} debe ser posterior a ${startLabel}`,
-      });
+    if (startMinutes === null || endMinutes === null) return;
+
+    if (startMinutes > endMinutes) {
+      // Assume rollover: add 24h to end
+      const adjustedEnd = endMinutes + 24 * 60;
+      const gapMinutes = adjustedEnd - startMinutes;
+      // If the gap is more than 12h, treat as invalid input rather than a rollover
+      if (gapMinutes > 12 * 60) {
+        errors.push({
+          field: endField,
+          message: `${endLabel} debe ser posterior a ${startLabel}`,
+        });
+      }
     }
   };
 

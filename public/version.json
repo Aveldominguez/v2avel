@@ -1,7 +1,7 @@
 {
-  "version": "2.0.36",
+  "version": "2.0.44",
   "changelog": [
-    "Forzado aviso de nueva versión",
-    "Mejoras de sincronización de versión"
+    "Validación de horas con cambio de día (medianoche)",
+    "Cronómetro entiende escalas que cruzan las 00:00"
   ]
 }
