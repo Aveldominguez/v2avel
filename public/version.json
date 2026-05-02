@@ -1,6 +1,7 @@
 {
-  "version": "2.0.46",
+  "version": "2.0.47",
   "changelog": [
-    "Sky Express ahora incluye campos de escalera (Puesta y Retirada)"
+    "Nuevos campos: Inicio y Fin Búsqueda Maleta (excepto FedEx/Amazon)",
+    "Búsqueda de maleta incluida en exportación PDF y backups"
   ]
 }

@@ -55,6 +55,8 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   soloSalida: false,
   pushBack: false,
   pushBackTime: null,
+  bagSearchStart: null,
+  bagSearchEnd: null,
   incidentReport: null,
   equipment: [],
   departureTime: null,

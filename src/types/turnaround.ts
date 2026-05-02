@@ -55,6 +55,8 @@ export interface TurnaroundTimes {
   soloSalida: boolean;                  // Sólo salida (departure only)
   pushBack: boolean;                    // Push Back requerido (parking T)
   pushBackTime: string | null;          // Hora de Push Back
+  bagSearchStart: string | null;        // Inicio búsqueda maleta
+  bagSearchEnd: string | null;          // Fin búsqueda maleta
   departureTime: string | null;         // Hora de salida programada
   incidentReport?: {                    // Informe de incidente
     nombre: string;
@@ -185,6 +187,8 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
   { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
+  { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
 ];
 
@@ -198,6 +202,8 @@ const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
   { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
+  { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
 ];
 
@@ -339,6 +345,8 @@ const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'mailDeparture',
   'aviDeparture',
   'gpuOff',
+  'bagSearchStart',
+  'bagSearchEnd',
 ]);
 
 export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false, soloSalida: boolean = false): TimeFieldConfig[] => {
