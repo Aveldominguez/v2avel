@@ -180,7 +180,21 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     });
   };
 
-  const canContinue = flightNumber.trim() !== '' && airline !== '';
+  const [showModelError, setShowModelError] = React.useState(false);
+  const canContinue = flightNumber.trim() !== '' && airline !== '' && aircraftModel !== '';
+
+  // Clear error once a model is chosen
+  React.useEffect(() => {
+    if (aircraftModel) setShowModelError(false);
+  }, [aircraftModel]);
+
+  const handleContinueClick = () => {
+    if (!aircraftModel) {
+      setShowModelError(true);
+      return;
+    }
+    onContinue();
+  };
 
   const handleAirlineChange = (v: AirlineCode) => {
     // Strip old prefix from flight number if present
