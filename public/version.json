@@ -1,7 +1,6 @@
 {
-  "version": "2.0.44",
+  "version": "2.0.46",
   "changelog": [
-    "Validación de horas con cambio de día (medianoche)",
-    "Cronómetro entiende escalas que cruzan las 00:00"
+    "Sky Express ahora incluye campos de escalera (Puesta y Retirada)"
   ]
 }
