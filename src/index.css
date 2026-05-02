@@ -194,4 +194,20 @@
     @apply h-10 px-3 bg-accent text-accent-foreground hover:bg-accent/90 
            font-semibold text-sm uppercase tracking-wide;
   }
+
+  /* Blinking red border for required-field validation */
+  @keyframes blink-border {
+    0%, 100% {
+      border-color: hsl(var(--destructive));
+      box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.4);
+    }
+    50% {
+      border-color: hsl(var(--destructive) / 0.3);
+      box-shadow: 0 0 0 2px hsl(var(--destructive) / 0);
+    }
+  }
+  .blink-required {
+    animation: blink-border 0.8s ease-in-out infinite;
+    border-color: hsl(var(--destructive)) !important;
+  }
 }
