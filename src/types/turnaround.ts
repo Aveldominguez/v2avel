@@ -345,6 +345,8 @@ const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'mailDeparture',
   'aviDeparture',
   'gpuOff',
+  'bagSearchStart',
+  'bagSearchEnd',
 ]);
 
 export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false, soloSalida: boolean = false): TimeFieldConfig[] => {
