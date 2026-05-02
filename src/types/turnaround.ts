@@ -187,6 +187,8 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
   { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
+  { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
 ];
 
@@ -200,6 +202,8 @@ const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
   { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
+  { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
 ];
 
