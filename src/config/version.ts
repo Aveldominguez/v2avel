@@ -1,7 +1,8 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.49';
+export const APP_VERSION = '2.0.47';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Sky Express ahora incluye campos de escalera (Puesta y Retirada)',
+  'Nuevos campos: Inicio y Fin Búsqueda Maleta (excepto FedEx/Amazon)',
+  'Búsqueda de maleta incluida en exportación PDF y backups',
 ];
