@@ -475,6 +475,20 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 placeholder="Matrícula"
                 className={cn("input-operational font-mono", autofilledFields.has('matricula') && "ring-1 ring-primary/40 bg-primary/5")}
               />
+              {(() => {
+                const normalized = matricula.replace(/[-\s]/g, '').toUpperCase();
+                if (normalized === 'EIIMN') {
+                  return (
+                    <div className="mt-2 flex items-start gap-2 rounded-md border-2 border-destructive bg-destructive/10 p-2 text-destructive">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold leading-tight">
+                        ⚠️ AVISO: Esta aeronave (EI-IMN) tiene problemas en 2 bodegas del compartimento trasero.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
             <TimeInput
               label="Hora Salida"
