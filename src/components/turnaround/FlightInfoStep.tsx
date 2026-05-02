@@ -527,8 +527,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
           {/* Continue */}
           <Button
-            onClick={onContinue}
-            disabled={!canContinue}
+            onClick={handleContinueClick}
+            disabled={flightNumber.trim() === '' || airline === ''}
             className="w-full gap-2 h-12 text-lg font-semibold"
             size="lg"
           >
