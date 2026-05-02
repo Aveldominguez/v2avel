@@ -1,5 +1,5 @@
 {
-  "version": "2.0.44",
+  "version": "2.0.45",
   "changelog": [
     "Validación de horas con cambio de día (medianoche)",
     "Cronómetro entiende escalas que cruzan las 00:00"
