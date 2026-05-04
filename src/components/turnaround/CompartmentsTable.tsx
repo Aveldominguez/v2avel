@@ -359,24 +359,35 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
 
   return (
     <div className="space-y-5">
-      {compartments.map((comp) => (
-        <div key={comp.id}>
-          <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
-            {comp.compartmentName}
-          </h3>
-          <div className="space-y-2">
-            {comp.holds.map((hold, idx) => {
-              const isBulk = comp.bulk === true || comp.id.includes('bulk');
-              return isItaStyle(comp) && !isPairedHold(hold)
-                ? renderItaHoldInput(hold, comp.airline)
-                : isPairedHold(hold)
-                  ? renderPairedHold(hold, idx)
-                  : renderHoldInput(hold);
-            })}
-            {comp.expandable && renderExpandableFields(comp)}
+      {compartments.map((comp) => {
+        const showWizzAlert =
+          airline === 'WIZZ' &&
+          comp.id === 'wizz-a321-comp3' &&
+          (wizzA321Comp3Alert.anyOver || wizzA321Comp3Alert.sumOver);
+        return (
+          <div key={comp.id}>
+            <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
+              {comp.compartmentName}
+            </h3>
+            <div className="space-y-2">
+              {comp.holds.map((hold, idx) => {
+                const isBulk = comp.bulk === true || comp.id.includes('bulk');
+                return isItaStyle(comp) && !isPairedHold(hold)
+                  ? renderItaHoldInput(hold, comp.airline)
+                  : isPairedHold(hold)
+                    ? renderPairedHold(hold, idx)
+                    : renderHoldInput(hold);
+              })}
+              {comp.expandable && renderExpandableFields(comp)}
+              {showWizzAlert && (
+                <div className="mt-2 text-xs font-bold text-destructive uppercase tracking-wide">
+                  ⚠️ Límite superado: máximo 90 maletas en compartimiento 3 (B31+B32+B33).
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
