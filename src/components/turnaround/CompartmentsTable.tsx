@@ -230,6 +230,10 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   const WIZZ_A321_COMP3_IDS = ['wizz-hold-a32131', 'wizz-hold-a32132', 'wizz-hold-a32133'];
   const isWizzA321Comp3Hold = (holdId: string) => WIZZ_A321_COMP3_IDS.includes(holdId);
 
+  // Wizz A320 compartment 1 alert logic: any field > 80, or sum of 11+12+13 > 80
+  const WIZZ_A320_COMP1_IDS = ['wizz-hold-a32011', 'wizz-hold-a32012', 'wizz-hold-a32013'];
+  const isWizzA320Comp1Hold = (holdId: string) => WIZZ_A320_COMP1_IDS.includes(holdId);
+
   const wizzA321Comp3Alert = React.useMemo(() => {
     if (airline !== 'WIZZ') return { anyOver: false, sumOver: false };
     const sum = WIZZ_A321_COMP3_IDS.reduce((acc, id) => acc + sumNumericTokens(getValue(id)), 0);
@@ -238,10 +242,25 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [airline, values]);
 
+  const wizzA320Comp1Alert = React.useMemo(() => {
+    if (airline !== 'WIZZ') return { anyOver: false, sumOver: false };
+    const sum = WIZZ_A320_COMP1_IDS.reduce((acc, id) => acc + sumNumericTokens(getValue(id)), 0);
+    const anyOver = WIZZ_A320_COMP1_IDS.some(id => sumNumericTokens(getValue(id)) > 80);
+    return { anyOver, sumOver: sum > 80 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [airline, values]);
+
   const shouldAlertHold = (holdId: string): boolean => {
-    if (airline !== 'WIZZ' || !isWizzA321Comp3Hold(holdId)) return false;
-    if (wizzA321Comp3Alert.sumOver) return true;
-    return sumNumericTokens(getValue(holdId)) > 90;
+    if (airline !== 'WIZZ') return false;
+    if (isWizzA321Comp3Hold(holdId)) {
+      if (wizzA321Comp3Alert.sumOver) return true;
+      return sumNumericTokens(getValue(holdId)) > 90;
+    }
+    if (isWizzA320Comp1Hold(holdId)) {
+      if (wizzA320Comp1Alert.sumOver) return true;
+      return sumNumericTokens(getValue(holdId)) > 80;
+    }
+    return false;
   };
 
   const renderHoldInput = (hold: { id: string; label: string }) => {
