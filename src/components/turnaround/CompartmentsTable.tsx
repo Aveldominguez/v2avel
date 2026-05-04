@@ -379,10 +379,14 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   return (
     <div className="space-y-5">
       {compartments.map((comp) => {
-        const showWizzAlert =
+        const showWizzA321Alert =
           airline === 'WIZZ' &&
           comp.id === 'wizz-a321-comp3' &&
           (wizzA321Comp3Alert.anyOver || wizzA321Comp3Alert.sumOver);
+        const showWizzA320Alert =
+          airline === 'WIZZ' &&
+          comp.id === 'wizz-a320-comp1' &&
+          (wizzA320Comp1Alert.anyOver || wizzA320Comp1Alert.sumOver);
         return (
           <div key={comp.id}>
             <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
@@ -398,9 +402,14 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                     : renderHoldInput(hold);
               })}
               {comp.expandable && renderExpandableFields(comp)}
-              {showWizzAlert && (
+              {showWizzA321Alert && (
                 <div className="mt-2 text-xs font-bold text-destructive uppercase tracking-wide">
                   ⚠️ Límite superado: máximo 90 maletas en compartimiento 3 (B31+B32+B33).
+                </div>
+              )}
+              {showWizzA320Alert && (
+                <div className="mt-2 text-xs font-bold text-destructive uppercase tracking-wide">
+                  ⚠️ Límite superado: máximo 80 maletas en compartimiento 1 (B11+B12+B13).
                 </div>
               )}
             </div>
