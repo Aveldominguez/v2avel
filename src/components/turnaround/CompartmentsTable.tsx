@@ -218,9 +218,36 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     );
   };
 
+  // Sum all numeric tokens in a string, ignoring alpha chars (e.g. "23BY" → 23, "10+5=15" → 30)
+  const sumNumericTokens = (text: string): number => {
+    if (!text) return 0;
+    const matches = text.match(/\d+/g);
+    if (!matches) return 0;
+    return matches.reduce((acc, n) => acc + parseInt(n, 10), 0);
+  };
+
+  // Wizz A321 compartment 3 alert logic: any field > 90, or sum of 31+32+33 > 90
+  const WIZZ_A321_COMP3_IDS = ['wizz-hold-a32131', 'wizz-hold-a32132', 'wizz-hold-a32133'];
+  const isWizzA321Comp3Hold = (holdId: string) => WIZZ_A321_COMP3_IDS.includes(holdId);
+
+  const wizzA321Comp3Alert = React.useMemo(() => {
+    if (airline !== 'WIZZ') return { anyOver: false, sumOver: false };
+    const sum = WIZZ_A321_COMP3_IDS.reduce((acc, id) => acc + sumNumericTokens(getValue(id)), 0);
+    const anyOver = WIZZ_A321_COMP3_IDS.some(id => sumNumericTokens(getValue(id)) > 90);
+    return { anyOver, sumOver: sum > 90 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [airline, values]);
+
+  const shouldAlertHold = (holdId: string): boolean => {
+    if (airline !== 'WIZZ' || !isWizzA321Comp3Hold(holdId)) return false;
+    if (wizzA321Comp3Alert.sumOver) return true;
+    return sumNumericTokens(getValue(holdId)) > 90;
+  };
+
   const renderHoldInput = (hold: { id: string; label: string }) => {
     const val = getValue(hold.id);
     const lineCount = (val.match(/\n/g) || []).length + 1;
+    const alert = shouldAlertHold(hold.id);
     return (
       <div key={hold.id} className="flex items-start gap-3">
         <label className="text-sm font-medium text-foreground/80 w-24 shrink-0 pt-2">
@@ -232,7 +259,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           disabled={disabled}
           placeholder="—"
           rows={lineCount}
-          className="flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6"
+          className={`flex-1 font-mono text-base bg-input border border-border rounded-md px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none disabled:cursor-not-allowed disabled:opacity-50 min-h-[36px] leading-6 ${alert ? 'blink-required' : ''}`}
         />
         {renderNilButton(hold.id)}
       </div>
@@ -332,24 +359,35 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
 
   return (
     <div className="space-y-5">
-      {compartments.map((comp) => (
-        <div key={comp.id}>
-          <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
-            {comp.compartmentName}
-          </h3>
-          <div className="space-y-2">
-            {comp.holds.map((hold, idx) => {
-              const isBulk = comp.bulk === true || comp.id.includes('bulk');
-              return isItaStyle(comp) && !isPairedHold(hold)
-                ? renderItaHoldInput(hold, comp.airline)
-                : isPairedHold(hold)
-                  ? renderPairedHold(hold, idx)
-                  : renderHoldInput(hold);
-            })}
-            {comp.expandable && renderExpandableFields(comp)}
+      {compartments.map((comp) => {
+        const showWizzAlert =
+          airline === 'WIZZ' &&
+          comp.id === 'wizz-a321-comp3' &&
+          (wizzA321Comp3Alert.anyOver || wizzA321Comp3Alert.sumOver);
+        return (
+          <div key={comp.id}>
+            <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
+              {comp.compartmentName}
+            </h3>
+            <div className="space-y-2">
+              {comp.holds.map((hold, idx) => {
+                const isBulk = comp.bulk === true || comp.id.includes('bulk');
+                return isItaStyle(comp) && !isPairedHold(hold)
+                  ? renderItaHoldInput(hold, comp.airline)
+                  : isPairedHold(hold)
+                    ? renderPairedHold(hold, idx)
+                    : renderHoldInput(hold);
+              })}
+              {comp.expandable && renderExpandableFields(comp)}
+              {showWizzAlert && (
+                <div className="mt-2 text-xs font-bold text-destructive uppercase tracking-wide">
+                  ⚠️ Límite superado: máximo 90 maletas en compartimiento 3 (B31+B32+B33).
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
