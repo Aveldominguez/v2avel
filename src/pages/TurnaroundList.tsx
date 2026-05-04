@@ -30,6 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { 
   Plus, 
@@ -59,7 +67,24 @@ const TurnaroundList: React.FC = () => {
   const { isAdmin } = useAdmin();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
   const [showChangelog, setShowChangelog] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
+
+  // Auto-open update dialog once per remote version
+  useEffect(() => {
+    if (!updateAvailable || !remoteVersion) return;
+    const seenKey = 'app-update-dialog-seen';
+    const seen = localStorage.getItem(seenKey);
+    if (seen !== remoteVersion) {
+      setShowUpdateDialog(true);
+    }
+  }, [updateAvailable, remoteVersion]);
+
+  const dismissUpdateDialog = () => {
+    if (remoteVersion) localStorage.setItem('app-update-dialog-seen', remoteVersion);
+    setShowUpdateDialog(false);
+  };
+
   
   // Pagination
   const PAGE_SIZE = 10;
@@ -194,6 +219,39 @@ const TurnaroundList: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Auto-emergent update dialog */}
+      <Dialog open={showUpdateDialog} onOpenChange={(open) => { if (!open) dismissUpdateDialog(); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              Nueva versión {remoteVersion ? `v${remoteVersion}` : ''} disponible
+            </DialogTitle>
+            <DialogDescription>
+              Estos son los cambios incluidos en esta actualización:
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="text-sm space-y-2 list-disc list-inside text-foreground/90 max-h-[50vh] overflow-y-auto">
+            {remoteChangelog.length > 0 ? (
+              remoteChangelog.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))
+            ) : (
+              <li>Mejoras y correcciones</li>
+            )}
+          </ul>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={dismissUpdateDialog}>
+              Más tarde
+            </Button>
+            <Button onClick={() => { dismissUpdateDialog(); applyUpdate(); }} disabled={updating}>
+              {updating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+              Actualizar ahora
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
       <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
