@@ -1,5 +1,5 @@
 {
-  "version": "2.0.56",
+  "version": "2.0.57",
   "changelog": [
     "Modelo de aeronave obligatorio: aviso y borde rojo parpadeante si no se selecciona",
     "Nuevo aviso para matrícula EI-IMN: problemas en 2 bodegas del compartimento trasero",
