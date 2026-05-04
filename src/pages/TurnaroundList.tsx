@@ -67,7 +67,24 @@ const TurnaroundList: React.FC = () => {
   const { isAdmin } = useAdmin();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
   const [showChangelog, setShowChangelog] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
+
+  // Auto-open update dialog once per remote version
+  useEffect(() => {
+    if (!updateAvailable || !remoteVersion) return;
+    const seenKey = 'app-update-dialog-seen';
+    const seen = localStorage.getItem(seenKey);
+    if (seen !== remoteVersion) {
+      setShowUpdateDialog(true);
+    }
+  }, [updateAvailable, remoteVersion]);
+
+  const dismissUpdateDialog = () => {
+    if (remoteVersion) localStorage.setItem('app-update-dialog-seen', remoteVersion);
+    setShowUpdateDialog(false);
+  };
+
   
   // Pagination
   const PAGE_SIZE = 10;
