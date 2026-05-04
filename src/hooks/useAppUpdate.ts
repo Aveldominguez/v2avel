@@ -25,8 +25,12 @@ export const useAppUpdate = () => {
 
         // Send local notification if permission granted
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Nueva versión disponible', {
-            body: `v${data.version} — ${(data.changelog || [])[0] || 'Mejoras y correcciones'}`,
+          const items = data.changelog || [];
+          const body = items.length > 0
+            ? items.map((it, i) => `• ${it}`).join('\n')
+            : 'Mejoras y correcciones';
+          new Notification(`Nueva versión v${data.version} disponible`, {
+            body,
             icon: '/icons/icon-192x192.png',
             tag: 'app-update',
           });
