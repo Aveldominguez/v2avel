@@ -52,6 +52,7 @@ const TurnaroundForm: React.FC = () => {
   const [soloSalida, setSoloSalida] = useState(false);
   const [pushBack, setPushBack] = useState(false);
   const [departureTime, setDepartureTime] = useState<string | null>(null);
+  const [departureFlightNumber, setDepartureFlightNumber] = useState('');
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -105,6 +106,7 @@ const TurnaroundForm: React.FC = () => {
             setSoloSalida(existing.times.soloSalida || false);
             setPushBack(existing.times.pushBack || false);
             setDepartureTime(existing.times.departureTime || null);
+            setDepartureFlightNumber(existing.times.departureFlightNumber || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             // Backward compat: migrate loadingSheetUrl to loadingSheetUrls
@@ -158,6 +160,7 @@ const TurnaroundForm: React.FC = () => {
     setSoloSalida(draft.soloSalida || false);
     setPushBack(draft.times?.pushBack || false);
     setDepartureTime(draft.times?.departureTime || null);
+    setDepartureFlightNumber(draft.times?.departureFlightNumber || '');
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
@@ -194,6 +197,7 @@ const TurnaroundForm: React.FC = () => {
     soloSalida,
     pushBack,
     departureTime,
+    departureFlightNumber: departureFlightNumber || null,
     loadingSheetUrl: loadingSheetUrls[0] || null,
     loadingSheetUrls,
     fileUrl: fileUrls[0] || null,
@@ -202,7 +206,7 @@ const TurnaroundForm: React.FC = () => {
     incidentReport,
     equipment: equipmentSelections,
     bodegasData,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
 
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
@@ -243,7 +247,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
@@ -421,6 +425,8 @@ const TurnaroundForm: React.FC = () => {
       <FlightInfoStep
         flightNumber={flightNumber}
         setFlightNumber={setFlightNumber}
+        departureFlightNumber={departureFlightNumber}
+        setDepartureFlightNumber={setDepartureFlightNumber}
         tango={tango}
         setTango={setTango}
         isRemote={isRemote}
