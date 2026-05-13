@@ -83,15 +83,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const models = airline ? getModelsForAirline(airline) : [];
 
-  // Check if both flights have real content (not just prefix) and are equal
-  const hasRealArrivalContent = isPrefixedMode
-    ? flightNumber.length > activePrefix.length
-    : flightNumber.trim().length > 0;
-  const hasRealDepartureContent = isPrefixedMode
-    ? departureFlightNumber.length > activePrefix.length
-    : departureFlightNumber.trim().length > 0;
-  const hasFlightConflict = hasRealArrivalContent && hasRealDepartureContent && flightNumber === departureFlightNumber;
-
   const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
     FEDEX: '3V',
     AIR_CANADA: 'AC',
