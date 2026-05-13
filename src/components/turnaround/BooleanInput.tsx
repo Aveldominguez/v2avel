@@ -9,6 +9,7 @@ interface BooleanInputProps {
   label: string;
   className?: string;
   disabled?: boolean;
+  warning?: string;
 }
 
 export const BooleanInput: React.FC<BooleanInputProps> = ({
@@ -17,6 +18,7 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
   label,
   className,
   disabled = false,
+  warning,
 }) => {
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -37,6 +39,11 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
           {value ? 'Sí' : 'No'}
         </span>
       </div>
+      {value && warning && (
+        <div className="mt-1 rounded-md bg-warning p-2 text-[11px] font-semibold text-black leading-tight">
+          {warning}
+        </div>
+      )}
     </div>
   );
 };
