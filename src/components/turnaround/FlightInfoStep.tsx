@@ -108,6 +108,15 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   // Whether the field is in "prefixed numeric" mode
   const isPrefixedMode = airline !== '';
 
+  // Check if both flights have real content (not just prefix) and are equal
+  const hasRealArrivalContent = isPrefixedMode
+    ? flightNumber.length > activePrefix.length
+    : flightNumber.trim().length > 0;
+  const hasRealDepartureContent = isPrefixedMode
+    ? departureFlightNumber.length > activePrefix.length
+    : departureFlightNumber.trim().length > 0;
+  const hasFlightConflict = hasRealArrivalContent && hasRealDepartureContent && flightNumber === departureFlightNumber;
+
   // Flight lookup hook
   const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
 
