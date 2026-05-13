@@ -266,8 +266,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   // Collapsible arrival/departure sections (split layout only)
   const [arrivalOpen, setArrivalOpen] = useState(true);
+  // Note: departureFlightNumber is pre-filled from "Nueva Escala", so it's NOT a signal that the user has started departure work.
   const [departureOpen, setDepartureOpen] = useState(
-    !!times.loadingStart || !!times.loadingEnd || !!times.chocksOff || !!times.lastHandBag || !!times.departureFlightNumber
+    !!times.loadingStart || !!times.loadingEnd || !!times.chocksOff || !!times.lastHandBag
   );
   const prevUnloadingEndRef = React.useRef(times.unloadingEnd);
   React.useEffect(() => {
