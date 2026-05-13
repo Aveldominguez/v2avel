@@ -52,6 +52,7 @@ const TurnaroundForm: React.FC = () => {
   const [soloSalida, setSoloSalida] = useState(false);
   const [pushBack, setPushBack] = useState(false);
   const [departureTime, setDepartureTime] = useState<string | null>(null);
+  const [departureFlightNumber, setDepartureFlightNumber] = useState('');
   const [times, setTimes] = useState<TurnaroundTimes>(getEmptyTimes());
   const [fieldValues, setFieldValues] = useState<FieldValue[]>([]);
   const [observations, setObservations] = useState('');
@@ -105,6 +106,7 @@ const TurnaroundForm: React.FC = () => {
             setSoloSalida(existing.times.soloSalida || false);
             setPushBack(existing.times.pushBack || false);
             setDepartureTime(existing.times.departureTime || null);
+            setDepartureFlightNumber(existing.times.departureFlightNumber || '');
             setFieldValues(existing.fieldValues);
             setObservations(existing.observations || '');
             // Backward compat: migrate loadingSheetUrl to loadingSheetUrls
