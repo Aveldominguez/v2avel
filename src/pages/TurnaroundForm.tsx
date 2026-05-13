@@ -160,6 +160,7 @@ const TurnaroundForm: React.FC = () => {
     setSoloSalida(draft.soloSalida || false);
     setPushBack(draft.times?.pushBack || false);
     setDepartureTime(draft.times?.departureTime || null);
+    setDepartureFlightNumber(draft.times?.departureFlightNumber || '');
     setTimes(draft.times);
     setTango(draft.tango);
     setIsRemote(draft.isRemote);
