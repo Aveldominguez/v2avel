@@ -75,9 +75,9 @@ export const TimeInput: React.FC<TimeInputProps> = ({
   };
 
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
+    <div className={cn('flex flex-col gap-2', className)}>
       {label && (
-        <label className="text-xs font-semibold text-foreground uppercase tracking-wide">
+        <label className="text-xs uppercase tracking-wide text-muted-foreground">
           {label}
         </label>
       )}
