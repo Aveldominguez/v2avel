@@ -1,6 +1,6 @@
 {
-  "version": "2.0.80",
+  "version": "2.0.81",
   "changelog": [
-    "Modo offline reforzado: la app ahora arranca sin conexión y permite crear nuevas escalas (se sincronizan al volver la red)"
+    "Total automático de maletas por compartimiento de bodegas de salida"
   ]
 }
