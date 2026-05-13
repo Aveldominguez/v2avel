@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { DeletePhotoButton } from './DeletePhotoButton';
 import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
@@ -102,15 +103,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
                 className="w-full h-32 object-cover rounded-lg border border-border cursor-pointer"
                 onClick={() => displayUrls[i] && window.open(displayUrls[i]!, '_blank')}
               />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-80 group-hover:opacity-100"
-                onClick={() => handleDelete(i)}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+              <DeletePhotoButton onConfirm={() => handleDelete(i)} />
             </div>
           ))}
           {/* Pending local images */}
