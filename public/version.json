@@ -1,6 +1,6 @@
 {
   "version": "2.0.95",
   "changelog": [
-    "Vuelo de salida contraído al iniciar; secciones llegada/salida desplegables. Fin Descarga contrae llegada y despliega salida automáticamente."
+    "Vuelo de salida: el número de vuelo introducido en Nueva Escala se muestra automáticamente en la sección desplegable, sin tener que reescribirlo."
   ]
 }
