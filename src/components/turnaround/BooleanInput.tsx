@@ -21,7 +21,7 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
   warning,
 }) => {
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
+    <div className={cn('flex flex-col gap-1.5 self-start', className)}>
       <Label className="text-xs font-semibold text-foreground uppercase tracking-wide">
         {label}
       </Label>
@@ -40,7 +40,10 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
         </span>
       </div>
       {value && warning && (
-        <div className="mt-1 rounded-md bg-warning p-2 text-[11px] font-semibold text-black leading-tight">
+        <div
+          className="mt-1 rounded-md p-2 text-[11px] font-semibold text-black leading-tight w-[calc(200%+1rem)] mr-[calc(-100%-1rem)] md:w-full md:mr-0 relative z-10"
+          style={{ backgroundColor: '#FFFF00' }}
+        >
           {warning}
         </div>
       )}
