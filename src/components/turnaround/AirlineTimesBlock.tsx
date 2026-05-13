@@ -84,6 +84,13 @@ const FieldRenderer: React.FC<{
   }
 
   if (field.type === 'boolean') {
+    const warning =
+      field.key === 'cargoDeparture'
+        ? 'Toda mercancía con rombo se debe atar obligatoriamente. Solicitar NOTOC: siempre que cargues AVI, mercancía peligrosa y HUM.'
+        : field.key === 'aviDeparture'
+        ? 'Recuerda firmar el NOTOC al cargar un AVI o AVIH'
+        : undefined;
+
     return (
       <BooleanInput
         key={field.key}
@@ -91,6 +98,7 @@ const FieldRenderer: React.FC<{
         value={times[field.key] as boolean}
         onChange={(v) => updateTime(field.key, v)}
         disabled={disabled}
+        warning={warning}
       />
     );
   }
