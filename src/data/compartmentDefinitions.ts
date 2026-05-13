@@ -1189,7 +1189,7 @@ export const TAP_321_GRANEL_COMPARTMENTS: CompartmentDefinition[] = [
 ];
 
 export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
-  ITA: ['AKH-AZ', 'PKC-AZ'],
+  ITA: ['AKH-AZ', 'AKH-LH', 'PKC-AZ'],
   TAP: ['AKH-TP', 'PKC-TP'],
 };
 
