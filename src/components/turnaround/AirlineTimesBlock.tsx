@@ -264,6 +264,20 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const [showRistra3, setShowRistra3] = useState(!!times.ristra3 || !!times.ristra4);
   const [showRistra4, setShowRistra4] = useState(!!times.ristra4);
 
+  // Collapsible arrival/departure sections (split layout only)
+  const [arrivalOpen, setArrivalOpen] = useState(true);
+  const [departureOpen, setDepartureOpen] = useState(
+    !!times.loadingStart || !!times.loadingEnd || !!times.chocksOff || !!times.lastHandBag || !!times.departureFlightNumber
+  );
+  const prevUnloadingEndRef = React.useRef(times.unloadingEnd);
+  React.useEffect(() => {
+    if (!prevUnloadingEndRef.current && times.unloadingEnd) {
+      setArrivalOpen(false);
+      setDepartureOpen(true);
+    }
+    prevUnloadingEndRef.current = times.unloadingEnd;
+  }, [times.unloadingEnd]);
+
   const updateTime = (field: keyof TurnaroundTimes, value: string | null | boolean) => {
     onChange({ ...times, [field]: value });
   };
