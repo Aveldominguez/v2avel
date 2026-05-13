@@ -1,6 +1,6 @@
 {
   "version": "2.0.92",
   "changelog": [
-    "PDF: ITA A320/A321 incluye tipo, número y contenido de cada contenedor"
+    "ITA y TAP A320/A321: eliminado el total de suma en compartimentos con contenedores"
   ]
 }
