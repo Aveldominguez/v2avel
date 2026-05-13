@@ -335,40 +335,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Modelo de Avión <span className="text-destructive">*</span>
-                {autofilledFields.has('aircraftModel') && (
-                  <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
-                )}
-              </Label>
-              <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
-                <SelectTrigger
-                  className={cn(
-                    "input-operational",
-                    autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
-                    showModelError && !aircraftModel && "blink-required"
-                  )}
-                >
-                  <SelectValue placeholder="Modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {models.map((m) => (
-                    <SelectItem key={m.model} value={m.model}>
-                      {m.label} — {m.turnaroundMinutes} min
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {showModelError && !aircraftModel && (
-                <div className="mt-1 flex items-start gap-1.5 rounded-md border border-destructive bg-destructive/10 p-1.5 text-destructive">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-semibold leading-tight">
-                    Debes elegir un modelo de aeronave para continuar.
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Tango / Remote toggle */}
