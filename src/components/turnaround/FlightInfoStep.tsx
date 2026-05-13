@@ -285,8 +285,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </Select>
           </div>
 
-          {/* Flight Number + Departure Flight Number + Aircraft Model side by side */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Vuelo de llegada + Vuelo de salida */}
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Vuelo de llegada <span className="text-destructive">*</span>
@@ -335,40 +335,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Modelo de Avión <span className="text-destructive">*</span>
-                {autofilledFields.has('aircraftModel') && (
-                  <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
-                )}
-              </Label>
-              <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
-                <SelectTrigger
-                  className={cn(
-                    "input-operational",
-                    autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
-                    showModelError && !aircraftModel && "blink-required"
-                  )}
-                >
-                  <SelectValue placeholder="Modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {models.map((m) => (
-                    <SelectItem key={m.model} value={m.model}>
-                      {m.label} — {m.turnaroundMinutes} min
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {showModelError && !aircraftModel && (
-                <div className="mt-1 flex items-start gap-1.5 rounded-md border border-destructive bg-destructive/10 p-1.5 text-destructive">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-semibold leading-tight">
-                    Debes elegir un modelo de aeronave para continuar.
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Tango / Remote toggle */}
@@ -394,18 +360,47 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
             {isRemote ? (
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Ubicación Remoto
-                  </Label>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={remoteLocation}
-                    onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Ej: 1, 2..."
-                    className="input-operational font-mono"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Ubicación Remoto
+                    </Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={remoteLocation}
+                      onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="Ej: 1"
+                      className="input-operational font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Modelo de Avión <span className="text-destructive">*</span>
+                      {autofilledFields.has('aircraftModel') && (
+                        <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                      )}
+                    </Label>
+                    <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
+                      <SelectTrigger
+                        className={cn(
+                          "input-operational",
+                          autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
+                          showModelError && !aircraftModel && "blink-required"
+                        )}
+                      >
+                        <SelectValue placeholder="Modelo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {models.map((m) => (
+                          <SelectItem key={m.model} value={m.model}>
+                            {m.label} — {m.turnaroundMinutes} min
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Push Back toggle — only when remote */}
@@ -429,64 +424,103 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Tango
-                </Label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  value={tango}
-                  onChange={(e) => setTango(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Tango"
-                  className="input-operational font-mono"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Tango
+                  </Label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={tango}
+                    onChange={(e) => setTango(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="Tango"
+                    className="input-operational font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Modelo de Avión <span className="text-destructive">*</span>
+                    {autofilledFields.has('aircraftModel') && (
+                      <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                    )}
+                  </Label>
+                  <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
+                    <SelectTrigger
+                      className={cn(
+                        "input-operational",
+                        autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
+                        showModelError && !aircraftModel && "blink-required"
+                      )}
+                    >
+                      <SelectValue placeholder="Modelo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {models.map((m) => (
+                        <SelectItem key={m.model} value={m.model}>
+                          {m.label} — {m.turnaroundMinutes} min
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             )}
 
-            {/* Sólo llegada toggle */}
-            <div className="flex items-center justify-between pt-2 border-t border-border">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Sólo Llegada
-              </Label>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={soloLlegada}
-                  onCheckedChange={(v) => {
-                    setSoloLlegada(v);
-                    if (v) setSoloSalida(false);
-                  }}
-                  className="data-[state=checked]:bg-primary"
-                />
-                <span className={cn(
-                  'text-sm font-semibold',
-                  soloLlegada ? 'text-primary' : 'text-muted-foreground'
-                )}>
-                  {soloLlegada ? 'Sí' : 'No'}
-                </span>
+            {showModelError && !aircraftModel && (
+              <div className="mt-1 flex items-start gap-1.5 rounded-md border border-destructive bg-destructive/10 p-1.5 text-destructive">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                <p className="text-[11px] font-semibold leading-tight">
+                  Debes elegir un modelo de aeronave para continuar.
+                </p>
               </div>
-            </div>
+            )}
 
-            {/* Sólo salida toggle */}
-            <div className="flex items-center justify-between">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Sólo Salida
-              </Label>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={soloSalida}
-                  onCheckedChange={(v) => {
-                    setSoloSalida(v);
-                    if (v) setSoloLlegada(false);
-                  }}
-                  className="data-[state=checked]:bg-primary"
-                />
-                <span className={cn(
-                  'text-sm font-semibold',
-                  soloSalida ? 'text-primary' : 'text-muted-foreground'
-                )}>
-                  {soloSalida ? 'Sí' : 'No'}
-                </span>
+            {/* Sólo Llegada + Sólo Salida en una misma línea */}
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
+              <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Sólo Llegada
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={soloLlegada}
+                    onCheckedChange={(v) => {
+                      setSoloLlegada(v);
+                      if (v) setSoloSalida(false);
+                    }}
+                    className="data-[state=checked]:bg-primary"
+                  />
+                  <span className={cn(
+                    'text-sm font-semibold',
+                    soloLlegada ? 'text-primary' : 'text-muted-foreground'
+                  )}>
+                    {soloLlegada ? 'Sí' : 'No'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Sólo Salida
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={soloSalida}
+                    onCheckedChange={(v) => {
+                      setSoloSalida(v);
+                      if (v) setSoloLlegada(false);
+                    }}
+                    className="data-[state=checked]:bg-primary"
+                  />
+                  <span className={cn(
+                    'text-sm font-semibold',
+                    soloSalida ? 'text-primary' : 'text-muted-foreground'
+                  )}>
+                    {soloSalida ? 'Sí' : 'No'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
