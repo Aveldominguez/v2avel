@@ -285,6 +285,19 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     );
   }
 
+  const togglePause = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (pausedAt !== null) {
+      // Resume: accumulate the paused duration into pauseShiftMs
+      setPauseShiftMs((prev) => prev + (Date.now() - pausedAt));
+      setPausedAt(null);
+    } else {
+      setPausedAt(Date.now());
+    }
+  };
+
+  const canPause = !hasChocksOff;
+
   return (
     <div className="flex items-center gap-2">
       {/* Main countdown */}
@@ -295,20 +308,39 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           status === 'expired' && 'bg-destructive/20 text-destructive',
           status === 'running' && 'bg-success/20 text-success',
           status === 'completed' && 'bg-success/20 text-success',
+          isPaused && 'bg-muted text-muted-foreground ring-2 ring-muted-foreground/40',
           onDepartureTimeChange && 'cursor-pointer hover:opacity-80 active:scale-95 transition-transform'
         )}
         onClick={handleTimerClick}
       >
-        <Timer className="h-4 w-4" />
+        <Timer className={cn('h-4 w-4', isPaused && 'animate-pulse')} />
         <span>{formatTime(remainingSeconds)}</span>
       </div>
+
+      {/* Pause / Resume button */}
+      {canPause && (
+        <button
+          type="button"
+          onClick={togglePause}
+          aria-label={isPaused ? 'Reanudar cronómetro' : 'Pausar cronómetro'}
+          title={isPaused ? 'Reanudar cronómetro' : 'Pausar cronómetro'}
+          className={cn(
+            'flex items-center justify-center h-8 w-8 rounded-lg border-2 transition-colors active:scale-95',
+            isPaused
+              ? 'bg-success/20 text-success border-success/40 hover:bg-success/30 animate-pulse'
+              : 'bg-muted text-foreground border-muted-foreground/30 hover:bg-muted/80'
+          )}
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </button>
+      )}
 
       {/* Delay counter (red, counts up from 0:00 until chocksOff) */}
       {showDelayCounter && (
         <div
           className={cn(
             'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-destructive/20 text-destructive text-sm font-mono font-bold',
-            !hasChocksOff && 'animate-pulse'
+            !hasChocksOff && !isPaused && 'animate-pulse'
           )}
         >
           <AlertTriangle className="h-4 w-4" />
