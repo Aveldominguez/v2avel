@@ -339,15 +339,28 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 <PlaneLanding className="h-5 w-5 text-emerald-500" />
                 <span className="text-emerald-600 dark:text-emerald-400">Vuelo de llegada</span>
                 <span className="ml-1 font-mono text-base text-muted-foreground">{flightNumber}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setArrivalOpen(o => !o)}
+                  className="ml-auto h-8 w-8 shrink-0 text-emerald-600 dark:text-emerald-400"
+                  title={arrivalOpen ? 'Contraer' : 'Desplegar'}
+                  aria-label={arrivalOpen ? 'Contraer vuelo de llegada' : 'Desplegar vuelo de llegada'}
+                >
+                  {arrivalOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {filteredArrival.map((field) => (
-                  <FieldRenderer key={field.key} field={field} {...sharedFieldProps} />
-                ))}
-              </div>
-            </CardContent>
+            {arrivalOpen && (
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {filteredArrival.map((field) => (
+                    <FieldRenderer key={field.key} field={field} {...sharedFieldProps} />
+                  ))}
+                </div>
+              </CardContent>
+            )}
           </Card>
         )}
 
@@ -373,15 +386,28 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                     className="h-8 w-20 font-mono text-sm px-2"
                   />
                 </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDepartureOpen(o => !o)}
+                  className="ml-auto h-8 w-8 shrink-0 text-rose-600 dark:text-rose-400"
+                  title={departureOpen ? 'Contraer' : 'Desplegar'}
+                  aria-label={departureOpen ? 'Contraer vuelo de salida' : 'Desplegar vuelo de salida'}
+                >
+                  {departureOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {departureWithPushBack.map((field) => (
-                  <FieldRenderer key={field.key} field={field} {...sharedFieldProps} />
-                ))}
-              </div>
-            </CardContent>
+            {departureOpen && (
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {departureWithPushBack.map((field) => (
+                    <FieldRenderer key={field.key} field={field} {...sharedFieldProps} />
+                  ))}
+                </div>
+              </CardContent>
+            )}
           </Card>
         )}
       </div>
