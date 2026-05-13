@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { Timer, SprayCan, AlertTriangle } from 'lucide-react';
+import { Timer, SprayCan, AlertTriangle, Pause, Play } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 interface CountdownTimerProps {
@@ -60,6 +60,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<Date | null>(null);
   const reachedZeroRef = useRef(false);
+  const [pauseShiftMs, setPauseShiftMs] = useState(0);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const isPaused = pausedAt !== null;
+  const effectiveShiftMs = pauseShiftMs + (pausedAt !== null ? Date.now() - pausedAt : 0);
 
   const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
@@ -96,11 +100,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       return;
     }
 
-    const endMs = endDateRef.current.getTime();
+    const baseEndMs = endDateRef.current.getTime();
 
     // If chocksOff is marked, freeze the countdown to the value at chocksOff time
     if (hasChocksOff) {
-      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
+      const endMs = baseEndMs + pauseShiftMs;
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, new Date(endMs));
       const diffMs = endMs - chocksOffDate.getTime();
       const diff = Math.ceil(diffMs / 1000);
       const clamped = Math.max(0, diff);
@@ -111,17 +116,25 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     const tick = () => {
       const nowMs = Date.now();
+      const shift = pauseShiftMs + (pausedAt !== null ? nowMs - pausedAt : 0);
+      const endMs = baseEndMs + shift;
       const diffMs = endMs - nowMs;
       const diff = Math.ceil(diffMs / 1000);
       const clamped = Math.max(0, diff);
       setRemainingSeconds(clamped);
-      if (clamped <= 0) {
+      if (clamped <= 0 && pausedAt === null) {
         reachedZeroRef.current = true;
         if (intervalRef.current) clearInterval(intervalRef.current);
       }
     };
 
     tick();
+
+    // While paused, don't run a ticking interval - displayed value stays frozen
+    if (pausedAt !== null) {
+      return;
+    }
+
     const msUntilNextSecond = 1000 - (Date.now() % 1000);
     const alignTimeout = setTimeout(() => {
       tick();
@@ -132,7 +145,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, hasChocksOff, chocksOffTime]);
+  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, hasChocksOff, chocksOffTime, pauseShiftMs, pausedAt]);
 
   // Delay counter: starts when countdown reaches 0 and chocksOff is not set
   useEffect(() => {
@@ -150,12 +163,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     setFrozenDelay(null);
 
-    // Start delay counter when countdown reached zero
-    if (reachedZeroRef.current && remainingSeconds === 0 && !hasChocksOff && endDateRef.current) {
-      const endMs = endDateRef.current.getTime();
+    // Start delay counter when countdown reached zero (and not paused)
+    if (reachedZeroRef.current && remainingSeconds === 0 && !hasChocksOff && !isPaused && endDateRef.current) {
+      const baseEndMs = endDateRef.current.getTime();
 
       const tick = () => {
         const nowMs = Date.now();
+        const endMs = baseEndMs + pauseShiftMs;
         const diff = Math.max(0, Math.floor((nowMs - endMs) / 1000));
         setDelaySeconds(diff);
       };
@@ -166,10 +180,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       return () => {
         if (delayIntervalRef.current) clearInterval(delayIntervalRef.current);
       };
-    } else {
+    } else if (!isPaused) {
       setDelaySeconds(null);
     }
-  }, [remainingSeconds, hasChocksOff, chocksOffTime]);
+  }, [remainingSeconds, hasChocksOff, chocksOffTime, pauseShiftMs, isPaused]);
 
   // Determine status
   const getStatus = (): TimerStatus => {
@@ -271,6 +285,19 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     );
   }
 
+  const togglePause = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (pausedAt !== null) {
+      // Resume: accumulate the paused duration into pauseShiftMs
+      setPauseShiftMs((prev) => prev + (Date.now() - pausedAt));
+      setPausedAt(null);
+    } else {
+      setPausedAt(Date.now());
+    }
+  };
+
+  const canPause = !hasChocksOff;
+
   return (
     <div className="flex items-center gap-2">
       {/* Main countdown */}
@@ -281,20 +308,39 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           status === 'expired' && 'bg-destructive/20 text-destructive',
           status === 'running' && 'bg-success/20 text-success',
           status === 'completed' && 'bg-success/20 text-success',
+          isPaused && 'bg-muted text-muted-foreground ring-2 ring-muted-foreground/40',
           onDepartureTimeChange && 'cursor-pointer hover:opacity-80 active:scale-95 transition-transform'
         )}
         onClick={handleTimerClick}
       >
-        <Timer className="h-4 w-4" />
+        <Timer className={cn('h-4 w-4', isPaused && 'animate-pulse')} />
         <span>{formatTime(remainingSeconds)}</span>
       </div>
+
+      {/* Pause / Resume button */}
+      {canPause && (
+        <button
+          type="button"
+          onClick={togglePause}
+          aria-label={isPaused ? 'Reanudar cronómetro' : 'Pausar cronómetro'}
+          title={isPaused ? 'Reanudar cronómetro' : 'Pausar cronómetro'}
+          className={cn(
+            'flex items-center justify-center h-8 w-8 rounded-lg border-2 transition-colors active:scale-95',
+            isPaused
+              ? 'bg-success/20 text-success border-success/40 hover:bg-success/30 animate-pulse'
+              : 'bg-muted text-foreground border-muted-foreground/30 hover:bg-muted/80'
+          )}
+        >
+          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+        </button>
+      )}
 
       {/* Delay counter (red, counts up from 0:00 until chocksOff) */}
       {showDelayCounter && (
         <div
           className={cn(
             'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-destructive/20 text-destructive text-sm font-mono font-bold',
-            !hasChocksOff && 'animate-pulse'
+            !hasChocksOff && !isPaused && 'animate-pulse'
           )}
         >
           <AlertTriangle className="h-4 w-4" />
