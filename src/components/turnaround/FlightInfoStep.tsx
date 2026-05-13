@@ -326,12 +326,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             <div className="space-y-2">
               <Label className={cn(
                 "text-xs uppercase tracking-wide",
-                flightNumber && departureFlightNumber && flightNumber === departureFlightNumber
+                hasFlightConflict
                   ? "text-destructive font-bold"
                   : "text-muted-foreground"
               )}>
                 Vuelo de salida
-                {flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && (
+                {hasFlightConflict && (
                   <span className="ml-1 animate-pulse">⚠</span>
                 )}
               </Label>
@@ -339,7 +339,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 {isPrefixedMode && (
                   <span className={cn(
                     "absolute left-3 text-sm font-mono font-semibold z-10 pointer-events-none",
-                    flightNumber && departureFlightNumber && flightNumber === departureFlightNumber
+                    hasFlightConflict
                       ? "text-destructive"
                       : "text-primary"
                   )}>
@@ -355,12 +355,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   className={cn(
                     "input-operational font-mono",
                     isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]",
-                    flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && "blink-required"
+                    hasFlightConflict && "blink-required"
                   )}
                   style={isPrefixedMode ? { paddingLeft: `${12 + activePrefix.length * 9}px` } : undefined}
                 />
               </div>
-              {flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && (
+              {hasFlightConflict && (
                 <div
                   className="rounded-md p-2 text-[11px] font-bold text-black leading-tight border-2 border-destructive"
                   style={{ backgroundColor: '#FFFF00' }}
