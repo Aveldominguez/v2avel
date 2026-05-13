@@ -19,6 +19,8 @@ import { useFlightLookup } from '@/hooks/useFlightLookup';
 interface FlightInfoStepProps {
   flightNumber: string;
   setFlightNumber: (v: string) => void;
+  departureFlightNumber: string;
+  setDepartureFlightNumber: (v: string) => void;
   tango: string;
   setTango: (v: string) => void;
   isRemote: boolean;
@@ -49,6 +51,8 @@ interface FlightInfoStepProps {
 export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   flightNumber,
   setFlightNumber,
+  departureFlightNumber,
+  setDepartureFlightNumber,
   tango,
   setTango,
   isRemote,
