@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, RefreshCw } from 'lucide-react';
+import { DeletePhotoButton } from './DeletePhotoButton';
 import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
