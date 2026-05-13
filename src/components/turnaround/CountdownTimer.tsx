@@ -100,11 +100,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       return;
     }
 
-    const endMs = endDateRef.current.getTime();
+    const baseEndMs = endDateRef.current.getTime();
 
     // If chocksOff is marked, freeze the countdown to the value at chocksOff time
     if (hasChocksOff) {
-      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, endDateRef.current);
+      const endMs = baseEndMs + pauseShiftMs;
+      const chocksOffDate = parseTimeRelativeTo(chocksOffTime!, new Date(endMs));
       const diffMs = endMs - chocksOffDate.getTime();
       const diff = Math.ceil(diffMs / 1000);
       const clamped = Math.max(0, diff);
@@ -115,17 +116,25 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     const tick = () => {
       const nowMs = Date.now();
+      const shift = pauseShiftMs + (pausedAt !== null ? nowMs - pausedAt : 0);
+      const endMs = baseEndMs + shift;
       const diffMs = endMs - nowMs;
       const diff = Math.ceil(diffMs / 1000);
       const clamped = Math.max(0, diff);
       setRemainingSeconds(clamped);
-      if (clamped <= 0) {
+      if (clamped <= 0 && pausedAt === null) {
         reachedZeroRef.current = true;
         if (intervalRef.current) clearInterval(intervalRef.current);
       }
     };
 
     tick();
+
+    // While paused, don't run a ticking interval - displayed value stays frozen
+    if (pausedAt !== null) {
+      return;
+    }
+
     const msUntilNextSecond = 1000 - (Date.now() % 1000);
     const alignTimeout = setTimeout(() => {
       tick();
@@ -136,7 +145,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, hasChocksOff, chocksOffTime]);
+  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, hasChocksOff, chocksOffTime, pauseShiftMs, pausedAt]);
 
   // Delay counter: starts when countdown reaches 0 and chocksOff is not set
   useEffect(() => {
