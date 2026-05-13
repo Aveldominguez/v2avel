@@ -315,12 +315,25 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              <Label className={cn(
+                "text-xs uppercase tracking-wide",
+                flightNumber && departureFlightNumber && flightNumber === departureFlightNumber
+                  ? "text-destructive font-bold"
+                  : "text-muted-foreground"
+              )}>
                 Vuelo de salida
+                {flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && (
+                  <span className="ml-1 animate-pulse">⚠</span>
+                )}
               </Label>
               <div className="relative flex items-center">
                 {isPrefixedMode && (
-                  <span className="absolute left-3 text-sm font-mono font-semibold text-primary z-10 pointer-events-none">
+                  <span className={cn(
+                    "absolute left-3 text-sm font-mono font-semibold z-10 pointer-events-none",
+                    flightNumber && departureFlightNumber && flightNumber === departureFlightNumber
+                      ? "text-destructive"
+                      : "text-primary"
+                  )}>
                     {activePrefix}
                   </span>
                 )}
@@ -330,10 +343,19 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   value={isPrefixedMode ? departureFlightNumber.slice(activePrefix.length) : departureFlightNumber}
                   onChange={(e) => handleDepartureFlightNumberChange(isPrefixedMode ? activePrefix + e.target.value : e.target.value)}
                   placeholder={isPrefixedMode ? '1234' : 'Ej: TP1234'}
-                  className={cn("input-operational font-mono", isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]")}
+                  className={cn(
+                    "input-operational font-mono",
+                    isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]",
+                    flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && "blink-required"
+                  )}
                   style={isPrefixedMode ? { paddingLeft: `${12 + activePrefix.length * 9}px` } : undefined}
                 />
               </div>
+              {flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && (
+                <div className="rounded-md p-2 text-[11px] font-bold text-white leading-tight bg-destructive animate-pulse">
+                  No puede ser igual al vuelo de llegada
+                </div>
+              )}
             </div>
           </div>
 

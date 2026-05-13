@@ -1,6 +1,6 @@
 {
-  "version": "2.0.81",
+  "version": "2.0.82",
   "changelog": [
-    "Total automático de maletas por compartimiento de bodegas de salida"
+    "Advertencia y parpadeo rojo en vuelo de salida si coincide con vuelo de llegada"
   ]
 }
