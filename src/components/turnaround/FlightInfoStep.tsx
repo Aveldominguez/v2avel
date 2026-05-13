@@ -352,7 +352,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 />
               </div>
               {flightNumber && departureFlightNumber && flightNumber === departureFlightNumber && (
-                <div className="rounded-md p-2 text-[11px] font-bold text-white leading-tight bg-destructive animate-pulse">
+                <div
+                  className="rounded-md p-2 text-[11px] font-bold text-black leading-tight border-2 border-destructive"
+                  style={{ backgroundColor: '#FFFF00' }}
+                >
                   No puede ser igual al vuelo de llegada
                 </div>
               )}
