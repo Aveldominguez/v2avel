@@ -425,6 +425,8 @@ const TurnaroundForm: React.FC = () => {
       <FlightInfoStep
         flightNumber={flightNumber}
         setFlightNumber={setFlightNumber}
+        departureFlightNumber={departureFlightNumber}
+        setDepartureFlightNumber={setDepartureFlightNumber}
         tango={tango}
         setTango={setTango}
         isRemote={isRemote}
