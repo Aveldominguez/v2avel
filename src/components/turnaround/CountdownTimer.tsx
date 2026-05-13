@@ -163,12 +163,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     setFrozenDelay(null);
 
-    // Start delay counter when countdown reached zero
-    if (reachedZeroRef.current && remainingSeconds === 0 && !hasChocksOff && endDateRef.current) {
-      const endMs = endDateRef.current.getTime();
+    // Start delay counter when countdown reached zero (and not paused)
+    if (reachedZeroRef.current && remainingSeconds === 0 && !hasChocksOff && !isPaused && endDateRef.current) {
+      const baseEndMs = endDateRef.current.getTime();
 
       const tick = () => {
         const nowMs = Date.now();
+        const endMs = baseEndMs + pauseShiftMs;
         const diff = Math.max(0, Math.floor((nowMs - endMs) / 1000));
         setDelaySeconds(diff);
       };
@@ -179,10 +180,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       return () => {
         if (delayIntervalRef.current) clearInterval(delayIntervalRef.current);
       };
-    } else {
+    } else if (!isPaused) {
       setDelaySeconds(null);
     }
-  }, [remainingSeconds, hasChocksOff, chocksOffTime]);
+  }, [remainingSeconds, hasChocksOff, chocksOffTime, pauseShiftMs, isPaused]);
 
   // Determine status
   const getStatus = (): TimerStatus => {
