@@ -548,8 +548,14 @@ const TurnaroundForm: React.FC = () => {
           isRemote={isRemote}
           soloLlegada={soloLlegada}
           soloSalida={soloSalida}
-          times={{ ...times, pushBack }}
-          onChange={setTimes}
+          times={{ ...times, pushBack, departureFlightNumber: departureFlightNumber || null } as any}
+          onChange={(newTimes: any) => {
+            const { departureFlightNumber: dfn, ...rest } = newTimes || {};
+            if (dfn !== undefined && (dfn || '') !== departureFlightNumber) {
+              setDepartureFlightNumber(dfn || '');
+            }
+            setTimes(rest);
+          }}
           errors={errors}
           departureTime={departureTime}
           onDepartureTimeChange={setDepartureTime}
