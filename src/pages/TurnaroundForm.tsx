@@ -38,6 +38,7 @@ const TurnaroundForm: React.FC = () => {
 
   const { createTurnaround, updateTurnaround, getTurnaroundById } = useTurnarounds();
   const { isOnline, syncing, pendingCount, enqueue } = useOfflineSync();
+  const { updateAvailable } = useAppUpdate();
 
   const [step, setStep] = useState(isEditing ? 2 : 1);
   const [flightNumber, setFlightNumber] = useState('');
