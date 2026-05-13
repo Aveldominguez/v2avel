@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useAppUpdate } from '@/hooks/useAppUpdate';
 import { useAdmin, UserProfile } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { updateAvailable } = useAppUpdate();
   const {
     isAdmin, loading, users, usersLoading, fetchUsers,
     approveUser, blockUser, deleteUser, toggleAdminRole,
@@ -213,7 +216,7 @@ const AdminPanel: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
+      <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-2 justify-center w-full">
