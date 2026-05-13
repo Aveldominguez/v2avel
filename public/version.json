@@ -1,6 +1,6 @@
 {
-  "version": "2.0.92",
+  "version": "2.0.89",
   "changelog": [
-    "Corrección: advertencia de vuelo de salida solo aparece al introducir dígitos reales"
+    "Cronómetro: botón manual de pausar y reanudar la cuenta regresiva"
   ]
 }
