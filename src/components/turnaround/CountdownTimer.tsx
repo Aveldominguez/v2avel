@@ -60,6 +60,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<Date | null>(null);
   const reachedZeroRef = useRef(false);
+  const [pauseShiftMs, setPauseShiftMs] = useState(0);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const isPaused = pausedAt !== null;
+  const effectiveShiftMs = pauseShiftMs + (pausedAt !== null ? Date.now() - pausedAt : 0);
 
   const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
