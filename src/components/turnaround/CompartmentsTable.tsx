@@ -402,13 +402,11 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                     : renderHoldInput(hold);
               })}
               {comp.expandable && renderExpandableFields(comp)}
-              {(() => {
+              {!isItaStyle(comp) && (() => {
                 const ids: string[] = [];
                 comp.holds.forEach((h) => {
                   if (isPairedHold(h)) {
                     ids.push(h.left.id, h.right.id);
-                  } else if (isItaStyle(comp)) {
-                    ids.push(`${h.id}-num`, `${h.id}-content`);
                   } else {
                     ids.push(h.id);
                   }
