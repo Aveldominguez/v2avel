@@ -82,6 +82,7 @@ const App = () => (
       <InstallPrompt />
       <BrowserRouter>
         <AuthProvider>
+          <UpdateBanner />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
