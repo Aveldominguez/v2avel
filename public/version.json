@@ -1,5 +1,5 @@
 {
-  "version": "2.0.80",
+  "version": "2.0.81",
   "changelog": [
     "Wizz Air A320 · Compartimiento 1: alerta roja parpadeante cuando una bodega supera 80 maletas o cuando la suma de B11+B12+B13 supera 80 (los caracteres alfabéticos se ignoran)",
     "Wizz Air A321 · Compartimiento 3: alerta roja parpadeante cuando una bodega supera 90 maletas o cuando la suma de B31+B32+B33 supera 90 (los caracteres alfabéticos se ignoran)",
