@@ -220,6 +220,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
   .data-table td { border: 1px solid #ccc; padding: 4px 8px; }
   .data-table td:first-child { font-weight: bold; width: 30%; background: #f5f5f5; }
+  .ita-table td { background: #fff !important; font-weight: normal; width: auto !important; }
+  .ita-table tr:first-child td { background: #e5e5e5 !important; font-weight: bold; }
   .data-table td.code { width: 50px; text-align: center; font-family: monospace; }
   .obs { white-space: pre-wrap; border: 1px solid #ccc; padding: 8px; min-height: 40px; background: #fafafa; }
   @media print {
