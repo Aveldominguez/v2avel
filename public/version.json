@@ -1,6 +1,6 @@
 {
-  "version": "2.0.79",
+  "version": "2.0.80",
   "changelog": [
-    "Confirmación antes de eliminar fotografías en Hoja de carga, Adjuntar File y Observaciones"
+    "Modo offline reforzado: la app ahora arranca sin conexión y permite crear nuevas escalas (se sincronizan al volver la red)"
   ]
 }
