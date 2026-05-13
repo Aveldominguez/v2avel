@@ -198,6 +198,7 @@ export const GeneralTimesBlock: React.FC<GeneralTimesBlockProps> = ({
             value={times.cargoDeparture}
             onChange={(v) => updateTime('cargoDeparture', v)}
             disabled={disabled}
+            warning="Toda mercancía con rombo se debe atar obligatoriamente. Solicitar NOTOC: siempre que cargues AVI, mercancía peligrosa y HUM."
           />
 
           {/* Puesta de GPU */}
