@@ -1,6 +1,6 @@
 {
-  "version": "2.0.95",
+  "version": "2.0.94",
   "changelog": [
-    "Equipos: añadidos nuevos elementos en Tractores, Cintas, Escaleras, Furgonetas y GPU\\"
+    "Vuelo de salida contraído al iniciar; secciones llegada/salida desplegables. Fin Descarga contrae llegada y despliega salida automáticamente."
   ]
 }
