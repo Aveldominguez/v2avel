@@ -1,5 +1,5 @@
 {
-  "version": "2.0.102",
+  "version": "2.0.103",
   "changelog": [
     "ITA Airways: añadido nuevo tipo de contenedor AKH-LH seleccionable.",
     "Contenedores ITA A321/A320: tipo, número y contenido se incluyen en la copia de seguridad y se exportan al PDF del vuelo.",

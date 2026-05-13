@@ -464,7 +464,7 @@ const TurnaroundForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b-2 border-border">
+      <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="container mx-auto px-4 py-3 space-y-2">
           {/* Top row: back button + save */}
           <div className="flex items-center justify-between gap-2">
