@@ -1,5 +1,5 @@
 {
-  "version": "2.0.90",
+  "version": "2.0.91",
   "changelog": [
     "Corrección: advertencia de vuelo de salida solo aparece al introducir dígitos reales"
   ]
