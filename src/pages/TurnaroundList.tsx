@@ -183,42 +183,7 @@ const TurnaroundList: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Update banner */}
-      {updateAvailable && (
-        <div className="sticky top-0 z-[60] bg-primary text-primary-foreground px-4 py-2 animate-in slide-in-from-top">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm font-medium flex-1 min-w-0">
-              <RefreshCw className="h-4 w-4 flex-shrink-0" />
-              <button 
-                className="text-left underline underline-offset-2 truncate"
-                onClick={() => setShowChangelog(!showChangelog)}
-              >
-                Nueva versión {remoteVersion ? `v${remoteVersion}` : ''} disponible
-              </button>
-            </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-7 text-xs font-semibold flex-shrink-0"
-              onClick={applyUpdate}
-              disabled={updating}
-            >
-              {updating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              Actualizar
-            </Button>
-          </div>
-          {showChangelog && remoteChangelog.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-primary-foreground/20">
-              <p className="text-xs font-semibold mb-1">Cambios incluidos:</p>
-              <ul className="text-xs space-y-0.5 list-disc list-inside opacity-90">
-                {remoteChangelog.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Update banner is rendered globally in App.tsx via <UpdateBanner /> */}
 
       {/* Auto-emergent update dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={(open) => { if (!open) dismissUpdateDialog(); }}>
