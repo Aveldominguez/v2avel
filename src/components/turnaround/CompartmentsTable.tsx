@@ -402,6 +402,30 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                     : renderHoldInput(hold);
               })}
               {comp.expandable && renderExpandableFields(comp)}
+              {(() => {
+                const ids: string[] = [];
+                comp.holds.forEach((h) => {
+                  if (isPairedHold(h)) {
+                    ids.push(h.left.id, h.right.id);
+                  } else if (isItaStyle(comp)) {
+                    ids.push(`${h.id}-num`, `${h.id}-content`);
+                  } else {
+                    ids.push(h.id);
+                  }
+                });
+                if (comp.expandable) {
+                  const count = extraFieldCounts[comp.id] ?? comp.expandableDefault ?? DEFAULT_EXTRA_FIELDS;
+                  for (let i = 0; i < count; i++) ids.push(`${comp.id}-extra-${i}`);
+                }
+                const total = ids.reduce((acc, id) => acc + sumNumericTokens(getValue(id)), 0);
+                if (total <= 0) return null;
+                return (
+                  <div className="flex items-center justify-end gap-2 pt-1 mt-1 border-t border-border">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total:</span>
+                    <span className="font-mono font-bold text-base text-primary">{total}</span>
+                  </div>
+                );
+              })()}
               {showWizzA321Alert && (
                 <div className="mt-2 text-xs font-bold text-destructive uppercase tracking-wide">
                   ⚠️ Límite superado: máximo 90 maletas en compartimiento 3 (B31+B32+B33).
