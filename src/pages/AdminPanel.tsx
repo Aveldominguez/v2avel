@@ -34,6 +34,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { updateAvailable } = useAppUpdate();
   const {
     isAdmin, loading, users, usersLoading, fetchUsers,
     approveUser, blockUser, deleteUser, toggleAdminRole,
