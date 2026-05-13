@@ -85,7 +85,43 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   let compartmentsHtml = '';
   if (compartments.length > 0) {
     compartmentsHtml = compartments.map(comp => {
-      const holdsHtml = comp.holds.map(hold => {
+      const isItaStyle = comp.holdStyle === 'ita';
+      let holdsHtml = '';
+
+      if (isItaStyle) {
+        // ITA-style: type + número + contenido per hold
+        holdsHtml = comp.holds.map(hold => {
+          if (isPairedHold(hold)) return '';
+          const typeVal = data.fieldValues.find(v => v.fieldDefinitionId === `${hold.id}-type`)?.value || '—';
+          const numVal = data.fieldValues.find(v => v.fieldDefinitionId === `${hold.id}-num`)?.value || '—';
+          const contentVal = data.fieldValues.find(v => v.fieldDefinitionId === `${hold.id}-content`)?.value || '—';
+          const isNil = typeVal === 'NIL';
+          return `
+            <tr>
+              <td rowspan="2" style="vertical-align:middle;text-align:center;font-size:13px;">${hold.label}</td>
+              <td style="width:18%;text-align:center;">${isNil ? 'NIL' : typeVal}</td>
+              <td style="width:18%;text-align:center;font-family:monospace;">${isNil ? 'NIL' : numVal}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="background:#fafafa;">${isNil ? 'NIL' : contentVal}</td>
+            </tr>
+          `;
+        }).join('');
+
+        return `
+          <h3>${comp.compartmentName}</h3>
+          <table class="data-table ita-table">
+            <tr style="background:#e5e5e5;font-weight:bold;">
+              <td style="width:14%;text-align:center;">Bodega</td>
+              <td style="text-align:center;">Tipo</td>
+              <td style="text-align:center;">Nº Contenedor</td>
+            </tr>
+            ${holdsHtml}
+          </table>
+        `;
+      }
+
+      holdsHtml = comp.holds.map(hold => {
         if (isPairedHold(hold)) {
           return `<tr><td>${hold.left.label}</td><td>${getValue(hold.left.id)}</td><td>${hold.right.label}</td><td>${getValue(hold.right.id)}</td></tr>`;
         }
