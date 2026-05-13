@@ -86,14 +86,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
                   className="w-full aspect-square rounded-lg border border-border object-cover cursor-pointer"
                   onClick={() => displayUrls[idx] && window.open(displayUrls[idx]!, '_blank')}
                 />
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-1 right-1 h-6 w-6 opacity-80 group-hover:opacity-100"
-                  onClick={() => handleDelete(idx)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+                <DeletePhotoButton onConfirm={() => handleDelete(idx)} />
               </div>
             ))}
             {/* Pending local images */}
