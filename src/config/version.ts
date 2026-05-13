@@ -1,11 +1,7 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.84';
+export const APP_VERSION = '2.0.79';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Wizz Air A320 · Compartimiento 1: alerta roja parpadeante cuando una bodega supera 80 maletas o cuando la suma de B11+B12+B13 supera 80 (los caracteres alfabéticos se ignoran)',
-  'Wizz Air A321 · Compartimiento 3: alerta roja parpadeante cuando una bodega supera 90 maletas o cuando la suma de B31+B32+B33 supera 90 (los caracteres alfabéticos se ignoran)',
-  'Nuevo diálogo de novedades al abrir la app cuando hay una actualización disponible',
-  'Notificación push enriquecida con el listado completo de cambios',
-  'Avisos amarillos en Cargo Salida y AVI Salida con recordatorios de NOTOC',
+  'Confirmación antes de eliminar fotografías en Hoja de carga, Adjuntar File y Observaciones',
 ];
