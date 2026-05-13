@@ -1,5 +1,5 @@
 {
-  "version": "2.0.94",
+  "version": "2.0.95",
   "changelog": [
     "Vuelo de salida contraído al iniciar; secciones llegada/salida desplegables. Fin Descarga contrae llegada y despliega salida automáticamente."
   ]
