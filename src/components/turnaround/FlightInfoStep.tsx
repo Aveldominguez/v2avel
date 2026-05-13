@@ -285,8 +285,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </Select>
           </div>
 
-          {/* Flight Number + Departure Flight Number + Aircraft Model side by side */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Vuelo de llegada + Vuelo de salida */}
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Vuelo de llegada <span className="text-destructive">*</span>
