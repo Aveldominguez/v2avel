@@ -285,11 +285,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </Select>
           </div>
 
-          {/* Flight Number + Aircraft Model side by side */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Flight Number + Departure Flight Number + Aircraft Model side by side */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Número de Vuelo <span className="text-destructive">*</span>
+                Vuelo de llegada <span className="text-destructive">*</span>
               </Label>
                 <div className="relative flex items-center">
                   {isPrefixedMode && (
@@ -313,6 +313,27 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               {lookupError && (
                 <p className="text-xs text-destructive mt-1">{lookupError}</p>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Vuelo de salida
+              </Label>
+              <div className="relative flex items-center">
+                {isPrefixedMode && (
+                  <span className="absolute left-3 text-sm font-mono font-semibold text-primary z-10 pointer-events-none">
+                    {activePrefix}
+                  </span>
+                )}
+                <Input
+                  type="text"
+                  inputMode={isPrefixedMode ? 'numeric' : 'text'}
+                  value={isPrefixedMode ? departureFlightNumber.slice(activePrefix.length) : departureFlightNumber}
+                  onChange={(e) => handleDepartureFlightNumberChange(isPrefixedMode ? activePrefix + e.target.value : e.target.value)}
+                  placeholder={isPrefixedMode ? '1234' : 'Ej: TP1234'}
+                  className={cn("input-operational font-mono", isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]")}
+                  style={isPrefixedMode ? { paddingLeft: `${12 + activePrefix.length * 9}px` } : undefined}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
