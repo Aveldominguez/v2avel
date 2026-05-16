@@ -115,7 +115,12 @@ const TurnaroundList: React.FC = () => {
 
     if (searchQuery) {
       const search = searchQuery.toLowerCase();
-      result = result.filter(t => t.flightNumber.toLowerCase().includes(search));
+      result = result.filter(t => {
+        const display = (t.times?.soloSalida && t.times?.departureFlightNumber)
+          ? t.times.departureFlightNumber
+          : t.flightNumber;
+        return display.toLowerCase().includes(search);
+      });
     }
 
     // Sort by date descending
