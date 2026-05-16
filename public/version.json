@@ -1,12 +1,7 @@
 {
-  "version": "2.0.107",
+  "version": "2.0.108",
   "changelog": [
-    "ITA Airways: añadido nuevo tipo de contenedor AKH-LH seleccionable.",
-    "Contenedores ITA A321/A320: tipo, número y contenido se incluyen en la copia de seguridad y se exportan al PDF del vuelo.",
-    "ITA y TAP Portugal A320/A321: eliminada la suma automática de dígitos en compartimentos con contenedores.",
-    "Equipos Utilizados: añadidos nuevos elementos en Tractores, Cintas, Escaleras, Furgonetas y GPU\\",
-    ",\n  ",
-    ",\n  ",
-    ",\n  "
+    "Historial: en escalas marcadas como 'Solo Salida', el listado muestra el número de vuelo de salida en lugar del de llegada.",
+    "Buscador del historial: también encuentra escalas 'Solo Salida' por su número de vuelo de salida."
   ]
 }
