@@ -6,24 +6,28 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import TurnaroundList from "./pages/TurnaroundList";
-import TurnaroundForm from "./pages/TurnaroundForm";
-import AdminPanel from "./pages/AdminPanel";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
+const TurnaroundList = lazy(() => import("./pages/TurnaroundList"));
+const TurnaroundForm = lazy(() => import("./pages/TurnaroundForm"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const Auth = lazy(() => import("./pages/Auth"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 const queryClient = new QueryClient();
+
+const FullScreenLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (!user) {
@@ -35,42 +39,44 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   return (
-    <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <TurnaroundList />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/turnaround/new"
-        element={
-          <ProtectedRoute>
-            <TurnaroundForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/turnaround/:id"
-        element={
-          <ProtectedRoute>
-            <TurnaroundForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminPanel />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={<FullScreenLoader />}>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <TurnaroundList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/turnaround/new"
+          element={
+            <ProtectedRoute>
+              <TurnaroundForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/turnaround/:id"
+          element={
+            <ProtectedRoute>
+              <TurnaroundForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminPanel />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 
