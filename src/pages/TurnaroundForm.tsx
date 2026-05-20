@@ -16,7 +16,8 @@ import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
-import BodegasSection from '@/components/turnaround/BodegasSection';
+import { lazy, Suspense } from 'react';
+const BodegasSection = lazy(() => import('@/components/turnaround/BodegasSection'));
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,9 +26,10 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { generateTurnaroundPdf } from '@/utils/generateTurnaroundPdf';
+
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { IncidentReportDialog, IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
+import type { IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
+const IncidentReportDialog = lazy(() => import('@/components/turnaround/IncidentReportDialog').then(m => ({ default: m.IncidentReportDialog })));
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
@@ -566,10 +568,12 @@ const TurnaroundForm: React.FC = () => {
         />
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
-          <BodegasSection
-            data={bodegasData}
-            onChange={setBodegasData}
-          />
+          <Suspense fallback={null}>
+            <BodegasSection
+              data={bodegasData}
+              onChange={setBodegasData}
+            />
+          </Suspense>
         )}
 
         {selectedAirline !== 'FEDEX' && selectedAirline !== 'AMAZON' && !soloLlegada && (
@@ -595,6 +599,7 @@ const TurnaroundForm: React.FC = () => {
           variant="outline"
           className="w-full gap-2 font-semibold bg-accent text-accent-foreground hover:bg-black hover:text-white active:bg-black active:text-white border-accent hover:border-black"
           onClick={async () => {
+            const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
             await generateTurnaroundPdf({
               flightNumber,
               date,
@@ -636,13 +641,15 @@ const TurnaroundForm: React.FC = () => {
                 </div>
                 Observaciones
               </div>
-              <IncidentReportDialog
-                flightNumber={flightNumber}
-                date={date}
-                parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
-                reportData={incidentReport}
-                onSave={setIncidentReport}
-              />
+              <Suspense fallback={null}>
+                <IncidentReportDialog
+                  flightNumber={flightNumber}
+                  date={date}
+                  parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
+                  reportData={incidentReport}
+                  onSave={setIncidentReport}
+                />
+              </Suspense>
             </CardTitle>
           </CardHeader>
           <CardContent>
