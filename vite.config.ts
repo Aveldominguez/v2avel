@@ -83,6 +83,25 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) return 'pdf';
+          if (id.includes('jszip')) return 'jszip';
+          if (id.includes('html5-qrcode')) return 'qrcode';
+          if (id.includes('recharts') || id.includes('d3-')) return 'charts';
+          if (id.includes('@radix-ui')) return 'radix';
+          if (id.includes('react-day-picker') || id.includes('date-fns')) return 'dates';
+          if (id.includes('lucide-react')) return 'icons';
+          if (id.includes('@supabase')) return 'supabase';
+          if (id.includes('react-dom') || id.includes('react-router') || id.includes('scheduler')) return 'react';
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
   plugins: [
     react(),
     mode === "development" && componentTagger(),
