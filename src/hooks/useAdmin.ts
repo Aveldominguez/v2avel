@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
-import JSZip from 'jszip';
+
 import { getSignedUrl } from '@/utils/storageUrl';
 
 export interface UserProfile {
@@ -154,6 +154,7 @@ export const useAdmin = () => {
 
   const exportUserTurnarounds = async (userId: string, email: string) => {
     const data = await getUserTurnarounds(userId);
+    const { default: JSZip } = await import('jszip');
     const zip = new JSZip();
     const photosFolder = zip.folder('fotos_hoja_carga');
     const filesFolder = zip.folder('files');
@@ -249,6 +250,7 @@ export const useAdmin = () => {
     let backupText: string;
 
     if (file.name.endsWith('.zip')) {
+      const { default: JSZip } = await import('jszip');
       const zip = await JSZip.loadAsync(file);
       const jsonFile = zip.file('backup.json');
       if (!jsonFile) throw new Error('El ZIP no contiene backup.json');
