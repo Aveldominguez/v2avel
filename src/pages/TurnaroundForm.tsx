@@ -568,10 +568,12 @@ const TurnaroundForm: React.FC = () => {
         />
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
-          <BodegasSection
-            data={bodegasData}
-            onChange={setBodegasData}
-          />
+          <Suspense fallback={null}>
+            <BodegasSection
+              data={bodegasData}
+              onChange={setBodegasData}
+            />
+          </Suspense>
         )}
 
         {selectedAirline !== 'FEDEX' && selectedAirline !== 'AMAZON' && !soloLlegada && (
@@ -638,13 +640,15 @@ const TurnaroundForm: React.FC = () => {
                 </div>
                 Observaciones
               </div>
-              <IncidentReportDialog
-                flightNumber={flightNumber}
-                date={date}
-                parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
-                reportData={incidentReport}
-                onSave={setIncidentReport}
-              />
+              <Suspense fallback={null}>
+                <IncidentReportDialog
+                  flightNumber={flightNumber}
+                  date={date}
+                  parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
+                  reportData={incidentReport}
+                  onSave={setIncidentReport}
+                />
+              </Suspense>
             </CardTitle>
           </CardHeader>
           <CardContent>
