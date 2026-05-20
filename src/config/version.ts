@@ -1,8 +1,9 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.113';
+export const APP_VERSION = '2.0.114';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "Historial: en escalas marcadas como 'Solo Salida', el listado muestra el número de vuelo de salida en lugar del de llegada.",
-  "Buscador del historial: también encuentra escalas 'Solo Salida' por su número de vuelo de salida.",
+  "Apertura de la app drásticamente más rápida: el bundle inicial se redujo de ~1.95 MB a ~95 KB mediante carga diferida de rutas y separación de librerías pesadas.",
+  "Las librerías de PDF, escáner de bodegas y exportación ZIP ahora se cargan sólo cuando se usan, no al abrir la app.",
+  "El service worker precachea sólo el shell esencial (~780 KB en lugar de ~3 MB), acelerando la primera instalación en iPhone.",
 ];
