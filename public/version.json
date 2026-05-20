@@ -1,7 +1,7 @@
 {
   "version": "2.0.108",
   "changelog": [
-    "Historial: en escalas marcadas como 'Solo Salida', el listado muestra el número de vuelo de salida en lugar del de llegada.",
-    "Buscador del historial: también encuentra escalas 'Solo Salida' por su número de vuelo de salida."
+    "Solo Salida",
+    "Solo Salida"
   ]
 }
