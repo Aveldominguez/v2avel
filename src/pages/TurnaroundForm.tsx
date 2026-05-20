@@ -26,7 +26,7 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { generateTurnaroundPdf } from '@/utils/generateTurnaroundPdf';
+
 import { ThemeToggle } from '@/components/ThemeToggle';
 import type { IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
 const IncidentReportDialog = lazy(() => import('@/components/turnaround/IncidentReportDialog').then(m => ({ default: m.IncidentReportDialog })));
@@ -599,6 +599,7 @@ const TurnaroundForm: React.FC = () => {
           variant="outline"
           className="w-full gap-2 font-semibold bg-accent text-accent-foreground hover:bg-black hover:text-white active:bg-black active:text-white border-accent hover:border-black"
           onClick={async () => {
+            const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
             await generateTurnaroundPdf({
               flightNumber,
               date,
