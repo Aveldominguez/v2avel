@@ -113,7 +113,9 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,jpg,woff2}"],
+        globPatterns: ["**/*.{css,html,ico,woff2}", "assets/index-*.js", "assets/react-*.js", "assets/supabase-*.js", "assets/radix-*.js", "assets/icons-*.js", "assets/dates-*.js", "assets/TurnaroundList-*.js", "assets/Auth-*.js"],
+        globIgnores: ["**/pdf-*.js", "**/qrcode-*.js", "**/jszip-*.js", "**/charts-*.js", "**/index.es-*.js", "**/purify.es-*.js"],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
