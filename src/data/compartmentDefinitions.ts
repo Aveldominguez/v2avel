@@ -427,20 +427,25 @@ export const TRANSAVIA_737_COMPARTMENTS: CompartmentDefinition[] = [
   {
     id: 'transavia-737-comp1',
     airline: 'TRANSAVIA',
-    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    compartmentName: 'COMPARTIMIENTO 1',
     holds: [
-      { id: createHoldId('TRANSAVIA', '737-11'), label: 'Bodega 11 🚪' },
-      { id: createHoldId('TRANSAVIA', '737-12'), label: 'Bodega 12' },
-      { id: createHoldId('TRANSAVIA', '737-13'), label: 'Bodega 13' },
+      { id: createHoldId('TRANSAVIA', '737-1'), label: 'Compartimiento 1' },
+    ],
+  },
+  {
+    id: 'transavia-737-comp2',
+    airline: 'TRANSAVIA',
+    compartmentName: 'COMPARTIMIENTO 2',
+    holds: [
+      { id: createHoldId('TRANSAVIA', '737-2'), label: 'Compartimiento 2' },
     ],
   },
   {
     id: 'transavia-737-comp3',
     airline: 'TRANSAVIA',
-    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    compartmentName: 'COMPARTIMIENTO 3',
     holds: [
-      { id: createHoldId('TRANSAVIA', '737-31'), label: 'Bodega 31' },
-      { id: createHoldId('TRANSAVIA', '737-32'), label: 'Bodega 32' },
+      { id: createHoldId('TRANSAVIA', '737-3'), label: 'Compartimiento 3' },
     ],
   },
   {
@@ -448,16 +453,7 @@ export const TRANSAVIA_737_COMPARTMENTS: CompartmentDefinition[] = [
     airline: 'TRANSAVIA',
     compartmentName: 'COMPARTIMIENTO 4',
     holds: [
-      { id: createHoldId('TRANSAVIA', '737-41'), label: 'Bodega 41 🚪' },
-      { id: createHoldId('TRANSAVIA', '737-42'), label: 'Bodega 42' },
-    ],
-  },
-  {
-    id: 'transavia-737-bulk',
-    airline: 'TRANSAVIA',
-    compartmentName: 'Bulk',
-    holds: [
-      { id: createHoldId('TRANSAVIA', '737-5'), label: 'Bodega 5 🚪' },
+      { id: createHoldId('TRANSAVIA', '737-4'), label: 'Compartimiento 4' },
     ],
   },
 ];
