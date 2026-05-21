@@ -58,6 +58,9 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
   CROATIA: [
     { model: 'A220-300', label: 'A220-300', turnaroundMinutes: 45 },
   ],
+  AIR_EST: [
+    { model: '340F', label: 'SAAB 340F', turnaroundMinutes: 60 },
+  ],
   NILE_AIR: [
     { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 45 },

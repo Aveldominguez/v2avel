@@ -101,6 +101,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     AZUL: 'AD',
     EUROWINGS: 'EW',
     CROATIA: 'OU',
+    AIR_EST: 'AE',
     SIN_MARCA: 'SM',
   };
 
