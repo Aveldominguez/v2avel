@@ -1,9 +1,10 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.131';
+export const APP_VERSION = '2.0.132';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "Nueva aerolínea Air Est con modelo SAAB 340F y simulador de peso y balance por compartimientos (A, B1–B4, C1, C2).",
-  "Cálculo en vivo de carga total, ZFW, peso total estimado, alertas de límites (MTOW, MZFW, payload, fuel) y reparto por zonas FWD/Central/AFT.",
-  "Recomendación visual Verde / Amarillo / Rojo y consejos de carga y descarga integrados.",
+  "Persistencia de filtros y búsqueda en el listado de escalas al volver desde una escala.",
+  "Botón Atrás corregido: regresa al listado anterior en lugar de enviarte al inicio.",
+  "Modo administración: al entrar a la cuenta de otro usuario aparece una sub-cabecera con el correo y un botón Salir.",
+  "Al volver desde una escala de otro usuario, regresas automáticamente al listado de escalas de ese usuario.",
 ];
