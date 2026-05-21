@@ -30,6 +30,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { getImpersonatedUser, setImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
@@ -126,6 +127,7 @@ const AdminPanel: React.FC = () => {
 
   const handleViewTurnarounds = async (userId: string, email: string) => {
     setTurnaroundsDialog({ userId, email });
+    setImpersonatedUser({ userId, email });
     setTurnaroundsLoading(true);
     try {
       const data = await getUserTurnarounds(userId);
@@ -136,6 +138,17 @@ const AdminPanel: React.FC = () => {
       setTurnaroundsLoading(false);
     }
   };
+
+  // On mount, if we were impersonating a user before navigating to a turnaround,
+  // re-open the dialog so the admin returns to the user's escalas list (not the user list root).
+  useEffect(() => {
+    if (loading || !isAdmin) return;
+    const impersonated = getImpersonatedUser();
+    if (impersonated && !turnaroundsDialog) {
+      handleViewTurnarounds(impersonated.userId, impersonated.email);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, isAdmin]);
 
   const handleExportBackup = async (userId: string, email: string) => {
     setBackupLoading(userId);
@@ -506,7 +519,7 @@ const AdminPanel: React.FC = () => {
       </AlertDialog>
 
       {/* Turnarounds dialog */}
-      <Dialog open={!!turnaroundsDialog} onOpenChange={() => setTurnaroundsDialog(null)}>
+      <Dialog open={!!turnaroundsDialog} onOpenChange={(open) => { if (!open) { setTurnaroundsDialog(null); clearImpersonatedUser(); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Escalas de {turnaroundsDialog?.email}</DialogTitle>
