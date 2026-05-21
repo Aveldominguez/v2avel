@@ -28,6 +28,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
+import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import type { IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
 const IncidentReportDialog = lazy(() => import('@/components/turnaround/IncidentReportDialog').then(m => ({ default: m.IncidentReportDialog })));
 
