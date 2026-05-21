@@ -30,6 +30,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { getImpersonatedUser, setImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
