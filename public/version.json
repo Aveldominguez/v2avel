@@ -1,8 +1,4 @@
 {
   "version": "2.0.114",
-  "changelog": [
-    "Apertura de la app drásticamente más rápida: el bundle inicial se redujo de ~1.95 MB a ~95 KB mediante carga diferida de rutas y separación de librerías pesadas.",
-    "Las librerías de PDF, escáner de bodegas y exportación ZIP ahora se cargan sólo cuando se usan, no al abrir la app.",
-    "El service worker precachea sólo el shell esencial (~780 KB en lugar de ~3 MB), acelerando la primera instalación en iPhone."
-  ]
+  "changelog": []
 }
