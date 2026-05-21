@@ -91,6 +91,8 @@ const TurnaroundList: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const didRestoreRef = React.useRef(false);
 
+  // Restore visibleCount once on mount if present in sessionStorage (after the state is initialized below)
+
 
 
   // Filters (persisted in sessionStorage so navigating back from a detail keeps search state)
