@@ -1,9 +1,9 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.117';
+export const APP_VERSION = '2.0.118';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "Apertura de la app drásticamente más rápida: el bundle inicial se redujo de ~1.95 MB a ~95 KB mediante carga diferida de rutas y separación de librerías pesadas.",
-  "Las librerías de PDF, escáner de bodegas y exportación ZIP ahora se cargan sólo cuando se usan, no al abrir la app.",
-  "El service worker precachea sólo el shell esencial (~780 KB en lugar de ~3 MB), acelerando la primera instalación en iPhone.",
+  "Nueva aerolínea Air Est con modelo SAAB 340F y simulador de peso y balance por compartimientos (A, B1–B4, C1, C2).",
+  "Cálculo en vivo de carga total, ZFW, peso total estimado, alertas de límites (MTOW, MZFW, payload, fuel) y reparto por zonas FWD/Central/AFT.",
+  "Recomendación visual Verde / Amarillo / Rojo y consejos de carga y descarga integrados.",
 ];
