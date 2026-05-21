@@ -466,9 +466,41 @@ const TurnaroundForm: React.FC = () => {
   // Step 2: Operational
   const airlineInfo = AIRLINES.find(a => a.code === airline);
 
+  const impersonated = getImpersonatedUser();
+  const headerTopOffset = updateAvailable ? 40 : 0;
+  const impersonationBarHeight = impersonated ? 36 : 0;
+
   return (
     <div className="min-h-screen bg-background">
-      <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
+      {impersonated && (
+        <div
+          className="sticky z-[60] bg-warning text-warning-foreground border-b-2 border-warning/60"
+          style={{ top: headerTopOffset }}
+        >
+          <div className="container mx-auto px-4 py-1.5 flex items-center justify-between gap-2 text-xs sm:text-sm font-mono">
+            <div className="flex items-center gap-2 min-w-0">
+              <UserCircle2 className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                <span className="opacity-80 mr-1">Cuenta:</span>
+                <span className="font-bold">{impersonated.email}</span>
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 gap-1 bg-background/90 text-foreground hover:bg-background"
+              onClick={() => { clearImpersonatedUser(); navigate('/admin'); }}
+            >
+              <ExitUserIcon className="h-3.5 w-3.5" />
+              <span>Salir</span>
+            </Button>
+          </div>
+        </div>
+      )}
+      <header
+        className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border")}
+        style={{ top: headerTopOffset + impersonationBarHeight }}
+      >
         <div className="container mx-auto px-4 py-3 space-y-2">
           {/* Top row: back button + save */}
           <div className="flex items-center justify-between gap-2">
