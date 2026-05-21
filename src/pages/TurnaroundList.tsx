@@ -143,8 +143,25 @@ const TurnaroundList: React.FC = () => {
     result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     setFilteredTurnarounds(result);
-    setVisibleCount(PAGE_SIZE);
+    if (didRestoreRef.current) {
+      setVisibleCount(PAGE_SIZE);
+    }
+    didRestoreRef.current = true;
   }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
+
+  // Persist filters + pagination so navigating back from a detail keeps the search state
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FILTERS_KEY, JSON.stringify({
+        dateFilter: dateFilter ? dateFilter.toISOString() : undefined,
+        airlineFilter,
+        searchQuery,
+        visibleCount,
+      }));
+    } catch {
+      // ignore quota / privacy errors
+    }
+  }, [dateFilter, airlineFilter, searchQuery, visibleCount]);
 
   const visibleTurnarounds = filteredTurnarounds.slice(0, visibleCount);
   const hasMore = visibleCount < filteredTurnarounds.length;
