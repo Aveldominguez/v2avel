@@ -88,10 +88,19 @@ const TurnaroundList: React.FC = () => {
   
   // Pagination
   const PAGE_SIZE = 10;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('turnaround-list-filters');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.visibleCount === 'number' && parsed.visibleCount >= PAGE_SIZE) {
+          return parsed.visibleCount;
+        }
+      }
+    } catch { /* ignore */ }
+    return PAGE_SIZE;
+  });
   const didRestoreRef = React.useRef(false);
-
-  // Restore visibleCount once on mount if present in sessionStorage (after the state is initialized below)
 
 
 
