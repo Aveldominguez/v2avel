@@ -89,6 +89,8 @@ const TurnaroundList: React.FC = () => {
   // Pagination
   const PAGE_SIZE = 10;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const didRestoreRef = React.useRef(false);
+
 
 
   // Filters (persisted in sessionStorage so navigating back from a detail keeps search state)
