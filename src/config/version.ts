@@ -1,10 +1,7 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.132';
+export const APP_VERSION = '2.0.133';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "Persistencia de filtros y búsqueda en el listado de escalas al volver desde una escala.",
-  "Botón Atrás corregido: regresa al listado anterior en lugar de enviarte al inicio.",
-  "Modo administración: al entrar a la cuenta de otro usuario aparece una sub-cabecera con el correo y un botón Salir.",
-  "Al volver desde una escala de otro usuario, regresas automáticamente al listado de escalas de ese usuario.",
+  "Transavia 737: bodegas simplificadas a Compartimiento 1, 2, 3 y 4.",
 ];
