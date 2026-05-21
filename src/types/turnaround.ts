@@ -126,6 +126,7 @@ export interface AirlineInfo {
 
 export const AIRLINES: AirlineInfo[] = [
   { code: 'A_JET', name: 'A Jet', shortName: 'A JET', color: 'hsl(190, 75%, 45%)' },
+  { code: 'AIR_EST', name: 'Air Est', shortName: 'AIR EST', color: 'hsl(160, 65%, 40%)' },
   { code: 'AEGEAN', name: 'Aegean Airlines', shortName: 'AEGEAN', color: 'hsl(200, 80%, 45%)' },
   { code: 'AIR_CANADA', name: 'Air Canada', shortName: 'AIR CANADA', color: 'hsl(0, 70%, 50%)' },
   { code: 'ALBASTAR', name: 'AlbaStar', shortName: 'ALBASTAR', color: 'hsl(45, 80%, 50%)' },
@@ -423,6 +424,7 @@ export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
   AZUL: 'AD',
   EUROWINGS: 'EW',
   CROATIA: 'OU',
+  AIR_EST: 'AE',
   SIN_MARCA: 'SM',
 };
 
