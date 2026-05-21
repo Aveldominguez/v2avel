@@ -1,6 +1,6 @@
 {
-  "version": "2.0.134",
+  "version": "2.0.136",
   "changelog": [
-    "Transavia A321: bodegas simplificadas a Compartimiento 1, 2, 3, 4 y 5."
+    "Transavia A321: bodegas con estilo A320 (FWD/AFT) añadiendo Bodega 2."
   ]
 }
