@@ -478,7 +478,7 @@ const TurnaroundForm: React.FC = () => {
                 </Button>
               )}
               {isEditing && (
-                <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}

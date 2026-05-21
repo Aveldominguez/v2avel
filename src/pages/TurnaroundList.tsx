@@ -88,12 +88,41 @@ const TurnaroundList: React.FC = () => {
   
   // Pagination
   const PAGE_SIZE = 10;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('turnaround-list-filters');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.visibleCount === 'number' && parsed.visibleCount >= PAGE_SIZE) {
+          return parsed.visibleCount;
+        }
+      }
+    } catch { /* ignore */ }
+    return PAGE_SIZE;
+  });
+  const didRestoreRef = React.useRef(false);
 
-  // Filters
-  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
-  const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>('ALL');
-  const [searchQuery, setSearchQuery] = useState('');
+
+
+  // Filters (persisted in sessionStorage so navigating back from a detail keeps search state)
+  const FILTERS_KEY = 'turnaround-list-filters';
+  const initialFilters = (() => {
+    try {
+      const raw = sessionStorage.getItem(FILTERS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as { dateFilter?: string; airlineFilter?: string; searchQuery?: string; visibleCount?: number };
+    } catch {
+      return null;
+    }
+  })();
+
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(
+    initialFilters?.dateFilter ? new Date(initialFilters.dateFilter) : undefined
+  );
+  const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>(
+    (initialFilters?.airlineFilter as AirlineCode | 'ALL') || 'ALL'
+  );
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Delete dialog
@@ -127,8 +156,25 @@ const TurnaroundList: React.FC = () => {
     result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
 
     setFilteredTurnarounds(result);
-    setVisibleCount(PAGE_SIZE);
+    if (didRestoreRef.current) {
+      setVisibleCount(PAGE_SIZE);
+    }
+    didRestoreRef.current = true;
   }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
+
+  // Persist filters + pagination so navigating back from a detail keeps the search state
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FILTERS_KEY, JSON.stringify({
+        dateFilter: dateFilter ? dateFilter.toISOString() : undefined,
+        airlineFilter,
+        searchQuery,
+        visibleCount,
+      }));
+    } catch {
+      // ignore quota / privacy errors
+    }
+  }, [dateFilter, airlineFilter, searchQuery, visibleCount]);
 
   const visibleTurnarounds = filteredTurnarounds.slice(0, visibleCount);
   const hasMore = visibleCount < filteredTurnarounds.length;
