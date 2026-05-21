@@ -90,10 +90,25 @@ const TurnaroundList: React.FC = () => {
   const PAGE_SIZE = 10;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Filters
-  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
-  const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>('ALL');
-  const [searchQuery, setSearchQuery] = useState('');
+  // Filters (persisted in sessionStorage so navigating back from a detail keeps search state)
+  const FILTERS_KEY = 'turnaround-list-filters';
+  const initialFilters = (() => {
+    try {
+      const raw = sessionStorage.getItem(FILTERS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as { dateFilter?: string; airlineFilter?: string; searchQuery?: string; visibleCount?: number };
+    } catch {
+      return null;
+    }
+  })();
+
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(
+    initialFilters?.dateFilter ? new Date(initialFilters.dateFilter) : undefined
+  );
+  const [airlineFilter, setAirlineFilter] = useState<AirlineCode | 'ALL'>(
+    (initialFilters?.airlineFilter as AirlineCode | 'ALL') || 'ALL'
+  );
+  const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Delete dialog
