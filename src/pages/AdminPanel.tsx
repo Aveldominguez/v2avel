@@ -519,7 +519,7 @@ const AdminPanel: React.FC = () => {
       </AlertDialog>
 
       {/* Turnarounds dialog */}
-      <Dialog open={!!turnaroundsDialog} onOpenChange={() => setTurnaroundsDialog(null)}>
+      <Dialog open={!!turnaroundsDialog} onOpenChange={(open) => { if (!open) { setTurnaroundsDialog(null); clearImpersonatedUser(); } }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Escalas de {turnaroundsDialog?.email}</DialogTitle>
