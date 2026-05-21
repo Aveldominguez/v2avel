@@ -1,4 +1,6 @@
 {
   "version": "2.0.133",
-  "changelog": []
+  "changelog": [
+    "Transavia 737: bodegas simplificadas a Compartimiento 1, 2, 3 y 4."
+  ]
 }
