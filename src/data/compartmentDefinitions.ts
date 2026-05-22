@@ -462,6 +462,29 @@ export const TRANSAVIA_737_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// WestJet 737-800
+export const WESTJET_737_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'westjet-737-fwd',
+    airline: 'WESTJET',
+    compartmentName: 'COMPARTIMIENTO FWD',
+    holds: [
+      { id: createHoldId('WESTJET', '737-11'), label: 'Bodega 11' },
+      { id: createHoldId('WESTJET', '737-12'), label: 'Bodega 12' },
+      { id: createHoldId('WESTJET', '737-21'), label: 'Bodega 21' },
+    ],
+  },
+  {
+    id: 'westjet-737-aft',
+    airline: 'WESTJET',
+    compartmentName: 'COMPARTIMIENTO AFT',
+    holds: [
+      { id: createHoldId('WESTJET', '737-31'), label: 'Bodega 31' },
+      { id: createHoldId('WESTJET', '737-41'), label: 'Bodega 41' },
+    ],
+  },
+];
+
 // Transavia A320 airBaltic
 export const TRANSAVIA_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
   {
@@ -1269,6 +1292,10 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   if (airline === 'PEGASUS') {
     if (aircraftModel === 'A321') return PEGASUS_A321_COMPARTMENTS;
     return SKYEXPRESS_COMPARTMENTS;
+  }
+  if (airline === 'WESTJET') {
+    if (aircraftModel === '737-800') return WESTJET_737_COMPARTMENTS;
+    return [];
   }
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
   return SKYEXPRESS_COMPARTMENTS;

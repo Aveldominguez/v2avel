@@ -427,6 +427,7 @@ export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
   CROATIA: 'OU',
   AIR_EST: 'AE',
   SIN_MARCA: 'SM',
+  WESTJET: 'WS',
 };
 
 // Get push back field (shown when pushBack=true and not remote)

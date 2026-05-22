@@ -103,6 +103,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     CROATIA: 'OU',
     AIR_EST: 'AE',
     SIN_MARCA: 'SM',
+    WESTJET: 'WS',
   };
 
   const activePrefix = airline ? AIRLINE_PREFIXES[airline] : '';
