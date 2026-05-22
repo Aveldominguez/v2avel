@@ -22,6 +22,7 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
   disabled = false,
   warning,
   destination,
+  destinationLabel = 'Destino',
 }) => {
   return (
     <div className={cn('flex flex-col gap-1.5 self-start', className)}>

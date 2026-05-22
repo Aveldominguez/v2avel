@@ -97,6 +97,13 @@ const FieldRenderer: React.FC<{
         ? getCargoMailDestination(airline, field.key) || undefined
         : undefined;
 
+    const destinationLabel =
+      field.key === 'cargoDeparture' || field.key === 'mailDeparture'
+        ? 'Procedente de'
+        : field.key === 'cargoArrival' || field.key === 'mailArrival'
+        ? 'Destino'
+        : undefined;
+
     return (
       <BooleanInput
         key={field.key}
