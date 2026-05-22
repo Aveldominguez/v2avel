@@ -1,6 +1,6 @@
 // Types for Turnaround (Scale) Management
 
-export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA';
+export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
 
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
@@ -143,6 +143,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'SKYEXPRESS', name: 'Sky Express', shortName: 'SKY EXPRESS', color: 'hsl(220, 80%, 55%)' },
   { code: 'TAP', name: 'TAP Air Portugal', shortName: 'TAP', color: 'hsl(142, 76%, 36%)' },
   { code: 'TRANSAVIA', name: 'Transavia', shortName: 'TRANSAVIA', color: 'hsl(145, 70%, 40%)' },
+  { code: 'WESTJET', name: 'WestJet', shortName: 'WESTJET', color: 'hsl(200, 85%, 45%)' },
   { code: 'WIZZ', name: 'Wizz Air', shortName: 'WIZZ', color: 'hsl(316, 73%, 52%)' },
 ];
 
@@ -272,7 +273,7 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
 ];
 
-const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS'];
+const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS', 'WESTJET'];
 
 // Airlines that use the split layout (all except FedEx and Amazon)
 const SPLIT_LAYOUT_EXCLUDED: AirlineCode[] = ['FEDEX', 'AMAZON'];
@@ -426,6 +427,7 @@ export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
   CROATIA: 'OU',
   AIR_EST: 'AE',
   SIN_MARCA: 'SM',
+  WESTJET: 'WS',
 };
 
 // Get push back field (shown when pushBack=true and not remote)

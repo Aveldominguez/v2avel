@@ -275,6 +275,7 @@ const AIRLINE_RULES: Record<AirlineCode, AirlineEquipmentRules> = {
   AMAZON: CARGO_RULES,
   FEDEX: CARGO_RULES,
   SIN_MARCA: ALL_RULES,
+  WESTJET: STANDARD_RULES,
 };
 
 /**

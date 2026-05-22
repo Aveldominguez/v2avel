@@ -1,6 +1,6 @@
 {
-  "version": "2.0.136",
+  "version": "2.0.139",
   "changelog": [
-    "Transavia A321: bodegas con estilo A320 (FWD/AFT) añadiendo Bodega 2."
+    "WestJet: nueva aerolínea con modelo 737-800 y compartimientos FWD/AFT."
   ]
 }
