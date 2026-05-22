@@ -1,8 +1,4 @@
 {
-  "version": "2.0.141",
-  "changelog": [
-    "Nueva aerolínea WestJet añadida (modelo B737-800).",
-    "WestJet: compartimientos FWD (11, 12, 21) y AFT (31, 41).",
-    "WestJet: códigos B (Local) y BU (Delivery At Aircraft)."
-  ]
+  "version": "2.0.142",
+  "changelog": []
 }
