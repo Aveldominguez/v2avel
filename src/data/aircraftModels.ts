@@ -33,6 +33,9 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: '787-800', label: '787-800', turnaroundMinutes: 85, cleaningMinutes: 25 },
     { model: '787-900', label: '787-900', turnaroundMinutes: 95, cleaningMinutes: 25 },
   ],
+  WESTJET: [
+    { model: '737-800', label: '737-800', turnaroundMinutes: 45 },
+  ],
   TRANSAVIA: [
     { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 50 },
