@@ -364,9 +364,11 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 
   // Amazon-specific overrides
   if (airline === 'AMAZON') {
-    baseFields = baseFields.map(f =>
-      f.key === 'firstBag' ? { ...f, label: 'Envío 1ª Ristra' } : f
-    );
+    baseFields = baseFields.map(f => {
+      if (f.key === 'firstBag') return { ...f, label: 'Envío 1ª Ristra' };
+      if (f.key === 'mailArrival') return { key: 'cargoDeparture', label: 'Cargo de Salida', type: 'boolean' } as TimeFieldConfig;
+      return f;
+    });
   }
 
   if (isRemote) {
