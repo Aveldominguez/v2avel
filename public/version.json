@@ -1,4 +1,6 @@
 {
-  "version": "2.0.138",
-  "changelog": []
+  "version": "2.0.139",
+  "changelog": [
+    "WestJet: nueva aerolínea con modelo 737-800 y compartimientos FWD/AFT."
+  ]
 }
