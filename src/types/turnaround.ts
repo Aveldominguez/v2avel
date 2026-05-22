@@ -430,6 +430,30 @@ export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
   WESTJET: 'WS',
 };
 
+// Cargo/Mail destination per airline (per-flow). Returns null when no aviso should appear.
+export const getCargoMailDestination = (
+  airline: AirlineCode,
+  key: 'cargoArrival' | 'cargoDeparture' | 'mailArrival' | 'mailDeparture'
+): string | null => {
+  const isCargo = key === 'cargoArrival' || key === 'cargoDeparture';
+  const isArrival = key === 'cargoArrival' || key === 'mailArrival';
+
+  const map: Partial<Record<AirlineCode, { cargoArr: string | null; cargoDep: string | null; mailArr: string | null; mailDep: string | null }>> = {
+    AEGEAN:     { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    ITA:        { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    AMAZON:     { cargoArr: 'ACL',       cargoDep: 'ACL',       mailArr: null,        mailDep: null },
+    AIR_CANADA: { cargoArr: 'WFS 1',     cargoDep: 'WFS 1',     mailArr: 'Correos',   mailDep: 'Correos' },
+    FEDEX:      { cargoArr: 'FedEx',     cargoDep: 'FedEx',     mailArr: null,        mailDep: null },
+    PEGASUS:    { cargoArr: 'WFS 2',     cargoDep: 'WFS 1',     mailArr: null,        mailDep: null },
+    TAP:        { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+  };
+
+  const row = map[airline];
+  if (!row) return null;
+  if (isCargo) return isArrival ? row.cargoArr : row.cargoDep;
+  return isArrival ? row.mailArr : row.mailDep;
+};
+
 // Get push back field (shown when pushBack=true and not remote)
 export const getPushBackField = (): TimeFieldConfig => ({
   key: 'pushBackTime',
