@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, Loader2, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
+import { toast } from 'sonner';
 
 /**
  * Global in-app update banner. Sticky at the very top so it's visible
@@ -11,6 +12,21 @@ import { useAppUpdate } from '@/hooks/useAppUpdate';
 export const UpdateBanner: React.FC = () => {
   const { updating, updateAvailable, remoteVersion, remoteChangelog, applyUpdate } = useAppUpdate();
   const [showChangelog, setShowChangelog] = useState(false);
+
+  useEffect(() => {
+    if (updateAvailable) {
+      const hasWestJet = remoteChangelog.some(
+        (item) => item.toLowerCase().includes('westjet')
+      );
+      if (hasWestJet) {
+        toast.info('Nueva aerolínea disponible', {
+          description: 'WestJet (B737-800) ya está activa en la aplicación. Actualiza para usarla.',
+          duration: 8000,
+          icon: <Plane className="h-4 w-4" />,
+        });
+      }
+    }
+  }, [updateAvailable, remoteChangelog]);
 
   if (!updateAvailable) return null;
 
