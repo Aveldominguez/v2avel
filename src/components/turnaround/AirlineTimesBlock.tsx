@@ -91,6 +91,12 @@ const FieldRenderer: React.FC<{
         ? 'Recuerda firmar el NOTOC al cargar un AVI o AVIH'
         : undefined;
 
+    const destination =
+      field.key === 'cargoArrival' || field.key === 'cargoDeparture' ||
+      field.key === 'mailArrival' || field.key === 'mailDeparture'
+        ? getCargoMailDestination(airline, field.key) || undefined
+        : undefined;
+
     return (
       <BooleanInput
         key={field.key}
@@ -99,6 +105,7 @@ const FieldRenderer: React.FC<{
         onChange={(v) => updateTime(field.key, v)}
         disabled={disabled}
         warning={warning}
+        destination={destination}
       />
     );
   }
