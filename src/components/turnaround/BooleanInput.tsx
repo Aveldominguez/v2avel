@@ -45,7 +45,7 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
       </div>
       {value && destination && (
         <div className="mt-1 rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wide bg-primary/15 text-primary border border-primary/40 text-center">
-          Destino: {destination}
+          {destinationLabel}: {destination}
         </div>
       )}
       {value && warning && (

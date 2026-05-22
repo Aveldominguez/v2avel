@@ -113,6 +113,7 @@ const FieldRenderer: React.FC<{
         disabled={disabled}
         warning={warning}
         destination={destination}
+        destinationLabel={destinationLabel}
       />
     );
   }
