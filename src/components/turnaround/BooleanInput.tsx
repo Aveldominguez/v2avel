@@ -11,6 +11,7 @@ interface BooleanInputProps {
   disabled?: boolean;
   warning?: string;
   destination?: string;
+  destinationLabel?: string;
 }
 
 export const BooleanInput: React.FC<BooleanInputProps> = ({
