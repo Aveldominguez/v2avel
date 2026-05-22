@@ -1,7 +1,7 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.150';
+export const APP_VERSION = '2.0.152';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "Aviso de destino bajo Cargo/Correo (Llegada y Salida) según aerolínea.",
+  "Amazon: 'Correo Llegada' sustituido por 'Cargo de Salida' con aviso 'Procedente de: ACL'.",
 ];
