@@ -1,6 +1,4 @@
 {
-  "version": "2.0.139",
-  "changelog": [
-    "WestJet: nueva aerolínea con modelo 737-800 y compartimientos FWD/AFT."
-  ]
+  "version": "2.0.140",
+  "changelog": ["WestJet: códigos BY→B (Local) y DAA→BU (Delivery At Aircraft)."]
 }

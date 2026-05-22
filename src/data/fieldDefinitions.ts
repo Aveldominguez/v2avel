@@ -107,7 +107,19 @@ const createSharedFields = (airline: AirlineCode): FieldDefinition[] => [
 export const A_JET_FIELDS: FieldDefinition[] = createSharedFields('A_JET');
 export const PEGASUS_FIELDS: FieldDefinition[] = createSharedFields('PEGASUS');
 export const TRANSAVIA_FIELDS: FieldDefinition[] = createSharedFields('TRANSAVIA');
-export const WESTJET_FIELDS: FieldDefinition[] = createSharedFields('WESTJET');
+export const WESTJET_FIELDS: FieldDefinition[] = [
+  createField('WESTJET', 'BT', 'Tránsito', 1),
+  createField('WESTJET', 'B', 'Local', 2),
+  createField('WESTJET', 'BG', 'Gate – Mano – Puerta', 3),
+  createField('WESTJET', 'BP', 'Priority', 4),
+  createField('WESTJET', 'BU', 'Delivery At Aircraft (Carrito)', 5),
+  createField('WESTJET', 'D', 'Crew', 6),
+  createField('WESTJET', 'E', 'Equipment', 7),
+  createField('WESTJET', 'BH', 'Grupo (varios de tránsito mismo destino)', 8),
+  createField('WESTJET', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
+  createField('WESTJET', 'WCH', 'Wheelchair', 10),
+  createField('WESTJET', 'WDB', 'Wheelchair – Dry Battery', 11),
+];
 export const SKYEXPRESS_FIELDS: FieldDefinition[] = [
   createField('SKYEXPRESS', 'BT', 'Tránsito', 1),
   createField('SKYEXPRESS', 'BY', 'Local', 2),
