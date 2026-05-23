@@ -129,6 +129,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'AIR_EST', name: 'Air Est', shortName: 'AIR EST', color: 'hsl(160, 65%, 40%)' },
   { code: 'AEGEAN', name: 'Aegean Airlines', shortName: 'AEGEAN', color: 'hsl(200, 80%, 45%)' },
   { code: 'AIR_CANADA', name: 'Air Canada', shortName: 'AIR CANADA', color: 'hsl(0, 70%, 50%)' },
+  { code: 'AIR_CANADA_CARGO', name: 'Air Canada Cargo', shortName: 'AC CARGO', color: 'hsl(0, 65%, 40%)' },
   { code: 'ALBASTAR', name: 'AlbaStar', shortName: 'ALBASTAR', color: 'hsl(45, 80%, 50%)' },
   { code: 'AMAZON', name: 'Amazon Air', shortName: 'AMAZON', color: 'hsl(35, 100%, 50%)' },
   { code: 'AZUL', name: 'Azul', shortName: 'AZUL', color: 'hsl(220, 90%, 55%)' },
