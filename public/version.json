@@ -1,4 +1,8 @@
 {
   "version": "2.0.152",
-  "changelog": []
+  "changelog": [
+    "Correo Llegada",
+    "Cargo de Salida",
+    "Procedente de: ACL"
+  ]
 }
