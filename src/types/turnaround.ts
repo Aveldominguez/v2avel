@@ -443,13 +443,19 @@ export const getCargoMailDestination = (
   const isArrival = key === 'cargoArrival' || key === 'mailArrival';
 
   const map: Partial<Record<AirlineCode, { cargoArr: string | null; cargoDep: string | null; mailArr: string | null; mailDep: string | null }>> = {
-    AEGEAN:     { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
-    ITA:        { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
-    AMAZON:     { cargoArr: 'ACL',       cargoDep: 'ACL',       mailArr: null,        mailDep: null },
-    AIR_CANADA: { cargoArr: 'WFS 1',     cargoDep: 'WFS 1',     mailArr: 'Correos',   mailDep: 'Correos' },
-    FEDEX:      { cargoArr: 'FedEx',     cargoDep: 'FedEx',     mailArr: null,        mailDep: null },
-    PEGASUS:    { cargoArr: 'WFS 2',     cargoDep: 'WFS 1',     mailArr: null,        mailDep: null },
-    TAP:        { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    AEGEAN:           { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    ITA:              { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    TAP:              { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    AMAZON:           { cargoArr: 'ACL',       cargoDep: 'ACL',       mailArr: null,        mailDep: null },
+    AIR_CANADA:       { cargoArr: 'WFS1',      cargoDep: 'WFS4',      mailArr: 'Correos',   mailDep: 'Correos' },
+    AIR_CANADA_CARGO: { cargoArr: 'WFS1',      cargoDep: 'WFS4',      mailArr: null,        mailDep: null },
+    AZUL:             { cargoArr: 'WFS1',      cargoDep: 'WFS1',      mailArr: null,        mailDep: null },
+    FEDEX:            { cargoArr: 'FedEx',     cargoDep: 'FedEx',     mailArr: null,        mailDep: null },
+    PEGASUS:          { cargoArr: 'WFS2',      cargoDep: 'WFS4',      mailArr: null,        mailDep: null },
+    NILE_AIR:         { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: null,        mailDep: null },
+    SKYEXPRESS:       { cargoArr: 'Swissport', cargoDep: null,        mailArr: null,        mailDep: null },
+    A_JET:            { cargoArr: 'Swissport', cargoDep: null,        mailArr: null,        mailDep: null },
+    WESTJET:          { cargoArr: 'WFS2',      cargoDep: null,        mailArr: null,        mailDep: null },
   };
 
   const row = map[airline];
