@@ -35,6 +35,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_airlines: {
+        Row: {
+          cargo_arrival: string | null
+          cargo_departure: string | null
+          created_at: string
+          id: string
+          mail_arrival: string | null
+          mail_departure: string | null
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo_arrival?: string | null
+          cargo_departure?: string | null
+          created_at?: string
+          id?: string
+          mail_arrival?: string | null
+          mail_departure?: string | null
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo_arrival?: string | null
+          cargo_departure?: string | null
+          created_at?: string
+          id?: string
+          mail_arrival?: string | null
+          mail_departure?: string | null
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approved: boolean
