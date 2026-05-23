@@ -33,6 +33,12 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
     { model: '787-800', label: '787-800', turnaroundMinutes: 85, cleaningMinutes: 25 },
     { model: '787-900', label: '787-900', turnaroundMinutes: 95, cleaningMinutes: 25 },
   ],
+  AIR_CANADA_CARGO: [
+    { model: 'A333', label: 'A333', turnaroundMinutes: 90 },
+    { model: 'B777', label: 'B777', turnaroundMinutes: 85 },
+    { model: '787-800', label: '787-800', turnaroundMinutes: 85, cleaningMinutes: 25 },
+    { model: '787-900', label: '787-900', turnaroundMinutes: 95, cleaningMinutes: 25 },
+  ],
   WESTJET: [
     { model: '737-800', label: '737-800', turnaroundMinutes: 45 },
   ],

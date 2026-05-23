@@ -142,6 +142,19 @@ export const AIR_CANADA_FIELDS: FieldDefinition[] = [
   createField('AIR_CANADA', 'WCH', 'Wheelchair', 10),
   createField('AIR_CANADA', 'WDB', 'Wheelchair – Dry Battery', 11),
 ];
+export const AIR_CANADA_CARGO_FIELDS: FieldDefinition[] = [
+  createField('AIR_CANADA_CARGO', 'BT', 'Tránsito', 1),
+  createField('AIR_CANADA_CARGO', 'BY', 'Local', 2),
+  createField('AIR_CANADA_CARGO', 'BG', 'Gate / Mano / Puerta', 3),
+  createField('AIR_CANADA_CARGO', 'BP', 'Priority', 4),
+  createField('AIR_CANADA_CARGO', 'DAA', 'Delivery at Aircraft (Carrito)', 5),
+  createField('AIR_CANADA_CARGO', 'D', 'Crew', 6),
+  createField('AIR_CANADA_CARGO', 'E', 'Equipment', 7),
+  createField('AIR_CANADA_CARGO', 'BH', 'Grupo (Varios tránsitos mismo destino)', 8),
+  createField('AIR_CANADA_CARGO', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
+  createField('AIR_CANADA_CARGO', 'WCH', 'Wheelchair', 10),
+  createField('AIR_CANADA_CARGO', 'WDB', 'Wheelchair – Dry Battery', 11),
+];
 export const ALBASTAR_FIELDS: FieldDefinition[] = createSharedFields('ALBASTAR');
 export const ICELANDAIR_FIELDS: FieldDefinition[] = createSharedFields('ICELANDAIR');
 export const AZUL_FIELDS: FieldDefinition[] = createSharedFields('AZUL');
@@ -200,6 +213,7 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...TRANSAVIA_FIELDS,
   ...SKYEXPRESS_FIELDS,
   ...AIR_CANADA_FIELDS,
+  ...AIR_CANADA_CARGO_FIELDS,
   ...ALBASTAR_FIELDS,
   ...ICELANDAIR_FIELDS,
   ...AZUL_FIELDS,

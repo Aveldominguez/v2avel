@@ -1237,7 +1237,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
     if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS;
     return [];
   }
-  if (airline === 'AIR_CANADA') {
+  if (airline === 'AIR_CANADA' || airline === 'AIR_CANADA_CARGO') {
     if (aircraftModel === 'A333') return AIR_CANADA_A333_COMPARTMENTS;
     return [];
   }

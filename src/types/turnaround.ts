@@ -1,6 +1,6 @@
 // Types for Turnaround (Scale) Management
 
-export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
+export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
 
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
@@ -129,6 +129,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'AIR_EST', name: 'Air Est', shortName: 'AIR EST', color: 'hsl(160, 65%, 40%)' },
   { code: 'AEGEAN', name: 'Aegean Airlines', shortName: 'AEGEAN', color: 'hsl(200, 80%, 45%)' },
   { code: 'AIR_CANADA', name: 'Air Canada', shortName: 'AIR CANADA', color: 'hsl(0, 70%, 50%)' },
+  { code: 'AIR_CANADA_CARGO', name: 'Air Canada Cargo', shortName: 'AC CARGO', color: 'hsl(0, 65%, 40%)' },
   { code: 'ALBASTAR', name: 'AlbaStar', shortName: 'ALBASTAR', color: 'hsl(45, 80%, 50%)' },
   { code: 'AMAZON', name: 'Amazon Air', shortName: 'AMAZON', color: 'hsl(35, 100%, 50%)' },
   { code: 'AZUL', name: 'Azul', shortName: 'AZUL', color: 'hsl(220, 90%, 55%)' },
@@ -273,7 +274,7 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
 ];
 
-const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS', 'WESTJET'];
+const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AIR_CANADA_CARGO', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS', 'WESTJET'];
 
 // Airlines that use the split layout (all except FedEx and Amazon)
 const SPLIT_LAYOUT_EXCLUDED: AirlineCode[] = ['FEDEX', 'AMAZON'];
@@ -412,6 +413,7 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
   FEDEX: '3V',
   AIR_CANADA: 'AC',
+  AIR_CANADA_CARGO: 'AC',
   TRANSAVIA: 'TO',
   WIZZ: 'W',
   TAP: 'TP',
@@ -441,13 +443,19 @@ export const getCargoMailDestination = (
   const isArrival = key === 'cargoArrival' || key === 'mailArrival';
 
   const map: Partial<Record<AirlineCode, { cargoArr: string | null; cargoDep: string | null; mailArr: string | null; mailDep: string | null }>> = {
-    AEGEAN:     { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
-    ITA:        { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
-    AMAZON:     { cargoArr: 'ACL',       cargoDep: 'ACL',       mailArr: null,        mailDep: null },
-    AIR_CANADA: { cargoArr: 'WFS 1',     cargoDep: 'WFS 1',     mailArr: 'Correos',   mailDep: 'Correos' },
-    FEDEX:      { cargoArr: 'FedEx',     cargoDep: 'FedEx',     mailArr: null,        mailDep: null },
-    PEGASUS:    { cargoArr: 'WFS 2',     cargoDep: 'WFS 1',     mailArr: null,        mailDep: null },
-    TAP:        { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    AEGEAN:           { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    ITA:              { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    TAP:              { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: 'Swissport', mailDep: 'Swissport' },
+    AMAZON:           { cargoArr: 'ACL',       cargoDep: 'ACL',       mailArr: null,        mailDep: null },
+    AIR_CANADA:       { cargoArr: 'WFS1',      cargoDep: 'WFS4',      mailArr: 'Correos',   mailDep: 'Correos' },
+    AIR_CANADA_CARGO: { cargoArr: 'WFS1',      cargoDep: 'WFS4',      mailArr: null,        mailDep: null },
+    AZUL:             { cargoArr: 'WFS1',      cargoDep: 'WFS1',      mailArr: null,        mailDep: null },
+    FEDEX:            { cargoArr: 'FedEx',     cargoDep: 'FedEx',     mailArr: null,        mailDep: null },
+    PEGASUS:          { cargoArr: 'WFS2',      cargoDep: 'WFS4',      mailArr: null,        mailDep: null },
+    NILE_AIR:         { cargoArr: 'Swissport', cargoDep: 'Swissport', mailArr: null,        mailDep: null },
+    SKYEXPRESS:       { cargoArr: 'Swissport', cargoDep: null,        mailArr: null,        mailDep: null },
+    A_JET:            { cargoArr: 'Swissport', cargoDep: null,        mailArr: null,        mailDep: null },
+    WESTJET:          { cargoArr: 'WFS2',      cargoDep: null,        mailArr: null,        mailDep: null },
   };
 
   const row = map[airline];

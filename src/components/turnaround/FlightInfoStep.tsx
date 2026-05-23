@@ -86,6 +86,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
     FEDEX: '3V',
     AIR_CANADA: 'AC',
+    AIR_CANADA_CARGO: 'AC',
     TRANSAVIA: 'TO',
     WIZZ: 'W',
     TAP: 'TP',
