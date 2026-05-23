@@ -274,7 +274,7 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
 ];
 
-const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS', 'WESTJET'];
+const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AIR_CANADA_CARGO', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS', 'WESTJET'];
 
 // Airlines that use the split layout (all except FedEx and Amazon)
 const SPLIT_LAYOUT_EXCLUDED: AirlineCode[] = ['FEDEX', 'AMAZON'];
