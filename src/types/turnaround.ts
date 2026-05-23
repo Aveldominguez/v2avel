@@ -1,6 +1,6 @@
 // Types for Turnaround (Scale) Management
 
-export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
+export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
 
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
