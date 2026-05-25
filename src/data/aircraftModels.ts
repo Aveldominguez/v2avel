@@ -57,6 +57,7 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
   WIZZ: [
     { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 45 },
+    { model: 'A321_XLR', label: 'A321 XLR', turnaroundMinutes: 45 },
     { model: 'B737', label: 'B737', turnaroundMinutes: 40 },
   ],
   EUROWINGS: [
