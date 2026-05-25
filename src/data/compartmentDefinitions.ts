@@ -231,7 +231,54 @@ export const WIZZ_A321_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
-// Wizz Air A320
+// Wizz Air A321 XLR
+export const WIZZ_A321_XLR_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'wizz-a321xlr-comp1',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321xlr-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('WIZZ', 'a321xlr-12'), label: 'Bodega 12' },
+    ],
+  },
+  {
+    id: 'wizz-a321xlr-comp2',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 2',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321xlr-21'), label: 'Bodega 21' },
+      { id: createHoldId('WIZZ', 'a321xlr-22'), label: 'Bodega 22' },
+      { id: createHoldId('WIZZ', 'a321xlr-23'), label: 'Bodega 23' },
+    ],
+  },
+  {
+    id: 'wizz-a321xlr-comp3',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321xlr-33'), label: 'Bodega 33' },
+    ],
+  },
+  {
+    id: 'wizz-a321xlr-comp4',
+    airline: 'WIZZ',
+    compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321xlr-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('WIZZ', 'a321xlr-42'), label: 'Bodega 42' },
+    ],
+  },
+  {
+    id: 'wizz-a321xlr-bulk5',
+    airline: 'WIZZ',
+    compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('WIZZ', 'a321xlr-51'), label: 'Bodega 51' },
+    ],
+  },
+];
+
 export const WIZZ_A320_COMPARTMENTS: CompartmentDefinition[] = [
   {
     id: 'wizz-a320-comp1',
@@ -1234,6 +1281,7 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   }
   if (airline === 'WIZZ') {
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS;
+    if (aircraftModel === 'A321_XLR') return WIZZ_A321_XLR_COMPARTMENTS;
     if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS;
     return [];
   }
