@@ -197,7 +197,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   };
 
   const [showModelError, setShowModelError] = React.useState(false);
-  const canContinue = flightNumber.trim() !== '' && airline !== '' && aircraftModel !== '';
+  const canContinue = (soloSalida || flightNumber.trim() !== '') && airline !== '' && aircraftModel !== '';
 
   // Clear error once a model is chosen
   React.useEffect(() => {
