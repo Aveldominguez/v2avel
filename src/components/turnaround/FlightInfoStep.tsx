@@ -197,7 +197,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   };
 
   const [showModelError, setShowModelError] = React.useState(false);
-  const canContinue = flightNumber.trim() !== '' && airline !== '' && aircraftModel !== '';
+  const canContinue = (soloSalida || flightNumber.trim() !== '') && airline !== '' && aircraftModel !== '';
 
   // Clear error once a model is chosen
   React.useEffect(() => {
@@ -301,11 +301,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                Vuelo de llegada <span className="text-destructive">*</span>
+                Vuelo de llegada {!soloSalida && <span className="text-destructive">*</span>}
               </Label>
                 <div className="relative flex items-center">
                   {isPrefixedMode && (
-                    <span className="absolute left-3 text-sm font-mono font-semibold text-primary z-10 pointer-events-none">
+                    <span className={cn(
+                      "absolute left-3 text-sm font-mono font-semibold z-10 pointer-events-none",
+                      soloSalida ? "text-muted-foreground/50" : "text-primary"
+                    )}>
                       {activePrefix}
                     </span>
                   )}
@@ -315,14 +318,15 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     value={isPrefixedMode ? flightNumber.slice(activePrefix.length) : flightNumber}
                     onChange={(e) => handleFlightNumberChange(isPrefixedMode ? activePrefix + e.target.value : e.target.value)}
                     placeholder={isPrefixedMode ? '1234' : 'Ej: TP1234'}
-                    className={cn("input-operational font-mono pr-8", isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]")}
+                    disabled={soloSalida}
+                    className={cn("input-operational font-mono pr-8", isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]", soloSalida && "opacity-50 cursor-not-allowed")}
                     style={isPrefixedMode ? { paddingLeft: `${12 + activePrefix.length * 9}px` } : undefined}
                   />
-                  {lookupLoading && (
+                  {lookupLoading && !soloSalida && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
                   )}
                 </div>
-              {lookupError && (
+              {lookupError && !soloSalida && (
                 <p className="text-xs text-destructive mt-1">{lookupError}</p>
               )}
             </div>
@@ -641,7 +645,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           {/* Continue */}
           <Button
             onClick={handleContinueClick}
-            disabled={flightNumber.trim() === '' || airline === ''}
+            disabled={(!soloSalida && flightNumber.trim() === '') || airline === ''}
             className="w-full gap-2 h-12 text-lg font-semibold"
             size="lg"
           >

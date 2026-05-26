@@ -1,4 +1,7 @@
 {
-  "version": "2.0.154",
-  "changelog": []
+  "version": "2.0.156",
+  "changelog": [
+    "Solo Salida",
+    "Vuelo de llegada"
+  ]
 }
