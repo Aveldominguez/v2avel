@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Turnaround, AirlineCode, AIRLINES } from '@/types/turnaround';
+import { Turnaround, AirlineCode, AIRLINES, findAirline } from '@/types/turnaround';
+import { useAllAirlines } from '@/hooks/useCatalog';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
@@ -69,6 +70,7 @@ const TurnaroundList: React.FC = () => {
   const { fetchPage, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
+  const allAirlines = useAllAirlines();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
   // Auto-open update dialog once per remote version
@@ -414,7 +416,7 @@ const TurnaroundList: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
-                  {AIRLINES.map((a) => (
+                  {allAirlines.map((a) => (
                     <SelectItem key={a.code} value={a.code}>
                       {a.name}
                     </SelectItem>

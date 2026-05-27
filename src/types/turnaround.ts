@@ -1,6 +1,10 @@
 // Types for Turnaround (Scale) Management
+import { getCatalogSnapshot } from '@/lib/catalogStore';
 
-export type AirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
+// Airline code is a free-form string so admins can register new airlines from the
+// catalog admin panel without code changes. Known built-in codes are listed in AIRLINES.
+export type AirlineCode = string;
+export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
 
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
@@ -147,6 +151,32 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'WESTJET', name: 'WestJet', shortName: 'WESTJET', color: 'hsl(200, 85%, 45%)' },
   { code: 'WIZZ', name: 'Wizz Air', shortName: 'WIZZ', color: 'hsl(316, 73%, 52%)' },
 ];
+
+/**
+ * Returns the merged airline list: built-in `AIRLINES` overlaid with any
+ * admin-managed entries from the catalog store (renames, color/short-name overrides,
+ * activation flags, and brand-new airlines).
+ */
+export function getAllAirlines(): AirlineInfo[] {
+  const overrides = getCatalogSnapshot().airlines;
+  const byCode = new Map(overrides.map(o => [o.code, o]));
+  const base = AIRLINES.map(a => {
+    const ov = byCode.get(a.code);
+    if (!ov) return a;
+    return { code: a.code, name: ov.name || a.name, shortName: ov.shortName || a.shortName, color: ov.color || a.color };
+  }).filter(a => {
+    const ov = byCode.get(a.code);
+    return ov ? ov.active : true;
+  });
+  const extras: AirlineInfo[] = overrides
+    .filter(o => o.active && !AIRLINES.some(a => a.code === o.code))
+    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color }));
+  return [...base, ...extras].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function findAirline(code: string): AirlineInfo | undefined {
+  return getAllAirlines().find(a => a.code === code);
+}
 
 // Time field configuration for airline-specific rendering
 export interface TimeFieldConfig {
@@ -410,7 +440,7 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 };
 
 // Airline prefixes for flight numbers
-export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+export const AIRLINE_PREFIXES: Record<string, string> = {
   FEDEX: '3V',
   AIR_CANADA: 'AC',
   AIR_CANADA_CARGO: 'AC',

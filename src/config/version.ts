@@ -1,9 +1,9 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.178';
+export const APP_VERSION = '2.0.179';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Panel de admin: editor visual de compartimientos y bodegas por aerolínea + modelo.',
-  'Renombrar, desactivar y añadir nuevas bodegas o compartimientos sin tocar código.',
-  'Cambios se aplican en caliente vía caché de catálogo.',
+  'Admin → Catálogos: añadir aerolíneas totalmente nuevas (código interno, color, nombre corto) sin tocar código.',
+  'Las aerolíneas creadas aparecen al instante en filtros, formulario y panel de catálogos.',
+  'Tipo AirlineCode relajado a string para permitir extensiones futuras.',
 ];

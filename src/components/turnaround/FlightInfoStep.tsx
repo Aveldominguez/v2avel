@@ -1,5 +1,6 @@
 import React from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
+import { useAllAirlines } from '@/hooks/useCatalog';
 import { getModelsForAirline } from '@/data/aircraftModels';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,9 +82,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
+  const allAirlines = useAllAirlines();
   const models = airline ? getModelsForAirline(airline) : [];
 
-  const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+  const AIRLINE_PREFIXES: Record<string, string> = {
     FEDEX: '3V',
     AIR_CANADA: 'AC',
     AIR_CANADA_CARGO: 'AC',
@@ -288,7 +290,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <SelectValue placeholder="Seleccionar Aerolínea" />
               </SelectTrigger>
               <SelectContent>
-                {AIRLINES.map((a) => (
+                {allAirlines.map((a) => (
                   <SelectItem key={a.code} value={a.code}>
                     {a.name}
                   </SelectItem>

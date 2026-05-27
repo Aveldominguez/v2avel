@@ -255,7 +255,7 @@ const ALL_RULES: AirlineEquipmentRules = {
   JARDINERAS: 'always',
 };
 
-const AIRLINE_RULES: Record<AirlineCode, AirlineEquipmentRules> = {
+const AIRLINE_RULES: Record<string, AirlineEquipmentRules> = {
   TRANSAVIA: STANDARD_RULES,
   WIZZ: STANDARD_RULES,
   NILE_AIR: STANDARD_RULES,
