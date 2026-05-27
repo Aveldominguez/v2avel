@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Wrench, Fuel } from 'lucide-react';
 import type { EquipmentUnitFull } from '@/types/equipment';
 import PriorityBadge from './PriorityBadge';
@@ -44,23 +44,60 @@ const EquipmentRow = ({
   const isBroken = state?.is_broken ?? false;
   const parking = state?.parking ?? '';
 
+  // Local input state — DB writes are debounced so typing isn't interrupted by realtime echoes.
   const [batteryInput, setBatteryInput] = useState(batteryLevel !== null ? String(batteryLevel) : '');
-  useEffect(() => { setBatteryInput(batteryLevel !== null ? String(batteryLevel) : ''); }, [batteryLevel]);
+  const [parkingInput, setParkingInput] = useState(parking);
+  const batteryFocused = useRef(false);
+  const parkingFocused = useRef(false);
+  const batteryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const parkingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!batteryFocused.current) setBatteryInput(batteryLevel !== null ? String(batteryLevel) : '');
+  }, [batteryLevel]);
+  useEffect(() => {
+    if (!parkingFocused.current) setParkingInput(parking);
+  }, [parking]);
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [showBrokenConfirm, setShowBrokenConfirm] = useState(false);
 
+  const scheduleBattery = (val: number | null) => {
+    if (batteryTimer.current) clearTimeout(batteryTimer.current);
+    batteryTimer.current = setTimeout(() => onUpdateBattery(val), 500);
+  };
+  const scheduleParking = (val: string) => {
+    if (parkingTimer.current) clearTimeout(parkingTimer.current);
+    parkingTimer.current = setTimeout(() => onUpdateParking(val), 500);
+  };
+
+  const handleParkingChange = (val: string) => {
+    const v = val.toUpperCase();
+    setParkingInput(v);
+    scheduleParking(v);
+  };
+
   const handleBatteryChange = (val: string) => {
     if (isAutonomyMode) {
       const clean = val.replace(/^KM\s*/i, '').replace(/\D/g, '');
-      if (clean === '') { setBatteryInput(''); onUpdateBattery(null); return; }
+      if (clean === '') { setBatteryInput(''); scheduleBattery(null); return; }
       const n = Math.min(99999, parseInt(clean.slice(0, 5)));
-      setBatteryInput(String(n)); onUpdateBattery(n); return;
+      setBatteryInput(String(n)); scheduleBattery(n); return;
     }
     const clean = val.replace(/\D/g, '');
-    if (clean === '') { setBatteryInput(''); onUpdateBattery(null); return; }
+    if (clean === '') { setBatteryInput(''); scheduleBattery(null); return; }
     const n = Math.min(100, parseInt(clean));
-    setBatteryInput(String(n)); onUpdateBattery(n);
+    setBatteryInput(String(n)); scheduleBattery(n);
+  };
+
+  const flushBattery = () => {
+    if (batteryTimer.current) { clearTimeout(batteryTimer.current); batteryTimer.current = null; }
+    const n = batteryInput === '' ? null : parseInt(batteryInput);
+    onUpdateBattery(Number.isNaN(n as number) ? null : n);
+  };
+  const flushParking = () => {
+    if (parkingTimer.current) { clearTimeout(parkingTimer.current); parkingTimer.current = null; }
+    onUpdateParking(parkingInput);
   };
 
   const handleChargingClick = () => {
@@ -83,8 +120,10 @@ const EquipmentRow = ({
         <td className="px-1 py-2">
           <input
             type="text"
-            value={parking}
-            onChange={(e) => onUpdateParking(e.target.value.toUpperCase())}
+            value={parkingInput}
+            onFocus={() => { parkingFocused.current = true; }}
+            onBlur={() => { parkingFocused.current = false; flushParking(); }}
+            onChange={(e) => handleParkingChange(e.target.value)}
             placeholder="—"
             className="h-11 w-20 rounded-sm border border-border bg-background px-1 font-mono text-sm uppercase focus:outline-none focus:ring-1 focus:ring-ring"
           />
@@ -103,6 +142,8 @@ const EquipmentRow = ({
                 <input
                   type="text" inputMode="numeric" pattern="[0-9]*"
                   value={isAutonomyMode && batteryInput ? `KM ${batteryInput}` : batteryInput}
+                  onFocus={() => { batteryFocused.current = true; }}
+                  onBlur={() => { batteryFocused.current = false; flushBattery(); }}
                   onChange={(e) => handleBatteryChange(e.target.value)}
                   placeholder={isAutonomyMode ? 'KM —' : '—'}
                   className="h-11 w-full rounded-sm border border-border bg-background px-2 text-center font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
