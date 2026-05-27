@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_turnarounds_user_date_created ON public.turnarounds (user_id, date DESC, created_at DESC);
