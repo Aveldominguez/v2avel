@@ -70,10 +70,15 @@ export const useAppUpdate = () => {
       });
     }
 
-    // Fetch remote version immediately on mount
+    // Defer first version check so it doesn't compete with initial data fetch
     if (!checkedRef.current) {
       checkedRef.current = true;
-      fetchRemoteVersion();
+      const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+      if (typeof w.requestIdleCallback === 'function') {
+        w.requestIdleCallback(() => { fetchRemoteVersion(); });
+      } else {
+        setTimeout(() => { fetchRemoteVersion(); }, 1500);
+      }
     }
 
     // Check every 3 minutes
