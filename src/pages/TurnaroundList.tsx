@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Turnaround, AirlineCode, AIRLINES } from '@/types/turnaround';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -39,12 +39,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { 
-  Plus, 
-  Search, 
-  Calendar as CalendarIcon, 
-  Plane, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Calendar as CalendarIcon,
+  Plane,
+  Trash2,
   Filter,
   X,
   LogOut,
@@ -60,15 +60,16 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 
+const PAGE_SIZE = 3;
+const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
+
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { turnarounds, loading, deleteTurnaround } = useTurnarounds();
+  const { fetchPage, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
-  const [showChangelog, setShowChangelog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [filteredTurnarounds, setFilteredTurnarounds] = useState<Turnaround[]>([]);
 
   // Auto-open update dialog once per remote version
   useEffect(() => {
@@ -85,32 +86,13 @@ const TurnaroundList: React.FC = () => {
     setShowUpdateDialog(false);
   };
 
-  
-  // Pagination
-  const PAGE_SIZE = 10;
-  const [visibleCount, setVisibleCount] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem('turnaround-list-filters');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (typeof parsed?.visibleCount === 'number' && parsed.visibleCount >= PAGE_SIZE) {
-          return parsed.visibleCount;
-        }
-      }
-    } catch { /* ignore */ }
-    return PAGE_SIZE;
-  });
-  const didRestoreRef = React.useRef(false);
-
-
-
-  // Filters (persisted in sessionStorage so navigating back from a detail keeps search state)
+  // Filters (persisted in sessionStorage)
   const FILTERS_KEY = 'turnaround-list-filters';
   const initialFilters = (() => {
     try {
       const raw = sessionStorage.getItem(FILTERS_KEY);
       if (!raw) return null;
-      return JSON.parse(raw) as { dateFilter?: string; airlineFilter?: string; searchQuery?: string; visibleCount?: number };
+      return JSON.parse(raw) as { dateFilter?: string; airlineFilter?: string; searchQuery?: string };
     } catch {
       return null;
     }
@@ -125,68 +107,129 @@ const TurnaroundList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  // Delete dialog
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // List state
+  const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
 
-  // Apply filters
-  useEffect(() => {
-    let result = [...turnarounds];
-
-    if (dateFilter) {
-      const filterDate = dateFilter.toDateString();
-      result = result.filter(t => t.date.toDateString() === filterDate);
+  // Hydrate from local cache for instant first paint when no filters
+  const cached = (() => {
+    if (hasFilters) return null;
+    try {
+      const raw = localStorage.getItem(LIST_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Array<Turnaround & { date: string; createdAt: string; updatedAt: string }>;
+      return parsed.map(t => ({
+        ...t,
+        date: new Date(t.date),
+        createdAt: new Date(t.createdAt),
+        updatedAt: new Date(t.updatedAt),
+        fieldValues: [],
+      })) as Turnaround[];
+    } catch {
+      return null;
     }
+  })();
 
-    if (airlineFilter !== 'ALL') {
-      result = result.filter(t => t.airline === airlineFilter);
-    }
+  const [rows, setRows] = useState<Turnaround[]>(cached || []);
+  const [loading, setLoading] = useState(!cached);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const fetchSeq = useRef(0);
 
-    if (searchQuery) {
-      const search = searchQuery.toLowerCase();
-      result = result.filter(t => {
-        const display = (t.times?.soloSalida && t.times?.departureFlightNumber)
-          ? t.times.departureFlightNumber
-          : t.flightNumber;
-        return display.toLowerCase().includes(search);
-      });
-    }
-
-    // Sort by date descending
-    result = result.sort((a, b) => b.date.getTime() - a.date.getTime());
-
-    setFilteredTurnarounds(result);
-    if (didRestoreRef.current) {
-      setVisibleCount(PAGE_SIZE);
-    }
-    didRestoreRef.current = true;
-  }, [turnarounds, dateFilter, airlineFilter, searchQuery]);
-
-  // Persist filters + pagination so navigating back from a detail keeps the search state
+  // Persist filters
   useEffect(() => {
     try {
       sessionStorage.setItem(FILTERS_KEY, JSON.stringify({
         dateFilter: dateFilter ? dateFilter.toISOString() : undefined,
         airlineFilter,
         searchQuery,
-        visibleCount,
       }));
     } catch {
-      // ignore quota / privacy errors
+      // ignore
     }
-  }, [dateFilter, airlineFilter, searchQuery, visibleCount]);
+  }, [dateFilter, airlineFilter, searchQuery]);
 
-  const visibleTurnarounds = filteredTurnarounds.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredTurnarounds.length;
+  // Debounce search query for server fetch
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 250);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Fetch first page when user/filters change
+  useEffect(() => {
+    if (!user) {
+      setRows([]);
+      setLoading(false);
+      setHasMore(false);
+      return;
+    }
+    const seq = ++fetchSeq.current;
+    if (!cached || hasFilters) setLoading(true);
+    fetchPage({
+      offset: 0,
+      limit: PAGE_SIZE,
+      dateISO: dateFilter ? format(dateFilter, 'yyyy-MM-dd') : undefined,
+      airline: airlineFilter !== 'ALL' ? airlineFilter : undefined,
+      searchFlight: debouncedSearch || undefined,
+    })
+      .then((data) => {
+        if (seq !== fetchSeq.current) return;
+        setRows(data);
+        setHasMore(data.length === PAGE_SIZE);
+        setLoading(false);
+        // Cache only the unfiltered first page
+        if (!hasFilters) {
+          try {
+            localStorage.setItem(LIST_CACHE_KEY, JSON.stringify(data));
+          } catch { /* ignore */ }
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching turnarounds:', err);
+        if (seq !== fetchSeq.current) return;
+        setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, dateFilter, airlineFilter, debouncedSearch]);
+
+  // Prefetch the form route so "Nueva Escala" opens instantly
+  useEffect(() => {
+    const idle = (cb: () => void) =>
+      'requestIdleCallback' in window
+        ? (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(cb)
+        : setTimeout(cb, 200);
+    idle(() => { import('@/pages/TurnaroundForm').catch(() => {}); });
+  }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = await fetchPage({
+        offset: rows.length,
+        limit: PAGE_SIZE,
+        dateISO: dateFilter ? format(dateFilter, 'yyyy-MM-dd') : undefined,
+        airline: airlineFilter !== 'ALL' ? airlineFilter : undefined,
+        searchFlight: debouncedSearch || undefined,
+      });
+      setRows(prev => [...prev, ...next]);
+      setHasMore(next.length === PAGE_SIZE);
+    } catch (err) {
+      console.error('Error loading more:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [rows.length, loadingMore, hasMore, fetchPage, dateFilter, airlineFilter, debouncedSearch]);
+
+  // Delete dialog
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
     try {
       await deleteTurnaround(id);
-      toast({
-        title: 'Escala eliminada',
-        description: 'La escala ha sido eliminada correctamente',
-      });
+      setRows(prev => prev.filter(t => t.id !== id));
     } catch {
       toast({
         title: 'Error',
@@ -210,32 +253,18 @@ const TurnaroundList: React.FC = () => {
     setSearchQuery('');
   };
 
-  const hasFilters = dateFilter || airlineFilter !== 'ALL' || searchQuery;
-
-  const getAirlineInfo = (code: AirlineCode) => AIRLINES.find(a => a.code === code);
-
   const getCompletionStatus = (t: Turnaround) => {
     const times = t.times;
     const hasArrival = times.chocksOnArrival;
     const hasDeparture = times.chocksOff;
-    
+
     if (hasArrival && hasDeparture) return 'completed';
     if (hasArrival || times.unloadingStart || times.loadingStart) return 'in-progress';
     return 'pending';
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Update banner is rendered globally in App.tsx via <UpdateBanner /> */}
-
       {/* Auto-emergent update dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={(open) => { if (!open) dismissUpdateDialog(); }}>
         <DialogContent className="max-w-md">
@@ -272,7 +301,7 @@ const TurnaroundList: React.FC = () => {
       {/* Header */}
       <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-3">
             <div className="flex items-center justify-between w-full">
               <ThemeToggle />
               <div className="text-center flex-1">
@@ -400,11 +429,18 @@ const TurnaroundList: React.FC = () => {
         <Card className="card-operational">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between text-base">
-              <span>Escalas ({filteredTurnarounds.length})</span>
+              <span>Últimas escalas</span>
+              {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {filteredTurnarounds.length === 0 ? (
+            {loading && rows.length === 0 ? (
+              <div className="p-4 space-y-3">
+                {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : rows.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Plane className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground">
@@ -431,9 +467,9 @@ const TurnaroundList: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {visibleTurnarounds.map((t) => {
+                    {rows.map((t) => {
                       const status = getCompletionStatus(t);
-                      
+
                       return (
                         <TableRow key={t.id} className="hover:bg-secondary/30">
                           <TableCell className="w-8 px-2">
@@ -482,10 +518,12 @@ const TurnaroundList: React.FC = () => {
                   <div className="p-4 flex justify-center border-t border-border">
                     <Button
                       variant="outline"
-                      onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                      onClick={loadMore}
+                      disabled={loadingMore}
                       className="w-full sm:w-auto"
                     >
-                      Cargar más Escalas ({filteredTurnarounds.length - visibleCount} restantes)
+                      {loadingMore ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      Cargar más escalas
                     </Button>
                   </div>
                 )}
