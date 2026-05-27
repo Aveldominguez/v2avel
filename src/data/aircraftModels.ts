@@ -1,4 +1,5 @@
 import { AirlineCode } from '@/types/turnaround';
+import { getCatalogSnapshot } from '@/lib/catalogStore';
 
 export interface AircraftModelConfig {
   model: string;
