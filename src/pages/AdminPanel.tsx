@@ -43,6 +43,7 @@ const AdminPanel: React.FC = () => {
     exportUserTurnarounds, importUserTurnarounds,
     createUser,
     changePassword,
+    setUserModule,
   } = useAdmin();
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -55,6 +56,7 @@ const AdminPanel: React.FC = () => {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newDisplayName, setNewDisplayName] = useState('');
+  const [newModules, setNewModules] = useState<{ rampa: boolean; equipos: boolean }>({ rampa: true, equipos: false });
   const [createLoading, setCreateLoading] = useState(false);
   const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
   const [newUserPassword, setNewUserPassword] = useState('');
@@ -198,14 +200,20 @@ const AdminPanel: React.FC = () => {
 
   const handleCreateUser = async () => {
     if (!newEmail || !newPassword) return;
+    const modules: ('rampa' | 'equipos')[] = [];
+    if (newModules.rampa) modules.push('rampa');
+    if (newModules.equipos) modules.push('equipos');
+    if (modules.length === 0) {
+      toast({ title: 'Selecciona al menos un módulo', variant: 'destructive' });
+      return;
+    }
     setCreateLoading(true);
     try {
-      await createUser(newEmail, newPassword, newDisplayName);
+      await createUser(newEmail, newPassword, newDisplayName, modules);
       toast({ title: 'Usuario creado correctamente' });
       setCreateDialog(false);
-      setNewEmail('');
-      setNewPassword('');
-      setNewDisplayName('');
+      setNewEmail(''); setNewPassword(''); setNewDisplayName('');
+      setNewModules({ rampa: true, equipos: false });
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     } finally {
@@ -380,6 +388,7 @@ const AdminPanel: React.FC = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Rol</TableHead>
+                      <TableHead>Módulos</TableHead>
                       <TableHead>Bloqueado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -420,6 +429,18 @@ const AdminPanel: React.FC = () => {
                                   disabled={actionLoading === u.user_id}
                                 />
                               )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <label className="flex items-center gap-2 text-xs">
+                                <Switch checked={isUserAdmin || u.modules.includes('rampa')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'rampa', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
+                                Rampa
+                              </label>
+                              <label className="flex items-center gap-2 text-xs">
+                                <Switch checked={isUserAdmin || u.modules.includes('equipos')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'equipos', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
+                                Equipos
+                              </label>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -665,6 +686,19 @@ const AdminPanel: React.FC = () => {
                 onChange={(e) => setNewDisplayName(e.target.value)}
                 placeholder="Nombre del usuario"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Módulos asignados *</Label>
+              <div className="flex flex-col gap-2 border rounded-md p-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={newModules.rampa} onCheckedChange={(v) => setNewModules(p => ({ ...p, rampa: !!v }))} />
+                  <span className="text-sm">Registro de Escalas (Rampa)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={newModules.equipos} onCheckedChange={(v) => setNewModules(p => ({ ...p, equipos: !!v }))} />
+                  <span className="text-sm">Control de Equipos</span>
+                </label>
+              </div>
             </div>
             <Button
               onClick={handleCreateUser}
