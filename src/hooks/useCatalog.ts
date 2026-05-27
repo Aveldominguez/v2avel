@@ -6,6 +6,7 @@ import {
   setCatalogState,
   subscribeCatalog,
 } from '@/lib/catalogStore';
+import { getAllAirlines } from '@/types/turnaround';
 
 const CACHE_KEY = 'catalog-cache-v1';
 
