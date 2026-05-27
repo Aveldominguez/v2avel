@@ -11,6 +11,7 @@ import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { useEquipment } from '@/hooks/useEquipment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -91,9 +92,12 @@ const EquiposHome = () => {
           )}
         </div>
         <h1 className="font-mono text-base font-bold uppercase tracking-widest">Control de Equipos</h1>
-        <button onClick={() => { signOut(); navigate('/auth'); }} className="flex h-8 w-8 items-center justify-center text-muted-foreground" aria-label="Cerrar sesión">
-          <LogOut size={18} />
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={() => { signOut(); navigate('/auth'); }} className="flex h-8 w-8 items-center justify-center text-muted-foreground" aria-label="Cerrar sesión">
+            <LogOut size={18} />
+          </button>
+        </div>
       </header>
 
       {loading ? (

@@ -5,6 +5,7 @@ import {
   useEquipment, updateParking, updateBattery, toggleCharging, toggleBroken,
 } from '@/hooks/useEquipment';
 import EquipmentRow from '@/components/equipos/EquipmentRow';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import type { EquipmentUnitFull } from '@/types/equipment';
 
 function getRanked(units: EquipmentUnitFull[]) {
@@ -48,7 +49,10 @@ const EquiposCategory = () => {
           <ArrowLeft size={22} />
         </button>
         <h1 className="flex-1 text-center font-mono text-base font-bold uppercase tracking-wide">{category.name}</h1>
-        <div className="w-10" />
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <div className="w-1" />
+        </div>
       </header>
 
       <div className="flex-1 overflow-auto px-2 py-2">
