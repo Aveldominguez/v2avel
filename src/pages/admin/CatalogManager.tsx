@@ -786,23 +786,33 @@ const TimeFieldsTab: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Campo</TableHead><TableHead>Visible</TableHead>
-              <TableHead>Etiqueta personalizada</TableHead><TableHead>Color reloj</TableHead><TableHead></TableHead>
+              <TableHead>Campo</TableHead>
+              <TableHead>Etiqueta visible al usuario</TableHead>
+              <TableHead>Visible</TableHead>
+              <TableHead>Etiqueta personalizada</TableHead>
+              <TableHead>Color reloj</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {TIME_FIELD_KEYS.map(k => {
               const ov = ovs.find(o => o.fieldKey === k);
+              const defaultLabel = TIME_FIELD_DEFAULT_LABELS[k] ?? k;
+              const visibleLabel = ov?.label || defaultLabel;
               const currentLabel = edits[k]?.label ?? ov?.label ?? '';
               const dirty = edits[k]?.label !== undefined && edits[k]?.label !== (ov?.label ?? '');
               return (
                 <TableRow key={k}>
-                  <TableCell className="font-mono text-xs">{k}</TableCell>
+                  <TableCell className="font-mono text-[10px] text-muted-foreground">{k}</TableCell>
+                  <TableCell className="font-semibold">
+                    {visibleLabel}
+                    {ov?.label && <span className="ml-1 text-[10px] text-primary">(personalizada)</span>}
+                  </TableCell>
                   <TableCell><Switch checked={ov?.visible ?? true} onCheckedChange={v => upsert(k, { visible: v })} /></TableCell>
                   <TableCell>
                     <Input
                       value={currentLabel}
-                      placeholder="(por defecto)"
+                      placeholder={defaultLabel}
                       onChange={e => setEdits(p => ({ ...p, [k]: { label: e.target.value } }))}
                       onBlur={() => { if (dirty) upsert(k, { label: currentLabel || null }); }}
                     />
