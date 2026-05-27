@@ -331,10 +331,15 @@ const TurnaroundList: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between w-full">
-              <div>
+              <div className="flex items-center gap-2">
                 {isAdmin && (
                   <Button size="icon" onClick={() => navigate('/admin')} className="bg-warning text-warning-foreground hover:bg-warning/90">
                     <Shield className="h-5 w-5" />
+                  </Button>
+                )}
+                {hasEquipos && (
+                  <Button size="icon" onClick={() => navigate('/equipos')} variant="secondary" title="Control de Equipos">
+                    <Truck className="h-5 w-5" />
                   </Button>
                 )}
               </div>
