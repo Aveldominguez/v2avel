@@ -1,5 +1,5 @@
 {
-  "version": "2.0.187",
+  "version": "2.0.188",
   "changelog": [
     "Integrado módulo Control de Equipos con permisos por usuario (Rampa / Equipos).",
     "Nueva pantalla selector de módulo tras login para usuarios con acceso múltiple.",
