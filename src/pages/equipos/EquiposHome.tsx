@@ -25,7 +25,55 @@ const EquiposHome = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { isAdmin, rampa } = useModuleAccess();
-  const { loading, fullCategories } = useEquipment();
+  const { loading, fullCategories, reload } = useEquipment();
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF();
+    const now = new Date();
+    doc.setFontSize(16);
+    doc.text('Estado de Equipos', 14, 18);
+    doc.setFontSize(10);
+    doc.text(now.toLocaleString('es-ES'), 14, 25);
+    let y = 35;
+    fullCategories.forEach((cat) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text(cat.name, 14, y);
+      y += 6;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      cat.units.filter(u => !u.is_separator).forEach((u) => {
+        if (y > 285) { doc.addPage(); y = 20; }
+        const s = u.state;
+        const status = s?.is_broken ? 'TALLER' : s?.is_charging ? 'CARGANDO' : 'DISPONIBLE';
+        const parking = s?.parking || '-';
+        const bat = s?.battery_level != null ? `${s.battery_level}%` : '-';
+        doc.text(`${u.code.padEnd(10)} ${status.padEnd(12)} P:${parking.padEnd(8)} Bat:${bat}`, 16, y);
+        y += 5;
+      });
+      y += 4;
+    });
+    doc.save(`equipos-${now.toISOString().slice(0,10)}.pdf`);
+  };
+
+  const handleResetAll = async () => {
+    setResetting(true);
+    const { error } = await supabase
+      .from('equipment_state')
+      .update({ parking: '', battery_level: null, is_charging: false, charging_since: null })
+      .eq('is_broken', false);
+    setResetting(false);
+    setConfirmReset(false);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      reload();
+    }
+  };
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
