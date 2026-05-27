@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Wrench, Fuel } from 'lucide-react';
 import type { EquipmentUnitFull } from '@/types/equipment';
 import PriorityBadge from './PriorityBadge';
