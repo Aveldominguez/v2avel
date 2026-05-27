@@ -1,5 +1,5 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.179';
+export const APP_VERSION = '2.0.180';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
