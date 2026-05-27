@@ -64,8 +64,10 @@ const CatalogManager: React.FC = () => {
 const AirlinesTab: React.FC = () => {
   const catalog = useCatalog();
   const [saving, setSaving] = useState<string | null>(null);
+  const [newAirline, setNewAirline] = useState({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)' });
 
-  const rows = AIRLINES.map(a => {
+  // Merge built-in airlines with any DB-only (newly added) airlines
+  const baseRows = AIRLINES.map(a => {
     const ov = catalog.airlines.find(o => o.code === a.code);
     return {
       code: a.code,
@@ -73,9 +75,13 @@ const AirlinesTab: React.FC = () => {
       shortName: ov?.shortName ?? a.shortName,
       color: ov?.color ?? a.color,
       active: ov?.active ?? true,
-      hasOverride: !!ov,
+      isCustom: false,
     };
   });
+  const extraRows = catalog.airlines
+    .filter(o => !AIRLINES.some(a => a.code === o.code))
+    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color, active: o.active, isCustom: true }));
+  const rows = [...baseRows, ...extraRows];
 
   const [edits, setEdits] = useState<Record<string, Partial<{ name: string; shortName: string; color: string; active: boolean }>>>({});
 
@@ -101,10 +107,37 @@ const AirlinesTab: React.FC = () => {
     }
   };
 
+  const addNewAirline = async () => {
+    const code = newAirline.code.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+    if (!code || !newAirline.name.trim()) {
+      toast({ title: 'Faltan datos', description: 'Código interno y nombre son obligatorios', variant: 'destructive' });
+      return;
+    }
+    if (rows.some(r => r.code === code)) {
+      toast({ title: 'Código ya existe', description: `Ya hay una aerolínea con el código ${code}`, variant: 'destructive' });
+      return;
+    }
+    setSaving('__new__');
+    const { error } = await supabase.from('catalog_airlines').insert({
+      code,
+      name: newAirline.name.trim(),
+      short_name: (newAirline.shortName.trim() || newAirline.name.trim()).toUpperCase(),
+      color: newAirline.color,
+      active: true,
+      sort_order: 1000,
+    });
+    setSaving(null);
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else {
+      setNewAirline({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)' });
+      await refreshCatalog();
+    }
+  };
+
   return (
     <Card>
       <CardHeader><CardTitle>Aerolíneas</CardTitle></CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <Table>
           <TableHeader>
             <TableRow>
@@ -121,7 +154,10 @@ const AirlinesTab: React.FC = () => {
               const e = edits[r.code] || {};
               return (
                 <TableRow key={r.code}>
-                  <TableCell className="font-mono text-xs">{r.code}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {r.code}
+                    {r.isCustom && <span className="ml-1 text-[10px] text-primary">NEW</span>}
+                  </TableCell>
                   <TableCell><Input value={e.name ?? r.name} onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], name: ev.target.value } }))} /></TableCell>
                   <TableCell><Input value={e.shortName ?? r.shortName} onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], shortName: ev.target.value } }))} /></TableCell>
                   <TableCell><Input value={e.color ?? r.color} onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], color: ev.target.value } }))} /></TableCell>
@@ -136,9 +172,39 @@ const AirlinesTab: React.FC = () => {
             })}
           </TableBody>
         </Table>
-        <p className="text-xs text-muted-foreground mt-3">
-          Para añadir una aerolínea totalmente nueva (con su propio código interno), se requiere un cambio menor en el código TypeScript del tipo <code>AirlineCode</code>. Pídelo en chat.
-        </p>
+
+        <div className="border-t pt-4">
+          <h3 className="font-semibold mb-2">Añadir nueva aerolínea</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
+            <div>
+              <Label>Código interno</Label>
+              <Input
+                value={newAirline.code}
+                onChange={e => setNewAirline(p => ({ ...p, code: e.target.value }))}
+                placeholder="RYANAIR"
+                className="font-mono uppercase"
+              />
+            </div>
+            <div>
+              <Label>Nombre</Label>
+              <Input value={newAirline.name} onChange={e => setNewAirline(p => ({ ...p, name: e.target.value }))} placeholder="Ryanair" />
+            </div>
+            <div>
+              <Label>Nombre corto</Label>
+              <Input value={newAirline.shortName} onChange={e => setNewAirline(p => ({ ...p, shortName: e.target.value }))} placeholder="RYANAIR" />
+            </div>
+            <div>
+              <Label>Color HSL</Label>
+              <Input value={newAirline.color} onChange={e => setNewAirline(p => ({ ...p, color: e.target.value }))} placeholder="hsl(210, 80%, 50%)" />
+            </div>
+            <Button onClick={addNewAirline} disabled={saving === '__new__'}>
+              {saving === '__new__' ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-1" /> Añadir</>}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            El código interno es inmutable. Tras crearla, podrás añadirle modelos, bodegas y comoditys en las otras pestañas.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
