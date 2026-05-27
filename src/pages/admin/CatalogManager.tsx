@@ -5,6 +5,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useCatalog, refreshCatalog } from '@/hooks/useCatalog';
 import { AIRLINES, AirlineCode } from '@/types/turnaround';
 import { AIRCRAFT_MODELS } from '@/data/aircraftModels';
+import { getCompartmentsByAirline, isPairedHold, type CompartmentDefinition, type HoldEntry } from '@/data/compartmentDefinitions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
