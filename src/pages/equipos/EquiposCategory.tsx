@@ -86,6 +86,16 @@ const EquiposCategory = () => {
           </tbody>
         </table>
       </div>
+
+      <button
+        onClick={handleSave}
+        className={`fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors ${
+          justSaved ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'
+        }`}
+        aria-label="Guardar cambios"
+      >
+        {justSaved ? <Check size={26} /> : <Save size={24} />}
+      </button>
     </div>
   );
 };
