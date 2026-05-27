@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Turnaround, AirlineCode, AIRLINES } from '@/types/turnaround';
+import { Turnaround, AirlineCode, AIRLINES, findAirline } from '@/types/turnaround';
+import { useAllAirlines } from '@/hooks/useCatalog';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
