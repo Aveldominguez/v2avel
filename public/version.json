@@ -1,5 +1,5 @@
 {
-  "version": "2.0.216",
+  "version": "2.0.217",
   "changelog": [
     "Control de Equipos: inputs de Parking y Batería responden al instante (estado local + escritura diferida 500 ms, sin parpadeos por realtime)."
   ]
