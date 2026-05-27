@@ -86,15 +86,6 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     }
   };
 
-  const handlePercentageChange = (categoryId: string, index: number, percentage: string) => {
-    const clean = percentage.replace(/[^0-9]/g, '');
-    const num = parseInt(clean, 10);
-    const val = clean === '' ? '' : (num > 100 ? '100' : clean);
-    const catSelections = getSelections(categoryId);
-    const others = equipment.filter(e => e.categoryId !== categoryId);
-    const updated = catSelections.map((sel, i) => i === index ? { ...sel, percentage: val } : sel);
-    onChange([...others, ...updated]);
-  };
 
   const handleAdd = (categoryId: string) => {
     onChange([...equipment, { categoryId, equipmentId: '', percentage: '' }]);
@@ -232,10 +223,6 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                             {availableForNew.map(item => renderSelectItem(item, category.id))}
                           </SelectContent>
                         </Select>
-                        <div className="relative w-20 shrink-0">
-                          <Input type="text" inputMode="numeric" placeholder="—" disabled className="h-10 text-center pr-6" />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
-                        </div>
                       </div>
                     )}
 
@@ -251,15 +238,6 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                                 {available.map(item => renderSelectItem(item, category.id))}
                               </SelectContent>
                             </Select>
-                            <div className="relative w-20 shrink-0">
-                              <Input
-                                type="text" inputMode="numeric" placeholder="—"
-                                value={sel.percentage}
-                                onChange={(e) => handlePercentageChange(category.id, idx, e.target.value)}
-                                className="h-10 text-center pr-6"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
-                            </div>
                             {selections.length > 1 && (
                               <Button type="button" variant="ghost" size="sm" onClick={() => handleRemove(category.id, idx)} className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 shrink-0">
                                 <X className="h-4 w-4" />
