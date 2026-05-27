@@ -1,5 +1,5 @@
 {
-  "version": "2.0.179",
+  "version": "2.0.180",
   "changelog": [
     "Admin → Catálogos: añadir aerolíneas totalmente nuevas (código interno, color, nombre corto) sin tocar código.",
     "Las aerolíneas creadas aparecen al instante en filtros, formulario y panel de catálogos.",

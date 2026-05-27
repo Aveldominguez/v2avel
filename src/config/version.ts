@@ -1,9 +1,10 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.179';
+export const APP_VERSION = '2.0.180';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Admin → Catálogos: añadir aerolíneas totalmente nuevas (código interno, color, nombre corto) sin tocar código.',
-  'Las aerolíneas creadas aparecen al instante en filtros, formulario y panel de catálogos.',
-  'Tipo AirlineCode relajado a string para permitir extensiones futuras.',
+  'Admin → Catálogos: botón "Guardar y recargar" en la cabecera para refrescar todo el catálogo.',
+  'Eliminar (o desactivar) aerolíneas, modelos, Comoditys, compartimientos y bodegas desde el panel.',
+  'Comoditys: ahora se muestran todos los códigos hardcodeados además de los overrides, con editor y eliminar.',
+  'Control de horas: las etiquetas personalizadas guardadas ahora se muestran y se pueden editar correctamente.',
 ];
