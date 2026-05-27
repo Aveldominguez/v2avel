@@ -1,5 +1,5 @@
 import { AirlineCode } from '@/types/turnaround';
-import { getCatalogSnapshot } from '@/lib/catalogStore';
+import { getCatalogSnapshot, type HoldOverride } from '@/lib/catalogStore';
 
 export interface HoldDefinition {
   id: string;
