@@ -25,6 +25,13 @@ const EquiposCategory = () => {
 
   const rankMap = useMemo(() => category ? getRanked(category.units) : new Map(), [category]);
 
+  const [justSaved, setJustSaved] = useState(false);
+  const handleSave = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   }
@@ -33,13 +40,6 @@ const EquiposCategory = () => {
   }
 
   const isAutonomy = categoryId === 'furgonetas';
-
-  const [justSaved, setJustSaved] = useState(false);
-  const handleSave = () => {
-    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 1500);
-  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
