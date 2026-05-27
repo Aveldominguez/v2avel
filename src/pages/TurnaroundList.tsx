@@ -415,7 +415,7 @@ const TurnaroundList: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
-                  {AIRLINES.map((a) => (
+                  {allAirlines.map((a) => (
                     <SelectItem key={a.code} value={a.code}>
                       {a.name}
                     </SelectItem>
