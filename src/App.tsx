@@ -104,6 +104,7 @@ const App = () => (
       <InstallPrompt />
       <BrowserRouter>
         <AuthProvider>
+          <CatalogBootstrap />
           <UpdateBanner />
           <AppRoutes />
         </AuthProvider>
