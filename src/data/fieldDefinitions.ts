@@ -1,4 +1,5 @@
 import { FieldDefinition, AirlineCode } from '@/types/turnaround';
+import { getCatalogSnapshot } from '@/lib/catalogStore';
 
 // Helper to create deterministic field ID based on airline + code
 const createFieldId = (airline: AirlineCode, code: string): string => {
@@ -225,9 +226,28 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...WESTJET_FIELDS,
 ];
 
-// Get fields by airline
+// Get fields by airline (merges admin overrides from catalog store).
 export const getFieldsByAirline = (airline: AirlineCode): FieldDefinition[] => {
-  return ALL_FIELD_DEFINITIONS
-    .filter(f => f.airline === airline && f.active)
+  const base = ALL_FIELD_DEFINITIONS.filter(f => f.airline === airline);
+  const { loadCodes } = getCatalogSnapshot();
+  const ovs = loadCodes.filter(l => l.airlineCode === airline);
+
+  const map = new Map<string, FieldDefinition>();
+  base.forEach(f => map.set(f.code, f));
+  ovs.forEach(o => {
+    const existing = map.get(o.code);
+    map.set(o.code, {
+      id: existing?.id || `${airline.toLowerCase()}-${o.code.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+      airline,
+      code: o.code,
+      label: o.label,
+      inputType: 'alphanumeric',
+      sortOrder: existing ? existing.sortOrder : 10_000 + o.sortOrder,
+      active: o.active,
+    });
+  });
+  return Array.from(map.values())
+    .filter(f => f.active)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 };
+

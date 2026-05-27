@@ -6,8 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { hydrateCatalogFromCache, loadCatalog } from "@/hooks/useCatalog";
+
+const CatalogManager = lazy(() => import("./pages/admin/CatalogManager"));
 
 const TurnaroundList = lazy(() => import("./pages/TurnaroundList"));
 const TurnaroundForm = lazy(() => import("./pages/TurnaroundForm"));
@@ -74,10 +77,23 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/catalogs"
+          element={<ProtectedRoute><CatalogManager /></ProtectedRoute>}
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );
+};
+
+const CatalogBootstrap = () => {
+  useEffect(() => {
+    hydrateCatalogFromCache();
+    const id = (window as any).requestIdleCallback?.(() => loadCatalog()) ?? setTimeout(() => loadCatalog(), 200);
+    return () => { (window as any).cancelIdleCallback?.(id) ?? clearTimeout(id); };
+  }, []);
+  return null;
 };
 
 const App = () => (
@@ -88,6 +104,7 @@ const App = () => (
       <InstallPrompt />
       <BrowserRouter>
         <AuthProvider>
+          <CatalogBootstrap />
           <UpdateBanner />
           <AppRoutes />
         </AuthProvider>

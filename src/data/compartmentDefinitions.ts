@@ -1,4 +1,5 @@
 import { AirlineCode } from '@/types/turnaround';
+import { getCatalogSnapshot, type HoldOverride } from '@/lib/catalogStore';
 
 export interface HoldDefinition {
   id: string;
@@ -1263,7 +1264,7 @@ export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   TAP: ['AKH-TP', 'PKC-TP'],
 };
 
-export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
+const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'TAP') {
     if (aircraftModel === 'EMB90') return TAP_EMB90_COMPARTMENTS;
@@ -1348,3 +1349,97 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   // Demo: usar compartimientos de Sky Express para las demás aerolíneas
   return SKYEXPRESS_COMPARTMENTS;
 };
+
+// Public wrapper: applies admin-managed overrides (catalog store) on top of hardcoded data.
+// Overrides match by compartment id / hold id. New compartments/holds added in catalog are appended.
+export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
+  const base = getCompartmentsByAirlineRaw(airline, aircraftModel);
+  const { compartments: compOvs, holds: holdOvs } = getCatalogSnapshot();
+
+  // 1) Map overrides onto existing compartments + holds
+  const overrideById = new Map(compOvs.map(c => [c.id, c]));
+  const holdOverrideById = new Map(holdOvs.map(h => [h.id, h]));
+
+  const mapped: CompartmentDefinition[] = base.map(c => {
+    const ov = overrideById.get(c.id);
+    const compName = ov?.name ?? c.compartmentName;
+
+    const newHolds: HoldEntry[] = c.holds.map(h => {
+      if (isPairedHold(h)) {
+        const lOv = holdOverrideById.get(h.left.id);
+        const rOv = holdOverrideById.get(h.right.id);
+        if (lOv && !lOv.active && rOv && !rOv.active) return null as any;
+        return {
+          left: { ...h.left, label: lOv?.label ?? h.left.label },
+          right: { ...h.right, label: rOv?.label ?? h.right.label },
+        };
+      }
+      const hOv = holdOverrideById.get(h.id);
+      if (hOv && !hOv.active) return null as any;
+      return { ...h, label: hOv?.label ?? h.label };
+    }).filter(Boolean) as HoldEntry[];
+
+    return {
+      ...c,
+      compartmentName: compName,
+      holds: newHolds,
+    };
+  }).filter(c => {
+    const ov = overrideById.get(c.id);
+    return ov ? ov.active : true;
+  });
+
+  // 2) Append new compartments added by admin for this airline+model
+  const extras = compOvs
+    .filter(c => c.airlineCode === airline
+      && c.active
+      && !base.some(b => b.id === c.id)
+      && (c.aircraftModelCode === (aircraftModel ?? null) || c.aircraftModelCode === aircraftModel))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map<CompartmentDefinition>(c => {
+      const compartmentHolds = holdOvs
+        .filter(h => h.compartmentId === c.id && h.active)
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+
+      // Group by pair_group; singletons stand alone
+      const grouped: HoldEntry[] = [];
+      const pairBuf = new Map<string, { left?: HoldOverride; right?: HoldOverride }>();
+      compartmentHolds.forEach(h => {
+        if (h.pairGroup) {
+          const slot = pairBuf.get(h.pairGroup) || {};
+          if (h.pairSide === 'left') slot.left = h; else if (h.pairSide === 'right') slot.right = h;
+          pairBuf.set(h.pairGroup, slot);
+        } else {
+          grouped.push({ id: h.id, label: h.label });
+        }
+      });
+      pairBuf.forEach(slot => {
+        if (slot.left && slot.right) {
+          grouped.push({
+            left: { id: slot.left.id, label: slot.left.label },
+            right: { id: slot.right.id, label: slot.right.label },
+          });
+        } else if (slot.left) {
+          grouped.push({ id: slot.left.id, label: slot.left.label });
+        } else if (slot.right) {
+          grouped.push({ id: slot.right.id, label: slot.right.label });
+        }
+      });
+
+      return {
+        id: c.id,
+        airline,
+        compartmentName: c.name,
+        holdStyle: c.holdStyle,
+        bulk: c.bulk,
+        expandable: c.expandable,
+        expandableDefault: c.expandableDefault ?? undefined,
+        holds: grouped,
+      };
+    });
+
+  return [...mapped, ...extras];
+};
+
+
+
