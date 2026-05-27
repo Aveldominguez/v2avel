@@ -1264,7 +1264,7 @@ export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   TAP: ['AKH-TP', 'PKC-TP'],
 };
 
-export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
+const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
   if (airline === 'SKYEXPRESS') return SKYEXPRESS_COMPARTMENTS;
   if (airline === 'TAP') {
     if (aircraftModel === 'EMB90') return TAP_EMB90_COMPARTMENTS;
