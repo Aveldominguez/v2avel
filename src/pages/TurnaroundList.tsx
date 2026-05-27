@@ -5,6 +5,7 @@ import { useAllAirlines } from '@/hooks/useCatalog';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { formatDate } from '@/utils/timeValidation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
