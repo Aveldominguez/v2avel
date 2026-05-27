@@ -122,20 +122,44 @@ export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
   ],
 };
 
+function applyModelOverlay(airline: AirlineCode): AircraftModelConfig[] {
+  const base = AIRCRAFT_MODELS[airline] || [];
+  const { aircraftModels } = getCatalogSnapshot();
+  const ovs = aircraftModels.filter(m => m.airlineCode === airline);
+
+  // Merge by modelCode: override existing or append new.
+  const map = new Map<string, AircraftModelConfig & { sortOrder: number; active: boolean }>();
+  base.forEach((m, i) => map.set(m.model, { ...m, sortOrder: i, active: true }));
+  ovs.forEach(o => {
+    const existing = map.get(o.modelCode);
+    map.set(o.modelCode, {
+      model: o.modelCode,
+      label: o.label,
+      turnaroundMinutes: o.turnaroundMinutes,
+      cleaningMinutes: o.cleaningMinutes ?? undefined,
+      sortOrder: existing ? existing.sortOrder : 10_000 + o.sortOrder,
+      active: o.active,
+    });
+  });
+  return Array.from(map.values())
+    .filter(m => m.active)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map(({ sortOrder, active, ...rest }) => rest);
+}
+
 export const getModelsForAirline = (airline: AirlineCode): AircraftModelConfig[] => {
-  return AIRCRAFT_MODELS[airline] || [];
+  return applyModelOverlay(airline);
 };
 
 export const getTurnaroundDuration = (airline: AirlineCode, model: string): number => {
-  const models = AIRCRAFT_MODELS[airline];
-  if (!models) return 40;
+  const models = applyModelOverlay(airline);
   const found = models.find(m => m.model === model);
   return found?.turnaroundMinutes ?? models[0]?.turnaroundMinutes ?? 40;
 };
 
 export const getCleaningMinutes = (airline: AirlineCode, model: string): number | undefined => {
-  const models = AIRCRAFT_MODELS[airline];
-  if (!models) return undefined;
+  const models = applyModelOverlay(airline);
   const found = models.find(m => m.model === model);
   return found?.cleaningMinutes;
 };
+
