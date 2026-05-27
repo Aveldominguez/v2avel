@@ -34,6 +34,13 @@ const EquiposCategory = () => {
 
   const isAutonomy = categoryId === 'furgonetas';
 
+  const [justSaved, setJustSaved] = useState(false);
+  const handleSave = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-3">
