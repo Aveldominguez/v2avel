@@ -38,11 +38,9 @@ const norm = (s: string) => s.replace(/\s+/g, '').toUpperCase();
 
 const EquipmentStateEditor = ({
   unit,
-  categoryId,
   isAutonomy,
 }: {
   unit: EquipmentUnitFull;
-  categoryId: string;
   isAutonomy: boolean;
 }) => {
   const state = unit.state;
@@ -226,7 +224,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     const bd = getBdUnit(categoryId, item.label);
     if (!bd) return null;
     const isAutonomy = categoryId === 'FURGONETAS';
-    return <EquipmentStateEditor key={bd.id} unit={bd} categoryId={categoryId} isAutonomy={isAutonomy} />;
+    return <EquipmentStateEditor key={bd.id} unit={bd} isAutonomy={isAutonomy} />;
   };
 
   const renderSelectItem = (item: { id: string; label: string }, categoryId: string) => {
