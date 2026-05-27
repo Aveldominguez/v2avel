@@ -440,7 +440,7 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
 };
 
 // Airline prefixes for flight numbers
-export const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+export const AIRLINE_PREFIXES: Record<string, string> = {
   FEDEX: '3V',
   AIR_CANADA: 'AC',
   AIR_CANADA_CARGO: 'AC',
