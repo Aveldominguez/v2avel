@@ -1441,6 +1441,5 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
   return [...mapped, ...extras];
 };
 
-// Local re-import for the extras builder (TS scope)
-import type { HoldOverride } from '@/lib/catalogStore';
+
 
