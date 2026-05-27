@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCatalog, refreshCatalog } from '@/hooks/useCatalog';
-import { AIRLINES, AirlineCode, getAllAirlines } from '@/types/turnaround';
+import { AIRLINES, AirlineCode, getAllAirlines, getTimeFieldsForAirline } from '@/types/turnaround';
 import { AIRCRAFT_MODELS } from '@/data/aircraftModels';
 import { getFieldsByAirline, ALL_FIELD_DEFINITIONS } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold, type CompartmentDefinition } from '@/data/compartmentDefinitions';
@@ -739,6 +739,17 @@ const TimeFieldsTab: React.FC = () => {
 
   const ovs = catalog.timeFieldOverrides.filter(t => t.airlineCode === airline);
 
+  // Default-used keys for this airline (union of local + remote variants),
+  // so the Visible toggle reflects what the airline actually shows today.
+  const defaultUsedKeys = React.useMemo(() => {
+    const set = new Set<string>();
+    try {
+      getTimeFieldsForAirline(airline, false).forEach(f => set.add(f.key as string));
+      getTimeFieldsForAirline(airline, true).forEach(f => set.add(f.key as string));
+    } catch { /* unknown airline → empty set */ }
+    return set;
+  }, [airline]);
+
   // Reset local edits when airline changes
   useEffect(() => { setEdits({}); }, [airline]);
 
@@ -747,7 +758,7 @@ const TimeFieldsTab: React.FC = () => {
     setSaving(fieldKey);
     const payload = {
       airline_code: airline, field_key: fieldKey,
-      visible: patch.visible ?? existing?.visible ?? true,
+      visible: patch.visible ?? existing?.visible ?? defaultUsedKeys.has(fieldKey),
       label: patch.label !== undefined ? patch.label : (existing?.label ?? null),
       clock_color: patch.clockColor ?? existing?.clockColor ?? null,
       type: patch.type ?? existing?.type ?? null,
@@ -808,7 +819,7 @@ const TimeFieldsTab: React.FC = () => {
                     {visibleLabel}
                     {ov?.label && <span className="ml-1 text-[10px] text-primary">(personalizada)</span>}
                   </TableCell>
-                  <TableCell><Switch checked={ov?.visible ?? true} onCheckedChange={v => upsert(k, { visible: v })} /></TableCell>
+                  <TableCell><Switch checked={ov?.visible ?? defaultUsedKeys.has(k)} onCheckedChange={v => upsert(k, { visible: v })} /></TableCell>
                   <TableCell>
                     <Input
                       value={currentLabel}
