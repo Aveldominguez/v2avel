@@ -1,78 +1,98 @@
+## Objetivo
 
-# Gestión de catálogos desde el Panel de Admin
+Unificar la app **Control Equipos** dentro de v2avel como un segundo módulo, con permisos por usuario (Rampa, Equipos o ambos), compartiendo el catálogo de equipos entre los dos módulos y permitiendo edición del estado desde ambos lados con reglas claras.
 
-Objetivo: que un admin pueda crear/editar (con soft-delete e IDs inmutables) aerolíneas, modelos de avión, compartimientos/bodegas, códigos de carga y la configuración de los campos de tiempos. Las reglas especiales por aerolínea (Amazon Ristra, FedEx parking, AirEst W&B, ITA hold style, split layout, push-back, etc.) **siguen en código** sin cambios.
+## Supuestos (avísame si quieres cambiar alguno)
 
-## Qué verá el usuario
+- **Backend único**: migramos las tablas de Control Equipos al backend de v2avel (más simple, una sola sesión y realtime nativo).
+- **Permisos**: cada usuario puede tener una o ambas áreas marcadas. Admin siempre tiene ambas. Si tiene solo una, va directo a ella; si tiene ambas, ve un selector de módulo tras login.
+- **Equipo "Cargando" en Rampa**: aparece en el desplegable etiquetado `⚡ Cargando` y seleccionable, pero el operario de Rampa NO puede quitarle el flag de carga. Si está disponible, puede actualizar parking (ubicación) y batería desde el propio desplegable de Rampa.
+- **Catálogo**: el catálogo hardcodeado de `equipmentDefinitions.ts` (Rampa) y el de `useEquipmentStore.ts` (Control Equipos) se fusionan en una única fuente en BD (`catalog_equipment_categories` + `catalog_equipment_units`), administrable.
 
-Nueva pestaña **"Catálogos"** dentro de `/admin` con 5 sub-secciones:
+## Cambios
 
-1. **Aerolíneas** — listar/crear/editar/desactivar. Campos: código interno (inmutable, solo al crear), nombre, nombre corto, color HSL.
-2. **Modelos de avión** — agrupados por aerolínea. Campos: código modelo (inmutable), etiqueta, turnaround (min), limpieza (min, opcional).
-3. **Bodegas / Compartimientos** — por aerolínea + modelo. Permite añadir compartimientos (nombre, ej. "COMPARTIMIENTO 1 FWD"), reordenar, marcar como bulk/expandable, y dentro de cada uno añadir bodegas simples o pareadas (estilo ITA). IDs de bodega inmutables.
-4. **Códigos de carga (Comoditys)** — por aerolínea. Tabla código/significado/orden con activo/inactivo.
-5. **Campos de tiempos** — por aerolínea. Lista de los campos existentes (chocksOnArrival, loadingStart…) con: visible sí/no, etiqueta personalizada, orden, color de reloj (verde/rojo/default) y tipo (time/boolean/boolean-text). **No** se pueden inventar campos nuevos.
+### 1. Base de datos (nueva migración)
 
-En cada sección: botón "Guardar cambios", validación inline, soft-delete (toggle "Activo"), y advertencia al editar un código que ya tenga escalas asociadas.
+Nuevas tablas en v2avel:
 
-## Compatibilidad con escalas existentes
+- `catalog_equipment_categories` — id, name, icon, sort_order, active.
+- `catalog_equipment_units` — id, category_id, code, label, fuel_type (`battery` | `fuel`), is_separator, sort_order, active.
+- `equipment_state` — uno por unidad: parking, battery_level, is_charging, charging_since, is_broken, updated_by, updated_at.
+- `equipment_activity_log` — historial (user_id, username, action, unit_id, field, old, new, timestamp).
+- `user_module_access` — `user_id`, `module` (`rampa` | `equipos`), unique(user_id, module). Admin asume ambas vía `has_role`.
 
-- Las escalas guardadas siguen funcionando porque:
-  - El `airline` y `aircraftModel` se almacenan como strings → si el código interno nunca cambia, todo sigue resolviéndose.
-  - Los `fieldValues` usan IDs deterministas (`wizz-bt`) → al editar la etiqueta no rompe nada.
-- Soft-delete: marcar inactivo oculta de los selectores nuevos pero respeta lo ya registrado.
-- Borrado real: no se permite desde UI (solo soft-delete) para evitar romper históricos.
+Todas con GRANTs y RLS:
+- Lectura autenticada en catálogo + equipment_state.
+- Escritura en equipment_state: cualquier autenticado con acceso a `rampa` o `equipos` (validado en RLS vía función `has_module_access`).
+- Catálogo y categorías: solo admin escribe.
+- Realtime activado en `equipment_state`.
 
-## Cambios técnicos (detalle)
+Seed inicial migrando los datos hardcodeados actuales (las 10 categorías y todas las unidades de Control Equipos).
 
-### Base de datos (nuevas tablas en `public`)
+### 2. Permisos y enrutamiento
 
-- `catalog_airlines` (code PK text inmutable, name, short_name, color, active, sort_order, updated_at)
-- `catalog_aircraft_models` (id uuid, airline_code, model_code text inmutable, label, turnaround_minutes, cleaning_minutes nullable, active, sort_order). Unique(airline_code, model_code).
-- `catalog_compartments` (id uuid inmutable, airline_code, aircraft_model_code nullable, name, hold_style, bulk, expandable, expandable_default, sort_order, active)
-- `catalog_holds` (id text PK inmutable, compartment_id, label, pair_group nullable, pair_side nullable [left|right], sort_order, active)
-- `catalog_load_codes` (id uuid, airline_code, code text inmutable, label, sort_order, active). Unique(airline_code, code).
-- `catalog_time_field_overrides` (id uuid, airline_code, field_key text [enum keys de TurnaroundTimes], visible bool, label nullable, clock_color nullable, type nullable, sort_order). Unique(airline_code, field_key).
+- Hook nuevo `useModuleAccess()` devuelve `{ rampa, equipos, loading }`.
+- `App.tsx`: tras login, ruta `/` decide:
+  - solo rampa → `/rampa` (la actual `TurnaroundList`).
+  - solo equipos → `/equipos`.
+  - ambas o admin → `/select` (pantalla simple con 2 tarjetas).
+- Guards por módulo en cada ruta. Sin acceso → redirect al módulo permitido o `/select`.
+- En el panel admin, formulario "Crear usuario" añade dos checkboxes: **Acceso a Rampa** / **Acceso a Equipos** (al menos uno requerido). Edge function `create-user` se actualiza para insertar en `user_module_access`.
+- Tabla de usuarios del admin: columna con los módulos asignados y edición inline.
 
-RLS:
-- `SELECT` para `authenticated` (todos los usuarios necesitan leer el catálogo para renderizar formularios).
-- `INSERT/UPDATE/DELETE` solo si `has_role(auth.uid(), 'admin')`.
-- `service_role` con `ALL`.
-- GRANTs explícitos.
+### 3. Módulo Control Equipos integrado
 
-Seed inicial vía migración: volcamos los datos actuales de `AIRLINES`, `AIRCRAFT_MODELS`, `compartmentDefinitions.ts`, `fieldDefinitions.ts` para que el primer estado en BD sea idéntico al actual.
+- Portamos `HomePage`, `CategoryPage`, `EquipmentRow`, `ChargingButton`, `PriorityBadge` desde el proyecto Control Equipos a `src/pages/equipos/` y `src/components/equipos/`.
+- Sustituimos su store local por un hook que lee de las nuevas tablas (`useEquipmentCatalog`, `useEquipmentState`) con realtime.
+- Adaptamos estilos al sistema de tokens dark-mode de v2avel (no clases de color crudas).
+- Rutas: `/equipos`, `/equipos/:categoryId`.
 
-### Frontend
+### 4. Desplegable "Equipos utilizados" en Rampa
 
-- Nuevo hook `useCatalog()` (basado en React Query) que carga todos los catálogos en una sola consulta cacheada (`staleTime: 5 min`, `initialData` desde `localStorage` para no degradar el arranque rápido recién implementado).
-- Refactor de `src/data/aircraftModels.ts`, `compartmentDefinitions.ts`, `fieldDefinitions.ts` y `AIRLINES` en `types/turnaround.ts`: en vez de exportar constantes, exportan funciones que consultan el catálogo. Mantenemos los **defaults hardcodeados como fallback** si el catálogo aún no cargó (red lenta / primera vez offline).
-- Las funciones que dependen de reglas especiales (`getTimeFieldsForAirline`, `usesSplitLayout`, `AIRLINES_WITH_STAIRS`, AirEst W&B, Amazon Ristra) **siguen igual**: solo cambian la fuente de los nombres/etiquetas/visibilidad, no la lógica.
-- Nueva página `src/pages/admin/CatalogManager.tsx` con tabs internos para las 5 secciones. Reutiliza shadcn `Table`, `Dialog`, `Switch`, `Input`. Mismo look industrial que el resto.
-- En `AdminPanel.tsx`, añadir botón/sección "Gestionar catálogos" que abre la nueva página o un Dialog ancho.
+- `EquipmentSection.tsx` pasa a leer categorías/unidades de `useEquipmentCatalog` (BD) en vez de `equipmentDefinitions.ts`. Se mantienen las reglas de visibilidad por aerolínea/modelo/remoto.
+- Cada `<SelectItem>` muestra:
+  - Si **disponible**: código + (batería si la tiene).
+  - Si **cargando**: código + `⚡ Cargando` + tiempo cargando. Seleccionable.
+  - Si **averiado**: código + `🔧` y deshabilitado.
+- Al seleccionar una unidad, debajo del select aparecen 2 inputs compactos:
+  - **Parking** (editable siempre que la unidad no esté cargando).
+  - **Batería %** (editable solo si `fuel_type='battery'` y NO está cargando).
+- Estos cambios escriben directo en `equipment_state` (realtime, todos los ven al instante). Si la unidad está cargando, ambos campos están en read-only con tooltip "Equipo cargando — no editable desde Rampa".
+- El operario de Rampa nunca puede togglear `is_charging` ni `is_broken` desde aquí (solo desde Control Equipos).
 
-### Edge functions
+### 5. Panel de administración — gestión de equipos
 
-- No hace falta nueva edge function: el CRUD se hace por RLS desde el cliente con la sesión de admin.
+Nueva pestaña **Equipos** en `CatalogManager`:
 
-### Reglas que **NO** se tocan
+- **Categorías**:
+  - Lista con drag-to-reorder.
+  - Botón "Añadir categoría" → diálogo con nombre, icono (selector lucide), orden.
+  - Editar nombre/icono inline.
+  - Toggle activo / eliminar (con confirmación; bloqueado si tiene unidades).
+- **Unidades** (dentro de cada categoría, expandible):
+  - Tabla con columnas: código, etiqueta, **tipo combustible** (selector `battery` / `fuel`), separador (toggle), orden, activo.
+  - Botón "Añadir equipo" en cada categoría.
+  - Editar todos los campos inline; eliminar con confirmación.
+  - Botón "Guardar cambios" arriba (consistente con el resto del panel).
 
-- `usesSplitLayout`, `AIRLINES_WITH_STAIRS`, `ARRIVAL_ONLY_KEYS`, `DEPARTURE_ONLY_KEYS`, lógica de `gpuOn`, `pushBack`, `parkingArrival`, Amazon Ristras, ITA hold style, AirEst Weight & Balance, lookups de aviationstack.
+### 6. Versionado y limpieza
 
-## Plan de implementación por fases
+- Bump versión a `2.0.187` con changelog: "Integrado módulo Control Equipos, permisos por usuario, catálogo de equipos editable desde admin".
+- Eliminamos `src/data/equipmentDefinitions.ts` solo después de migrar usos (se mantiene como fallback durante un release si es necesario).
 
-```text
-1. Migración SQL: 6 tablas + GRANTs + RLS + seed con datos actuales.
-2. Hook useCatalog + refactor de getters en data/* para leer del catálogo con fallback hardcodeado.
-3. Página CatalogManager con 5 tabs (Aerolíneas, Modelos, Bodegas, Comoditys, Campos de tiempos).
-4. Entrada desde AdminPanel + verificación visual.
-5. Versión + changelog (bump APP_VERSION).
-```
+## Detalles técnicos
 
-## Lo que queda fuera (lo confirmas si quieres añadirlo después)
+- Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE equipment_state;`
+- Función `public.has_module_access(_user uuid, _module text)` SECURITY DEFINER que devuelve `true` si admin o si existe fila en `user_module_access`.
+- Edge function `create-user` actualizada para aceptar `modules: string[]` y persistirlos.
+- Activity log: el escribir desde Rampa registra `source='rampa'` para auditoría.
 
-- Crear/editar reglas especiales (split layout, has-stairs, push-back) desde admin → siguen en código.
-- Inventar campos de tiempo nuevos → no permitido, solo configurar los existentes.
-- Importar/exportar catálogos como JSON.
-- Multi-idioma de etiquetas.
+## Lo que NO se toca
 
-¿Procedo así?
+- Lógica de turnarounds, PDF, horas, bodegas: intactas.
+- Estructura de auth existente (signIn/signUp): se mantiene; solo añadimos la capa de acceso por módulo.
+
+## Preguntas abiertas que conviene cerrar antes de implementar
+
+1. ¿Confirmas backend unificado y permisos múltiples como en los supuestos?
+2. ¿La pantalla de selección de módulo (cuando el usuario tiene ambas) debe recordarse para próximos logins o se muestra siempre?

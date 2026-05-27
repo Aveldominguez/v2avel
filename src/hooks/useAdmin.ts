@@ -16,6 +16,7 @@ export interface UserProfile {
   updated_at: string;
   roles: string[];
   managed_by: string[]; // admin user_ids who manage this user
+  modules: ('rampa' | 'equipos')[];
 }
 
 export const useAdmin = () => {
@@ -64,10 +65,15 @@ export const useAdmin = () => {
         .from('admin_managed_users')
         .select('*');
 
+      const { data: modAccess } = await supabase
+        .from('user_module_access')
+        .select('*');
+
       const enriched: UserProfile[] = (profiles || []).map((p: any) => ({
         ...p,
         roles: (roles || []).filter((r: any) => r.user_id === p.user_id).map((r: any) => r.role),
         managed_by: (managed || []).filter((m: any) => m.managed_user_id === p.user_id).map((m: any) => m.admin_user_id),
+        modules: (modAccess || []).filter((m: any) => m.user_id === p.user_id).map((m: any) => m.module),
       }));
 
       setUsers(enriched);
@@ -283,15 +289,26 @@ export const useAdmin = () => {
     return imported;
   };
 
-  const createUser = async (email: string, password: string, displayName: string) => {
+  const createUser = async (email: string, password: string, displayName: string, modules: ('rampa' | 'equipos')[] = ['rampa']) => {
     const { data, error } = await supabase.functions.invoke('create-user', {
-      body: { email, password, display_name: displayName },
+      body: { email, password, display_name: displayName, modules },
     });
 
     if (error) throw new Error(error.message || 'Error al crear usuario');
     if (data?.error) throw new Error(data.error);
     await fetchUsers();
     return data;
+  };
+
+  const setUserModule = async (userId: string, module: 'rampa' | 'equipos', enabled: boolean) => {
+    if (enabled) {
+      const { error } = await supabase.from('user_module_access').insert({ user_id: userId, module });
+      if (error && !error.message.includes('duplicate')) throw error;
+    } else {
+      const { error } = await supabase.from('user_module_access').delete().eq('user_id', userId).eq('module', module);
+      if (error) throw error;
+    }
+    await fetchUsers();
   };
 
   const changePassword = async (userId: string, newPassword: string) => {
@@ -321,5 +338,6 @@ export const useAdmin = () => {
     importUserTurnarounds,
     createUser,
     changePassword,
+    setUserModule,
   };
 };

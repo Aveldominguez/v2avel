@@ -152,6 +152,83 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_equipment_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          icon?: string
+          id: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      catalog_equipment_units: {
+        Row: {
+          active: boolean
+          category_id: string
+          code: string
+          created_at: string
+          fuel_type: string
+          id: string
+          is_separator: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id: string
+          code: string
+          created_at?: string
+          fuel_type?: string
+          id: string
+          is_separator?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string
+          code?: string
+          created_at?: string
+          fuel_type?: string
+          id?: string
+          is_separator?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_equipment_units_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_equipment_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalog_holds: {
         Row: {
           active: boolean
@@ -268,6 +345,89 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_activity_log: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          field_changed: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          source: string
+          unit_code: string | null
+          unit_id: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          unit_code?: string | null
+          unit_id?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          unit_code?: string | null
+          unit_id?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      equipment_state: {
+        Row: {
+          battery_level: number | null
+          charging_since: string | null
+          is_broken: boolean
+          is_charging: boolean
+          parking: string
+          unit_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          battery_level?: number | null
+          charging_since?: string | null
+          is_broken?: boolean
+          is_charging?: boolean
+          parking?: string
+          unit_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          battery_level?: number | null
+          charging_since?: string | null
+          is_broken?: boolean
+          is_charging?: boolean
+          parking?: string
+          unit_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_state_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: true
+            referencedRelation: "catalog_equipment_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_airlines: {
         Row: {
           cargo_arrival: string | null
@@ -376,6 +536,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_module_access: {
+        Row: {
+          created_at: string
+          id: string
+          module: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -401,6 +582,10 @@ export type Database = {
     Functions: {
       can_manage_user: {
         Args: { _admin_id: string; _target_id: string }
+        Returns: boolean
+      }
+      has_module_access: {
+        Args: { _module: string; _user_id: string }
         Returns: boolean
       }
       has_role: {
