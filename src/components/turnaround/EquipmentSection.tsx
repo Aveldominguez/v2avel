@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,6 +35,125 @@ const CATEGORY_BD_MAP: Record<string, string> = {
 
 // Normalize label/code for matching (case-insensitive, no spaces)
 const norm = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+
+const EquipmentStateEditor = ({
+  unit,
+  categoryId,
+  isAutonomy,
+}: {
+  unit: EquipmentUnitFull;
+  categoryId: string;
+  isAutonomy: boolean;
+}) => {
+  const state = unit.state;
+  const isCharging = state?.is_charging ?? false;
+  const isBroken = state?.is_broken ?? false;
+  const battery = state?.battery_level ?? null;
+  const parking = state?.parking ?? '';
+  const [parkingInput, setParkingInput] = useState(parking);
+  const [batteryInput, setBatteryInput] = useState(battery !== null ? String(battery) : '');
+  const parkingFocused = useRef(false);
+  const batteryFocused = useRef(false);
+  const parkingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const batteryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!parkingFocused.current) setParkingInput(parking);
+  }, [parking]);
+
+  useEffect(() => {
+    if (!batteryFocused.current) setBatteryInput(battery !== null ? String(battery) : '');
+  }, [battery]);
+
+  useEffect(() => () => {
+    if (parkingTimer.current) clearTimeout(parkingTimer.current);
+    if (batteryTimer.current) clearTimeout(batteryTimer.current);
+  }, []);
+
+  const scheduleParking = (value: string) => {
+    if (parkingTimer.current) clearTimeout(parkingTimer.current);
+    parkingTimer.current = setTimeout(() => {
+      updateParking(unit.id, unit.code, unit.category_id, parking, value, 'rampa');
+    }, 500);
+  };
+
+  const scheduleBattery = (value: number | null) => {
+    if (batteryTimer.current) clearTimeout(batteryTimer.current);
+    batteryTimer.current = setTimeout(() => {
+      updateBattery(unit.id, unit.code, unit.category_id, battery, value, 'rampa');
+    }, 500);
+  };
+
+  const handleParking = (value: string) => {
+    const next = value.toUpperCase();
+    setParkingInput(next);
+    scheduleParking(next);
+  };
+
+  const handleBattery = (value: string) => {
+    const clean = value.replace(/^KM\s*/i, '').replace(/\D/g, '');
+    if (clean === '') {
+      setBatteryInput('');
+      scheduleBattery(null);
+      return;
+    }
+    const next = isAutonomy ? Math.min(99999, parseInt(clean.slice(0, 5))) : Math.min(100, parseInt(clean));
+    setBatteryInput(String(next));
+    scheduleBattery(next);
+  };
+
+  const flushParking = () => {
+    if (parkingTimer.current) {
+      clearTimeout(parkingTimer.current);
+      parkingTimer.current = null;
+    }
+    if (parkingInput !== parking) updateParking(unit.id, unit.code, unit.category_id, parking, parkingInput, 'rampa');
+  };
+
+  const flushBattery = () => {
+    if (batteryTimer.current) {
+      clearTimeout(batteryTimer.current);
+      batteryTimer.current = null;
+    }
+    const next = batteryInput === '' ? null : parseInt(batteryInput);
+    const normalized = Number.isNaN(next as number) ? null : next;
+    if (normalized !== battery) updateBattery(unit.id, unit.code, unit.category_id, battery, normalized, 'rampa');
+  };
+
+  return (
+    <div className="ml-2 mt-1 flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2 py-1.5">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Parking</span>
+      <Input
+        value={parkingInput}
+        onFocus={() => { parkingFocused.current = true; }}
+        onBlur={() => { parkingFocused.current = false; flushParking(); }}
+        onChange={(e) => handleParking(e.target.value)}
+        disabled={isBroken || isCharging}
+        placeholder="—"
+        className="h-8 w-16 px-1 text-center font-mono text-xs uppercase"
+      />
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {isAutonomy ? 'Autonomía' : 'Batería'}
+      </span>
+      {isBroken ? (
+        <span className="flex-1 text-center text-xs font-semibold italic text-destructive">EN TALLER</span>
+      ) : isCharging ? (
+        <span className="flex flex-1 items-center justify-center gap-1 text-xs font-semibold italic text-success">
+          <Zap className="h-3 w-3" /> Cargando
+        </span>
+      ) : (
+        <Input
+          value={isAutonomy && batteryInput ? `KM ${batteryInput}` : batteryInput}
+          onFocus={() => { batteryFocused.current = true; }}
+          onBlur={() => { batteryFocused.current = false; flushBattery(); }}
+          onChange={(e) => handleBattery(e.target.value)}
+          placeholder={isAutonomy ? 'KM —' : '—'}
+          className="h-8 flex-1 px-1 text-center font-mono text-xs"
+        />
+      )}
+    </div>
+  );
+};
 
 const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftModel, isRemote, pushBack, equipment, onChange }) => {
   const categories = useMemo(() => getFilteredEquipmentCategories(airline, isRemote, aircraftModel, pushBack), [airline, isRemote, aircraftModel, pushBack]);
@@ -106,50 +225,8 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     if (!item) return null;
     const bd = getBdUnit(categoryId, item.label);
     if (!bd) return null;
-    const state = bd.state;
-    const isCharging = state?.is_charging ?? false;
-    const isBroken = state?.is_broken ?? false;
-    const battery = state?.battery_level ?? null;
-    const parking = state?.parking ?? '';
     const isAutonomy = categoryId === 'FURGONETAS';
-
-    const handleParking = (v: string) => updateParking(bd.id, bd.code, bd.category_id, parking, v.toUpperCase(), 'rampa');
-    const handleBattery = (v: string) => {
-      const clean = v.replace(/\D/g, '');
-      if (clean === '') return updateBattery(bd.id, bd.code, bd.category_id, battery, null, 'rampa');
-      const n = isAutonomy ? Math.min(99999, parseInt(clean.slice(0, 5))) : Math.min(100, parseInt(clean));
-      updateBattery(bd.id, bd.code, bd.category_id, battery, n, 'rampa');
-    };
-
-    return (
-      <div className="ml-2 mt-1 flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2 py-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Parking</span>
-        <Input
-          value={parking}
-          onChange={(e) => handleParking(e.target.value)}
-          disabled={isBroken || isCharging}
-          placeholder="—"
-          className="h-8 w-16 px-1 text-center font-mono text-xs uppercase"
-        />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          {isAutonomy ? 'Autonomía' : 'Batería'}
-        </span>
-        {isBroken ? (
-          <span className="flex-1 text-center text-xs font-semibold italic text-destructive">EN TALLER</span>
-        ) : isCharging ? (
-          <span className="flex flex-1 items-center justify-center gap-1 text-xs font-semibold italic text-success">
-            <Zap className="h-3 w-3" /> Cargando
-          </span>
-        ) : (
-          <Input
-            value={battery !== null ? (isAutonomy ? `KM ${battery}` : String(battery)) : ''}
-            onChange={(e) => handleBattery(e.target.value)}
-            placeholder={isAutonomy ? 'KM —' : '—'}
-            className="h-8 flex-1 px-1 text-center font-mono text-xs"
-          />
-        )}
-      </div>
-    );
+    return <EquipmentStateEditor key={bd.id} unit={bd} categoryId={categoryId} isAutonomy={isAutonomy} />;
   };
 
   const renderSelectItem = (item: { id: string; label: string }, categoryId: string) => {
