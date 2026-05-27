@@ -739,6 +739,17 @@ const TimeFieldsTab: React.FC = () => {
 
   const ovs = catalog.timeFieldOverrides.filter(t => t.airlineCode === airline);
 
+  // Default-used keys for this airline (union of local + remote variants),
+  // so the Visible toggle reflects what the airline actually shows today.
+  const defaultUsedKeys = React.useMemo(() => {
+    const set = new Set<string>();
+    try {
+      getTimeFieldsForAirline(airline, false).forEach(f => set.add(f.key as string));
+      getTimeFieldsForAirline(airline, true).forEach(f => set.add(f.key as string));
+    } catch { /* unknown airline → empty set */ }
+    return set;
+  }, [airline]);
+
   // Reset local edits when airline changes
   useEffect(() => { setEdits({}); }, [airline]);
 
