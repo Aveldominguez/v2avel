@@ -54,7 +54,7 @@ import {
   Circle,
   Shield,
   RefreshCw,
-  Van,
+  Truck,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -340,7 +340,7 @@ const TurnaroundList: React.FC = () => {
                 )}
                 {hasEquipos && (
                   <Button size="icon" onClick={() => navigate('/equipos')} variant="secondary" title="Control de Equipos" className="bg-[#e08b15]">
-                    <Van className="h-5 w-5" />
+                    <Truck className="h-5 w-5" />
                   </Button>
                 )}
               </div>
