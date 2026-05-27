@@ -8,7 +8,7 @@ export interface AircraftModelConfig {
   cleaningMinutes?: number;
 }
 
-export const AIRCRAFT_MODELS: Record<AirlineCode, AircraftModelConfig[]> = {
+export const AIRCRAFT_MODELS: Record<string, AircraftModelConfig[]> = {
   A_JET: [
     { model: 'A320', label: 'A320', turnaroundMinutes: 45 },
     { model: 'A321', label: 'A321', turnaroundMinutes: 50 },

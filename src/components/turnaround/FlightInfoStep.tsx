@@ -83,7 +83,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const models = airline ? getModelsForAirline(airline) : [];
 
-  const AIRLINE_PREFIXES: Record<AirlineCode, string> = {
+  const AIRLINE_PREFIXES: Record<string, string> = {
     FEDEX: '3V',
     AIR_CANADA: 'AC',
     AIR_CANADA_CARGO: 'AC',
