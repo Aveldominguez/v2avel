@@ -11,6 +11,7 @@ import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { useEquipment } from '@/hooks/useEquipment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
