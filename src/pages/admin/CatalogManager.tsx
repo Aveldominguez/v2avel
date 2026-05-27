@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCatalog, refreshCatalog } from '@/hooks/useCatalog';
-import { AIRLINES, AirlineCode } from '@/types/turnaround';
+import { AIRLINES, AirlineCode, getAllAirlines } from '@/types/turnaround';
 import { AIRCRAFT_MODELS } from '@/data/aircraftModels';
 import { getCompartmentsByAirline, isPairedHold, type CompartmentDefinition, type HoldEntry } from '@/data/compartmentDefinitions';
 import { Button } from '@/components/ui/button';
