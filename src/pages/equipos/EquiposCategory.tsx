@@ -5,6 +5,7 @@ import {
   useEquipment, updateParking, updateBattery, toggleCharging, toggleBroken,
 } from '@/hooks/useEquipment';
 import EquipmentRow from '@/components/equipos/EquipmentRow';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import type { EquipmentUnitFull } from '@/types/equipment';
 
 function getRanked(units: EquipmentUnitFull[]) {
