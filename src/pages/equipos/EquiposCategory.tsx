@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Fuel, Loader2 } from 'lucide-react';
+import { ArrowLeft, Fuel, Loader2, Save, Check } from 'lucide-react';
 import {
   useEquipment, updateParking, updateBattery, toggleCharging, toggleBroken,
 } from '@/hooks/useEquipment';
@@ -33,6 +33,13 @@ const EquiposCategory = () => {
   }
 
   const isAutonomy = categoryId === 'furgonetas';
+
+  const [justSaved, setJustSaved] = useState(false);
+  const handleSave = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -79,6 +86,16 @@ const EquiposCategory = () => {
           </tbody>
         </table>
       </div>
+
+      <button
+        onClick={handleSave}
+        className={`fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-colors ${
+          justSaved ? 'bg-success text-success-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'
+        }`}
+        aria-label="Guardar cambios"
+      >
+        {justSaved ? <Check size={26} /> : <Save size={24} />}
+      </button>
     </div>
   );
 };
