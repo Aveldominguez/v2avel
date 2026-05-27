@@ -1,5 +1,5 @@
 {
-  "version": "2.0.183",
+  "version": "2.0.184",
   "changelog": [
     "Admin → Catálogos → Horas: nueva columna \"Etiqueta visible al usuario\" que muestra el texto real que ve el operador.",
     "El placeholder de \"Etiqueta personalizada\" ahora muestra la etiqueta por defecto en vez de \"(por defecto)\"."

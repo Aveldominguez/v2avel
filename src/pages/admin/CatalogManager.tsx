@@ -819,7 +819,7 @@ const TimeFieldsTab: React.FC = () => {
                     {visibleLabel}
                     {ov?.label && <span className="ml-1 text-[10px] text-primary">(personalizada)</span>}
                   </TableCell>
-                  <TableCell><Switch checked={ov?.visible ?? true} onCheckedChange={v => upsert(k, { visible: v })} /></TableCell>
+                  <TableCell><Switch checked={ov?.visible ?? defaultUsedKeys.has(k)} onCheckedChange={v => upsert(k, { visible: v })} /></TableCell>
                   <TableCell>
                     <Input
                       value={currentLabel}
