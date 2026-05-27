@@ -1,4 +1,5 @@
 import { FieldDefinition, AirlineCode } from '@/types/turnaround';
+import { getCatalogSnapshot } from '@/lib/catalogStore';
 
 // Helper to create deterministic field ID based on airline + code
 const createFieldId = (airline: AirlineCode, code: string): string => {
