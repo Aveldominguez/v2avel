@@ -698,12 +698,38 @@ const HoldEditor: React.FC<{
 // ============================================================
 // TIME FIELDS TAB
 // ============================================================
-const TIME_FIELD_KEYS = [
-  'chocksOnArrival','chocksOff','stairsTime','specialEndLoading','unloadingStart','unloadingEnd',
-  'loadingStart','loadingEnd','firstBag','lastHandBag','lirReception','dock1','cargoArrival',
-  'cargoDeparture','mailArrival','mailDeparture','aviArrival','aviDeparture','asu',
-  'bagSearchStart','bagSearchEnd','gpuOn','gpuOff','busArrival','parkingArrival','fedexSuperArrival',
-];
+// Default user-facing labels mirroring src/types/turnaround.ts TimeFieldConfig defaults.
+// Used to show the admin the same text the operator sees in the form.
+const TIME_FIELD_DEFAULT_LABELS: Record<string, string> = {
+  chocksOnArrival: 'Calzos Llegada',
+  chocksOff: 'Calzos Salida',
+  stairsTime: 'Puesta Escalera',
+  specialEndLoading: 'Retirada Escalera',
+  unloadingStart: 'Inicio Descarga',
+  unloadingEnd: 'Fin Descarga',
+  loadingStart: 'Inicio Carga',
+  loadingEnd: 'Fin Carga',
+  firstBag: '1ª Maleta',
+  lastHandBag: 'Cierre Coordinador',
+  lirReception: 'Recepción de LIR',
+  dock1: '1ª Muelle',
+  cargoArrival: 'Cargo Llegada',
+  cargoDeparture: 'Cargo Salida',
+  mailArrival: 'Correo Llegada',
+  mailDeparture: 'Correo Salida',
+  aviArrival: 'AVI Llegada',
+  aviDeparture: 'AVI Salida',
+  asu: 'ASU',
+  bagSearchStart: 'Inicio Búsqueda Maleta',
+  bagSearchEnd: 'Fin Búsqueda Maleta',
+  gpuOn: 'Puesta de GPU',
+  gpuOff: 'Retirada de GPU',
+  busArrival: '1ª Jardinera',
+  parkingArrival: 'Llegada a Parking',
+  fedexSuperArrival: 'Llegada FedEx Súper',
+};
+
+const TIME_FIELD_KEYS = Object.keys(TIME_FIELD_DEFAULT_LABELS);
 
 const TimeFieldsTab: React.FC = () => {
   const catalog = useCatalog();
