@@ -152,6 +152,32 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'WIZZ', name: 'Wizz Air', shortName: 'WIZZ', color: 'hsl(316, 73%, 52%)' },
 ];
 
+/**
+ * Returns the merged airline list: built-in `AIRLINES` overlaid with any
+ * admin-managed entries from the catalog store (renames, color/short-name overrides,
+ * activation flags, and brand-new airlines).
+ */
+export function getAllAirlines(): AirlineInfo[] {
+  const overrides = getCatalogSnapshot().airlines;
+  const byCode = new Map(overrides.map(o => [o.code, o]));
+  const base = AIRLINES.map(a => {
+    const ov = byCode.get(a.code);
+    if (!ov) return a;
+    return { code: a.code, name: ov.name || a.name, shortName: ov.shortName || a.shortName, color: ov.color || a.color };
+  }).filter(a => {
+    const ov = byCode.get(a.code);
+    return ov ? ov.active : true;
+  });
+  const extras: AirlineInfo[] = overrides
+    .filter(o => o.active && !AIRLINES.some(a => a.code === o.code))
+    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color }));
+  return [...base, ...extras].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function findAirline(code: string): AirlineInfo | undefined {
+  return getAllAirlines().find(a => a.code === code);
+}
+
 // Time field configuration for airline-specific rendering
 export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
