@@ -288,7 +288,7 @@ const ModelsTab: React.FC = () => {
           <Select value={airline} onValueChange={v => setAirline(v as AirlineCode)}>
             <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {AIRLINES.map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}
+              {getAllAirlines().map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -376,7 +376,7 @@ const LoadCodesTab: React.FC = () => {
           <Label>Aerolínea</Label>
           <Select value={airline} onValueChange={v => setAirline(v as AirlineCode)}>
             <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
-            <SelectContent>{AIRLINES.map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
+            <SelectContent>{getAllAirlines().map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       </CardHeader>
@@ -527,7 +527,7 @@ const CompartmentsTab: React.FC = () => {
             <Label>Aerolínea</Label>
             <Select value={airline} onValueChange={v => setAirline(v as AirlineCode)}>
               <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>{AIRLINES.map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
+              <SelectContent>{getAllAirlines().map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
@@ -661,7 +661,7 @@ const TimeFieldsTab: React.FC = () => {
         <div className="mt-2">
           <Select value={airline} onValueChange={v => setAirline(v as AirlineCode)}>
             <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
-            <SelectContent>{AIRLINES.map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
+            <SelectContent>{getAllAirlines().map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       </CardHeader>
