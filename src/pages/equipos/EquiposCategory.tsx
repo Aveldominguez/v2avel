@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Fuel, Loader2 } from 'lucide-react';
+import { ArrowLeft, Fuel, Loader2, Save, Check } from 'lucide-react';
 import {
   useEquipment, updateParking, updateBattery, toggleCharging, toggleBroken,
 } from '@/hooks/useEquipment';
