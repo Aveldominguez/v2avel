@@ -82,6 +82,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
+  const allAirlines = useAllAirlines();
   const models = airline ? getModelsForAirline(airline) : [];
 
   const AIRLINE_PREFIXES: Record<string, string> = {
