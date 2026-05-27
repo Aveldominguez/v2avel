@@ -104,7 +104,5 @@ export function useCatalog() {
 /** Reactive merged airline list (built-in + admin-managed). */
 export function useAllAirlines() {
   useCatalog(); // ensure subscription + hydration
-  // import lazily to avoid circular deps
-  const { getAllAirlines } = require('@/types/turnaround') as typeof import('@/types/turnaround');
   return getAllAirlines();
 }
