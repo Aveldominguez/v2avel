@@ -77,10 +77,23 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/catalogs"
+          element={<ProtectedRoute><CatalogManager /></ProtectedRoute>}
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );
+};
+
+const CatalogBootstrap = () => {
+  useEffect(() => {
+    hydrateCatalogFromCache();
+    const id = (window as any).requestIdleCallback?.(() => loadCatalog()) ?? setTimeout(() => loadCatalog(), 200);
+    return () => { (window as any).cancelIdleCallback?.(id) ?? clearTimeout(id); };
+  }, []);
+  return null;
 };
 
 const App = () => (
