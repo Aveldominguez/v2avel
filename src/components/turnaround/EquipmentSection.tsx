@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Wrench, Plus, X } from 'lucide-react';
+import { Wrench, Plus, X, Zap } from 'lucide-react';
 import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { AirlineCode } from '@/types/turnaround';
+import { useEquipment, updateParking, updateBattery } from '@/hooks/useEquipment';
+import type { EquipmentUnitFull } from '@/types/equipment';
 
 interface EquipmentSectionProps {
   airline: AirlineCode;
@@ -17,12 +19,44 @@ interface EquipmentSectionProps {
   onChange: (equipment: EquipmentSelection[]) => void;
 }
 
+// Map the hardcoded UPPERCASE category ID to the lowercase BD category ID
+const CATEGORY_BD_MAP: Record<string, string> = {
+  TRACTORES: 'tractores',
+  CINTAS: 'cintas',
+  ESCALERAS: 'escaleras',
+  FURGONETAS: 'furgonetas',
+  GPUS: 'gpus',
+  PUSHBACK: 'pushback',
+  PLATAFORMAS_GD: 'plataformas-gd',
+  PLATAFORMAS_PQ: 'plataformas-pq',
+  TRANSFER: 'transfer',
+  JARDINERAS: 'jardineras',
+};
+
+// Normalize label/code for matching (case-insensitive, no spaces)
+const norm = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+
 const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftModel, isRemote, pushBack, equipment, onChange }) => {
   const categories = useMemo(() => getFilteredEquipmentCategories(airline, isRemote, aircraftModel, pushBack), [airline, isRemote, aircraftModel, pushBack]);
+  const { fullCategories } = useEquipment();
 
-  const getSelections = (categoryId: string): EquipmentSelection[] => {
-    return equipment.filter(e => e.categoryId === categoryId);
-  };
+  // Build lookup: hardcoded categoryId -> Map<normalizedCode, EquipmentUnitFull>
+  const bdLookup = useMemo(() => {
+    const map: Record<string, Map<string, EquipmentUnitFull>> = {};
+    categories.forEach(cat => {
+      const bdId = CATEGORY_BD_MAP[cat.id];
+      const bdCat = fullCategories.find(c => c.id === bdId);
+      const codeMap = new Map<string, EquipmentUnitFull>();
+      bdCat?.units.forEach(u => { if (!u.is_separator) codeMap.set(norm(u.code), u); });
+      map[cat.id] = codeMap;
+    });
+    return map;
+  }, [categories, fullCategories]);
+
+  const getBdUnit = (categoryId: string, itemLabel: string): EquipmentUnitFull | undefined =>
+    bdLookup[categoryId]?.get(norm(itemLabel));
+
+  const getSelections = (categoryId: string): EquipmentSelection[] => equipment.filter(e => e.categoryId === categoryId);
 
   const getAvailableItems = (categoryId: string, currentEquipmentId?: string) => {
     const category = categories.find(c => c.id === categoryId);
@@ -30,7 +64,13 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     const usedIds = equipment
       .filter(e => e.categoryId === categoryId && e.equipmentId !== currentEquipmentId)
       .map(e => e.equipmentId);
-    return category.items.filter(item => !usedIds.includes(item.id));
+    return category.items.filter(item => {
+      if (usedIds.includes(item.id)) return false;
+      const bd = getBdUnit(categoryId, item.label);
+      // Hide units marked as broken (en taller)
+      if (bd?.state?.is_broken) return false;
+      return true;
+    });
   };
 
   const handleEquipmentChange = (categoryId: string, index: number, equipmentId: string) => {
@@ -38,13 +78,10 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     const others = equipment.filter(e => e.categoryId !== categoryId);
 
     if (equipmentId === '__none__') {
-      // Remove this slot
       const updated = catSelections.filter((_, i) => i !== index);
       onChange([...others, ...updated]);
     } else {
-      const updated = catSelections.map((sel, i) =>
-        i === index ? { ...sel, equipmentId } : sel
-      );
+      const updated = catSelections.map((sel, i) => i === index ? { ...sel, equipmentId } : sel);
       onChange([...others, ...updated]);
     }
   };
@@ -53,12 +90,9 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     const clean = percentage.replace(/[^0-9]/g, '');
     const num = parseInt(clean, 10);
     const val = clean === '' ? '' : (num > 100 ? '100' : clean);
-
     const catSelections = getSelections(categoryId);
     const others = equipment.filter(e => e.categoryId !== categoryId);
-    const updated = catSelections.map((sel, i) =>
-      i === index ? { ...sel, percentage: val } : sel
-    );
+    const updated = catSelections.map((sel, i) => i === index ? { ...sel, percentage: val } : sel);
     onChange([...others, ...updated]);
   };
 
@@ -74,6 +108,75 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
   };
 
   const selectedCount = equipment.filter(e => e.equipmentId).length;
+
+  // Mini editor rendered under each selected equipment row
+  const renderStateEditor = (categoryId: string, equipmentId: string) => {
+    const item = categories.find(c => c.id === categoryId)?.items.find(i => i.id === equipmentId);
+    if (!item) return null;
+    const bd = getBdUnit(categoryId, item.label);
+    if (!bd) return null;
+    const state = bd.state;
+    const isCharging = state?.is_charging ?? false;
+    const isBroken = state?.is_broken ?? false;
+    const battery = state?.battery_level ?? null;
+    const parking = state?.parking ?? '';
+    const isAutonomy = categoryId === 'FURGONETAS';
+
+    const handleParking = (v: string) => updateParking(bd.id, bd.code, bd.category_id, parking, v.toUpperCase(), 'rampa');
+    const handleBattery = (v: string) => {
+      const clean = v.replace(/\D/g, '');
+      if (clean === '') return updateBattery(bd.id, bd.code, bd.category_id, battery, null, 'rampa');
+      const n = isAutonomy ? Math.min(99999, parseInt(clean.slice(0, 5))) : Math.min(100, parseInt(clean));
+      updateBattery(bd.id, bd.code, bd.category_id, battery, n, 'rampa');
+    };
+
+    return (
+      <div className="ml-2 mt-1 flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2 py-1.5">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Parking</span>
+        <Input
+          value={parking}
+          onChange={(e) => handleParking(e.target.value)}
+          disabled={isBroken || isCharging}
+          placeholder="—"
+          className="h-8 w-16 px-1 text-center font-mono text-xs uppercase"
+        />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          {isAutonomy ? 'Autonomía' : 'Batería'}
+        </span>
+        {isBroken ? (
+          <span className="flex-1 text-center text-xs font-semibold italic text-destructive">EN TALLER</span>
+        ) : isCharging ? (
+          <span className="flex flex-1 items-center justify-center gap-1 text-xs font-semibold italic text-success">
+            <Zap className="h-3 w-3" /> Cargando
+          </span>
+        ) : (
+          <Input
+            value={battery !== null ? (isAutonomy ? `KM ${battery}` : String(battery)) : ''}
+            onChange={(e) => handleBattery(e.target.value)}
+            placeholder={isAutonomy ? 'KM —' : '—'}
+            className="h-8 flex-1 px-1 text-center font-mono text-xs"
+          />
+        )}
+      </div>
+    );
+  };
+
+  const renderSelectItem = (item: { id: string; label: string }, categoryId: string) => {
+    const bd = getBdUnit(categoryId, item.label);
+    const isCharging = bd?.state?.is_charging ?? false;
+    return (
+      <SelectItem key={item.id} value={item.id}>
+        <span className="flex items-center gap-2">
+          {item.label}
+          {isCharging && (
+            <span className="inline-flex items-center gap-0.5 rounded bg-success/15 px-1 py-0.5 text-[10px] font-semibold text-success">
+              <Zap className="h-2.5 w-2.5" /> Cargando
+            </span>
+          )}
+        </span>
+      </SelectItem>
+    );
+  };
 
   return (
     <Card className="card-operational">
@@ -106,18 +209,10 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{category.emoji}</span>
-                        <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                          {category.label}
-                        </span>
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wider">{category.label}</span>
                       </div>
                       {canAdd && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleAdd(category.id)}
-                          className="h-7 w-7 p-0 text-primary hover:bg-primary/10"
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => handleAdd(category.id)} className="h-7 w-7 p-0 text-primary hover:bg-primary/10">
                           <Plus className="h-4 w-4" />
                         </Button>
                       )}
@@ -128,31 +223,17 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                         <Select
                           value="__none__"
                           onValueChange={(val) => {
-                            if (val !== '__none__') {
-                              onChange([...equipment, { categoryId: category.id, equipmentId: val, percentage: '' }]);
-                            }
+                            if (val !== '__none__') onChange([...equipment, { categoryId: category.id, equipmentId: val, percentage: '' }]);
                           }}
                         >
-                          <SelectTrigger className="flex-1 h-10">
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
+                          <SelectTrigger className="flex-1 h-10"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__none__">—</SelectItem>
-                            {category.items.map(item => (
-                              <SelectItem key={item.id} value={item.id}>
-                                {item.label}
-                              </SelectItem>
-                            ))}
+                            {availableForNew.map(item => renderSelectItem(item, category.id))}
                           </SelectContent>
                         </Select>
                         <div className="relative w-20 shrink-0">
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="—"
-                            disabled
-                            className="h-10 text-center pr-6"
-                          />
+                          <Input type="text" inputMode="numeric" placeholder="—" disabled className="h-10 text-center pr-6" />
                           <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
                         </div>
                       </div>
@@ -161,45 +242,31 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                     {selections.map((sel, idx) => {
                       const available = getAvailableItems(category.id, sel.equipmentId);
                       return (
-                        <div key={`${category.id}-${idx}`} className="flex items-center gap-2">
-                          <Select
-                            value={sel.equipmentId || '__none__'}
-                            onValueChange={(val) => handleEquipmentChange(category.id, idx, val)}
-                          >
-                            <SelectTrigger className="flex-1 h-10">
-                              <SelectValue placeholder="Seleccionar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="__none__">—</SelectItem>
-                              {available.map(item => (
-                                <SelectItem key={item.id} value={item.id}>
-                                  {item.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="relative w-20 shrink-0">
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              placeholder="—"
-                              value={sel.percentage}
-                              onChange={(e) => handlePercentageChange(category.id, idx, e.target.value)}
-                              className="h-10 text-center pr-6"
-                            />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+                        <div key={`${category.id}-${idx}`} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Select value={sel.equipmentId || '__none__'} onValueChange={(val) => handleEquipmentChange(category.id, idx, val)}>
+                              <SelectTrigger className="flex-1 h-10"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__none__">—</SelectItem>
+                                {available.map(item => renderSelectItem(item, category.id))}
+                              </SelectContent>
+                            </Select>
+                            <div className="relative w-20 shrink-0">
+                              <Input
+                                type="text" inputMode="numeric" placeholder="—"
+                                value={sel.percentage}
+                                onChange={(e) => handlePercentageChange(category.id, idx, e.target.value)}
+                                className="h-10 text-center pr-6"
+                              />
+                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+                            </div>
+                            {selections.length > 1 && (
+                              <Button type="button" variant="ghost" size="sm" onClick={() => handleRemove(category.id, idx)} className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 shrink-0">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
-                          {selections.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemove(category.id, idx)}
-                              className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 shrink-0"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
+                          {sel.equipmentId && renderStateEditor(category.id, sel.equipmentId)}
                         </div>
                       );
                     })}

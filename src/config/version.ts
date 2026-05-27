@@ -1,10 +1,9 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.188';
+export const APP_VERSION = '2.0.189';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Integrado módulo Control de Equipos con permisos por usuario (Rampa / Equipos).',
-  'Nueva pantalla selector de módulo tras login para usuarios con acceso múltiple.',
-  'Formulario de crear usuario ahora pide qué módulos puede usar.',
-  'Tabla de usuarios muestra y permite editar los módulos asignados.',
+  'Equipos utilizados en Rampa ahora se sincroniza con Control de Equipos: muestra "Cargando" y permite editar parking/batería de equipos disponibles.',
+  'Equipos averiados se ocultan del desplegable; los que están cargando aparecen pero no se pueden sacar de ese estado desde Rampa.',
+  'Nueva pestaña "Equipos" en gestión de catálogos: añadir/editar/eliminar categorías y unidades, marcar tipo eléctrico o combustión.',
 ];

@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Save, Plus, Trash2 } from 'lucide-react';
+import EquiposTab from '@/components/admin/EquiposTab';
 
 const CatalogManager: React.FC = () => {
   const navigate = useNavigate();
@@ -54,12 +55,13 @@ const CatalogManager: React.FC = () => {
         </div>
 
         <Tabs defaultValue="airlines">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="airlines">Aerolíneas</TabsTrigger>
             <TabsTrigger value="models">Modelos</TabsTrigger>
             <TabsTrigger value="loadcodes">Comoditys</TabsTrigger>
             <TabsTrigger value="compartments">Bodegas</TabsTrigger>
             <TabsTrigger value="timefields">Horas</TabsTrigger>
+            <TabsTrigger value="equipos">Equipos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="airlines"><AirlinesTab /></TabsContent>
@@ -67,6 +69,7 @@ const CatalogManager: React.FC = () => {
           <TabsContent value="loadcodes"><LoadCodesTab /></TabsContent>
           <TabsContent value="compartments"><CompartmentsTab /></TabsContent>
           <TabsContent value="timefields"><TimeFieldsTab /></TabsContent>
+          <TabsContent value="equipos"><EquiposTab /></TabsContent>
         </Tabs>
       </div>
     </div>
