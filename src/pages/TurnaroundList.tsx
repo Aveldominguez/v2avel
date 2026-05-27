@@ -70,6 +70,7 @@ const TurnaroundList: React.FC = () => {
   const { user, signOut } = useAuth();
   const { fetchPage, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
+  const { equipos: hasEquipos } = useModuleAccess();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
   const allAirlines = useAllAirlines();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
