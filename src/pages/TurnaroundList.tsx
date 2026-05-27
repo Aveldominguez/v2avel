@@ -5,6 +5,7 @@ import { useAllAirlines } from '@/hooks/useCatalog';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { formatDate } from '@/utils/timeValidation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,7 @@ import {
   Circle,
   Shield,
   RefreshCw,
+  Truck,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -69,6 +71,7 @@ const TurnaroundList: React.FC = () => {
   const { user, signOut } = useAuth();
   const { fetchPage, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
+  const { equipos: hasEquipos } = useModuleAccess();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
   const allAirlines = useAllAirlines();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
@@ -329,10 +332,15 @@ const TurnaroundList: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between w-full">
-              <div>
+              <div className="flex items-center gap-2">
                 {isAdmin && (
                   <Button size="icon" onClick={() => navigate('/admin')} className="bg-warning text-warning-foreground hover:bg-warning/90">
                     <Shield className="h-5 w-5" />
+                  </Button>
+                )}
+                {hasEquipos && (
+                  <Button size="icon" onClick={() => navigate('/equipos')} variant="secondary" title="Control de Equipos">
+                    <Truck className="h-5 w-5" />
                   </Button>
                 )}
               </div>

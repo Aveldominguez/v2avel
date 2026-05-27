@@ -50,11 +50,24 @@ const ModuleRoute = ({ module, children }: { module: 'rampa' | 'equipos'; childr
   return <>{children}</>;
 };
 
+const RootRedirect = () => {
+  const { user, loading: authLoading } = useAuth();
+  const access = useModuleAccess();
+  if (authLoading || access.loading) return <FullScreenLoader />;
+  if (!user) return <Navigate to="/auth" replace />;
+  // Prefer Rampa when available (admins included); fall back to Equipos.
+  if (access.rampa) return <Navigate to="/rampa" replace />;
+  if (access.equipos) return <Navigate to="/equipos" replace />;
+  return <Navigate to="/auth" replace />;
+};
+
 const AppRoutes = () => (
   <Suspense fallback={<FullScreenLoader />}>
     <Routes>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/" element={<ProtectedRoute><ModuleSelect /></ProtectedRoute>} />
+      <Route path="/" element={<RootRedirect />} />
+      <Route path="/select" element={<ProtectedRoute><ModuleSelect /></ProtectedRoute>} />
+
 
       {/* Rampa module */}
       <Route path="/rampa" element={<ModuleRoute module="rampa"><TurnaroundList /></ModuleRoute>} />
