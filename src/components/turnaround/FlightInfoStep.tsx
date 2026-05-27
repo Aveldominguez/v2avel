@@ -290,7 +290,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <SelectValue placeholder="Seleccionar Aerolínea" />
               </SelectTrigger>
               <SelectContent>
-                {AIRLINES.map((a) => (
+                {allAirlines.map((a) => (
                   <SelectItem key={a.code} value={a.code}>
                     {a.name}
                   </SelectItem>
