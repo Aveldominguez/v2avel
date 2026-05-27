@@ -758,7 +758,7 @@ const TimeFieldsTab: React.FC = () => {
     setSaving(fieldKey);
     const payload = {
       airline_code: airline, field_key: fieldKey,
-      visible: patch.visible ?? existing?.visible ?? true,
+      visible: patch.visible ?? existing?.visible ?? defaultUsedKeys.has(fieldKey),
       label: patch.label !== undefined ? patch.label : (existing?.label ?? null),
       clock_color: patch.clockColor ?? existing?.clockColor ?? null,
       type: patch.type ?? existing?.type ?? null,
