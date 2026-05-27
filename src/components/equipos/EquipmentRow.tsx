@@ -120,8 +120,10 @@ const EquipmentRow = ({
         <td className="px-1 py-2">
           <input
             type="text"
-            value={parking}
-            onChange={(e) => onUpdateParking(e.target.value.toUpperCase())}
+            value={parkingInput}
+            onFocus={() => { parkingFocused.current = true; }}
+            onBlur={() => { parkingFocused.current = false; flushParking(); }}
+            onChange={(e) => handleParkingChange(e.target.value)}
             placeholder="—"
             className="h-11 w-20 rounded-sm border border-border bg-background px-1 font-mono text-sm uppercase focus:outline-none focus:ring-1 focus:ring-ring"
           />
