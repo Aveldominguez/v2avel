@@ -142,6 +142,8 @@ const EquipmentRow = ({
                 <input
                   type="text" inputMode="numeric" pattern="[0-9]*"
                   value={isAutonomyMode && batteryInput ? `KM ${batteryInput}` : batteryInput}
+                  onFocus={() => { batteryFocused.current = true; }}
+                  onBlur={() => { batteryFocused.current = false; flushBattery(); }}
                   onChange={(e) => handleBatteryChange(e.target.value)}
                   placeholder={isAutonomyMode ? 'KM —' : '—'}
                   className="h-11 w-full rounded-sm border border-border bg-background px-2 text-center font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
