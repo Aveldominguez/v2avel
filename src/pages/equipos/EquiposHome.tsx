@@ -1,12 +1,20 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Truck, ArrowRightLeft, ChevronsUp, Car, Zap,
   MoveLeft, Package, BoxSelect, ArrowLeftRight, Bus,
-  LogOut, Shield, Plane, Loader2,
+  LogOut, Shield, Plane, Loader2, FileDown, RotateCcw,
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 import { useAuth } from '@/hooks/useAuth';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { useEquipment } from '@/hooks/useEquipment';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const iconMap: Record<string, React.ElementType> = {
   Truck, ArrowRightLeft, ChevronsUp, Car, Zap,
