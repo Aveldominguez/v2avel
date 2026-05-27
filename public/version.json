@@ -1,5 +1,5 @@
 {
-  "version": "2.0.200",
+  "version": "2.0.201",
   "changelog": [
     "Equipos utilizados en Rampa ahora se sincroniza con Control de Equipos: muestra \"Cargando\" y permite editar parking/batería de equipos disponibles.",
     "Equipos averiados se ocultan del desplegable; los que están cargando aparecen pero no se pueden sacar de ese estado desde Rampa.",
