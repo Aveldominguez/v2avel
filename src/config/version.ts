@@ -1,9 +1,9 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.177';
+export const APP_VERSION = '2.0.178';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Apertura más rápida: la lista carga solo las 3 últimas escalas con caché local.',
-  'Paginación y filtros en el servidor; botón "Nueva Escala" disponible al instante.',
-  'Comprobación de actualización diferida para no ralentizar el arranque.',
+  'Panel de admin: editor visual de compartimientos y bodegas por aerolínea + modelo.',
+  'Renombrar, desactivar y añadir nuevas bodegas o compartimientos sin tocar código.',
+  'Cambios se aplican en caliente vía caché de catálogo.',
 ];
