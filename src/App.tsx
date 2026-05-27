@@ -6,8 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { hydrateCatalogFromCache, loadCatalog } from "@/hooks/useCatalog";
+
+const CatalogManager = lazy(() => import("./pages/admin/CatalogManager"));
 
 const TurnaroundList = lazy(() => import("./pages/TurnaroundList"));
 const TurnaroundForm = lazy(() => import("./pages/TurnaroundForm"));
