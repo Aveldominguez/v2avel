@@ -346,18 +346,215 @@ const LoadCodesTab: React.FC = () => {
 // ============================================================
 // COMPARTMENTS TAB (placeholder explaining)
 // ============================================================
-const CompartmentsTab: React.FC = () => (
-  <Card>
-    <CardHeader><CardTitle>Compartimientos y bodegas</CardTitle></CardHeader>
-    <CardContent>
-      <p className="text-sm text-muted-foreground">
-        La edición visual de compartimientos requiere una UI más grande (compartimientos pareados estilo ITA, bulk, etc.).
-        La base de datos ya soporta esto: las tablas <code>catalog_compartments</code> y <code>catalog_holds</code> aceptan overrides y nuevos compartimientos.
-        Pídeme en chat añadir aquí el editor completo o que precargue las bodegas de un modelo concreto para editarlas.
-      </p>
-    </CardContent>
-  </Card>
-);
+const CompartmentsTab: React.FC = () => {
+  const catalog = useCatalog();
+  const [airline, setAirline] = useState<AirlineCode>('WIZZ');
+  const [model, setModel] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+  const [newComp, setNewComp] = useState({ name: '', holdsCsv: '' });
+
+  const models = AIRCRAFT_MODELS[airline] || [];
+  React.useEffect(() => {
+    if (models.length && !models.some(m => m.model === model)) setModel(models[0].model);
+  }, [airline, models, model]);
+
+  // Build a view from base + overrides via the same getter the app uses
+  const compartments: CompartmentDefinition[] = React.useMemo(
+    () => getCompartmentsByAirline(airline, model || undefined),
+    // re-evaluate when overrides change
+    [airline, model, catalog.compartments, catalog.holds]
+  );
+
+  const upsertCompartment = async (id: string, base: CompartmentDefinition, patch: { name?: string; active?: boolean }) => {
+    setSaving(true);
+    const existing = catalog.compartments.find(c => c.id === id);
+    const { error } = await supabase.from('catalog_compartments').upsert({
+      id,
+      airline_code: airline,
+      aircraft_model_code: model || null,
+      name: patch.name ?? existing?.name ?? base.compartmentName,
+      hold_style: existing?.holdStyle ?? base.holdStyle ?? 'default',
+      bulk: existing?.bulk ?? !!base.bulk,
+      expandable: existing?.expandable ?? !!base.expandable,
+      expandable_default: existing?.expandableDefault ?? base.expandableDefault ?? null,
+      sort_order: existing?.sortOrder ?? 0,
+      active: patch.active ?? existing?.active ?? true,
+    }, { onConflict: 'id' });
+    setSaving(false);
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else await refreshCatalog();
+  };
+
+  const upsertHold = async (holdId: string, compartmentId: string, patch: { label?: string; active?: boolean }) => {
+    setSaving(true);
+    const existing = catalog.holds.find(h => h.id === holdId);
+    const baseLabel = (() => {
+      for (const c of compartments) {
+        for (const h of c.holds) {
+          if (isPairedHold(h)) {
+            if (h.left.id === holdId) return h.left.label;
+            if (h.right.id === holdId) return h.right.label;
+          } else if (h.id === holdId) return h.label;
+        }
+      }
+      return '';
+    })();
+    const { error } = await supabase.from('catalog_holds').upsert({
+      id: holdId,
+      compartment_id: compartmentId,
+      label: patch.label ?? existing?.label ?? baseLabel,
+      pair_group: existing?.pairGroup ?? null,
+      pair_side: existing?.pairSide ?? null,
+      sort_order: existing?.sortOrder ?? 0,
+      active: patch.active ?? existing?.active ?? true,
+    }, { onConflict: 'id' });
+    setSaving(false);
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else await refreshCatalog();
+  };
+
+  const addCompartment = async () => {
+    if (!newComp.name.trim()) {
+      toast({ title: 'Falta nombre', variant: 'destructive' });
+      return;
+    }
+    const slug = `${airline.toLowerCase()}-${(model || 'any').toLowerCase()}-${Date.now()}`;
+    setSaving(true);
+    const { error: cErr } = await supabase.from('catalog_compartments').insert({
+      id: slug,
+      airline_code: airline,
+      aircraft_model_code: model || null,
+      name: newComp.name.trim(),
+      hold_style: 'default',
+      bulk: false,
+      expandable: false,
+      sort_order: 1000,
+      active: true,
+    });
+    if (cErr) { setSaving(false); toast({ title: 'Error', description: cErr.message, variant: 'destructive' }); return; }
+
+    const labels = newComp.holdsCsv.split(',').map(s => s.trim()).filter(Boolean);
+    if (labels.length) {
+      const rows = labels.map((label, i) => ({
+        id: `${slug}-h${i + 1}`,
+        compartment_id: slug,
+        label,
+        pair_group: null,
+        pair_side: null,
+        sort_order: i,
+        active: true,
+      }));
+      const { error: hErr } = await supabase.from('catalog_holds').insert(rows);
+      if (hErr) { setSaving(false); toast({ title: 'Error', description: hErr.message, variant: 'destructive' }); return; }
+    }
+    setSaving(false);
+    setNewComp({ name: '', holdsCsv: '' });
+    await refreshCatalog();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Compartimientos y bodegas</CardTitle>
+        <div className="mt-2 flex gap-3 flex-wrap">
+          <div>
+            <Label>Aerolínea</Label>
+            <Select value={airline} onValueChange={v => setAirline(v as AirlineCode)}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>{AIRLINES.map(a => <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Modelo</Label>
+            <Select value={model} onValueChange={setModel}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Modelo" /></SelectTrigger>
+              <SelectContent>
+                {models.map(m => <SelectItem key={m.model} value={m.model}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <p className="text-xs text-muted-foreground">
+          Edita el nombre de un compartimiento, la etiqueta de cada bodega o desactívalos. Las bodegas pareadas (estilo ITA) se editan por lado.
+        </p>
+
+        {compartments.map(c => {
+          const compOv = catalog.compartments.find(o => o.id === c.id);
+          return (
+            <div key={c.id} className="border rounded-md p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  defaultValue={c.compartmentName}
+                  className="font-semibold"
+                  onBlur={e => { if (e.target.value !== c.compartmentName) upsertCompartment(c.id, c, { name: e.target.value }); }}
+                />
+                <div className="flex items-center gap-1 text-xs">
+                  <span>Activo</span>
+                  <Switch
+                    checked={compOv?.active ?? true}
+                    onCheckedChange={v => upsertCompartment(c.id, c, { active: v })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {c.holds.map((h, idx) => {
+                  if (isPairedHold(h)) {
+                    return (
+                      <React.Fragment key={`${h.left.id}-${h.right.id}`}>
+                        <HoldEditor id={h.left.id} compartmentId={c.id} label={h.left.label} catalog={catalog} onSave={(patch) => upsertHold(h.left.id, c.id, patch)} />
+                        <HoldEditor id={h.right.id} compartmentId={c.id} label={h.right.label} catalog={catalog} onSave={(patch) => upsertHold(h.right.id, c.id, patch)} />
+                      </React.Fragment>
+                    );
+                  }
+                  return (
+                    <HoldEditor key={h.id} id={h.id} compartmentId={c.id} label={h.label} catalog={catalog} onSave={(patch) => upsertHold(h.id, c.id, patch)} />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="border-t pt-4">
+          <h3 className="font-semibold mb-2">Añadir nuevo compartimiento</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
+            <div>
+              <Label>Nombre</Label>
+              <Input value={newComp.name} onChange={e => setNewComp(p => ({ ...p, name: e.target.value }))} placeholder="COMPARTIMIENTO 6" />
+            </div>
+            <div className="sm:col-span-1">
+              <Label>Bodegas (separadas por coma)</Label>
+              <Input value={newComp.holdsCsv} onChange={e => setNewComp(p => ({ ...p, holdsCsv: e.target.value }))} placeholder="Bodega 61, Bodega 62" />
+            </div>
+            <Button onClick={addCompartment} disabled={saving}><Plus className="h-4 w-4 mr-1" /> Añadir</Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Se añade al modelo seleccionado. Para compartimientos pareados estilo ITA, pídelo en chat.</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const HoldEditor: React.FC<{
+  id: string;
+  compartmentId: string;
+  label: string;
+  catalog: ReturnType<typeof useCatalog>;
+  onSave: (patch: { label?: string; active?: boolean }) => void;
+}> = ({ id, label, catalog, onSave }) => {
+  const ov = catalog.holds.find(h => h.id === id);
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        defaultValue={label}
+        onBlur={e => { if (e.target.value !== label) onSave({ label: e.target.value }); }}
+      />
+      <Switch checked={ov?.active ?? true} onCheckedChange={v => onSave({ active: v })} />
+    </div>
+  );
+};
 
 // ============================================================
 // TIME FIELDS TAB
