@@ -70,6 +70,7 @@ const TurnaroundList: React.FC = () => {
   const { fetchPage, deleteTurnaround } = useTurnarounds();
   const { isAdmin } = useAdmin();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
+  const allAirlines = useAllAirlines();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
   // Auto-open update dialog once per remote version
