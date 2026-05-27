@@ -246,6 +246,10 @@ const AdminPanel: React.FC = () => {
                   <UserPlus className="h-4 w-4" />
                   Crear Usuario
                 </Button>
+                <Button variant="outline" onClick={() => navigate('/admin/catalogs')} className="gap-2">
+                  <Plane className="h-4 w-4" />
+                  Catálogos
+                </Button>
                 <Button variant="outline" onClick={() => navigate('/')}>
                   Mis Escalas
                 </Button>
