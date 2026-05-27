@@ -1,7 +1,6 @@
 {
   "version": "2.0.200",
   "changelog": [
-    "Ajustes visuales en los botones de administración y equipos",
     "Equipos utilizados en Rampa ahora se sincroniza con Control de Equipos: muestra \"Cargando\" y permite editar parking/batería de equipos disponibles.",
     "Equipos averiados se ocultan del desplegable; los que están cargando aparecen pero no se pueden sacar de ese estado desde Rampa.",
     "Nueva pestaña \"Equipos\" en gestión de catálogos: añadir/editar/eliminar categorías y unidades, marcar tipo eléctrico o combustión."
