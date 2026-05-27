@@ -117,6 +117,45 @@ const EquiposHome = () => {
           })}
         </div>
       )}
+
+      {!loading && (
+        <div className="flex flex-col gap-2 p-4 pt-0">
+          <button
+            onClick={handleExportPdf}
+            className="flex items-center justify-center gap-3 rounded-md border border-border bg-card px-4 py-4 text-base font-medium active:scale-[0.99] transition-transform"
+          >
+            <FileDown size={20} /> Exportar estado en PDF
+          </button>
+          <button
+            onClick={() => setConfirmReset(true)}
+            className="flex items-center justify-center gap-3 rounded-md bg-destructive px-4 py-4 text-base font-medium text-destructive-foreground active:scale-[0.99] transition-transform"
+          >
+            <RotateCcw size={20} /> Resetear todos los equipos
+          </button>
+        </div>
+      )}
+
+      <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Resetear todos los equipos?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se vaciarán los campos de parking, batería y carga de todos los equipos.
+              Los equipos marcados como Averiado / Taller no se modificarán.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resetting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleResetAll(); }}
+              disabled={resetting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {resetting ? 'Reseteando…' : 'Sí, resetear'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
