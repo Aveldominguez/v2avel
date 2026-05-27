@@ -73,11 +73,12 @@ export const useAppUpdate = () => {
     // Defer first version check so it doesn't compete with initial data fetch
     if (!checkedRef.current) {
       checkedRef.current = true;
-      const idle = (cb: () => void) =>
-        'requestIdleCallback' in window
-          ? (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(cb)
-          : window.setTimeout(cb, 1500);
-      idle(() => { fetchRemoteVersion(); });
+      const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+      if (typeof w.requestIdleCallback === 'function') {
+        w.requestIdleCallback(() => { fetchRemoteVersion(); });
+      } else {
+        setTimeout(() => { fetchRemoteVersion(); }, 1500);
+      }
     }
 
     // Check every 3 minutes
