@@ -14,12 +14,17 @@ import { hydrateCatalogFromCache, loadCatalog } from "@/hooks/useCatalog";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { ChunkErrorBoundary } from "@/components/ChunkErrorBoundary";
 
+// Eager imports for critical work routes — avoids "Failed to fetch
+// dynamically imported module" blank screens on iOS PWA resume when the
+// app needs Auth / List / Form immediately.
+import Auth from "./pages/Auth";
+import TurnaroundList from "./pages/TurnaroundList";
+import TurnaroundForm from "./pages/TurnaroundForm";
+import NotFound from "./pages/NotFound";
+
+// Secondary routes stay lazy (admin/catalog/equipos are heavier and less critical).
 const CatalogManager = lazyWithRetry(() => import("./pages/admin/CatalogManager"));
-const TurnaroundList = lazyWithRetry(() => import("./pages/TurnaroundList"));
-const TurnaroundForm = lazyWithRetry(() => import("./pages/TurnaroundForm"));
 const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
-const Auth = lazyWithRetry(() => import("./pages/Auth"));
-const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 const ModuleSelect = lazyWithRetry(() => import("./pages/ModuleSelect"));
 const EquiposHome = lazyWithRetry(() => import("./pages/equipos/EquiposHome"));
 const EquiposCategory = lazyWithRetry(() => import("./pages/equipos/EquiposCategory"));
@@ -46,7 +51,6 @@ const ModuleRoute = ({ module, children }: { module: 'rampa' | 'equipos'; childr
   if (authLoading || access.loading) return <FullScreenLoader />;
   if (!user) return <Navigate to="/auth" replace />;
   if (!access[module]) {
-    // Send them to whichever module they DO have, or to selector
     if (module === 'rampa' && access.equipos) return <Navigate to="/equipos" replace />;
     if (module === 'equipos' && access.rampa) return <Navigate to="/rampa" replace />;
     return <Navigate to="/" replace />;
@@ -59,7 +63,6 @@ const RootRedirect = () => {
   const access = useModuleAccess();
   if (authLoading || access.loading) return <FullScreenLoader />;
   if (!user) return <Navigate to="/auth" replace />;
-  // Prefer Rampa when available (admins included); fall back to Equipos.
   if (access.rampa) return <Navigate to="/rampa" replace />;
   if (access.equipos) return <Navigate to="/equipos" replace />;
   return <Navigate to="/auth" replace />;
@@ -71,7 +74,6 @@ const AppRoutes = () => (
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<RootRedirect />} />
       <Route path="/select" element={<ProtectedRoute><ModuleSelect /></ProtectedRoute>} />
-
 
       {/* Rampa module */}
       <Route path="/rampa" element={<ModuleRoute module="rampa"><TurnaroundList /></ModuleRoute>} />
