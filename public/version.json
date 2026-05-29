@@ -1,5 +1,5 @@
 {
-  "version": "2.0.229",
+  "version": "2.0.230",
   "changelog": [
     "Más fluidez al abrir la app y al cargar Control de Horas.",
     "Evita la pantalla en blanco al volver desde otra app en iPhone.",
