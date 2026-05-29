@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import { hydrateCatalogFromCache, loadCatalog } from "@/hooks/useCatalog";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { ChunkErrorBoundary } from "@/components/ChunkErrorBoundary";
+import { OfflineSyncRunner } from "@/components/OfflineSyncRunner";
 
 // Eager imports for critical work routes — avoids "Failed to fetch
 // dynamically imported module" blank screens on iOS PWA resume when the
@@ -110,6 +111,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CatalogBootstrap />
+          <OfflineSyncRunner />
           <UpdateBanner />
           <ChunkErrorBoundary>
             <AppRoutes />

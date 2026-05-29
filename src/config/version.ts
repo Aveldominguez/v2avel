@@ -1,9 +1,8 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.231';
+export const APP_VERSION = '2.0.233';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Elimina el bucle al volver desde otra app en iPhone.',
-  'Limpia la caché antigua del modo PWA que podía dejar la pantalla negra.',
-  'Mantiene la escala en local sin recargas automáticas al cambiar de aplicación.',
+  'Cola offline global: los cambios pendientes se sincronizan al volver la conexión desde cualquier pantalla.',
+  'Reintentos automáticos al recuperar foco, conexión o al volver a la app.',
 ];
