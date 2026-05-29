@@ -345,47 +345,57 @@ const TurnaroundForm: React.FC = () => {
         updatedBy: fv.updatedBy,
       }));
 
-      if (isOnline) {
-        try {
-          if (isEditing && id) {
-            await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
+      // Always write locally first (createTurnaround/updateTurnaround already do this).
+      // Then, if offline OR server call fails, enqueue for background sync.
+      try {
+        if (isEditing && id) {
+          await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
+          if (!isOnline) {
+            enqueue({
+              type: 'update',
+              turnaroundId: id,
+              data: {
+                flightNumber,
+                date: safeDate.toISOString().split('T')[0],
+                airline: selectedAirline,
+                times: finalTimes,
+                fieldValues: fieldValuesForDb,
+                observations,
+              },
+            });
+            toast({ title: '📱 Guardado localmente', description: 'Se sincronizará al volver online' });
+          } else {
             setLastSaved(new Date());
             clearDraft(id);
-          } else {
-            const created = await createTurnaround(flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
-            clearDraft();
-            savedAndNavigating.current = true;
-            if (created) {
-              navigate(`/turnaround/${created.id}`, { replace: true });
-            }
           }
-        } catch (err) {
-          console.error('Error saving:', err);
-          // Only enqueue if there isn't already a pending create for this flight
-          enqueue({
-            type: isEditing ? 'update' : 'create',
-            turnaroundId: id,
-            data: {
-              flightNumber,
-              date: safeDate.toISOString().split('T')[0],
-              airline: selectedAirline,
-              times: finalTimes,
-              fieldValues: fieldValuesForDb,
-              observations,
-            },
-          });
-          toast({
-            title: '📱 Guardado localmente',
-            description: 'Se sincronizará automáticamente cuando haya conexión estable',
-          });
-          // Prevent duplicate creates: after queueing a create, navigate away
-          if (!isEditing) {
-            clearDraft();
-            savedAndNavigating.current = true;
+        } else {
+          const created = await createTurnaround(flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
+          if (!isOnline && created) {
+            enqueue({
+              type: 'create',
+              turnaroundId: created.id, // local UUID for remap on sync
+              data: {
+                flightNumber,
+                date: safeDate.toISOString().split('T')[0],
+                airline: selectedAirline,
+                times: finalTimes,
+                fieldValues: fieldValuesForDb,
+                observations,
+              },
+            });
+            toast({ title: '📱 Guardado localmente', description: 'Se sincronizará al volver online' });
+          }
+          clearDraft();
+          savedAndNavigating.current = true;
+          if (created) {
+            navigate(`/turnaround/${created.id}`, { replace: true });
+          } else {
             navigate('/', { replace: true });
           }
         }
-      } else {
+      } catch (err) {
+        console.error('Error saving:', err);
+        // Network/RLS error — fall back to queue so nothing is lost.
         enqueue({
           type: isEditing ? 'update' : 'create',
           turnaroundId: id,
@@ -398,17 +408,12 @@ const TurnaroundForm: React.FC = () => {
             observations,
           },
         });
+        toast({ title: '📱 Guardado localmente', description: 'Se reintentará automáticamente' });
         if (!isEditing) {
           clearDraft();
           savedAndNavigating.current = true;
           navigate('/', { replace: true });
-        } else {
-          setLastSaved(new Date());
         }
-        toast({
-          title: '📱 Guardado localmente',
-          description: 'Se sincronizará cuando haya conexión',
-        });
       }
     } catch (err) {
       console.error('Unexpected error in handleSave:', err);

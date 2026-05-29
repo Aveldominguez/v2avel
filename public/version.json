@@ -1,5 +1,5 @@
 {
-  "version": "2.0.222",
+  "version": "2.0.223",
   "changelog": [
     "Modo offline completo: abrir la app, crear escala y registrar horas sin conexión; los cambios se sincronizan automáticamente al volver online."
   ]
