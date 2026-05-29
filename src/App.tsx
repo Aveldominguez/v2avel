@@ -8,19 +8,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { hydrateCatalogFromCache, loadCatalog } from "@/hooks/useCatalog";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { ChunkErrorBoundary } from "@/components/ChunkErrorBoundary";
 
-const CatalogManager = lazy(() => import("./pages/admin/CatalogManager"));
-const TurnaroundList = lazy(() => import("./pages/TurnaroundList"));
-const TurnaroundForm = lazy(() => import("./pages/TurnaroundForm"));
-const AdminPanel = lazy(() => import("./pages/AdminPanel"));
-const Auth = lazy(() => import("./pages/Auth"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ModuleSelect = lazy(() => import("./pages/ModuleSelect"));
-const EquiposHome = lazy(() => import("./pages/equipos/EquiposHome"));
-const EquiposCategory = lazy(() => import("./pages/equipos/EquiposCategory"));
+const CatalogManager = lazyWithRetry(() => import("./pages/admin/CatalogManager"));
+const TurnaroundList = lazyWithRetry(() => import("./pages/TurnaroundList"));
+const TurnaroundForm = lazyWithRetry(() => import("./pages/TurnaroundForm"));
+const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const ModuleSelect = lazyWithRetry(() => import("./pages/ModuleSelect"));
+const EquiposHome = lazyWithRetry(() => import("./pages/equipos/EquiposHome"));
+const EquiposCategory = lazyWithRetry(() => import("./pages/equipos/EquiposCategory"));
+
 
 const queryClient = new QueryClient();
 
@@ -106,10 +109,13 @@ const App = () => (
         <AuthProvider>
           <CatalogBootstrap />
           <UpdateBanner />
-          <AppRoutes />
+          <ChunkErrorBoundary>
+            <AppRoutes />
+          </ChunkErrorBoundary>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+
   </QueryClientProvider>
 );
 
