@@ -1,5 +1,5 @@
 {
-  "version": "2.0.227",
+  "version": "2.0.228",
   "changelog": [
     "Arreglo: pantalla en blanco al volver a la app desde otra aplicación o el escritorio en iPhone."
   ]
