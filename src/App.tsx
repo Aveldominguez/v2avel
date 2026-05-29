@@ -101,7 +101,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <InstallPrompt />
-      <OfflineBanner />
+      
       <BrowserRouter>
         <AuthProvider>
           <CatalogBootstrap />
