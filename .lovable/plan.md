@@ -1,98 +1,80 @@
-## Objetivo
+## Problema
 
-Unificar la app **Control Equipos** dentro de v2avel como un segundo módulo, con permisos por usuario (Rampa, Equipos o ambos), compartiendo el catálogo de equipos entre los dos módulos y permitiendo edición del estado desde ambos lados con reglas claras.
+Cuando el iPhone está en modo avión, Safari muestra:
 
-## Supuestos (avísame si quieres cambiar alguno)
+> Error: "FetchEvent.respondWith received an error: TypeError: Load failed"
 
-- **Backend único**: migramos las tablas de Control Equipos al backend de v2avel (más simple, una sola sesión y realtime nativo).
-- **Permisos**: cada usuario puede tener una o ambas áreas marcadas. Admin siempre tiene ambas. Si tiene solo una, va directo a ella; si tiene ambas, ve un selector de módulo tras login.
-- **Equipo "Cargando" en Rampa**: aparece en el desplegable etiquetado `⚡ Cargando` y seleccionable, pero el operario de Rampa NO puede quitarle el flag de carga. Si está disponible, puede actualizar parking (ubicación) y batería desde el propio desplegable de Rampa.
-- **Catálogo**: el catálogo hardcodeado de `equipmentDefinitions.ts` (Rampa) y el de `useEquipmentStore.ts` (Control Equipos) se fusionan en una única fuente en BD (`catalog_equipment_categories` + `catalog_equipment_units`), administrable.
+Eso significa que el **service worker** (PWA) intenta resolver la petición de navegación, su `fetch` falla porque no hay red, y **lanza un error en vez de devolver la versión cacheada** del `index.html`. Resultado: la app no abre offline.
 
-## Cambios
+La causa raíz está en `vite.config.ts`, en el bloque `VitePWA → workbox`:
 
-### 1. Base de datos (nueva migración)
+- Hay un `runtimeCaching` con `urlPattern: request.mode === "navigate"` usando `NetworkFirst`. Este handler intercepta **antes** que el `navigateFallback`, y cuando la red falla y la URL exacta no está en el cache `app-shell` (caso típico la primera vez que abres offline una ruta como `/equipos` o `/rampa/...`), la promesa se rechaza → "Load failed".
+- Las llamadas a Supabase (`*.supabase.co`) no tienen handler, así que offline también lanzan `TypeError: Load failed`, lo que reventaba flujos de carga inicial.
+- La cola offline (`useOfflineSync`) ya existe para `turnarounds`, pero solo se procesa cuando vuelve la conexión y solo cubre ese flujo, no Equipos.
 
-Nuevas tablas en v2avel:
+## Qué voy a cambiar
 
-- `catalog_equipment_categories` — id, name, icon, sort_order, active.
-- `catalog_equipment_units` — id, category_id, code, label, fuel_type (`battery` | `fuel`), is_separator, sort_order, active.
-- `equipment_state` — uno por unidad: parking, battery_level, is_charging, charging_since, is_broken, updated_by, updated_at.
-- `equipment_activity_log` — historial (user_id, username, action, unit_id, field, old, new, timestamp).
-- `user_module_access` — `user_id`, `module` (`rampa` | `equipos`), unique(user_id, module). Admin asume ambas vía `has_role`.
+### 1. Service worker: navegación offline siempre resuelve
 
-Todas con GRANTs y RLS:
-- Lectura autenticada en catálogo + equipment_state.
-- Escritura en equipment_state: cualquier autenticado con acceso a `rampa` o `equipos` (validado en RLS vía función `has_module_access`).
-- Catálogo y categorías: solo admin escribe.
-- Realtime activado en `equipment_state`.
+En `vite.config.ts` dentro del bloque `workbox`:
 
-Seed inicial migrando los datos hardcodeados actuales (las 10 categorías y todas las unidades de Control Equipos).
+- **Eliminar** el `runtimeCaching` que captura `request.mode === "navigate"` con `NetworkFirst`.
+- Mantener `navigateFallback: "/index.html"` y añadir `navigateFallbackAllowlist: [/^\/(?!~oauth|api\/).*/]`. Así, ante cualquier navegación sin red, Workbox sirve el `index.html` precacheado y la SPA arranca offline en cualquier ruta.
+- Asegurar que `index.html` está en el precache (ya lo está vía `globPatterns: ["**/*.html", ...]`).
+- Añadir un handler `NetworkOnly` con `BackgroundSyncPlugin` (o simplemente `NetworkOnly` con `catchHandler`) para `*.supabase.co/rest/...` y `*.supabase.co/auth/...` para que, offline, devuelvan una respuesta JSON vacía controlada en vez de romper la SW. Las escrituras críticas ya se manejan vía la cola en `localStorage`.
 
-### 2. Permisos y enrutamiento
+### 2. Cola offline más robusta
 
-- Hook nuevo `useModuleAccess()` devuelve `{ rampa, equipos, loading }`.
-- `App.tsx`: tras login, ruta `/` decide:
-  - solo rampa → `/rampa` (la actual `TurnaroundList`).
-  - solo equipos → `/equipos`.
-  - ambas o admin → `/select` (pantalla simple con 2 tarjetas).
-- Guards por módulo en cada ruta. Sin acceso → redirect al módulo permitido o `/select`.
-- En el panel admin, formulario "Crear usuario" añade dos checkboxes: **Acceso a Rampa** / **Acceso a Equipos** (al menos uno requerido). Edge function `create-user` se actualiza para insertar en `user_module_access`.
-- Tabla de usuarios del admin: columna con los módulos asignados y edición inline.
+En `src/hooks/useOfflineSync.ts`:
 
-### 3. Módulo Control Equipos integrado
+- Reintentar `processQueue()` también al evento `visibilitychange` (cuando el usuario vuelve a abrir la PWA tras estar offline) además de al volver online.
+- Añadir backoff y límite de reintentos por operación para no reintentar para siempre una operación corrupta.
 
-- Portamos `HomePage`, `CategoryPage`, `EquipmentRow`, `ChargingButton`, `PriorityBadge` desde el proyecto Control Equipos a `src/pages/equipos/` y `src/components/equipos/`.
-- Sustituimos su store local por un hook que lee de las nuevas tablas (`useEquipmentCatalog`, `useEquipmentState`) con realtime.
-- Adaptamos estilos al sistema de tokens dark-mode de v2avel (no clases de color crudas).
-- Rutas: `/equipos`, `/equipos/:categoryId`.
+### 3. Soporte offline para Equipos
 
-### 4. Desplegable "Equipos utilizados" en Rampa
+Los inputs de Parking/Batería en `EquipmentRow.tsx` y `EquipmentSection.tsx` hoy hacen `UPDATE` directo a `equipment_state`. Offline esto rechaza la promesa de Supabase y se pierde el cambio.
 
-- `EquipmentSection.tsx` pasa a leer categorías/unidades de `useEquipmentCatalog` (BD) en vez de `equipmentDefinitions.ts`. Se mantienen las reglas de visibilidad por aerolínea/modelo/remoto.
-- Cada `<SelectItem>` muestra:
-  - Si **disponible**: código + (batería si la tiene).
-  - Si **cargando**: código + `⚡ Cargando` + tiempo cargando. Seleccionable.
-  - Si **averiado**: código + `🔧` y deshabilitado.
-- Al seleccionar una unidad, debajo del select aparecen 2 inputs compactos:
-  - **Parking** (editable siempre que la unidad no esté cargando).
-  - **Batería %** (editable solo si `fuel_type='battery'` y NO está cargando).
-- Estos cambios escriben directo en `equipment_state` (realtime, todos los ven al instante). Si la unidad está cargando, ambos campos están en read-only con tooltip "Equipo cargando — no editable desde Rampa".
-- El operario de Rampa nunca puede togglear `is_charging` ni `is_broken` desde aquí (solo desde Control Equipos).
+- Envolver esos `update`/`upsert` en un helper `enqueueEquipmentWrite(row, patch)` que:
+  - Aplica el cambio en memoria/localStorage al instante.
+  - Si hay red: hace el `upsert` normal.
+  - Si no: lo guarda en una nueva cola `equipment_sync_queue` en `localStorage` y lo procesa al volver online (mismo patrón que `useOfflineSync`).
+- Reusar el indicador `<ConnectionStatus />` para Equipos también.
 
-### 5. Panel de administración — gestión de equipos
+### 4. Indicador visual claro de "modo offline"
 
-Nueva pestaña **Equipos** en `CatalogManager`:
+- Mostrar un banner discreto fijo cuando `!navigator.onLine` en `App.tsx` (encima del `UpdateBanner`), con texto "Sin conexión — los cambios se guardarán y se sincronizarán al volver online".
+- Mantener el badge de "N pendientes" que ya existe.
 
-- **Categorías**:
-  - Lista con drag-to-reorder.
-  - Botón "Añadir categoría" → diálogo con nombre, icono (selector lucide), orden.
-  - Editar nombre/icono inline.
-  - Toggle activo / eliminar (con confirmación; bloqueado si tiene unidades).
-- **Unidades** (dentro de cada categoría, expandible):
-  - Tabla con columnas: código, etiqueta, **tipo combustible** (selector `battery` / `fuel`), separador (toggle), orden, activo.
-  - Botón "Añadir equipo" en cada categoría.
-  - Editar todos los campos inline; eliminar con confirmación.
-  - Botón "Guardar cambios" arriba (consistente con el resto del panel).
+### 5. Versión + smoke test
 
-### 6. Versionado y limpieza
+- Incrementar versión y añadir entrada de changelog: "Modo offline: la app abre sin conexión y sincroniza al volver online".
+- Probar tras el cambio: abrir la app online una vez (para precachear), poner avión, recargar → debería abrir la SPA en la última ruta y dejar editar sin error de Safari.
 
-- Bump versión a `2.0.187` con changelog: "Integrado módulo Control Equipos, permisos por usuario, catálogo de equipos editable desde admin".
-- Eliminamos `src/data/equipmentDefinitions.ts` solo después de migrar usos (se mantiene como fallback durante un release si es necesario).
+## Detalle técnico (por si quieres revisar)
 
-## Detalles técnicos
+```text
+vite.config.ts (workbox)
+- runtimeCaching:
+    [REMOVE]  { urlPattern: request.mode==='navigate', NetworkFirst, app-shell }
+    [KEEP]    { script|style|font|worker, CacheFirst, static-assets }
+    [KEEP]    { image, CacheFirst, images }
+    [ADD]     { url: /supabase\.co\/(rest|auth)\//, NetworkOnly,
+                plugins: [BackgroundSyncPlugin('supabase-writes', {maxRetentionTime: 24*60})] }
+- navigateFallback: '/index.html'
+- navigateFallbackAllowlist: [/^\/(?!~oauth|api\/).*/]
+- navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//]
+```
 
-- Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE equipment_state;`
-- Función `public.has_module_access(_user uuid, _module text)` SECURITY DEFINER que devuelve `true` si admin o si existe fila en `user_module_access`.
-- Edge function `create-user` actualizada para aceptar `modules: string[]` y persistirlos.
-- Activity log: el escribir desde Rampa registra `source='rampa'` para auditoría.
+```text
+src/hooks/useOfflineSync.ts
+- processQueue: + retry on visibilitychange + per-op retryCount with cap=10
+src/hooks/useEquipmentOfflineQueue.ts (NEW)
+- enqueueEquipmentWrite, drainEquipmentQueue
+src/components/equipos/EquipmentRow.tsx
+src/components/turnaround/EquipmentSection.tsx
+- usar enqueueEquipmentWrite en vez de supabase.update directo
+src/App.tsx
+- <OfflineBanner /> fijo cuando !isOnline
+```
 
-## Lo que NO se toca
-
-- Lógica de turnarounds, PDF, horas, bodegas: intactas.
-- Estructura de auth existente (signIn/signUp): se mantiene; solo añadimos la capa de acceso por módulo.
-
-## Preguntas abiertas que conviene cerrar antes de implementar
-
-1. ¿Confirmas backend unificado y permisos múltiples como en los supuestos?
-2. ¿La pantalla de selección de módulo (cuando el usuario tiene ambas) debe recordarse para próximos logins o se muestra siempre?
+¿Le doy luz verde a este plan?
