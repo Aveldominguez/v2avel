@@ -196,22 +196,30 @@ export const useOfflineSync = () => {
     }
   }, [user]);
 
-  // Auto-sync on: online event, visibility change (back to PWA), and periodic.
+  // Auto-sync on: online event, visibility change (back to PWA),
+  // window focus, and periodic polling. Each is best-effort and
+  // guarded by navigator.onLine + an internal `syncingRef` lock.
   useEffect(() => {
     if (!user) return;
     if (isOnline) processQueue();
 
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible' && navigator.onLine) processQueue();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-
-    const interval = setInterval(() => {
+    const tryProcess = () => {
       if (navigator.onLine && getQueue().length > 0) processQueue();
-    }, 30_000);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') tryProcess();
+    };
+
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('online', tryProcess);
+    window.addEventListener('focus', tryProcess);
+
+    const interval = setInterval(tryProcess, 30_000);
 
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('online', tryProcess);
+      window.removeEventListener('focus', tryProcess);
       clearInterval(interval);
     };
   }, [isOnline, user, processQueue]);
