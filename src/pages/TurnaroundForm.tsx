@@ -215,35 +215,37 @@ const TurnaroundForm: React.FC = () => {
     bodegasData,
   }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
 
+  // --- Build current draft snapshot ---
+  const buildDraft = useCallback((): TurnaroundDraft => ({
+    turnaroundId: id,
+    flightNumber,
+    date: date.toISOString(),
+    airline: selectedAirline,
+    aircraftModel,
+    times: getTimesWithFlightInfo(),
+    fieldValues,
+    observations,
+    tango,
+    matricula,
+    isRemote,
+    soloLlegada,
+    soloSalida,
+    remoteLocation,
+    step,
+    savedAt: Date.now(),
+  }), [id, flightNumber, date, selectedAirline, aircraftModel, getTimesWithFlightInfo, fieldValues, observations, tango, matricula, isRemote, soloLlegada, soloSalida, remoteLocation, step]);
+
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
     if (isInitialLoad.current || savedAndNavigating.current) return;
     hasUnsavedChanges.current = true;
 
     // Always save draft locally immediately
-    const draft: TurnaroundDraft = {
-      turnaroundId: id,
-      flightNumber,
-      date: date.toISOString(),
-      airline: selectedAirline,
-      aircraftModel,
-      times: getTimesWithFlightInfo(),
-      fieldValues,
-      observations,
-      tango,
-      matricula,
-      isRemote,
-      soloLlegada,
-      soloSalida,
-      remoteLocation,
-      step,
-      savedAt: Date.now(),
-    };
-    saveDraft(draft);
+    saveDraft(buildDraft());
 
     // Debounced server save (only in step 2, editing mode, online)
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    
+
     if (isEditing && step === 2) {
       autoSaveTimer.current = setTimeout(() => {
         autoSaveToServer();
@@ -255,6 +257,23 @@ const TurnaroundForm: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
+
+  // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
+  useEffect(() => {
+    const flush = () => {
+      if (isInitialLoad.current || savedAndNavigating.current) return;
+      try { saveDraft(buildDraft()); } catch { /* ignore */ }
+    };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    window.addEventListener('pagehide', flush);
+    window.addEventListener('beforeunload', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      window.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [buildDraft]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
