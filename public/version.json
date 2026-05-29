@@ -1,6 +1,6 @@
 {
-  "version": "2.0.226",
+  "version": "2.0.228",
   "changelog": [
-    "Modo offline completo: abrir la app, crear escala y registrar horas sin conexión; los cambios se sincronizan automáticamente al volver online."
+    "Arreglo: pantalla en blanco al volver a la app desde otra aplicación o el escritorio en iPhone."
   ]
 }

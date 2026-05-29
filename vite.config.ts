@@ -117,19 +117,19 @@ export default defineConfig(({ mode }) => ({
         globIgnores: ["**/pdf-*.js", "**/qrcode-*.js", "**/jszip-*.js", "**/charts-*.js", "**/index.es-*.js", "**/purify.es-*.js"],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: true,
         runtimeCaching: [
           {
-            // App shell HTML — try network first, fall back to cache when offline
+            // App shell HTML — serve from cache instantly, revalidate in background.
+            // Avoids serving a fresh index.html whose chunk hashes are not cached
+            // yet (which would cause a blank screen on iOS PWA resume).
             urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "app-shell",
-              networkTimeoutSeconds: 3,
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
+
           {
             // Static assets (JS/CSS/fonts) — cache first for instant offline load
             urlPattern: ({ request }) =>
