@@ -5,11 +5,12 @@ import { useAuth } from './useAuth';
 import { TurnaroundTimes, AirlineCode, FieldValue } from '@/types/turnaround';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
+import { localTurnaroundStore } from '@/lib/turnaroundLocalStore';
 
 interface PendingOperation {
   id: string;
   type: 'create' | 'update';
-  turnaroundId?: string; // for updates
+  turnaroundId?: string; // for updates — may be a local-generated UUID
   data: {
     flightNumber: string;
     date: string;
@@ -24,12 +25,13 @@ interface PendingOperation {
     observations: string;
   };
   timestamp: number;
+  retryCount?: number;
 }
 
 const QUEUE_KEY = 'offline_sync_queue';
 const DRAFT_KEY = 'turnaround_draft';
+const MAX_RETRY = 10;
 
-// Draft management for auto-save
 export interface TurnaroundDraft {
   turnaroundId?: string;
   flightNumber: string;
@@ -73,14 +75,11 @@ export const clearDraft = (turnaroundId?: string) => {
   localStorage.removeItem(key);
 };
 
-// Queue management
 const getQueue = (): PendingOperation[] => {
   try {
     const stored = localStorage.getItem(QUEUE_KEY);
     return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 };
 
 const saveQueue = (queue: PendingOperation[]) => {
@@ -94,7 +93,6 @@ export const useOfflineSync = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const syncingRef = useRef(false);
 
-  // Update pending count
   useEffect(() => {
     setPendingCount(getQueue().length);
   }, []);
@@ -104,10 +102,8 @@ export const useOfflineSync = () => {
     let filtered: PendingOperation[];
 
     if (op.type === 'update' && op.turnaroundId) {
-      // For updates, replace existing pending op for same turnaround
       filtered = queue.filter(q => !(q.type === 'update' && q.turnaroundId === op.turnaroundId));
     } else if (op.type === 'create') {
-      // For creates, deduplicate by flight_number + date + airline to prevent duplicates
       filtered = queue.filter(q => !(
         q.type === 'create' &&
         q.data.flightNumber === op.data.flightNumber &&
@@ -117,18 +113,19 @@ export const useOfflineSync = () => {
     } else {
       filtered = queue;
     }
-    
+
     filtered.push({
       ...op,
       id: crypto.randomUUID(),
       timestamp: Date.now(),
+      retryCount: 0,
     });
     saveQueue(filtered);
     setPendingCount(filtered.length);
   }, []);
 
   const processQueue = useCallback(async () => {
-    if (!user || syncingRef.current) return;
+    if (!user || syncingRef.current || !navigator.onLine) return;
     const queue = getQueue();
     if (queue.length === 0) return;
 
@@ -140,7 +137,7 @@ export const useOfflineSync = () => {
 
     for (const op of queue) {
       try {
-        const fieldValuesForDb = op.data.fieldValues.map(fv => ({
+        const fvForDb = op.data.fieldValues.map(fv => ({
           fieldDefinitionId: fv.fieldDefinitionId,
           value: fv.value,
           updatedAt: fv.updatedAt,
@@ -148,31 +145,41 @@ export const useOfflineSync = () => {
         }));
 
         if (op.type === 'create') {
-          const { error } = await supabase.from('turnarounds').insert({
+          const { data, error } = await supabase.from('turnarounds').insert({
             user_id: user.id,
             flight_number: op.data.flightNumber,
             date: op.data.date,
             airline: op.data.airline,
             times: op.data.times as unknown as Json,
-            field_values: fieldValuesForDb as unknown as Json,
+            field_values: fvForDb as unknown as Json,
             observations: op.data.observations,
-          });
+          }).select('id').single();
           if (error) throw error;
+          // Remap local id → server id in local store
+          if (op.turnaroundId && data?.id) {
+            localTurnaroundStore.remapId(user.id, op.turnaroundId, data.id);
+          }
         } else if (op.type === 'update' && op.turnaroundId) {
           const { error } = await supabase.from('turnarounds').update({
             flight_number: op.data.flightNumber,
             date: op.data.date,
             airline: op.data.airline,
             times: op.data.times as unknown as Json,
-            field_values: fieldValuesForDb as unknown as Json,
+            field_values: fvForDb as unknown as Json,
             observations: op.data.observations,
           }).eq('id', op.turnaroundId);
           if (error) throw error;
+          localTurnaroundStore.markSynced(user.id, op.turnaroundId);
         }
         processed++;
       } catch (err) {
         console.error('Sync failed for operation:', op.id, err);
-        remaining.push(op);
+        const retryCount = (op.retryCount || 0) + 1;
+        if (retryCount < MAX_RETRY) {
+          remaining.push({ ...op, retryCount });
+        } else {
+          console.error('Dropping op after max retries:', op);
+        }
       }
     }
 
@@ -184,30 +191,30 @@ export const useOfflineSync = () => {
     if (processed > 0) {
       toast({
         title: '✅ Sincronizado',
-        description: `${processed} cambio${processed > 1 ? 's' : ''} sincronizado${processed > 1 ? 's' : ''} con el servidor`,
-      });
-    }
-    if (remaining.length > 0) {
-      toast({
-        title: '⚠️ Sincronización parcial',
-        description: `${remaining.length} cambio${remaining.length > 1 ? 's' : ''} pendiente${remaining.length > 1 ? 's' : ''}`,
-        variant: 'destructive',
+        description: `${processed} cambio${processed > 1 ? 's' : ''} sincronizado${processed > 1 ? 's' : ''}`,
       });
     }
   }, [user]);
 
-  // Auto-sync when coming back online
+  // Auto-sync on: online event, visibility change (back to PWA), and periodic.
   useEffect(() => {
-    if (isOnline && user) {
-      processQueue();
-    }
+    if (!user) return;
+    if (isOnline) processQueue();
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) processQueue();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    const interval = setInterval(() => {
+      if (navigator.onLine && getQueue().length > 0) processQueue();
+    }, 30_000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      clearInterval(interval);
+    };
   }, [isOnline, user, processQueue]);
 
-  return {
-    isOnline,
-    syncing,
-    pendingCount,
-    enqueue,
-    processQueue,
-  };
+  return { isOnline, syncing, pendingCount, enqueue, processQueue };
 };
