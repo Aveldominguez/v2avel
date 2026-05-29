@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }).catch(() => setLoading(false));
 
     // Safety net: if for any reason loading stays true (e.g. network hang offline),
-    // release the UI after 1s — the cached session is enough to work.
-    const t = setTimeout(() => setLoading(false), 1000);
+    // release the UI after 500ms — the cached session is enough to work.
+    const t = setTimeout(() => setLoading(false), 500);
 
     return () => {
       subscription.unsubscribe();

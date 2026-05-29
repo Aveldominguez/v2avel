@@ -1,66 +1,64 @@
-## Diagnóstico
+## Objetivo
 
-Cuando iOS suspende una PWA en standalone (cambias de app o vas al escritorio) el WebView se mata. Al volver, iOS **recarga** la app desde `start_url = "/"`. Ahí se cruzan tres cosas que están provocando la pantalla en blanco:
+Hacer que la app sea más rápida y estable en iPhone: que cargue antes, no entre en pantalla blanca al volver de otras apps y que los datos introducidos en una escala se mantengan aunque haya lapsos de cobertura.
 
-1. **El Service Worker se auto-actualiza con `skipWaiting: true` + `clientsClaim: true`.**  
-   Si había un SW nuevo en espera, en la recarga activa una `index.html` nueva que apunta a chunks con hash distinto (`index-XYZ.js`, `react-XYZ.js`, …). Esos chunks no están en la caché todavía → `import()` falla → `<Suspense>` queda colgado / React lanza error → pantalla en blanco.
+## Qué modificaría
 
-2. **`navigateFallback` + `NetworkFirst` para HTML.**  
-   Al volver online, Workbox sirve la `index.html` fresca aunque los chunks viejos sigan en caché y los nuevos aún no estén descargados.
+1. **Quitar dependencias críticas de red al arrancar**
+   - Evitar que la app espere consultas online para decidir acceso a módulos o catálogo si ya hay datos cacheados.
+   - Usar caché local como primera fuente y refrescar en segundo plano.
+   - Reducir timeouts silenciosos para que una petición colgada no deje loaders indefinidos.
 
-3. **No hay Error Boundary alrededor del `<Suspense>` con rutas lazy.**  
-   Cualquier error al cargar un chunk dinámico burbujea hasta el root y deja la pantalla en blanco sin recuperación.
+2. **Cambiar la estrategia PWA para priorizar estabilidad**
+   - Desactivar Service Worker en el entorno de preview/iframe para que no cachee rutas de desarrollo ni módulos TypeScript.
+   - Ajustar la navegación para no servir un `index.html` incompatible con chunks no disponibles.
+   - Evitar borrados agresivos de cachés durante “Actualizar”, porque pueden dejar la app sin recursos si coincide con poca cobertura.
 
-A esto se suma un bug conocido de iOS: a veces la PWA en standalone vuelve a un WebView "muerto" y necesita un `reload()` para volver a renderizar.
+3. **Eliminar pantalla blanca por imports dinámicos**
+   - Convertir las rutas críticas de trabajo (`Auth`, `TurnaroundList`, `TurnaroundForm`) en imports directos o precargados de forma robusta.
+   - Mantener lazy-loading solo para pantallas secundarias pesadas como admin, PDF, QR o catálogos.
+   - Ampliar el Error Boundary para errores generales de render, no solo chunks, mostrando botón “Reintentar” en vez de blanco.
 
-## Cambios
+4. **Guardar datos introducidos con más seguridad**
+   - Guardar borrador local de la escala de forma inmediata y también en `pagehide`, `visibilitychange` y `beforeunload`, no solo por debounce.
+   - Guardar al pasar la app a segundo plano antes de que iOS suspenda la WebView.
+   - Mantener el borrador incluso después de guardado online hasta confirmar navegación/estado estable.
 
-### 1. Service Worker estable (`vite.config.ts`)
+5. **Mejorar cola offline y sincronización**
+   - Tratar `navigator.onLine` como señal orientativa, no como verdad absoluta: si una petición falla, guardar local y encolar sin bloquear.
+   - Reintentar sincronización cuando vuelva visibilidad, foco o conexión, pero sin bloquear la UI.
+   - Evitar toasts de éxito innecesarios para respetar la regla del proyecto de no distraer.
 
-- Quitar `skipWaiting: true` y `clientsClaim: true`. Las actualizaciones siguen llegando, pero **solo se aplican cuando el usuario pulsa "Actualizar ahora"** (que ya hace `postMessage SKIP_WAITING + reload`).
-- Cambiar la estrategia de navegación de `NetworkFirst` a **`CacheFirst` con revalidación en background** (`StaleWhileRevalidate`) para que el HTML servido siempre case con los chunks ya cacheados.
-- Mantener `cleanupOutdatedCaches: true` y el resto del runtimeCaching.
+6. **Optimizar carga y fluidez de la lista/formulario**
+   - Aumentar caché útil de escalas locales y renderizar primero lo local.
+   - Mover precargas y sincronizaciones masivas a segundo plano con menor prioridad.
+   - Evitar trabajo pesado al abrir la pantalla de Control de Horas.
 
-Resultado: al volver del background, el SW no cambia debajo de los pies → la `index.html` cacheada coincide con los chunks cacheados → no hay "chunk load failure".
+7. **Subir versión y changelog**
+   - Actualizar `APP_VERSION` y `public/version.json` con una nota clara: estabilidad iPhone, guardado seguro y fluidez con cobertura intermitente.
 
-### 2. Error Boundary con recuperación automática (`src/components/ChunkErrorBoundary.tsx`, nuevo)
+## Resultado esperado
 
-- Envolver `<AppRoutes />` en App.tsx con un Error Boundary que detecte errores típicos de chunks (`ChunkLoadError`, `Failed to fetch dynamically imported module`, `Importing a module script failed`).
-- Cuando detecte uno: pone un flag `chunk-reload-attempt` en `sessionStorage` y hace `window.location.reload()`. Si el flag ya está puesto (segundo intento) muestra un fallback con botón "Reintentar" en lugar de bucle.
+- La app no dependerá de tener cobertura perfecta para seguir trabajando en una escala ya abierta.
+- Si iOS mata o congela la app, al volver debería recuperar el formulario/borrador en vez de quedarse en blanco.
+- La navegación principal y Control de Horas cargarán más rápido porque las rutas críticas no dependerán de chunks descargados en el momento.
+- Los cortes momentáneos de internet no deberían provocar pérdida de datos introducidos.
 
-### 3. Recuperación al volver del background (`src/main.tsx` o nuevo `src/lib/pwaResume.ts`)
+## Detalles técnicos
 
-Registrar dos listeners globales antes de montar React:
-
-- `pageshow`: si `event.persisted === true` (back-forward cache de iOS), forzar `location.reload()` una sola vez por sesión.
-- `visibilitychange`: si la pestaña vuelve a `visible` después de **> 10 minutos** oculta y `document.body` está vacío o React no respondió en 1500 ms, hacer `location.reload()`.
-
-Esto cubre el caso iOS de WebView congelado.
-
-### 4. Imports lazy con reintento (`src/App.tsx`)
-
-Reemplazar cada `lazy(() => import(...))` por un helper `lazyWithRetry()` que:
-
-- Intenta el import.
-- Si falla con error de chunk, espera 300 ms y reintenta una vez.
-- Si vuelve a fallar, lanza para que lo capture el Error Boundary.
-
-Esto evita pantallazo en blanco por un fallo transitorio de red al hidratar un chunk justo al despertar.
-
-### 5. Bump de versión
-
-- `src/config/version.ts` y `public/version.json` a la siguiente patch.
-- Changelog: "Arreglo: pantalla en blanco al volver a la app desde otra aplicación o el escritorio en iPhone."
-
-## Lo que NO se toca
-
-- Auth (ya hidrata sesión sincrónicamente desde localStorage).
-- Lógica de turnarounds / sync offline (ya funciona).
-- Manifest y `start_url` (ya están bien para PWA instalada).
-- Botón / icono de WiFi amarillo de offline (sin cambios).
-
-## Notas técnicas
-
-- Quitar `skipWaiting + clientsClaim` **no rompe** el flujo de actualización: el botón "Actualizar ahora" del header sigue forzando la activación. Solo evitamos activaciones automáticas durante una recarga de iOS.
-- El cambio a `StaleWhileRevalidate` para `request.mode === "navigate"` mantiene la app instantánea offline y descarga la nueva versión en segundo plano sin romper la sesión actual.
-- El Error Boundary usa `sessionStorage` (no `localStorage`) para que el flag se limpie al cerrar la pestaña y no quede pegado.
+Archivos principales a tocar:
+- `vite.config.ts`
+- `src/main.tsx`
+- `src/App.tsx`
+- `src/components/ChunkErrorBoundary.tsx`
+- `src/lib/lazyWithRetry.ts`
+- `src/lib/pwaResume.ts`
+- `src/hooks/useAuth.tsx`
+- `src/hooks/useModuleAccess.tsx`
+- `src/hooks/useCatalog.ts`
+- `src/hooks/useTurnarounds.ts`
+- `src/hooks/useOfflineSync.ts`
+- `src/pages/TurnaroundForm.tsx`
+- `src/pages/TurnaroundList.tsx`
+- `src/config/version.ts`
+- `public/version.json`

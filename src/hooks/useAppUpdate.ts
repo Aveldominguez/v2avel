@@ -99,12 +99,10 @@ export const useAppUpdate = () => {
           await reg.update();
         }
       }
-
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
-
+      // NOTE: we intentionally do NOT clear all caches here. If the user has
+      // poor coverage at the moment of "Actualizar", wiping caches would leave
+      // the app without any cached chunks and produce a blank screen. The new
+      // SW will refresh assets on its own.
       window.location.reload();
     } catch {
       window.location.reload();
@@ -125,12 +123,7 @@ export const useAppUpdate = () => {
           }
         }
       }
-
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
-
+      // Cache cleanup intentionally skipped — see applyUpdate comment above.
       window.location.reload();
     } catch {
       window.location.reload();
