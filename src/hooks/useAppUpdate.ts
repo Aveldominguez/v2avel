@@ -49,27 +49,6 @@ export const useAppUpdate = () => {
   }, []);
 
   useEffect(() => {
-    // Also listen for SW updates as a fallback
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        for (const reg of registrations) {
-          if (reg.waiting) {
-            setUpdateAvailable(true);
-            return;
-          }
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (!newWorker) return;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setUpdateAvailable(true);
-              }
-            });
-          });
-        }
-      });
-    }
-
     // Defer first version check so it doesn't compete with initial data fetch
     if (!checkedRef.current) {
       checkedRef.current = true;
@@ -89,41 +68,13 @@ export const useAppUpdate = () => {
 
   const applyUpdate = useCallback(async () => {
     setUpdating(true);
-    try {
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const reg of registrations) {
-          if (reg.waiting) {
-            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-          }
-          await reg.update();
-        }
-      }
-      // NOTE: we intentionally do NOT clear all caches here. If the user has
-      // poor coverage at the moment of "Actualizar", wiping caches would leave
-      // the app without any cached chunks and produce a blank screen. The new
-      // SW will refresh assets on its own.
-      window.location.reload();
-    } catch {
-      window.location.reload();
-    }
+    window.location.reload();
   }, []);
 
   const checkForUpdate = useCallback(async () => {
     setUpdating(true);
     try {
       await fetchRemoteVersion();
-
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const reg of registrations) {
-          await reg.update();
-          if (reg.waiting) {
-            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-          }
-        }
-      }
-      // Cache cleanup intentionally skipped — see applyUpdate comment above.
       window.location.reload();
     } catch {
       window.location.reload();

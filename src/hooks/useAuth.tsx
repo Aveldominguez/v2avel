@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -36,6 +36,7 @@ const readCachedSession = (): Session | null => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const initial = readCachedSession();
+  const signingOutRef = useRef(false);
   const [user, setUser] = useState<User | null>(initial?.user ?? null);
   const [session, setSession] = useState<Session | null>(initial);
   // If we already have a cached session, we are not "loading" — render immediately.
@@ -44,6 +45,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, s) => {
+        if (!s && initial && !signingOutRef.current) {
+          setLoading(false);
+          return;
+        }
         setSession(s);
         setUser(s?.user ?? null);
         setLoading(false);
@@ -55,6 +60,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (s) {
         setSession(s);
         setUser(s.user);
+      } else if (!initial || signingOutRef.current) {
+        setSession(null);
+        setUser(null);
       }
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -85,7 +93,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    signingOutRef.current = true;
     await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setLoading(false);
   };
 
   return (

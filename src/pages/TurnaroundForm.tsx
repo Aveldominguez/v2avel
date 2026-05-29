@@ -16,8 +16,7 @@ import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
-import { lazy, Suspense } from 'react';
-const BodegasSection = lazy(() => import('@/components/turnaround/BodegasSection'));
+import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,8 +29,7 @@ import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
-import type { IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
-const IncidentReportDialog = lazy(() => import('@/components/turnaround/IncidentReportDialog').then(m => ({ default: m.IncidentReportDialog })));
+import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
@@ -626,12 +624,10 @@ const TurnaroundForm: React.FC = () => {
         />
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
-          <Suspense fallback={null}>
-            <BodegasSection
-              data={bodegasData}
-              onChange={setBodegasData}
-            />
-          </Suspense>
+          <BodegasSection
+            data={bodegasData}
+            onChange={setBodegasData}
+          />
         )}
 
         {selectedAirline !== 'FEDEX' && selectedAirline !== 'AMAZON' && !soloLlegada && (
@@ -699,15 +695,13 @@ const TurnaroundForm: React.FC = () => {
                 </div>
                 Observaciones
               </div>
-              <Suspense fallback={null}>
-                <IncidentReportDialog
-                  flightNumber={flightNumber}
-                  date={date}
-                  parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
-                  reportData={incidentReport}
-                  onSave={setIncidentReport}
-                />
-              </Suspense>
+              <IncidentReportDialog
+                flightNumber={flightNumber}
+                date={date}
+                parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
+                reportData={incidentReport}
+                onSave={setIncidentReport}
+              />
             </CardTitle>
           </CardHeader>
           <CardContent>

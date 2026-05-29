@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { VitePWA } from "vite-plugin-pwa";
 import fs from "fs";
 
 const VERSION_FILE = path.resolve(__dirname, 'src/config/version.ts');
@@ -106,53 +105,6 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     syncAppVersion(),
-    VitePWA({
-      registerType: "autoUpdate",
-      injectRegister: "auto",
-      includeAssets: ["favicon.jpeg", "icons/*.png"],
-      workbox: {
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-        globPatterns: ["**/*.{css,html,ico,woff2}", "assets/index-*.js", "assets/react-*.js", "assets/supabase-*.js", "assets/radix-*.js", "assets/icons-*.js", "assets/dates-*.js", "assets/TurnaroundList-*.js", "assets/Auth-*.js"],
-        globIgnores: ["**/pdf-*.js", "**/qrcode-*.js", "**/jszip-*.js", "**/charts-*.js", "**/index.es-*.js", "**/purify.es-*.js"],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        cleanupOutdatedCaches: true,
-        runtimeCaching: [
-          {
-            // App shell HTML — serve from cache instantly, revalidate in background.
-            // Avoids serving a fresh index.html whose chunk hashes are not cached
-            // yet (which would cause a blank screen on iOS PWA resume).
-            urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "app-shell",
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-
-          {
-            // Static assets (JS/CSS/fonts) — cache first for instant offline load
-            urlPattern: ({ request }) =>
-              ["script", "style", "font", "worker"].includes(request.destination),
-            handler: "CacheFirst",
-            options: {
-              cacheName: "static-assets",
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 60 },
-            },
-          },
-          {
-            // Images (icons, photos already loaded) — cache first
-            urlPattern: ({ request }) => request.destination === "image",
-            handler: "CacheFirst",
-            options: {
-              cacheName: "images",
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-        ],
-      },
-      manifest: false, // use public/manifest.json
-    }),
   ].filter(Boolean),
   resolve: {
     alias: {
