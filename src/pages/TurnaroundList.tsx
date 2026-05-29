@@ -69,7 +69,7 @@ const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { fetchPage, deleteTurnaround } = useTurnarounds();
+  const { fetchPage, deleteTurnaround, syncAllToLocal } = useTurnarounds();
   const { isAdmin } = useAdmin();
   const { equipos: hasEquipos } = useModuleAccess();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
@@ -205,6 +205,17 @@ const TurnaroundList: React.FC = () => {
         : setTimeout(cb, 200);
     idle(() => { import('@/pages/TurnaroundForm').catch(() => {}); });
   }, []);
+
+  // Background: sync ALL turnarounds into local store so they're available offline.
+  useEffect(() => {
+    if (!user) return;
+    const idle = (cb: () => void) =>
+      'requestIdleCallback' in window
+        ? (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(cb)
+        : setTimeout(cb, 1000);
+    idle(() => { syncAllToLocal().catch(() => {}); });
+  }, [user, syncAllToLocal]);
+
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
