@@ -1,7 +1,7 @@
 {
-  "version": "2.0.243",
+  "version": "2.0.234",
   "changelog": [
-    "Cola offline global: los cambios pendientes se sincronizan al volver la conexión desde cualquier pantalla.",
-    "Reintentos automáticos al recuperar foco, conexión o al volver a la app."
+    "Nueva aerolínea SkyUp con modelo B 737-75C.",
+    "Bodegas FWD (1, 2) y AFT (3, 4) con leyenda de secuencia de carga al CPT."
   ]
 }
