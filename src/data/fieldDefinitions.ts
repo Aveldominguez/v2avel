@@ -108,6 +108,7 @@ const createSharedFields = (airline: AirlineCode): FieldDefinition[] => [
 export const A_JET_FIELDS: FieldDefinition[] = createSharedFields('A_JET');
 export const PEGASUS_FIELDS: FieldDefinition[] = createSharedFields('PEGASUS');
 export const TRANSAVIA_FIELDS: FieldDefinition[] = createSharedFields('TRANSAVIA');
+export const SKYUP_FIELDS: FieldDefinition[] = createSharedFields('SKYUP');
 export const WESTJET_FIELDS: FieldDefinition[] = [
   createField('WESTJET', 'BT', 'Tránsito', 1),
   createField('WESTJET', 'B', 'Local', 2),
