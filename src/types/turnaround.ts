@@ -453,6 +453,7 @@ export const AIRLINE_PREFIXES: Record<string, string> = {
   AEGEAN: 'A',
   PEGASUS: 'PC',
   SKYEXPRESS: 'GQ',
+  SKYUP: 'PQ',
   AMAZON: 'ABR',
   A_JET: 'VF',
   ALBASTAR: 'AP',
