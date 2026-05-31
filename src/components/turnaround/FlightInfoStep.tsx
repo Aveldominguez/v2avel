@@ -192,7 +192,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
   const handleAirlineChange = (v: AirlineCode) => {
     // Strip old prefix from flight number if present
-    const oldPrefix = airline ? AIRLINE_PREFIXES[airline as AirlineCode] : '';
+    const oldPrefix = getAirlinePrefix(airline);
     let numericPart = flightNumber;
     if (oldPrefix && numericPart.startsWith(oldPrefix)) {
       numericPart = numericPart.slice(oldPrefix.length);
@@ -208,7 +208,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     depNumericPart = depNumericPart.replace(/\D/g, '');
 
     setAirline(v);
-    const newPrefix = AIRLINE_PREFIXES[v];
+    const newPrefix = getAirlinePrefix(v);
     setFlightNumber(newPrefix + numericPart);
     setDepartureFlightNumber(newPrefix + depNumericPart);
 
