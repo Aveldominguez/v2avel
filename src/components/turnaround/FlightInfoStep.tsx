@@ -1,5 +1,5 @@
 import React from 'react';
-import { AirlineCode, AIRLINES } from '@/types/turnaround';
+import { AirlineCode, AIRLINES, getAirlinePrefix } from '@/types/turnaround';
 import { useAllAirlines } from '@/hooks/useCatalog';
 import { getModelsForAirline } from '@/data/aircraftModels';
 import { Input } from '@/components/ui/input';
