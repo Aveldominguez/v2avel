@@ -25,6 +25,7 @@ export interface CompartmentDefinition {
   expandableDefault?: number;
   holdStyle?: 'default' | 'ita';
   bulk?: boolean;
+  legend?: string;
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
