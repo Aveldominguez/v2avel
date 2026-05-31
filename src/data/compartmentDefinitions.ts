@@ -511,6 +511,43 @@ export const TRANSAVIA_737_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// SkyUp B 737-75C
+export const SKYUP_B737_75C_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'skyup-b73775c-comp1',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    legend: 'Loading sequence to CPT: 2 - 3 - 1 - 4.',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-1'), label: 'Bodega 1' },
+    ],
+  },
+  {
+    id: 'skyup-b73775c-comp2',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 2 FWD',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-2'), label: 'Bodega 2' },
+    ],
+  },
+  {
+    id: 'skyup-b73775c-comp3',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-3'), label: 'Bodega 3' },
+    ],
+  },
+  {
+    id: 'skyup-b73775c-comp4',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 4 AFT',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-4'), label: 'Bodega 4' },
+    ],
+  },
+];
+
 // WestJet 737-800
 export const WESTJET_737_COMPARTMENTS: CompartmentDefinition[] = [
   {
