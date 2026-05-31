@@ -25,6 +25,7 @@ async function fetchCatalog(): Promise<void> {
   const next: Partial<CatalogState> = {
     airlines: (airlines.data || []).map((r: any) => ({
       code: r.code, name: r.name, shortName: r.short_name, color: r.color,
+      prefix: r.prefix ?? null,
       active: r.active, sortOrder: r.sort_order,
     })),
     aircraftModels: (models.data || []).map((r: any) => ({
