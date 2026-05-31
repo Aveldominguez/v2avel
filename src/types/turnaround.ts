@@ -471,9 +471,7 @@ export const AIRLINE_PREFIXES: Record<string, string> = {
 export const getAirlinePrefix = (airline: string | null | undefined): string => {
   if (!airline) return '';
   try {
-    // Lazy import to avoid circular deps at module init
-    const { getCatalogSnapshot } = require('@/lib/catalogStore');
-    const ov = getCatalogSnapshot().airlines.find((a: any) => a.code === airline);
+    const ov = getCatalogSnapshot().airlines.find((a) => a.code === airline);
     if (ov && typeof ov.prefix === 'string' && ov.prefix.trim() !== '') {
       return ov.prefix;
     }
