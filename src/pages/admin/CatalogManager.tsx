@@ -82,7 +82,7 @@ const CatalogManager: React.FC = () => {
 const AirlinesTab: React.FC = () => {
   const catalog = useCatalog();
   const [saving, setSaving] = useState<string | null>(null);
-  const [newAirline, setNewAirline] = useState({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)' });
+  const [newAirline, setNewAirline] = useState({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)', prefix: '' });
 
   const baseRows = AIRLINES.map(a => {
     const ov = catalog.airlines.find(o => o.code === a.code);
