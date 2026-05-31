@@ -98,6 +98,9 @@ export const AIRCRAFT_MODELS: Record<string, AircraftModelConfig[]> = {
     { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
     { model: 'OTHER', label: 'Genérico', turnaroundMinutes: 40 },
   ],
+  SKYUP: [
+    { model: 'B737-75C', label: 'B 737-75C', turnaroundMinutes: 45 },
+  ],
   FEDEX: [
     { model: 'OTHER', label: 'Genérico', turnaroundMinutes: 60 },
   ],

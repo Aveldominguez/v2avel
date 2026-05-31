@@ -392,7 +392,13 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
             <h3 className="text-sm font-bold text-primary mb-2 border-b border-border pb-1">
               {comp.compartmentName}
             </h3>
+            {comp.legend && (
+              <div className="mb-2 px-3 py-2 rounded-md bg-accent/10 border border-accent/30 text-sm font-semibold text-accent font-mono">
+                {comp.legend}
+              </div>
+            )}
             <div className="space-y-2">
+
               {comp.holds.map((hold, idx) => {
                 const isBulk = comp.bulk === true || comp.id.includes('bulk');
                 return isItaStyle(comp) && !isPairedHold(hold)

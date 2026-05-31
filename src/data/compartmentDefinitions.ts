@@ -25,6 +25,7 @@ export interface CompartmentDefinition {
   expandableDefault?: number;
   holdStyle?: 'default' | 'ita';
   bulk?: boolean;
+  legend?: string;
 }
 
 const createHoldId = (airline: AirlineCode, hold: string): string =>
@@ -506,6 +507,43 @@ export const TRANSAVIA_737_COMPARTMENTS: CompartmentDefinition[] = [
     compartmentName: 'COMPARTIMIENTO 4',
     holds: [
       { id: createHoldId('TRANSAVIA', '737-4'), label: 'Compartimiento 4' },
+    ],
+  },
+];
+
+// SkyUp B 737-75C
+export const SKYUP_B737_75C_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'skyup-b73775c-comp1',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    legend: 'Loading sequence to CPT: 2 - 3 - 1 - 4.',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-1'), label: 'Bodega 1' },
+    ],
+  },
+  {
+    id: 'skyup-b73775c-comp2',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 2 FWD',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-2'), label: 'Bodega 2' },
+    ],
+  },
+  {
+    id: 'skyup-b73775c-comp3',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-3'), label: 'Bodega 3' },
+    ],
+  },
+  {
+    id: 'skyup-b73775c-comp4',
+    airline: 'SKYUP',
+    compartmentName: 'COMPARTIMIENTO 4 AFT',
+    holds: [
+      { id: createHoldId('SKYUP', 'b73775c-4'), label: 'Bodega 4' },
     ],
   },
 ];
@@ -1300,6 +1338,10 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
     if (aircraftModel === 'A321') return TRANSAVIA_A321_COMPARTMENTS;
     if (aircraftModel === '737-800') return TRANSAVIA_737_COMPARTMENTS;
     if (aircraftModel === 'A320_AIRBALTIC') return TRANSAVIA_A320_AIRBALTIC_COMPARTMENTS;
+    return [];
+  }
+  if (airline === 'SKYUP') {
+    if (aircraftModel === 'B737-75C') return SKYUP_B737_75C_COMPARTMENTS;
     return [];
   }
   if (airline === 'A_JET') {
