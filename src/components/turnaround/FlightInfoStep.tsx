@@ -97,6 +97,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     AEGEAN: 'A',
     PEGASUS: 'PC',
     SKYEXPRESS: 'GQ',
+    SKYUP: 'PQ',
     AMAZON: 'ABR',
     A_JET: 'VF',
     ALBASTAR: 'AP',
@@ -109,7 +110,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     WESTJET: 'WS',
   };
 
-  const activePrefix = airline ? AIRLINE_PREFIXES[airline] : '';
+  const activePrefix = (airline ? AIRLINE_PREFIXES[airline] : '') || '';
   // Whether the field is in "prefixed numeric" mode
   const isPrefixedMode = airline !== '';
 
