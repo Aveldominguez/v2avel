@@ -1,0 +1,1 @@
+ALTER TABLE public.catalog_airlines ADD COLUMN IF NOT EXISTS prefix text;

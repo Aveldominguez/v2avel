@@ -466,6 +466,19 @@ export const AIRLINE_PREFIXES: Record<string, string> = {
   WESTJET: 'WS',
 };
 
+// Resolves the active prefix for an airline, preferring the admin override
+// stored in catalog_airlines.prefix and falling back to the built-in map.
+export const getAirlinePrefix = (airline: string | null | undefined): string => {
+  if (!airline) return '';
+  try {
+    const ov = getCatalogSnapshot().airlines.find((a) => a.code === airline);
+    if (ov && typeof ov.prefix === 'string' && ov.prefix.trim() !== '') {
+      return ov.prefix;
+    }
+  } catch { /* ignore */ }
+  return AIRLINE_PREFIXES[airline] || '';
+};
+
 // Cargo/Mail destination per airline (per-flow). Returns null when no aviso should appear.
 export const getCargoMailDestination = (
   airline: AirlineCode,

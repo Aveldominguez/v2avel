@@ -7,6 +7,7 @@ export interface AirlineOverride {
   name: string;
   shortName: string;
   color: string;
+  prefix: string | null;
   active: boolean;
   sortOrder: number;
 }

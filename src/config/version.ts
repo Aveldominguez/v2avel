@@ -1,8 +1,8 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.236';
+export const APP_VERSION = '2.0.248';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Nueva aerolínea SkyUp con modelo B 737-75C.',
-  'Bodegas FWD (1, 2) y AFT (3, 4) con leyenda de secuencia de carga al CPT.',
+  'Panel de administración: columna "Color HSL" sustituida por "Prefijo" editable por aerolínea.',
+  'El prefijo de número de vuelo ahora se puede modificar desde Gestión de Catálogos.',
 ];

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCatalog, refreshCatalog } from '@/hooks/useCatalog';
-import { AIRLINES, AirlineCode, getAllAirlines, getTimeFieldsForAirline } from '@/types/turnaround';
+import { AIRLINES, AirlineCode, getAllAirlines, getTimeFieldsForAirline, AIRLINE_PREFIXES } from '@/types/turnaround';
 import { AIRCRAFT_MODELS } from '@/data/aircraftModels';
 import { getFieldsByAirline, ALL_FIELD_DEFINITIONS } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold, type CompartmentDefinition } from '@/data/compartmentDefinitions';
@@ -82,7 +82,7 @@ const CatalogManager: React.FC = () => {
 const AirlinesTab: React.FC = () => {
   const catalog = useCatalog();
   const [saving, setSaving] = useState<string | null>(null);
-  const [newAirline, setNewAirline] = useState({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)' });
+  const [newAirline, setNewAirline] = useState({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)', prefix: '' });
 
   const baseRows = AIRLINES.map(a => {
     const ov = catalog.airlines.find(o => o.code === a.code);
@@ -91,16 +91,17 @@ const AirlinesTab: React.FC = () => {
       name: ov?.name ?? a.name,
       shortName: ov?.shortName ?? a.shortName,
       color: ov?.color ?? a.color,
+      prefix: (ov?.prefix ?? AIRLINE_PREFIXES[a.code] ?? '') as string,
       active: ov?.active ?? true,
       isCustom: false,
     };
   });
   const extraRows = catalog.airlines
     .filter(o => !AIRLINES.some(a => a.code === o.code))
-    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color, active: o.active, isCustom: true }));
+    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color, prefix: o.prefix ?? '', active: o.active, isCustom: true }));
   const rows = [...baseRows, ...extraRows];
 
-  const [edits, setEdits] = useState<Record<string, Partial<{ name: string; shortName: string; color: string; active: boolean }>>>({});
+  const [edits, setEdits] = useState<Record<string, Partial<{ name: string; shortName: string; color: string; prefix: string; active: boolean }>>>({});
 
   const save = async (code: string) => {
     const edit = edits[code];
@@ -112,6 +113,7 @@ const AirlinesTab: React.FC = () => {
       name: edit.name ?? row.name,
       short_name: edit.shortName ?? row.shortName,
       color: edit.color ?? row.color,
+      prefix: (edit.prefix ?? row.prefix ?? '').toString().toUpperCase().trim() || null,
       active: edit.active ?? row.active,
       sort_order: 0,
     }, { onConflict: 'code' });
@@ -156,11 +158,13 @@ const AirlinesTab: React.FC = () => {
     const { error } = await supabase.from('catalog_airlines').insert({
       code, name: newAirline.name.trim(),
       short_name: (newAirline.shortName.trim() || newAirline.name.trim()).toUpperCase(),
-      color: newAirline.color, active: true, sort_order: 1000,
+      color: newAirline.color,
+      prefix: newAirline.prefix.trim().toUpperCase() || null,
+      active: true, sort_order: 1000,
     });
     setSaving(null);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { setNewAirline({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)' }); await refreshCatalog(); }
+    else { setNewAirline({ code: '', name: '', shortName: '', color: 'hsl(210, 80%, 50%)', prefix: '' }); await refreshCatalog(); }
   };
 
   return (
@@ -171,7 +175,7 @@ const AirlinesTab: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Código</TableHead><TableHead>Nombre</TableHead><TableHead>Corto</TableHead>
-              <TableHead>Color HSL</TableHead><TableHead>Activo</TableHead><TableHead></TableHead>
+              <TableHead>Prefijo</TableHead><TableHead>Activo</TableHead><TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -182,7 +186,7 @@ const AirlinesTab: React.FC = () => {
                   <TableCell className="font-mono text-xs">{r.code}{r.isCustom && <span className="ml-1 text-[10px] text-primary">NEW</span>}</TableCell>
                   <TableCell><Input value={e.name ?? r.name} onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], name: ev.target.value } }))} /></TableCell>
                   <TableCell><Input value={e.shortName ?? r.shortName} onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], shortName: ev.target.value } }))} /></TableCell>
-                  <TableCell><Input value={e.color ?? r.color} onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], color: ev.target.value } }))} /></TableCell>
+                  <TableCell><Input value={e.prefix ?? r.prefix} placeholder="—" className="font-mono uppercase w-24" onChange={ev => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], prefix: ev.target.value.toUpperCase() } }))} /></TableCell>
                   <TableCell><Switch checked={e.active ?? r.active} onCheckedChange={v => setEdits(p => ({ ...p, [r.code]: { ...p[r.code], active: v } }))} /></TableCell>
                   <TableCell className="flex gap-1">
                     <Button size="sm" disabled={!edits[r.code] || saving === r.code} onClick={() => save(r.code)}>
@@ -204,7 +208,7 @@ const AirlinesTab: React.FC = () => {
             <div><Label>Código interno</Label><Input value={newAirline.code} onChange={e => setNewAirline(p => ({ ...p, code: e.target.value }))} placeholder="RYANAIR" className="font-mono uppercase" /></div>
             <div><Label>Nombre</Label><Input value={newAirline.name} onChange={e => setNewAirline(p => ({ ...p, name: e.target.value }))} placeholder="Ryanair" /></div>
             <div><Label>Corto</Label><Input value={newAirline.shortName} onChange={e => setNewAirline(p => ({ ...p, shortName: e.target.value }))} placeholder="RYANAIR" /></div>
-            <div><Label>Color HSL</Label><Input value={newAirline.color} onChange={e => setNewAirline(p => ({ ...p, color: e.target.value }))} /></div>
+            <div><Label>Prefijo</Label><Input value={newAirline.prefix} placeholder="W, TP, 3V…" className="font-mono uppercase" onChange={e => setNewAirline(p => ({ ...p, prefix: e.target.value.toUpperCase() }))} /></div>
             <Button onClick={addNewAirline} disabled={saving === '__new__'}>
               {saving === '__new__' ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-1" /> Añadir</>}
             </Button>

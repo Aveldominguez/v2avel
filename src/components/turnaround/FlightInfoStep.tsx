@@ -1,5 +1,5 @@
 import React from 'react';
-import { AirlineCode, AIRLINES } from '@/types/turnaround';
+import { AirlineCode, AIRLINES, getAirlinePrefix } from '@/types/turnaround';
 import { useAllAirlines } from '@/hooks/useCatalog';
 import { getModelsForAirline } from '@/data/aircraftModels';
 import { Input } from '@/components/ui/input';
@@ -85,32 +85,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const allAirlines = useAllAirlines();
   const models = airline ? getModelsForAirline(airline) : [];
 
-  const AIRLINE_PREFIXES: Record<string, string> = {
-    FEDEX: '3V',
-    AIR_CANADA: 'AC',
-    AIR_CANADA_CARGO: 'AC',
-    TRANSAVIA: 'TO',
-    WIZZ: 'W',
-    TAP: 'TP',
-    ITA: 'AZ0',
-    NILE_AIR: 'NP',
-    AEGEAN: 'A',
-    PEGASUS: 'PC',
-    SKYEXPRESS: 'GQ',
-    SKYUP: 'PQ',
-    AMAZON: 'ABR',
-    A_JET: 'VF',
-    ALBASTAR: 'AP',
-    ICELANDAIR: 'FI',
-    AZUL: 'AD',
-    EUROWINGS: 'EW',
-    CROATIA: 'OU',
-    AIR_EST: 'AE',
-    SIN_MARCA: 'SM',
-    WESTJET: 'WS',
-  };
-
-  const activePrefix = (airline ? AIRLINE_PREFIXES[airline] : '') || '';
+  const activePrefix = getAirlinePrefix(airline);
   // Whether the field is in "prefixed numeric" mode
   const isPrefixedMode = airline !== '';
 
@@ -217,7 +192,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
   const handleAirlineChange = (v: AirlineCode) => {
     // Strip old prefix from flight number if present
-    const oldPrefix = airline ? AIRLINE_PREFIXES[airline as AirlineCode] : '';
+    const oldPrefix = getAirlinePrefix(airline);
     let numericPart = flightNumber;
     if (oldPrefix && numericPart.startsWith(oldPrefix)) {
       numericPart = numericPart.slice(oldPrefix.length);
@@ -233,7 +208,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     depNumericPart = depNumericPart.replace(/\D/g, '');
 
     setAirline(v);
-    const newPrefix = AIRLINE_PREFIXES[v];
+    const newPrefix = getAirlinePrefix(v);
     setFlightNumber(newPrefix + numericPart);
     setDepartureFlightNumber(newPrefix + depNumericPart);
 
