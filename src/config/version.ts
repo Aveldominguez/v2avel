@@ -1,8 +1,8 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.242';
+export const APP_VERSION = '2.0.234';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Cola offline global: los cambios pendientes se sincronizan al volver la conexión desde cualquier pantalla.',
-  'Reintentos automáticos al recuperar foco, conexión o al volver a la app.',
+  'Nueva aerolínea SkyUp con modelo B 737-75C.',
+  'Bodegas FWD (1, 2) y AFT (3, 4) con leyenda de secuencia de carga al CPT.',
 ];
