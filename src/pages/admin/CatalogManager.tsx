@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCatalog, refreshCatalog } from '@/hooks/useCatalog';
-import { AIRLINES, AirlineCode, getAllAirlines, getTimeFieldsForAirline } from '@/types/turnaround';
+import { AIRLINES, AirlineCode, getAllAirlines, getTimeFieldsForAirline, AIRLINE_PREFIXES } from '@/types/turnaround';
 import { AIRCRAFT_MODELS } from '@/data/aircraftModels';
 import { getFieldsByAirline, ALL_FIELD_DEFINITIONS } from '@/data/fieldDefinitions';
 import { getCompartmentsByAirline, isPairedHold, type CompartmentDefinition } from '@/data/compartmentDefinitions';
@@ -91,16 +91,17 @@ const AirlinesTab: React.FC = () => {
       name: ov?.name ?? a.name,
       shortName: ov?.shortName ?? a.shortName,
       color: ov?.color ?? a.color,
+      prefix: (ov?.prefix ?? AIRLINE_PREFIXES[a.code] ?? '') as string,
       active: ov?.active ?? true,
       isCustom: false,
     };
   });
   const extraRows = catalog.airlines
     .filter(o => !AIRLINES.some(a => a.code === o.code))
-    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color, active: o.active, isCustom: true }));
+    .map(o => ({ code: o.code, name: o.name, shortName: o.shortName, color: o.color, prefix: o.prefix ?? '', active: o.active, isCustom: true }));
   const rows = [...baseRows, ...extraRows];
 
-  const [edits, setEdits] = useState<Record<string, Partial<{ name: string; shortName: string; color: string; active: boolean }>>>({});
+  const [edits, setEdits] = useState<Record<string, Partial<{ name: string; shortName: string; color: string; prefix: string; active: boolean }>>>({});
 
   const save = async (code: string) => {
     const edit = edits[code];
