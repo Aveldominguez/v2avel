@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCatalog } from '@/hooks/useCatalog';
 import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, getAirlinePrefix, getCargoMailDestination } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
 import { TimeInput } from './TimeInput';
@@ -259,6 +260,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   onDepartureTimeChange,
   flightNumber = '',
 }) => {
+  useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
