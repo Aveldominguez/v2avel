@@ -146,6 +146,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'PEGASUS', name: 'Pegasus Airlines', shortName: 'PEGASUS', color: 'hsl(30, 90%, 50%)' },
   { code: 'SIN_MARCA', name: 'Sin Marca', shortName: 'SIN MARCA', color: 'hsl(0, 0%, 55%)' },
   { code: 'SKYEXPRESS', name: 'Sky Express', shortName: 'SKY EXPRESS', color: 'hsl(220, 80%, 55%)' },
+  { code: 'SKYUP', name: 'SkyUp', shortName: 'SKYUP', color: 'hsl(145, 70%, 40%)' },
   { code: 'TAP', name: 'TAP Air Portugal', shortName: 'TAP', color: 'hsl(142, 76%, 36%)' },
   { code: 'TRANSAVIA', name: 'Transavia', shortName: 'TRANSAVIA', color: 'hsl(145, 70%, 40%)' },
   { code: 'WESTJET', name: 'WestJet', shortName: 'WESTJET', color: 'hsl(200, 85%, 45%)' },

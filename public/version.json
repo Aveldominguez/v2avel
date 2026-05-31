@@ -1,5 +1,5 @@
 {
-  "version": "2.0.233",
+  "version": "2.0.234",
   "changelog": [
     "Cola offline global: los cambios pendientes se sincronizan al volver la conexión desde cualquier pantalla.",
     "Reintentos automáticos al recuperar foco, conexión o al volver a la app."
