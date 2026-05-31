@@ -81,6 +81,7 @@ export type Database = {
           color: string
           created_at: string
           name: string
+          prefix: string | null
           short_name: string
           sort_order: number
           updated_at: string
@@ -91,6 +92,7 @@ export type Database = {
           color: string
           created_at?: string
           name: string
+          prefix?: string | null
           short_name: string
           sort_order?: number
           updated_at?: string
@@ -101,6 +103,7 @@ export type Database = {
           color?: string
           created_at?: string
           name?: string
+          prefix?: string | null
           short_name?: string
           sort_order?: number
           updated_at?: string
