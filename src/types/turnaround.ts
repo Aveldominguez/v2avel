@@ -314,26 +314,66 @@ export const usesSplitLayout = (airline: AirlineCode): boolean => {
   return !SPLIT_LAYOUT_EXCLUDED.includes(airline);
 };
 
+// Apply admin overrides (catalog_time_field_overrides) to a list of fields.
+// - Drops fields where override sets visible=false
+// - Overrides label / clockColor when provided
+// - Appends extra fields the admin explicitly enabled (visible=true) that aren't
+//   present in the defaults, so a toggle ON in admin actually surfaces a field.
+const applyTimeFieldOverrides = (airline: AirlineCode, fields: TimeFieldConfig[]): TimeFieldConfig[] => {
+  let overrides: ReturnType<typeof getCatalogSnapshot>['timeFieldOverrides'] = [];
+  try {
+    overrides = getCatalogSnapshot().timeFieldOverrides.filter(o => o.airlineCode === airline);
+  } catch { /* ignore */ }
+  if (!overrides.length) return fields;
+
+  const overrideMap = new Map(overrides.map(o => [o.fieldKey, o]));
+  const present = new Set(fields.map(f => String(f.key)));
+
+  const patched = fields
+    .map(f => {
+      const ov = overrideMap.get(String(f.key));
+      if (!ov) return f;
+      if (ov.visible === false) return null;
+      return {
+        ...f,
+        label: ov.label && ov.label.trim() ? ov.label : f.label,
+        clockColor: (ov.clockColor as TimeFieldConfig['clockColor']) ?? f.clockColor,
+      } as TimeFieldConfig;
+    })
+    .filter((f): f is TimeFieldConfig => !!f);
+
+  overrides
+    .filter(o => o.visible === true && !present.has(o.fieldKey))
+    .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999))
+    .forEach(o => {
+      patched.push({
+        key: o.fieldKey as keyof TurnaroundTimes,
+        label: (o.label && o.label.trim()) || o.fieldKey,
+        clockColor: (o.clockColor as TimeFieldConfig['clockColor']) ?? 'default',
+        type: (o.type as TimeFieldConfig['type']) || 'time',
+      });
+    });
+
+  return patched;
+};
+
 // Get arrival fields for split layout
 export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeFieldConfig[] => {
   const hasStairs = AIRLINES_WITH_STAIRS.includes(airline);
   let fields = hasStairs ? [...ARRIVAL_FIELDS_WITH_STAIRS] : [...ARRIVAL_FIELDS_NO_STAIRS];
 
   if (isRemote) {
-    // Add GPU On and 1ª Jardinera for remote
     fields.push({ key: 'gpuOn', label: 'Puesta de GPU', type: 'time' });
     fields.push({ key: 'busArrival', label: '1ª Jardinera', type: 'time' });
 
-    // Add stairs for remote airlines that don't normally have them
     if (!hasStairs) {
-      // Insert stairs after chocksOnArrival
       const stairsField: TimeFieldConfig = { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' };
       const chocksIdx = fields.findIndex(f => f.key === 'chocksOnArrival');
       fields.splice(chocksIdx + 1, 0, stairsField);
     }
   }
 
-  return fields;
+  return applyTimeFieldOverrides(airline, fields);
 };
 
 // Get departure fields for split layout
@@ -342,11 +382,10 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): Tim
   let fields = hasStairs ? [...DEPARTURE_FIELDS_WITH_STAIRS] : [...DEPARTURE_FIELDS_NO_STAIRS];
 
   if (isRemote) {
-    // Add GPU Off for remote departure
     fields.splice(fields.length - 1, 0, { key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
   }
 
-  return fields;
+  return applyTimeFieldOverrides(airline, fields);
 };
 
 // Fields to keep in "Sólo llegada" mode (arrival only)
