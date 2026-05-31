@@ -476,7 +476,7 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
     }
   }
 
-  return baseFields;
+  return applyTimeFieldOverrides(airline, baseFields);
 };
 
 // Airline prefixes for flight numbers
