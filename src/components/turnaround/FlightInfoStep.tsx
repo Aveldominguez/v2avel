@@ -97,6 +97,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     AEGEAN: 'A',
     PEGASUS: 'PC',
     SKYEXPRESS: 'GQ',
+    SKYUP: 'PQ',
     AMAZON: 'ABR',
     A_JET: 'VF',
     ALBASTAR: 'AP',
