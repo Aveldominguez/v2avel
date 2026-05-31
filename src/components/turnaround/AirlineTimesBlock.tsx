@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, AIRLINE_PREFIXES, getCargoMailDestination } from '@/types/turnaround';
+import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, getAirlinePrefix, getCargoMailDestination } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
@@ -302,7 +302,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
     return errors.find(e => e.field === field)?.message;
   };
 
-  const prefix = AIRLINE_PREFIXES[airline] || '';
+  const prefix = getAirlinePrefix(airline);
 
   const sharedFieldProps = {
     times, updateTime, onChange, getError, disabled, airline,
