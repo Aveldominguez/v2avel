@@ -1,7 +1,7 @@
 {
-  "version": "2.0.247",
+  "version": "2.0.248",
   "changelog": [
-    "Nueva aerolínea SkyUp con modelo B 737-75C.",
-    "Bodegas FWD (1, 2) y AFT (3, 4) con leyenda de secuencia de carga al CPT."
+    "Panel de administración: columna \"Color HSL\" sustituida por \"Prefijo\" editable por aerolínea.",
+    "El prefijo de número de vuelo ahora se puede modificar desde Gestión de Catálogos."
   ]
 }
