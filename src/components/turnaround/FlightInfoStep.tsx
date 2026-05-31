@@ -85,32 +85,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const allAirlines = useAllAirlines();
   const models = airline ? getModelsForAirline(airline) : [];
 
-  const AIRLINE_PREFIXES: Record<string, string> = {
-    FEDEX: '3V',
-    AIR_CANADA: 'AC',
-    AIR_CANADA_CARGO: 'AC',
-    TRANSAVIA: 'TO',
-    WIZZ: 'W',
-    TAP: 'TP',
-    ITA: 'AZ0',
-    NILE_AIR: 'NP',
-    AEGEAN: 'A',
-    PEGASUS: 'PC',
-    SKYEXPRESS: 'GQ',
-    SKYUP: 'PQ',
-    AMAZON: 'ABR',
-    A_JET: 'VF',
-    ALBASTAR: 'AP',
-    ICELANDAIR: 'FI',
-    AZUL: 'AD',
-    EUROWINGS: 'EW',
-    CROATIA: 'OU',
-    AIR_EST: 'AE',
-    SIN_MARCA: 'SM',
-    WESTJET: 'WS',
-  };
-
-  const activePrefix = (airline ? AIRLINE_PREFIXES[airline] : '') || '';
+  const activePrefix = getAirlinePrefix(airline);
   // Whether the field is in "prefixed numeric" mode
   const isPrefixedMode = airline !== '';
 
