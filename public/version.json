@@ -1,5 +1,5 @@
 {
-  "version": "2.0.250",
+  "version": "2.0.251",
   "changelog": [
     "Panel de administración: columna \"Color HSL\" sustituida por \"Prefijo\" editable por aerolínea.",
     "El prefijo de número de vuelo ahora se puede modificar desde Gestión de Catálogos."
