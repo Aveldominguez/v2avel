@@ -738,61 +738,126 @@ const TIME_FIELD_DEFAULT_LABELS: Record<string, string> = {
 
 const TIME_FIELD_KEYS = Object.keys(TIME_FIELD_DEFAULT_LABELS);
 
+type TimeFieldDraft = {
+  visible: boolean;
+  label: string;
+  clockColor: 'default' | 'green' | 'red';
+  hasOverride: boolean;
+};
+
 const TimeFieldsTab: React.FC = () => {
   const catalog = useCatalog();
   const [airline, setAirline] = useState<AirlineCode>('WIZZ');
-  const [saving, setSaving] = useState<string | null>(null);
-  const [edits, setEdits] = useState<Record<string, { label?: string }>>({});
+  const [saving, setSaving] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, TimeFieldDraft>>({});
 
   const ovs = catalog.timeFieldOverrides.filter(t => t.airlineCode === airline);
 
-  // Default-used keys for this airline (union of local + remote variants),
-  // so the Visible toggle reflects what the airline actually shows today.
   const defaultUsedKeys = React.useMemo(() => {
     const set = new Set<string>();
     try {
       getTimeFieldsForAirline(airline, false).forEach(f => set.add(f.key as string));
       getTimeFieldsForAirline(airline, true).forEach(f => set.add(f.key as string));
-    } catch { /* unknown airline → empty set */ }
+    } catch { /* unknown airline */ }
     return set;
-  }, [airline]);
+  }, [airline, catalog.timeFieldOverrides]);
 
-  // Reset local edits when airline changes
-  useEffect(() => { setEdits({}); }, [airline]);
+  // Build initial drafts whenever airline (or remote state) changes
+  React.useEffect(() => {
+    const next: Record<string, TimeFieldDraft> = {};
+    TIME_FIELD_KEYS.forEach(k => {
+      const ov = ovs.find(o => o.fieldKey === k);
+      next[k] = {
+        visible: ov ? ov.visible : defaultUsedKeys.has(k),
+        label: ov?.label ?? '',
+        clockColor: (ov?.clockColor as 'default' | 'green' | 'red' | null) ?? 'default',
+        hasOverride: !!ov,
+      };
+    });
+    setDrafts(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [airline, catalog.timeFieldOverrides]);
 
-  const upsert = async (fieldKey: string, patch: any) => {
-    const existing = ovs.find(o => o.fieldKey === fieldKey);
-    setSaving(fieldKey);
-    const payload = {
-      airline_code: airline, field_key: fieldKey,
-      visible: patch.visible ?? existing?.visible ?? defaultUsedKeys.has(fieldKey),
-      label: patch.label !== undefined ? patch.label : (existing?.label ?? null),
-      clock_color: patch.clockColor ?? existing?.clockColor ?? null,
-      type: patch.type ?? existing?.type ?? null,
-      sort_order: patch.sortOrder ?? existing?.sortOrder ?? null,
-    };
-    const { error } = await supabase.from('catalog_time_field_overrides').upsert(payload, { onConflict: 'airline_code,field_key' });
-    setSaving(null);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { setEdits(p => { const n = { ...p }; delete n[fieldKey]; return n; }); await refreshCatalog(); }
+  const setDraft = (k: string, patch: Partial<TimeFieldDraft>) => {
+    setDrafts(prev => ({ ...prev, [k]: { ...prev[k], ...patch } }));
   };
 
-  const clear = async (fieldKey: string) => {
-    const existing = ovs.find(o => o.fieldKey === fieldKey);
-    if (!existing) return;
-    if (!confirm(`¿Restaurar "${fieldKey}" al valor por defecto?`)) return;
-    setSaving(fieldKey);
-    const { error } = await supabase.from('catalog_time_field_overrides').delete().eq('id', existing.id);
-    setSaving(null);
+  const isDirty = (k: string): boolean => {
+    const d = drafts[k];
+    if (!d) return false;
+    const ov = ovs.find(o => o.fieldKey === k);
+    const baseVisible = defaultUsedKeys.has(k);
+    if (!ov) {
+      return d.visible !== baseVisible || d.label !== '' || d.clockColor !== 'default';
+    }
+    return (
+      d.visible !== ov.visible ||
+      d.label !== (ov.label ?? '') ||
+      d.clockColor !== ((ov.clockColor as any) ?? 'default')
+    );
+  };
+
+  const dirtyKeys = TIME_FIELD_KEYS.filter(isDirty);
+
+  const saveAll = async () => {
+    if (!dirtyKeys.length) return;
+    setSaving(true);
+    const rows = dirtyKeys.map(k => {
+      const d = drafts[k];
+      return {
+        airline_code: airline,
+        field_key: k,
+        visible: d.visible,
+        label: d.label.trim() || null,
+        clock_color: d.clockColor === 'default' ? null : d.clockColor,
+        type: null,
+        sort_order: null,
+      };
+    });
+    const { error } = await supabase
+      .from('catalog_time_field_overrides')
+      .upsert(rows, { onConflict: 'airline_code,field_key' });
+    setSaving(false);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Cambios guardados', description: `${dirtyKeys.length} campo(s) actualizado(s) para ${airline}.` });
+      await refreshCatalog();
+    }
+  };
+
+  const resetField = async (k: string) => {
+    const ov = ovs.find(o => o.fieldKey === k);
+    if (!ov) {
+      // Just discard local edits
+      setDraft(k, {
+        visible: defaultUsedKeys.has(k),
+        label: '',
+        clockColor: 'default',
+      });
+      return;
+    }
+    if (!confirm(`¿Restaurar "${k}" al valor por defecto?`)) return;
+    setSaving(true);
+    const { error } = await supabase.from('catalog_time_field_overrides').delete().eq('id', ov.id);
+    setSaving(false);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { setEdits(p => { const n = { ...p }; delete n[fieldKey]; return n; }); await refreshCatalog(); }
+    else await refreshCatalog();
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Campos de control de horas</CardTitle>
-        <p className="text-xs text-muted-foreground">Sobrescribe etiqueta, visibilidad y color por aerolínea. Eliminar restaura el valor por defecto del código.</p>
+        <CardTitle className="flex items-center justify-between gap-2">
+          <span>Campos de control de horas</span>
+          <Button onClick={saveAll} disabled={saving || !dirtyKeys.length} size="sm">
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            Guardar cambios {dirtyKeys.length > 0 && `(${dirtyKeys.length})`}
+          </Button>
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Activa o desactiva campos por aerolínea. Los cambios se aplican al formulario de escalas tras pulsar <b>Guardar cambios</b>.
+        </p>
         <div className="mt-2">
           <Select value={airline} onValueChange={v => setAirline(v as AirlineCode)}>
             <SelectTrigger className="w-64"><SelectValue /></SelectTrigger>
@@ -805,7 +870,7 @@ const TimeFieldsTab: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Campo</TableHead>
-              <TableHead>Etiqueta visible al usuario</TableHead>
+              <TableHead>Etiqueta visible</TableHead>
               <TableHead>Visible</TableHead>
               <TableHead>Etiqueta personalizada</TableHead>
               <TableHead>Color reloj</TableHead>
@@ -814,29 +879,31 @@ const TimeFieldsTab: React.FC = () => {
           </TableHeader>
           <TableBody>
             {TIME_FIELD_KEYS.map(k => {
-              const ov = ovs.find(o => o.fieldKey === k);
+              const d = drafts[k];
+              if (!d) return null;
               const defaultLabel = TIME_FIELD_DEFAULT_LABELS[k] ?? k;
-              const visibleLabel = ov?.label || defaultLabel;
-              const currentLabel = edits[k]?.label ?? ov?.label ?? '';
-              const dirty = edits[k]?.label !== undefined && edits[k]?.label !== (ov?.label ?? '');
+              const visibleLabel = d.label.trim() || defaultLabel;
+              const dirty = isDirty(k);
               return (
-                <TableRow key={k}>
+                <TableRow key={k} className={dirty ? 'bg-primary/5' : ''}>
                   <TableCell className="font-mono text-[10px] text-muted-foreground">{k}</TableCell>
                   <TableCell className="font-semibold">
                     {visibleLabel}
-                    {ov?.label && <span className="ml-1 text-[10px] text-primary">(personalizada)</span>}
+                    {d.hasOverride && <span className="ml-1 text-[10px] text-primary">(override)</span>}
+                    {dirty && <span className="ml-1 text-[10px] text-amber-600">●</span>}
                   </TableCell>
-                  <TableCell><Switch checked={ov?.visible ?? defaultUsedKeys.has(k)} onCheckedChange={v => upsert(k, { visible: v })} /></TableCell>
+                  <TableCell>
+                    <Switch checked={d.visible} onCheckedChange={v => setDraft(k, { visible: v })} />
+                  </TableCell>
                   <TableCell>
                     <Input
-                      value={currentLabel}
+                      value={d.label}
                       placeholder={defaultLabel}
-                      onChange={e => setEdits(p => ({ ...p, [k]: { label: e.target.value } }))}
-                      onBlur={() => { if (dirty) upsert(k, { label: currentLabel || null }); }}
+                      onChange={e => setDraft(k, { label: e.target.value })}
                     />
                   </TableCell>
                   <TableCell>
-                    <Select value={ov?.clockColor ?? 'default'} onValueChange={v => upsert(k, { clockColor: v === 'default' ? null : v })}>
+                    <Select value={d.clockColor} onValueChange={v => setDraft(k, { clockColor: v as any })}>
                       <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="default">Por defecto</SelectItem>
@@ -846,8 +913,8 @@ const TimeFieldsTab: React.FC = () => {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Button size="sm" variant="ghost" disabled={!ov || saving === k} onClick={() => clear(k)} title="Restaurar al valor por defecto">
-                      {saving === k ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    <Button size="sm" variant="ghost" disabled={saving} onClick={() => resetField(k)} title="Restaurar al valor por defecto">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -855,6 +922,13 @@ const TimeFieldsTab: React.FC = () => {
             })}
           </TableBody>
         </Table>
+
+        <div className="flex justify-end mt-4">
+          <Button onClick={saveAll} disabled={saving || !dirtyKeys.length}>
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            Guardar cambios {dirtyKeys.length > 0 && `(${dirtyKeys.length})`}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
