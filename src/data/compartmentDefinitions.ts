@@ -1340,6 +1340,10 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
     if (aircraftModel === 'A320_AIRBALTIC') return TRANSAVIA_A320_AIRBALTIC_COMPARTMENTS;
     return [];
   }
+  if (airline === 'SKYUP') {
+    if (aircraftModel === 'B737-75C') return SKYUP_B737_75C_COMPARTMENTS;
+    return [];
+  }
   if (airline === 'A_JET') {
     if (aircraftModel === 'A320') return A_JET_A320_COMPARTMENTS;
     if (aircraftModel === 'A321') return A_JET_A321_COMPARTMENTS;
