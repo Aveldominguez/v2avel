@@ -1,5 +1,5 @@
 {
-  "version": "2.0.255",
+  "version": "2.0.256",
   "changelog": [
     "Panel de administración → Horas: los toggles ahora se aplican al formulario de escalas (mostrar/ocultar campos por aerolínea).",
     "Nuevo botón \"Guardar cambios\" para confirmar los ajustes de horas; cambios pendientes se resaltan en la tabla."
