@@ -134,11 +134,17 @@ const EquipmentRow = ({
               {isBroken ? (
                 <span className="block h-11 leading-[2.75rem] text-center text-sm font-semibold italic text-destructive">EN TALLER</span>
               ) : isCharging ? (
-                <div className="flex h-11 items-center justify-center gap-2">
-                  <span className="text-sm italic text-success">Cargando</span>
+                <button
+                  type="button"
+                  onClick={onToggleCharging}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-sm border border-success/40 bg-success/10 px-2 text-sm font-semibold text-success transition-colors hover:bg-success/20"
+                  aria-label="Terminar carga"
+                >
+                  <span className="italic">Cargando</span>
                   <ChargingTimer since={state?.charging_since ?? null} />
-                </div>
-              ) : (
+                  <span className="ml-1 rounded bg-success px-1.5 py-0.5 text-[10px] font-bold uppercase text-success-foreground">Terminar</span>
+                </button>
+
                 <input
                   type="text" inputMode="numeric" pattern="[0-9]*"
                   value={isAutonomyMode && batteryInput ? `KM ${batteryInput}` : batteryInput}
