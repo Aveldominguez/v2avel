@@ -144,6 +144,8 @@ const EquipmentRow = ({
                   <ChargingTimer since={state?.charging_since ?? null} />
                   <span className="ml-1 rounded bg-success px-1.5 py-0.5 text-[10px] font-bold uppercase text-success-foreground">Terminar</span>
                 </button>
+              ) : (
+
 
                 <input
                   type="text" inputMode="numeric" pattern="[0-9]*"
