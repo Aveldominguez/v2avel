@@ -48,6 +48,10 @@ export interface TurnaroundTimes {
   remoteLocation: string | null;         // Ubicación remoto
   asu: boolean;                          // ASU activo
   asuData: string | null;               // Datos ASU
+  acu: boolean;                          // ACU activo
+  acuData: string | null;                // Datos ACU
+  acuStart: string | null;               // ACU Inicio
+  acuEnd: string | null;                 // ACU Retirada
   aircraftModel: string | null;         // Modelo de avión
   loadingSheetUrl: string | null;       // Hoja de carga (legacy single - backward compat)
   loadingSheetUrls: string[];           // Hoja de carga (múltiples, máx 7)
