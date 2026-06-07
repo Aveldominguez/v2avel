@@ -1,5 +1,5 @@
 {
-  "version": "2.0.261",
+  "version": "2.0.262",
   "changelog": [
     "Exportar PDF: nueva barra superior con botones \"Compartir\" y \"Descargar PDF\" compatibles con Android, iOS y navegadores in-app."
   ]
