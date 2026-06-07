@@ -1,5 +1,5 @@
 {
-  "version": "2.0.257",
+  "version": "2.0.255",
   "changelog": [
     "Control de Equipos: nuevo botón \"Terminar\" sobre la fila en carga para detenerla y poder introducir el % de batería."
   ]
