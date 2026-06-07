@@ -51,6 +51,61 @@ const FieldRenderer: React.FC<{
   showRistra3: boolean; setShowRistra3: (v: boolean) => void;
   showRistra4: boolean; setShowRistra4: (v: boolean) => void;
 }> = ({ field, times, updateTime, onChange, getError, disabled, airline, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
+  if (field.type === 'acu') {
+    const boolVal = times[field.key] as boolean;
+    const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;
+    const startKey = `${String(field.key)}Start` as keyof TurnaroundTimes;
+    const endKey = `${String(field.key)}End` as keyof TurnaroundTimes;
+    return (
+      <div key={field.key} className={boolVal ? "col-span-2 md:col-span-3 xl:col-span-4 flex flex-col gap-2" : ""}>
+        <div className="flex items-end gap-3">
+          <BooleanInput
+            label={field.label}
+            value={boolVal}
+            onChange={(v) => {
+              if (!v) {
+                onChange({ ...times, [field.key]: false, [textKey]: null, [startKey]: null, [endKey]: null });
+              } else {
+                updateTime(field.key, true);
+              }
+            }}
+            disabled={disabled}
+          />
+          {boolVal && (
+            <div className="flex-1">
+              <Input
+                type="text"
+                value={(times[textKey] as string) || ''}
+                onChange={(e) => updateTime(textKey, e.target.value.toUpperCase())}
+                disabled={disabled}
+                placeholder={`Datos ${field.label}`}
+                className="h-12 font-mono text-base"
+              />
+            </div>
+          )}
+        </div>
+        {boolVal && (
+          <div className="grid grid-cols-2 gap-3">
+            <TimeInput
+              label={`${field.label} Inicio`}
+              value={times[startKey] as string | null}
+              onChange={(v) => updateTime(startKey, v)}
+              disabled={disabled}
+              clockColor="green"
+            />
+            <TimeInput
+              label={`${field.label} Retirada`}
+              value={times[endKey] as string | null}
+              onChange={(v) => updateTime(endKey, v)}
+              disabled={disabled}
+              clockColor="red"
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (field.type === 'boolean-text') {
     const boolVal = times[field.key] as boolean;
     const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;

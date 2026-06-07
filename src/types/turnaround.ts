@@ -48,6 +48,10 @@ export interface TurnaroundTimes {
   remoteLocation: string | null;         // Ubicación remoto
   asu: boolean;                          // ASU activo
   asuData: string | null;               // Datos ASU
+  acu: boolean;                          // ACU activo
+  acuData: string | null;                // Datos ACU
+  acuStart: string | null;               // ACU Inicio
+  acuEnd: string | null;                 // ACU Retirada
   aircraftModel: string | null;         // Modelo de avión
   loadingSheetUrl: string | null;       // Hoja de carga (legacy single - backward compat)
   loadingSheetUrls: string[];           // Hoja de carga (múltiples, máx 7)
@@ -184,7 +188,7 @@ export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
   label: string;
   clockColor?: 'green' | 'red' | 'default';
-  type: 'time' | 'boolean' | 'boolean-text';
+  type: 'time' | 'boolean' | 'boolean-text' | 'acu';
 }
 
 // Arrival fields (for non-FedEx/Amazon split layout)
@@ -221,6 +225,7 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
   { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
   { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
   { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
@@ -236,6 +241,7 @@ const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
   { key: 'aviDeparture', label: 'AVI Salida', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
   { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
   { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
@@ -258,6 +264,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
 ];
 
 // Fields without stairs (WIZZ, etc.) - kept for FedEx/Amazon legacy
@@ -275,6 +282,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
 ];
 
 // FedEx-specific fields
@@ -292,6 +300,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'parkingArrival', label: 'Llegada a Parking', clockColor: 'green', type: 'time' },
   { key: 'fedexSuperArrival', label: 'Llegada FedEx Súper', clockColor: 'green', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
 ];
 
 // Remote-only fields
@@ -414,6 +423,9 @@ const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'dock1',
   'pushBackTime',
   'asu',
+  'acu',
+  'acuStart',
+  'acuEnd',
   'cargoDeparture',
   'mailDeparture',
   'aviDeparture',

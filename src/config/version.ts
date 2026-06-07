@@ -1,7 +1,7 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.258';
+export const APP_VERSION = '2.0.259';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Exportar PDF: nueva barra superior con botones "Compartir" y "Descargar PDF" compatibles con Android, iOS y navegadores in-app.',
+  'Nuevo toggle "ACU" disponible en todas las aerolíneas (vuelo de salida) con campo de texto y dos horas: Inicio y Retirada.',
 ];
