@@ -300,6 +300,7 @@ const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'parkingArrival', label: 'Llegada a Parking', clockColor: 'green', type: 'time' },
   { key: 'fedexSuperArrival', label: 'Llegada FedEx Súper', clockColor: 'green', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
 ];
 
 // Remote-only fields
