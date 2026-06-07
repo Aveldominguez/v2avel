@@ -282,6 +282,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
+  { key: 'acu', label: 'ACU', type: 'acu' },
 ];
 
 // FedEx-specific fields
