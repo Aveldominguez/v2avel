@@ -188,7 +188,7 @@ export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
   label: string;
   clockColor?: 'green' | 'red' | 'default';
-  type: 'time' | 'boolean' | 'boolean-text';
+  type: 'time' | 'boolean' | 'boolean-text' | 'acu';
 }
 
 // Arrival fields (for non-FedEx/Amazon split layout)
