@@ -224,13 +224,22 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   .ita-table tr:first-child td { background: #e5e5e5 !important; font-weight: bold; }
   .data-table td.code { width: 50px; text-align: center; font-family: monospace; }
   .obs { white-space: pre-wrap; border: 1px solid #ccc; padding: 8px; min-height: 40px; background: #fafafa; }
+  .pdf-toolbar { position: sticky; top: 0; z-index: 9999; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; background: #1a1a2e; border-bottom: 2px solid #000; margin: -16px -16px 12px -16px; }
+  .pdf-toolbar button { font-family: inherit; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
+  .pdf-toolbar .btn-download { background: #2563eb; }
+  .pdf-toolbar .btn-share { background: #16a34a; }
   @media print {
     body { padding: 0; }
     @page { margin: 12mm; }
+    .pdf-toolbar { display: none !important; }
   }
 </style>
 </head>
 <body>
+  <div class="pdf-toolbar">
+    <button class="btn-share" type="button" onclick="(async()=>{try{const title=document.title;const text='Escala '+title;if(navigator.share){try{const html='<!DOCTYPE html>'+document.documentElement.outerHTML;const file=new File([html],(title||'escala')+'.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:title,text:text,files:[file]});return;}}catch(e){}try{await navigator.share({title:title,text:text,url:location.href});return;}catch(e){if(e&&e.name==='AbortError')return;}}window.print();}catch(e){if(e&&e.name!=='AbortError'){window.print();}}})()">📤 Compartir</button>
+    <button class="btn-download" type="button" onclick="window.print()">⬇️ Descargar PDF</button>
+  </div>
   <div class="header">
     <div class="header-left">
       <h1>✈️ Escala</h1>
