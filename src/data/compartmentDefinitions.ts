@@ -567,6 +567,7 @@ export const WESTJET_737_COMPARTMENTS: CompartmentDefinition[] = [
     holds: [
       { id: createHoldId('WESTJET', '737-31'), label: 'Bodega 31' },
       { id: createHoldId('WESTJET', '737-41'), label: 'Bodega 41' },
+      { id: createHoldId('WESTJET', '737-42'), label: 'Bodega 42' },
     ],
   },
 ];
