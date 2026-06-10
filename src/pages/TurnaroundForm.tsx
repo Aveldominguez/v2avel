@@ -672,6 +672,10 @@ const TurnaroundForm: React.FC = () => {
           Exportar PDF
         </Button>
 
+        <div className="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/50 bg-amber-500/10 rounded-md p-3 leading-relaxed">
+          En la LIR, hay que remarcar en círculo la matrícula del avión, la edición de la LIR y plasmar las iniciales de tu nombre en ambas marcas para afirmar la información.
+        </div>
+
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <LoadingSheetField
             turnaroundId={id}
