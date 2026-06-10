@@ -1,7 +1,8 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.261';
+export const APP_VERSION = '2.0.262';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Corregidos botones de horas con nombres técnicos (AVIARRIVAL, GPUOFF, BAGSEARCHSTART…): ahora muestran su etiqueta legible y no aparecen en el bloque equivocado (llegada vs salida).',
+  'WestJet 737: añadida Bodega 42 en el compartimiento AFT.',
+  'Escaleras: ahora se pueden registrar Puesta y Retirada tanto en Llegada como en Salida.',
 ];

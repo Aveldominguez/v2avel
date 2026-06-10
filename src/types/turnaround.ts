@@ -9,13 +9,15 @@ export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | '
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
   chocksOnArrival: string | null;        // Calzos Llegada
-  stairsTime: string | null;             // Puesta de Escalera
+  stairsTime: string | null;             // Puesta de Escalera (Llegada)
+  stairsRemovalArrival: string | null;   // Retirada de Escalera (Llegada)
   unloadingStart: string | null;         // Inicio Descarga
   unloadingEnd: string | null;           // Fin Descarga
   loadingStart: string | null;           // Inicio Carga
   loadingEnd: string | null;             // Fin Carga
   lastHandBag: string | null;            // Cierre Coordinador
-  specialEndLoading: string | null;      // Retirada Escalera
+  stairsPlacementDeparture: string | null; // Puesta de Escalera (Salida)
+  specialEndLoading: string | null;      // Retirada Escalera (Salida)
   chocksOff: string | null;              // Calzos Salida
   busArrival: string | null;             // 1ª Jardinera
   lastBus: string | null;                // (legacy - no longer used)
@@ -195,6 +197,7 @@ export interface TimeFieldConfig {
 const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
+  { key: 'stairsRemovalArrival', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
@@ -220,6 +223,7 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
   { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
+  { key: 'stairsPlacementDeparture', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'cargoDeparture', label: 'Cargo Salida', type: 'boolean' },
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
@@ -330,6 +334,8 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   chocksOnArrival: 'Calzos Llegada',
   chocksOff: 'Calzos Salida',
   stairsTime: 'Puesta Escalera',
+  stairsRemovalArrival: 'Retirada Escalera',
+  stairsPlacementDeparture: 'Puesta Escalera',
   specialEndLoading: 'Retirada Escalera',
   unloadingStart: 'Inicio Descarga',
   unloadingEnd: 'Fin Descarga',
@@ -446,6 +452,7 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): Tim
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
   'stairsTime',
+  'stairsRemovalArrival',
   'unloadingStart',
   'unloadingEnd',
   'firstBag',
@@ -460,6 +467,7 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
 const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOff',
   'specialEndLoading',
+  'stairsPlacementDeparture',
   'loadingStart',
   'loadingEnd',
   'firstBag',
