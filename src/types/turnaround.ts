@@ -223,6 +223,7 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
   { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
+  { key: 'stairsPlacementDeparture', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'cargoDeparture', label: 'Cargo Salida', type: 'boolean' },
   { key: 'mailDeparture', label: 'Correo Salida', type: 'boolean' },
