@@ -1,6 +1,6 @@
 {
-  "version": "2.0.260",
+  "version": "2.0.261",
   "changelog": [
-    "Nuevo toggle \"ACU\" disponible en todas las aerolíneas (vuelo de salida) con campo de texto y dos horas: Inicio y Retirada."
+    "Corregidos botones de horas con nombres técnicos (AVIARRIVAL, GPUOFF, BAGSEARCHSTART…): ahora muestran su etiqueta legible y no aparecen en el bloque equivocado (llegada vs salida)."
   ]
 }
