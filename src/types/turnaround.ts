@@ -334,6 +334,8 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   chocksOnArrival: 'Calzos Llegada',
   chocksOff: 'Calzos Salida',
   stairsTime: 'Puesta Escalera',
+  stairsRemovalArrival: 'Retirada Escalera',
+  stairsPlacementDeparture: 'Puesta Escalera',
   specialEndLoading: 'Retirada Escalera',
   unloadingStart: 'Inicio Descarga',
   unloadingEnd: 'Fin Descarga',
