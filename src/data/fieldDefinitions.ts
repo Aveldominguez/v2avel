@@ -110,17 +110,19 @@ export const PEGASUS_FIELDS: FieldDefinition[] = createSharedFields('PEGASUS');
 export const TRANSAVIA_FIELDS: FieldDefinition[] = createSharedFields('TRANSAVIA');
 export const SKYUP_FIELDS: FieldDefinition[] = createSharedFields('SKYUP');
 export const WESTJET_FIELDS: FieldDefinition[] = [
-  createField('WESTJET', 'BT', 'Tránsito', 1),
+  createField('WESTJET', 'BP', 'Priority', 1),
   createField('WESTJET', 'B', 'Local', 2),
-  createField('WESTJET', 'BG', 'Gate – Mano – Puerta', 3),
-  createField('WESTJET', 'BP', 'Priority', 4),
-  createField('WESTJET', 'BU', 'Delivery At Aircraft (Carrito)', 5),
-  createField('WESTJET', 'D', 'Crew', 6),
-  createField('WESTJET', 'E', 'Equipment', 7),
-  createField('WESTJET', 'BH', 'Grupo (varios de tránsito mismo destino)', 8),
-  createField('WESTJET', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
-  createField('WESTJET', 'WCH', 'Wheelchair', 10),
-  createField('WESTJET', 'WDB', 'Wheelchair – Dry Battery', 11),
+  createField('WESTJET', 'BB', 'USA', 3),
+  createField('WESTJET', 'BU', 'De mano', 4),
+  createField('WESTJET', 'BT', 'Tránsito', 5),
+  createField('WESTJET', 'BG', 'Gate – Mano – Puerta', 6),
+  createField('WESTJET', 'DAA', 'Delivery At Aircraft (Carrito)', 7),
+  createField('WESTJET', 'D', 'Crew', 8),
+  createField('WESTJET', 'E', 'Equipment', 9),
+  createField('WESTJET', 'BH', 'Grupo (varios de tránsito mismo destino)', 10),
+  createField('WESTJET', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 11),
+  createField('WESTJET', 'WCH', 'Wheelchair', 12),
+  createField('WESTJET', 'WDB', 'Wheelchair – Dry Battery', 13),
 ];
 export const SKYEXPRESS_FIELDS: FieldDefinition[] = [
   createField('SKYEXPRESS', 'BT', 'Tránsito', 1),
