@@ -9,13 +9,15 @@ export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | '
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
   chocksOnArrival: string | null;        // Calzos Llegada
-  stairsTime: string | null;             // Puesta de Escalera
+  stairsTime: string | null;             // Puesta de Escalera (Llegada)
+  stairsRemovalArrival: string | null;   // Retirada de Escalera (Llegada)
   unloadingStart: string | null;         // Inicio Descarga
   unloadingEnd: string | null;           // Fin Descarga
   loadingStart: string | null;           // Inicio Carga
   loadingEnd: string | null;             // Fin Carga
   lastHandBag: string | null;            // Cierre Coordinador
-  specialEndLoading: string | null;      // Retirada Escalera
+  stairsPlacementDeparture: string | null; // Puesta de Escalera (Salida)
+  specialEndLoading: string | null;      // Retirada Escalera (Salida)
   chocksOff: string | null;              // Calzos Salida
   busArrival: string | null;             // 1ª Jardinera
   lastBus: string | null;                // (legacy - no longer used)
