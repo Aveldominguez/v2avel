@@ -1,7 +1,6 @@
 {
-  "version": "2.0.263",
+  "version": "2.0.264",
   "changelog": [
-    "WestJet: nuevas comoditys BP, B, BB, BU, BT.",
-    "Aviso LIR debajo del botón Exportar PDF."
+    "WestJet: eliminada comodity BG (Gate – Mano – Puerta)."
   ]
 }
