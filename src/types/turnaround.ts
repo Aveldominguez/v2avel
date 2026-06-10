@@ -467,6 +467,7 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
 const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOff',
   'specialEndLoading',
+  'stairsPlacementDeparture',
   'loadingStart',
   'loadingEnd',
   'firstBag',

@@ -1,5 +1,5 @@
 {
-  "version": "2.0.267",
+  "version": "2.0.268",
   "changelog": [
     "Corregidos botones de horas con nombres técnicos (AVIARRIVAL, GPUOFF, BAGSEARCHSTART…): ahora muestran su etiqueta legible y no aparecen en el bloque equivocado (llegada vs salida)."
   ]
