@@ -323,12 +323,53 @@ export const usesSplitLayout = (airline: AirlineCode): boolean => {
   return !SPLIT_LAYOUT_EXCLUDED.includes(airline);
 };
 
+// Friendly default labels for known time field keys. Used when an admin override
+// enables a field without providing a custom label, so the form never shows
+// the raw technical key (e.g. "AVIARRIVAL", "GPUOFF").
+const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
+  chocksOnArrival: 'Calzos Llegada',
+  chocksOff: 'Calzos Salida',
+  stairsTime: 'Puesta Escalera',
+  specialEndLoading: 'Retirada Escalera',
+  unloadingStart: 'Inicio Descarga',
+  unloadingEnd: 'Fin Descarga',
+  loadingStart: 'Inicio Carga',
+  loadingEnd: 'Fin Carga',
+  firstBag: '1ª Maleta',
+  lastHandBag: 'Cierre Coordinador',
+  lirReception: 'Recepción de LIR',
+  dock1: '1ª Muelle',
+  cargoArrival: 'Cargo Llegada',
+  cargoDeparture: 'Cargo Salida',
+  mailArrival: 'Correo Llegada',
+  mailDeparture: 'Correo Salida',
+  aviArrival: 'AVI Llegada',
+  aviDeparture: 'AVI Salida',
+  asu: 'ASU',
+  acu: 'ACU',
+  bagSearchStart: 'Inicio Búsqueda Maleta',
+  bagSearchEnd: 'Fin Búsqueda Maleta',
+  gpuOn: 'Puesta de GPU',
+  gpuOff: 'Retirada de GPU',
+  busArrival: '1ª Jardinera',
+  parkingArrival: 'Llegada a Parking',
+  fedexSuperArrival: 'Llegada FedEx Súper',
+  pushBackTime: 'Fin Push Back',
+};
+
 // Apply admin overrides (catalog_time_field_overrides) to a list of fields.
 // - Drops fields where override sets visible=false
 // - Overrides label / clockColor when provided
 // - Appends extra fields the admin explicitly enabled (visible=true) that aren't
 //   present in the defaults, so a toggle ON in admin actually surfaces a field.
-const applyTimeFieldOverrides = (airline: AirlineCode, fields: TimeFieldConfig[]): TimeFieldConfig[] => {
+// - `allowedAppendKeys`: when provided, only append unknown overrides whose
+//   fieldKey is in this set (used to keep arrival-only fields out of the
+//   departure block and vice-versa).
+const applyTimeFieldOverrides = (
+  airline: AirlineCode,
+  fields: TimeFieldConfig[],
+  allowedAppendKeys?: Set<string>,
+): TimeFieldConfig[] => {
   let overrides: ReturnType<typeof getCatalogSnapshot>['timeFieldOverrides'] = [];
   try {
     overrides = getCatalogSnapshot().timeFieldOverrides.filter(o => o.airlineCode === airline);
@@ -353,11 +394,15 @@ const applyTimeFieldOverrides = (airline: AirlineCode, fields: TimeFieldConfig[]
 
   overrides
     .filter(o => o.visible === true && !present.has(o.fieldKey))
+    .filter(o => !allowedAppendKeys || allowedAppendKeys.has(o.fieldKey))
     .sort((a, b) => (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999))
     .forEach(o => {
       patched.push({
         key: o.fieldKey as keyof TurnaroundTimes,
-        label: (o.label && o.label.trim()) || o.fieldKey,
+        label:
+          (o.label && o.label.trim()) ||
+          TIME_FIELD_FALLBACK_LABELS[o.fieldKey] ||
+          o.fieldKey,
         clockColor: (o.clockColor as TimeFieldConfig['clockColor']) ?? 'default',
         type: (o.type as TimeFieldConfig['type']) || 'time',
       });
@@ -382,7 +427,7 @@ export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeF
     }
   }
 
-  return applyTimeFieldOverrides(airline, fields);
+  return applyTimeFieldOverrides(airline, fields, ARRIVAL_ONLY_KEYS as Set<string>);
 };
 
 // Get departure fields for split layout
@@ -394,7 +439,7 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): Tim
     fields.splice(fields.length - 1, 0, { key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
   }
 
-  return applyTimeFieldOverrides(airline, fields);
+  return applyTimeFieldOverrides(airline, fields, DEPARTURE_ONLY_KEYS as Set<string>);
 };
 
 // Fields to keep in "Sólo llegada" mode (arrival only)
