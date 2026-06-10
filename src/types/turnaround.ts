@@ -197,6 +197,7 @@ export interface TimeFieldConfig {
 const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
+  { key: 'stairsRemovalArrival', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
