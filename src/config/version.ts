@@ -1,7 +1,7 @@
 // Auto-incremented on each meaningful change
-export const APP_VERSION = '2.0.272';
+export const APP_VERSION = '2.0.273';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Autocompletado de vuelo corregido: ahora consulta Flightradar24 con los parámetros correctos.',
+  'Autocompletado: aerolínea y modelo se rellenan también cuando la API devuelve código ICAO.',
 ];
