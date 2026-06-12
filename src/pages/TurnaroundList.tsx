@@ -355,6 +355,7 @@ const TurnaroundList: React.FC = () => {
                     <Truck className="h-5 w-5" />
                   </Button>
                 )}
+                <ArionStatusControl />
               </div>
               <Button onClick={() => navigate('/turnaround/new')} size="lg" className="gap-2">
                 <Plus className="h-5 w-5" />
