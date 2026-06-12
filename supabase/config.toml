@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.create-user]
 verify_jwt = false
+
+[functions.arion-credentials]
+verify_jwt = false
+
+[functions.sync-arion-flights]
+verify_jwt = false
