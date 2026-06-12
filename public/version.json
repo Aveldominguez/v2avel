@@ -1,5 +1,5 @@
 {
-  "version": "2.0.281",
+  "version": "2.0.282",
   "changelog": [
     "Autocompletado: aerolínea y modelo se rellenan también cuando la API devuelve código ICAO."
   ]
