@@ -1,7 +1,8 @@
 {
-  "version": "3.19",
+  "version": "3.20",
   "changelog": [
-    "ARION: vinculación arrival→departure por parking_code (más cercano posterior).",
-    "Autofill: matrícula siempre desde FR24 para cualquier aerolínea."
+    "ARION: lookup filtra movement_type='A' y devuelve aeropuerto de origen.",
+    "Badge ARION: cuenta sólo llegadas del día (no duplica con salidas).",
+    "Cabecera de escala: muestra origen → destino del vuelo."
   ]
 }

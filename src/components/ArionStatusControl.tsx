@@ -38,7 +38,8 @@ export const ArionStatusControl: React.FC = () => {
       .from('scheduled_flights')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
-      .eq('flight_date', todayIso());
+      .eq('flight_date', todayIso())
+      .eq('movement_type', 'A');
     if (!error) setCount(c ?? 0);
   }, [user]);
 
