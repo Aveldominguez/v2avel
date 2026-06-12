@@ -296,14 +296,16 @@ export function useFlightLookup(
       // ── 1) ARION lookup (scheduled_flights for selected date) ──
       if (user) {
         try {
-          const dateStr = selectedDate
-            ? selectedDate.toISOString().split('T')[0]
-            : todayIso();
+          const d = selectedDate ?? new Date();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          const dateStr = `${d.getFullYear()}-${mm}-${dd}`;
           const { data: arion } = await supabase
             .from('scheduled_flights')
-            .select('airline_code, registration, aircraft_type, parking_code, edt, departure_fn')
-            .eq('flight_date', dateStr)
+            .select('flight_number, airline_code, aircraft_type, parking_code, source_station, edt, sdt, departure_fn, movement_type')
             .eq('flight_number', clean)
+            .eq('flight_date', dateStr)
+            .eq('movement_type', 'A')
             .maybeSingle();
 
           if (arion) {
@@ -352,6 +354,7 @@ export function useFlightLookup(
               parkingCode: arion.parking_code ?? null,
               edtHHmm,
               departureFlight,
+              originStation: (arion as any).source_station ?? null,
               source: 'arion',
             });
             setAutofilledFields(filled);
