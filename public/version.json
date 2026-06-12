@@ -1,6 +1,6 @@
 {
-  "version": "3.23",
+  "version": "3.24",
   "changelog": [
-    "ARION: cruce arrival→departure por matrícula+parking, con fallback a matrícula sola y a parking+tiempo (≤5h)."
+    "LDM: botón en datos del vuelo de llegada para ver el LDM completo en una ventana."
   ]
 }

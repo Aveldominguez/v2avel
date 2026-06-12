@@ -13,6 +13,7 @@ interface FlightLookupResult {
   edtHHmm: string | null;
   departureFlight: string | null;
   originStation: string | null;
+  ldmRaw: string | null;
   source: 'arion' | 'fr24';
 }
 
@@ -302,7 +303,7 @@ export function useFlightLookup(
           const dateStr = `${d.getFullYear()}-${mm}-${dd}`;
           const { data: arion } = await supabase
             .from('scheduled_flights')
-            .select('flight_number, airline_code, aircraft_type, parking_code, source_station, edt, sdt, departure_fn, movement_type')
+            .select('flight_number, airline_code, aircraft_type, parking_code, source_station, edt, sdt, departure_fn, movement_type, ldm_raw')
             .eq('flight_number', clean)
             .eq('flight_date', dateStr)
             .eq('movement_type', 'A')
@@ -355,6 +356,7 @@ export function useFlightLookup(
               edtHHmm,
               departureFlight,
               originStation: (arion as any).source_station ?? null,
+              ldmRaw: (arion as any).ldm_raw ?? null,
               source: 'arion',
             });
             setAutofilledFields(filled);
@@ -408,6 +410,7 @@ export function useFlightLookup(
           edtHHmm: null,
           departureFlight: null,
           originStation: null,
+          ldmRaw: null,
           source: 'fr24',
         });
         setAutofilledFields(filled);

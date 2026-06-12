@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plane, Calendar as CalendarIcon, ArrowRight, X, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -83,6 +84,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   onCancel,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+  const [showLdm, setShowLdm] = React.useState(false);
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const allAirlines = useAllAirlines();
   const models = airline ? getModelsForAirline(airline) : [];
@@ -370,6 +372,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <p className="text-[11px] text-muted-foreground mt-1">
                   Vuelo no encontrado — rellena los datos manualmente
                 </p>
+              )}
+              {arrivalLookup.result?.ldmRaw && !soloSalida && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10 mt-1"
+                  onClick={() => setShowLdm(true)}
+                >
+                  LDM
+                </Button>
               )}
             </div>
             <div className="space-y-2">
@@ -729,6 +742,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={showLdm} onOpenChange={setShowLdm}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-mono">LDM · {flightNumber}</DialogTitle>
+          </DialogHeader>
+          <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed">
+            {arrivalLookup.result?.ldmRaw ?? ''}
+          </pre>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
