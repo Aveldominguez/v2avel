@@ -630,6 +630,14 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
+            {(originStation || destStation) && (
+              <>
+                <span>|</span>
+                <span className="font-semibold">
+                  ✈ {originStation ?? '?'} → {destStation ?? '?'}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </header>
