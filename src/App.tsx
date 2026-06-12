@@ -112,6 +112,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CatalogBootstrap />
+          <ArionSyncBootstrap />
           <OfflineSyncRunner />
           <UpdateBanner />
           <ChunkErrorBoundary>
