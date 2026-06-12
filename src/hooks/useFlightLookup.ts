@@ -180,6 +180,7 @@ export function isFlightNumberComplete(input: string): boolean {
 }
 
 export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlightLookupReturn {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<FlightLookupResult | null>(null);
@@ -207,11 +208,6 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
 
     if (clean === lastQueriedRef.current) return;
 
-    // Offline guard
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      return;
-    }
-
     if (timerRef.current) clearTimeout(timerRef.current);
 
     timerRef.current = setTimeout(async () => {
@@ -223,6 +219,54 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
       setIsLoading(true);
       setError(null);
       setNotFound(false);
+
+      // ── 1) ARION lookup (scheduled_flights for today) ──
+      if (user) {
+        try {
+          const { data: arion } = await supabase
+            .from('scheduled_flights')
+            .select('airline_code, registration, aircraft_type, parking_code, edt')
+            .eq('user_id', user.id)
+            .eq('flight_date', todayIso())
+            .eq('flight_number', clean)
+            .maybeSingle();
+
+          if (arion) {
+            const airlineCode = arion.airline_code
+              ? (AIRLINES.find((a) => a.code === arion.airline_code.toUpperCase())?.code ?? null)
+              : null;
+            const filled = new Set<string>();
+            if (airlineCode) filled.add('airline');
+            if (arion.aircraft_type) filled.add('aircraftModel');
+            if (arion.registration) filled.add('matricula');
+            if (arion.parking_code) filled.add('tango');
+            const edtHHmm = parseEdtHHmm(arion.edt);
+            if (edtHHmm) filled.add('departureTime');
+
+            setResult({
+              airlineName: null,
+              airlineCode,
+              aircraftModel: arion.aircraft_type ?? null,
+              registration: arion.registration ?? null,
+              parkingCode: arion.parking_code ?? null,
+              edtHHmm,
+              source: 'arion',
+            });
+            setAutofilledFields(filled);
+            setIsLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.warn('[lookup] ARION query failed, falling back to FR24', err);
+        }
+      }
+
+      // ── 2) FR24 fallback (only if not found in ARION) ──
+      // Offline guard for FR24
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const { data: responseData, error: fnError } = await supabase.functions.invoke('flight-lookup', {
@@ -254,6 +298,9 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
           airlineCode,
           aircraftModel,
           registration,
+          parkingCode: null,
+          edtHHmm: null,
+          source: 'fr24',
         });
         setAutofilledFields(filled);
         setIsLoading(false);
@@ -267,7 +314,8 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [flightIata, debounceMs]);
+  }, [flightIata, debounceMs, user]);
+
 
   return { isLoading, error, result, notFound, autofilledFields, clearAutofill };
 }
