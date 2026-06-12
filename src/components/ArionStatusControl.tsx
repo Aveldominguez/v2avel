@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Loader2, RefreshCw, Settings2 } from 'lucide-react';
+import { Loader2, Plane, RefreshCw, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,17 +44,25 @@ export const ArionStatusControl: React.FC = () => {
   return (
     <>
       <div className="flex items-center gap-2">
-        {hasCredentials && count !== null && (
+        {syncing && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono bg-muted text-muted-foreground border border-border">
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            Sincronizando...
+          </span>
+        )}
+        {!syncing && hasCredentials && count !== null && (
           count > 0 ? (
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono bg-success/15 text-success border border-success/30">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono bg-[hsl(142,70%,38%)] text-white border border-[hsl(142,70%,30%)]">
+              <Plane className="h-3 w-3 mr-1" />
               {count} vuelos hoy
             </span>
           ) : (
             <span className={cn(
               'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono',
-              'bg-warning/15 text-warning border border-warning/30'
+              'bg-muted text-muted-foreground border border-border'
             )}>
-              Sin datos ARION
+              <Plane className="h-3 w-3 mr-1 opacity-50" />
+              Sin datos
               <button
                 type="button"
                 onClick={handleRefresh}
@@ -62,9 +70,7 @@ export const ArionStatusControl: React.FC = () => {
                 className="ml-1 inline-flex items-center justify-center h-4 w-4 hover:opacity-80 disabled:opacity-50"
                 aria-label="Sincronizar"
               >
-                {syncing
-                  ? <Loader2 className="h-3 w-3 animate-spin" />
-                  : <RefreshCw className="h-3 w-3" />}
+                <RefreshCw className="h-3 w-3" />
               </button>
             </span>
           )
