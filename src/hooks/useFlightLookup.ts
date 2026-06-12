@@ -221,7 +221,7 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
         }
 
         const filled = new Set<string>();
-        const airlineCode = matchAirlineCode(json.airline_name ?? null, json.airline_iata ?? null);
+        const airlineCode = matchAirlineCode(json.airline_name ?? null, json.airline_iata ?? null, clean);
         const aircraftModel = json.aircraft_model || null;
         const registration = json.aircraft_registration || null;
 
