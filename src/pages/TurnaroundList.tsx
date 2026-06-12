@@ -62,6 +62,7 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
+import { ArionStatusControl } from '@/components/ArionStatusControl';
 
 const PAGE_SIZE = 25;
 const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
