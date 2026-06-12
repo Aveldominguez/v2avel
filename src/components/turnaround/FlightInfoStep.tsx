@@ -525,9 +525,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Tango
-                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Tango
+                    </Label>
+                    <ParkingRefreshButton
+                      flightNumber={flightNumber}
+                      currentValue={tango}
+                      onUpdate={setTango}
+                      onFlash={flashParking}
+                    />
+                  </div>
                   <Input
                     type="text"
                     inputMode="numeric"
@@ -535,7 +543,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     value={tango}
                     onChange={(e) => setTango(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     placeholder="Tango"
-                    className="input-operational font-mono"
+                    className={cn(
+                      "input-operational font-mono transition-all",
+                      parkingFlash && "ring-2 ring-green-500"
+                    )}
                   />
                 </div>
                 <div className="space-y-2">
