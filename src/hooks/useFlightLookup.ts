@@ -410,6 +410,7 @@ export function useFlightLookup(
           edtHHmm: null,
           departureFlight: null,
           originStation: null,
+          ldmRaw: null,
           source: 'fr24',
         });
         setAutofilledFields(filled);
