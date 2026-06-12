@@ -346,13 +346,13 @@ const TurnaroundList: React.FC = () => {
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 {isAdmin && (
-                  <Button size="icon" onClick={() => navigate('/admin')} className="bg-warning text-warning-foreground hover:bg-warning/90 bg-[#ef0b0b]">
-                    <Shield className="h-5 w-5" />
+                  <Button size="icon" className="h-8 w-8 shrink-0 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
+                    <LayoutDashboard className="h-4 w-4" />
                   </Button>
                 )}
                 {hasEquipos && (
-                  <Button size="icon" onClick={() => navigate('/equipos')} variant="secondary" title="Control de Equipos" className="bg-[#e08b15]">
-                    <Truck className="h-5 w-5" />
+                  <Button size="icon" className="h-8 w-8 shrink-0 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
+                    <Wrench className="h-4 w-4" />
                   </Button>
                 )}
                 <ArionStatusControl />

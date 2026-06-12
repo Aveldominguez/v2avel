@@ -1,5 +1,5 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '3.6';
+export const APP_VERSION = '3.7';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
