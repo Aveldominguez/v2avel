@@ -322,7 +322,10 @@ export function useFlightLookup(
           if (arion) {
             const rawCode = (arion.airline_code || '').toUpperCase().replace(/\s/g, '');
             const mappedCode = ARION_TO_APP_AIRLINE[rawCode] ?? rawCode;
-            const airlineCode = (AIRLINES.find((a) => a.code === mappedCode)?.code ?? null) as AirlineCode | null;
+            const airlineCode: AirlineCode | null =
+              (AIRLINES.find((a) => a.code === mappedCode)?.code as AirlineCode) ??
+              matchAirlineCode(arion.airline_code ?? null, null, clean) ??
+              null;
 
             const activeModels = getCatalogSnapshot().aircraftModels.filter(m => m.active);
             const mappedAircraft = findAircraftModelCode(arion.aircraft_type ?? null, activeModels)
