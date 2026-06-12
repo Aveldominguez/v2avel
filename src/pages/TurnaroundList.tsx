@@ -63,7 +63,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 25;
 const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
 
 const TurnaroundList: React.FC = () => {

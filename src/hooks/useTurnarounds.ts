@@ -129,18 +129,23 @@ export const useTurnarounds = () => {
     }
   }, [user]);
 
-  /** Background sync of ALL user turnarounds into local store (for full offline). */
+  /** Background sync of recent (last 2 days) user turnarounds into local store. */
   const syncAllToLocal = useCallback(async () => {
     if (!user || !navigator.onLine) return;
     try {
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      const cutoff = twoDaysAgo.toISOString().split('T')[0];
+
       let from = 0;
       const PAGE = 50;
       // eslint-disable-next-line no-constant-condition
       while (true) {
         const { data, error } = await supabase
           .from('turnarounds')
-          .select('*')
+          .select(LIST_COLUMNS)
           .eq('user_id', user.id)
+          .gte('date', cutoff)
           .order('date', { ascending: false })
           .range(from, from + PAGE - 1);
         if (error) throw error;

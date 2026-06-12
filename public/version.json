@@ -1,6 +1,8 @@
 {
-  "version": "2.0.269",
+  "version": "2.0.270",
   "changelog": [
-    "Autocompletado de vuelo con Flightradar24 en VUELO DE LLEGADA y SALIDA."
+    "Service worker real: la app carga al instante y funciona sin conexión.",
+    "Sincronización offline limitada a 2 días y lista con 25 por página.",
+    "Compresión automática de fotos antes de subirlas."
   ]
 }
