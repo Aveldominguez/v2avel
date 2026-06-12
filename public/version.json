@@ -1,5 +1,5 @@
 {
-  "version": "3.28",
+  "version": "3.29",
   "changelog": [
     "Matrícula, vuelo de salida y LDM se leen directamente de ARION."
   ]
