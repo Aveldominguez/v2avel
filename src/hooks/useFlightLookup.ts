@@ -13,6 +13,7 @@ interface FlightLookupResult {
   edtHHmm: string | null;
   departureFlight: string | null;
   originStation: string | null;
+  ldmRaw: string | null;
   source: 'arion' | 'fr24';
 }
 
