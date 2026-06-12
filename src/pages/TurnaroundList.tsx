@@ -52,9 +52,9 @@ import {
   LogOut,
   Loader2,
   Circle,
-  Shield,
   RefreshCw,
-  Truck,
+  LayoutDashboard,
+  Wrench,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
