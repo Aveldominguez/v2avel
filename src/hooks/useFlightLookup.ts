@@ -13,11 +13,12 @@ interface UseFlightLookupReturn {
   isLoading: boolean;
   error: string | null;
   result: FlightLookupResult | null;
+  notFound: boolean;
   autofilledFields: Set<string>;
   clearAutofill: () => void;
 }
 
-// Map API airline names to our internal codes
+// Map FR24/API airline names + IATA codes to our internal AirlineCode
 const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
   'tap portugal': 'TAP',
   'tap air portugal': 'TAP',
@@ -33,6 +34,7 @@ const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
   'fedex': 'FEDEX',
   'federal express': 'FEDEX',
   'air canada': 'AIR_CANADA',
+  'westjet': 'WESTJET',
   'albastar': 'ALBASTAR',
   'icelandair': 'ICELANDAIR',
   'azul': 'AZUL',
@@ -45,58 +47,119 @@ const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
   'eurowings': 'EUROWINGS',
   'croatia airlines': 'CROATIA',
   'croatia': 'CROATIA',
+  'skyup': 'SKYUP',
 };
 
-function matchAirlineCode(name: string): AirlineCode | null {
+// IATA airline code → AirlineCode
+const AIRLINE_IATA_MAP: Record<string, AirlineCode> = {
+  TP: 'TAP', W6: 'WIZZ', AZ: 'ITA', A3: 'AEGEAN', PC: 'PEGASUS',
+  HV: 'TRANSAVIA', TO: 'TRANSAVIA', GQ: 'SKYEXPRESS', FX: 'FEDEX',
+  AC: 'AIR_CANADA', WS: 'WESTJET', AP: 'ALBASTAR', FI: 'ICELANDAIR',
+  AD: 'AZUL', VF: 'A_JET', NP: 'NILE_AIR', EW: 'EUROWINGS', OU: 'CROATIA',
+  PQ: 'SKYUP',
+};
+
+function matchAirlineCode(name: string | null, iata: string | null): AirlineCode | null {
+  if (iata) {
+    const up = iata.toUpperCase();
+    if (AIRLINE_IATA_MAP[up]) return AIRLINE_IATA_MAP[up];
+  }
   if (!name) return null;
   const lower = name.toLowerCase().trim();
 
-  // Direct match
   if (AIRLINE_NAME_MAP[lower]) return AIRLINE_NAME_MAP[lower];
 
-  // Partial match
   for (const [key, code] of Object.entries(AIRLINE_NAME_MAP)) {
     if (lower.includes(key) || key.includes(lower)) return code;
   }
 
-  // Match against our AIRLINES array
   const found = AIRLINES.find(
     (a) => a.name.toLowerCase() === lower || a.shortName.toLowerCase() === lower
   );
   return found ? found.code : null;
 }
 
-// Expected number of numeric digits after the airline prefix
-const EXPECTED_DIGITS = 4;
+// Flight number completion rules — prefix → required numeric digits
+const FLIGHT_NUMBER_RULES: Record<string, number> = {
+  'W': 5,    // Wizz Air
+  'U': 4,    // Transavia
+  'A': 4,    // Aegean
+  'GQ': 3,   // Sky Express
+  'EW': 4,   // Eurowings
+  'PC': 4,   // Pegasus
+  'TP': 4,   // TAP
+  'TO': 4,   // Transavia FR
+  'WS': 4,   // WestJet
+  'VF': 3,   // A Jet
+  'AP': 3,   // AlbaStar
+  'OU': 3,   // Croatia
+  'AZ': 3,   // ITA
+  'NP': 4,   // Nile Air
+  'AE': 3,   // Air Est
+  'FI': 4,   // Icelandair
+  'AC': 4,   // Air Canada
+  'AD': 4,   // Azul
+  'PQ': 4,   // SkyUp
+  '3V': 4,   // FedEx
+  'ABR': 3,  // Amazon Air
+  'AEG': 3,  // Aegean alt
+};
 
-// Extract the numeric suffix length from a flight code
-function getDigitCount(flight: string): number {
-  const match = flight.match(/(\d+)$/);
-  return match ? match[1].length : 0;
+export function isFlightNumberComplete(input: string): boolean {
+  if (!input) return false;
+  const clean = input.toUpperCase().trim().replace(/\s/g, '');
+
+  // Extract letter prefix
+  const prefixMatch = clean.match(/^([A-Z0-9]*?[A-Z]+)?/);
+  // Simpler: split letters at start vs digits after
+  const m = clean.match(/^([A-Z0-9]+?)(\d+)$/);
+  if (!m) return false;
+  const rawPrefix = m[1];
+  const digits = m[2];
+
+  // Try 3-letter, 2-letter, 1-letter prefix matches (longest first)
+  for (const len of [3, 2, 1]) {
+    if (rawPrefix.length >= len) {
+      const candidate = rawPrefix.slice(0, len);
+      const required = FLIGHT_NUMBER_RULES[candidate];
+      if (required !== undefined && rawPrefix.length === len) {
+        return digits.length === required;
+      }
+    }
+  }
+  return false;
 }
 
 export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlightLookupReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<FlightLookupResult | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastQueriedRef = useRef<string>('');
 
   const clearAutofill = useCallback(() => {
     setAutofilledFields(new Set());
     setResult(null);
     setError(null);
+    setNotFound(false);
   }, []);
 
   useEffect(() => {
-    const clean = flightIata.trim().replace(/\s/g, '');
-    const digits = getDigitCount(clean);
+    const clean = flightIata.trim().toUpperCase().replace(/\s/g, '');
 
-    // Only call API when the flight number has exactly the expected digits
-    if (clean.length < 3 || digits !== EXPECTED_DIGITS) {
+    if (!isFlightNumberComplete(clean)) {
       setError(null);
       setIsLoading(false);
+      return;
+    }
+
+    if (clean === lastQueriedRef.current) return;
+
+    // Offline guard
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
       return;
     }
 
@@ -107,8 +170,10 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
       const controller = new AbortController();
       abortRef.current = controller;
 
+      lastQueriedRef.current = clean;
       setIsLoading(true);
       setError(null);
+      setNotFound(false);
 
       try {
         const { data: responseData, error: fnError } = await supabase.functions.invoke('flight-lookup', {
@@ -119,31 +184,33 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
 
         const json = responseData;
 
-        if (!json.data || json.data.length === 0) {
-          setError('Vuelo no encontrado');
+        if (!json || json.found === false) {
+          setNotFound(true);
           setResult(null);
           setIsLoading(false);
           return;
         }
 
-        const flight = json.data[0];
         const filled = new Set<string>();
-
-        const airlineName = flight.airline?.name || null;
-        const airlineCode = airlineName ? matchAirlineCode(airlineName) : null;
-        const aircraftModel = flight.aircraft?.iata || null;
-        const registration = flight.aircraft?.registration || null;
+        const airlineCode = matchAirlineCode(json.airline_name ?? null, json.airline_iata ?? null);
+        const aircraftModel = json.aircraft_model || null;
+        const registration = json.aircraft_registration || null;
 
         if (airlineCode) filled.add('airline');
         if (aircraftModel) filled.add('aircraftModel');
         if (registration) filled.add('matricula');
 
-        setResult({ airlineName, airlineCode, aircraftModel, registration });
+        setResult({
+          airlineName: json.airline_name ?? null,
+          airlineCode,
+          aircraftModel,
+          registration,
+        });
         setAutofilledFields(filled);
         setIsLoading(false);
       } catch (err: any) {
         if (err.name === 'AbortError') return;
-        setError('Error al buscar el vuelo');
+        setNotFound(true);
         setIsLoading(false);
       }
     }, debounceMs);
@@ -153,5 +220,5 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
     };
   }, [flightIata, debounceMs]);
 
-  return { isLoading, error, result, autofilledFields, clearAutofill };
+  return { isLoading, error, result, notFound, autofilledFields, clearAutofill };
 }
