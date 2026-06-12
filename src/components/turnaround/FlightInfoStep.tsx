@@ -17,6 +17,7 @@ import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
+import { ParkingRefreshButton } from './ParkingRefreshButton';
 
 interface FlightInfoStepProps {
   flightNumber: string;
