@@ -1,5 +1,5 @@
 {
-  "version": "3.11",
+  "version": "3.12",
   "changelog": [
     "Nuevo esquema de versionado: v3.0 inicial. Cada publicación incrementará 0.1 (v3.1, v3.2, ...) para identificar fácilmente la última versión."
   ]
