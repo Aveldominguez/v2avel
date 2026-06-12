@@ -150,19 +150,25 @@ serve(async (req) => {
     // Fetch LDM telex body for an arrival flight, if a telex reference exists
     async function fetchLdmRaw(f: any): Promise<string | null> {
       try {
-        const telexList: any[] = Array.isArray(f?.telexMessages) ? f.telexMessages : [];
+        if (!f?.sn) return null;
+        const detailRes = await fetch(`${ARION_BASE}/flights/${f.sn}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${arionJwt}`,
+            'X-Station': station_code,
+            'Accept': 'application/json',
+            'Origin': 'https://arion.aviapartner.aero',
+            'Referer': 'https://arion.aviapartner.aero/',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+          },
+        });
+        if (!detailRes.ok) return null;
+        const detail = await detailRes.json().catch(() => null);
+        if (!detail) return null;
+        const telexList: any[] = Array.isArray(detail?.telexMessages) ? detail.telexMessages : [];
         const ldmRef = telexList.find((t) => String(t?.type ?? '').toUpperCase() === 'LDM');
         if (!ldmRef) return null;
-        const body = {
-          messageNumber: ldmRef.messageNumber,
-          channel: ldmRef.channel ?? 5,
-          type: 'LDM',
-          flightReference: ldmRef.flightReference,
-          direction: ldmRef.direction ?? 'I',
-          date: ldmRef.date,
-          time: ldmRef.time,
-        };
-        const res = await fetch(`${ARION_BASE}/telex-messages/body`, {
+        const bodyRes = await fetch(`${ARION_BASE}/telex-messages/body`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${arionJwt}`,
@@ -173,10 +179,18 @@ serve(async (req) => {
             'Referer': 'https://arion.aviapartner.aero/',
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            messageNumber: ldmRef.messageNumber,
+            channel: ldmRef.channel ?? 5,
+            type: 'LDM',
+            flightReference: ldmRef.flightReference,
+            direction: ldmRef.direction ?? 'I',
+            date: ldmRef.date,
+            time: ldmRef.time,
+          }),
         });
-        if (!res.ok) return null;
-        const j = await res.json().catch(() => null);
+        if (!bodyRes.ok) return null;
+        const j = await bodyRes.json().catch(() => null);
         const lines: any[] = Array.isArray(j?.lines) ? j.lines : [];
         if (lines.length === 0) return null;
         return lines
