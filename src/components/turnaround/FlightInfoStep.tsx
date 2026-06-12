@@ -372,12 +372,18 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   onChange={(e) => handleDepartureFlightNumberChange(isPrefixedMode ? activePrefix + e.target.value : e.target.value)}
                   placeholder={isPrefixedMode ? '1234' : 'Ej: TP1234'}
                   className={cn(
-                    "input-operational font-mono",
+                    "input-operational font-mono pr-8",
                     isPrefixedMode && "pl-[calc(0.75rem+var(--prefix-width,1.5ch))]",
                     hasFlightConflict && "blink-required"
                   )}
                   style={isPrefixedMode ? { paddingLeft: `${12 + activePrefix.length * 9}px` } : undefined}
                 />
+                {departureLookupLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+                {!departureLookupLoading && successFlash.size > 0 && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                )}
               </div>
               {hasFlightConflict && (
                 <div
@@ -386,6 +392,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 >
                   No puede ser igual al vuelo de llegada
                 </div>
+              )}
+              {departureNotFound && !hasFlightConflict && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Vuelo no encontrado — rellena los datos manualmente
+                </p>
               )}
             </div>
           </div>
