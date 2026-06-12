@@ -356,6 +356,7 @@ export function useFlightLookup(
               edtHHmm,
               departureFlight,
               originStation: (arion as any).source_station ?? null,
+              ldmRaw: (arion as any).ldm_raw ?? null,
               source: 'arion',
             });
             setAutofilledFields(filled);
