@@ -1,5 +1,5 @@
 {
-  "version": "2.0.275",
+  "version": "2.0.276",
   "changelog": [
     "Autocompletado prioriza ARION y rellena parking/EDT. Botón de refresco de parking junto a Tango/Remoto."
   ]
