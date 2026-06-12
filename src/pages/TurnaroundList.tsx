@@ -358,6 +358,7 @@ const TurnaroundList: React.FC = () => {
                   <Wrench className="h-4 w-4" />
                 </Button>
               )}
+              <div className="flex-1" />
               <ArionStatusControl />
             </div>
 
