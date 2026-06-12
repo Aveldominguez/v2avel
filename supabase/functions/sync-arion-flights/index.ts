@@ -232,7 +232,7 @@ serve(async (req) => {
     if (rows.length > 0) {
       const { error: upErr, count } = await admin
         .from('scheduled_flights')
-        .upsert(rows, { onConflict: 'user_id,flight_date,flight_number', count: 'exact' });
+        .upsert(rows, { onConflict: 'user_id,flight_date,flight_number', ignoreDuplicates: false, count: 'exact' });
       if (upErr) {
         console.error('Upsert error', upErr);
         return json({ error: 'db_error', detail: upErr.message }, 500);
