@@ -17,6 +17,7 @@ import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
+import { ParkingRefreshButton } from './ParkingRefreshButton';
 
 interface FlightInfoStepProps {
   flightNumber: string;
@@ -110,6 +111,16 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
   // Success-flash state (green check next to field for ~2s)
   const [successFlash, setSuccessFlash] = React.useState<Set<string>>(new Set());
+  const [parkingFlash, setParkingFlash] = React.useState(false);
+  const [remoteFlash, setRemoteFlash] = React.useState(false);
+  const flashParking = React.useCallback(() => {
+    setParkingFlash(true);
+    setTimeout(() => setParkingFlash(false), 2000);
+  }, []);
+  const flashRemote = React.useCallback(() => {
+    setRemoteFlash(true);
+    setTimeout(() => setRemoteFlash(false), 2000);
+  }, []);
 
   // IATA aircraft type codes to our internal model names
   const IATA_TO_MODEL: Record<string, string> = {
@@ -149,7 +160,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       const match = currentModels.find(
         (m) => m.model === mappedModel ||
                m.model.toLowerCase() === iataCode.toLowerCase() ||
-               m.label.toLowerCase() === iataCode.toLowerCase()
+               m.label.toLowerCase() === iataCode.toLowerCase() ||
+               m.model.toUpperCase().includes(iataCode) ||
+               iataCode.includes(m.model.toUpperCase())
       );
       if (match) {
         setAircraftModel(match.model);
@@ -163,13 +176,24 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       filled.add('matricula');
     }
 
+    // ARION extras: parking → tango (only if empty), edt → departureTime (only if empty)
+    if (lookupResult.parkingCode && !tango && !isRemote) {
+      setTango(lookupResult.parkingCode.toUpperCase().slice(0, 4));
+      filled.add('tango');
+    }
+    if (lookupResult.edtHHmm && !departureTime) {
+      setDepartureTime(lookupResult.edtHHmm);
+      filled.add('departureTime');
+    }
+
     if (filled.size > 0) {
       setAutofilledFields((prev) => new Set([...prev, ...filled]));
       setSuccessFlash(filled);
       toast('Datos del vuelo completados automáticamente', { duration: 2000 });
       setTimeout(() => setSuccessFlash(new Set()), 2000);
     }
-  }, [airline, aircraftModel, matricula, setAirline, setAircraftModel, setMatricula]);
+  }, [airline, aircraftModel, matricula, tango, isRemote, departureTime, setAirline, setAircraftModel, setMatricula, setTango, setDepartureTime]);
+
 
   // Track last applied keys to avoid re-applying on every render
   const lastAppliedArrivalRef = React.useRef<string | null>(null);
@@ -426,9 +450,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Ubicación Remoto
-                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Ubicación Remoto
+                      </Label>
+                      <ParkingRefreshButton
+                        flightNumber={flightNumber}
+                        currentValue={remoteLocation}
+                        onUpdate={setRemoteLocation}
+                        onFlash={flashRemote}
+                      />
+                    </div>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -436,7 +468,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                       value={remoteLocation}
                       onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, '').slice(0, 4))}
                       placeholder="Ej: 1"
-                      className="input-operational font-mono"
+                      className={cn(
+                        "input-operational font-mono transition-all",
+                        remoteFlash && "ring-2 ring-green-500"
+                      )}
                     />
                   </div>
                   <div className="space-y-2">
@@ -490,9 +525,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Tango
-                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Tango
+                    </Label>
+                    <ParkingRefreshButton
+                      flightNumber={flightNumber}
+                      currentValue={tango}
+                      onUpdate={setTango}
+                      onFlash={flashParking}
+                    />
+                  </div>
                   <Input
                     type="text"
                     inputMode="numeric"
@@ -500,7 +543,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     value={tango}
                     onChange={(e) => setTango(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     placeholder="Tango"
-                    className="input-operational font-mono"
+                    className={cn(
+                      "input-operational font-mono transition-all",
+                      parkingFlash && "ring-2 ring-green-500"
+                    )}
                   />
                 </div>
                 <div className="space-y-2">

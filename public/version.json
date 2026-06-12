@@ -1,6 +1,6 @@
 {
-  "version": "2.0.274",
+  "version": "2.0.275",
   "changelog": [
-    "Integración ARION: configuración de credenciales y sincronización automática de vuelos del día."
+    "Autocompletado prioriza ARION y rellena parking/EDT. Botón de refresco de parking junto a Tango/Remoto."
   ]
 }
