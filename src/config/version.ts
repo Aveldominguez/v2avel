@@ -3,5 +3,6 @@ export const APP_VERSION = '3.19';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Autofill: si ARION encuentra el vuelo pero falta la matrícula, se consulta FR24 solo para completar ese campo sin sobrescribir el resto.',
+  'ARION: vinculación arrival→departure por parking_code (más cercano posterior).',
+  'Autofill: matrícula siempre desde FR24 para cualquier aerolínea.',
 ];
