@@ -1,5 +1,5 @@
 {
-  "version": "2.0.278",
+  "version": "2.0.279",
   "changelog": [
     "Seguridad: las credenciales ARION ya no se almacenan en el perfil — se guardan únicamente en el servidor y no son legibles desde el navegador."
   ]
