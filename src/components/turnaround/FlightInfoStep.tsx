@@ -149,7 +149,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       const match = currentModels.find(
         (m) => m.model === mappedModel ||
                m.model.toLowerCase() === iataCode.toLowerCase() ||
-               m.label.toLowerCase() === iataCode.toLowerCase()
+               m.label.toLowerCase() === iataCode.toLowerCase() ||
+               m.model.toUpperCase().includes(iataCode) ||
+               iataCode.includes(m.model.toUpperCase())
       );
       if (match) {
         setAircraftModel(match.model);
@@ -163,13 +165,24 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       filled.add('matricula');
     }
 
+    // ARION extras: parking → tango (only if empty), edt → departureTime (only if empty)
+    if (lookupResult.parkingCode && !tango && !isRemote) {
+      setTango(lookupResult.parkingCode.toUpperCase().slice(0, 4));
+      filled.add('tango');
+    }
+    if (lookupResult.edtHHmm && !departureTime) {
+      setDepartureTime(lookupResult.edtHHmm);
+      filled.add('departureTime');
+    }
+
     if (filled.size > 0) {
       setAutofilledFields((prev) => new Set([...prev, ...filled]));
       setSuccessFlash(filled);
       toast('Datos del vuelo completados automáticamente', { duration: 2000 });
       setTimeout(() => setSuccessFlash(new Set()), 2000);
     }
-  }, [airline, aircraftModel, matricula, setAirline, setAircraftModel, setMatricula]);
+  }, [airline, aircraftModel, matricula, tango, isRemote, departureTime, setAirline, setAircraftModel, setMatricula, setTango, setDepartureTime]);
+
 
   // Track last applied keys to avoid re-applying on every render
   const lastAppliedArrivalRef = React.useRef<string | null>(null);
