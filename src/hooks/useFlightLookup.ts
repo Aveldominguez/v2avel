@@ -293,31 +293,42 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
         try {
           const { data: arion } = await supabase
             .from('scheduled_flights')
-            .select('airline_code, registration, aircraft_type, parking_code, edt')
+            .select('airline_code, registration, aircraft_type, parking_code, edt, departure_fn')
             .eq('user_id', user.id)
             .eq('flight_date', todayIso())
             .eq('flight_number', clean)
             .maybeSingle();
 
           if (arion) {
-            const airlineCode = arion.airline_code
-              ? (AIRLINES.find((a) => a.code === arion.airline_code.toUpperCase())?.code ?? null)
+            const rawCode = (arion.airline_code || '').toUpperCase().replace(/\s/g, '');
+            const mappedCode = ARION_TO_APP_AIRLINE[rawCode] ?? rawCode;
+            const airlineCode = (AIRLINES.find((a) => a.code === mappedCode)?.code ?? null) as AirlineCode | null;
+
+            const activeModels = getCatalogSnapshot().aircraftModels.filter(m => m.active);
+            const mappedAircraft = findAircraftModelCode(arion.aircraft_type ?? null, activeModels)
+              ?? (arion.aircraft_type ?? null);
+
+            const departureFlight = (arion as any).departure_fn
+              ? String((arion as any).departure_fn).toUpperCase().replace(/\s/g, '')
               : null;
+
             const filled = new Set<string>();
             if (airlineCode) filled.add('airline');
-            if (arion.aircraft_type) filled.add('aircraftModel');
+            if (mappedAircraft) filled.add('aircraftModel');
             if (arion.registration) filled.add('matricula');
             if (arion.parking_code) filled.add('tango');
             const edtHHmm = parseEdtHHmm(arion.edt);
             if (edtHHmm) filled.add('departureTime');
+            if (departureFlight) filled.add('departureFlight');
 
             setResult({
               airlineName: null,
               airlineCode,
-              aircraftModel: arion.aircraft_type ?? null,
+              aircraftModel: mappedAircraft,
               registration: arion.registration ?? null,
               parkingCode: arion.parking_code ?? null,
               edtHHmm,
+              departureFlight,
               source: 'arion',
             });
             setAutofilledFields(filled);
