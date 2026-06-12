@@ -247,7 +247,11 @@ export function isFlightNumberComplete(input: string): boolean {
   return false;
 }
 
-export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlightLookupReturn {
+export function useFlightLookup(
+  flightIata: string,
+  selectedDate?: Date,
+  debounceMs = 300
+): UseFlightLookupReturn {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -288,14 +292,16 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
       setError(null);
       setNotFound(false);
 
-      // ── 1) ARION lookup (scheduled_flights for today) ──
+      // ── 1) ARION lookup (scheduled_flights for selected date) ──
       if (user) {
         try {
+          const dateStr = selectedDate
+            ? selectedDate.toISOString().split('T')[0]
+            : todayIso();
           const { data: arion } = await supabase
             .from('scheduled_flights')
             .select('airline_code, registration, aircraft_type, parking_code, edt, departure_fn')
-            .eq('user_id', user.id)
-            .eq('flight_date', todayIso())
+            .eq('flight_date', dateStr)
             .eq('flight_number', clean)
             .maybeSingle();
 
@@ -394,7 +400,7 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [flightIata, debounceMs, user]);
+  }, [flightIata, selectedDate, debounceMs, user]);
 
 
   return { isLoading, error, result, notFound, autofilledFields, clearAutofill };
