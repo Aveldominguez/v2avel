@@ -195,12 +195,7 @@ serve(async (req) => {
       .map(async (f) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
         if (isArrival) {
-          console.log('ARION flight fields:', JSON.stringify({
-            fn: f.fn,
-            registrationNumber: f.registrationNumber,
-            connectionFlight: f.connectionFlight,
-            connectionFlightSequenceNumber: f.connectionFlightSequenceNumber,
-          }));
+          console.log('FULL ARION arrival:', JSON.stringify(f));
         }
         const ldm_raw = isArrival ? await fetchLdmRaw(f) : null;
         return {
