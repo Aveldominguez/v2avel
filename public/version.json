@@ -1,5 +1,5 @@
 {
-  "version": "2.0.270",
+  "version": "2.0.271",
   "changelog": [
     "Service worker real: la app carga al instante y funciona sin conexión.",
     "Sincronización offline limitada a 2 días y lista con 25 por página.",
