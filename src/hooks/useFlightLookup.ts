@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FlightLookupResult {
   airlineName: string | null;
   airlineCode: AirlineCode | null;
   aircraftModel: string | null;
   registration: string | null;
+  parkingCode: string | null;
+  edtHHmm: string | null;
+  source: 'arion' | 'fr24';
 }
 
 interface UseFlightLookupReturn {
@@ -17,6 +21,22 @@ interface UseFlightLookupReturn {
   autofilledFields: Set<string>;
   clearAutofill: () => void;
 }
+
+function todayIso(): string {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+function parseEdtHHmm(edt: string | null | undefined): string | null {
+  if (!edt) return null;
+  // "dd/MM/yyyy HH:mm" or "HH:mm"
+  const m = edt.match(/(\d{2}):(\d{2})/);
+  if (!m) return null;
+  return `${m[1]}:${m[2]}`;
+}
+
 
 // Map FR24/API airline names + IATA codes to our internal AirlineCode
 const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
