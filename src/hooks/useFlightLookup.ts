@@ -318,10 +318,26 @@ export function useFlightLookup(
               ? String((arion as any).departure_fn).toUpperCase().replace(/\s/g, '')
               : null;
 
+            let registration: string | null = arion.registration ?? null;
+
+            // If ARION didn't bring matricula, try FR24 ONLY for that field
+            if (!registration && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
+              try {
+                const { data: fr24Data } = await supabase.functions.invoke('flight-lookup', {
+                  body: { flight_iata: clean },
+                });
+                if (fr24Data && fr24Data.found !== false && fr24Data.aircraft_registration) {
+                  registration = fr24Data.aircraft_registration;
+                }
+              } catch (e) {
+                console.warn('[lookup] FR24 supplemental registration failed', e);
+              }
+            }
+
             const filled = new Set<string>();
             if (airlineCode) filled.add('airline');
             if (mappedAircraft) filled.add('aircraftModel');
-            if (arion.registration) filled.add('matricula');
+            if (registration) filled.add('matricula');
             if (arion.parking_code) filled.add('tango');
             const edtHHmm = parseEdtHHmm(arion.edt);
             if (edtHHmm) filled.add('departureTime');
@@ -331,7 +347,7 @@ export function useFlightLookup(
               airlineName: null,
               airlineCode,
               aircraftModel: mappedAircraft,
-              registration: arion.registration ?? null,
+              registration,
               parkingCode: arion.parking_code ?? null,
               edtHHmm,
               departureFlight,
@@ -341,6 +357,7 @@ export function useFlightLookup(
             setIsLoading(false);
             return;
           }
+
         } catch (err) {
           console.warn('[lookup] ARION query failed, falling back to FR24', err);
         }
