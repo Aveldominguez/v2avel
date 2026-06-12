@@ -379,6 +379,7 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
           registration,
           parkingCode: null,
           edtHHmm: null,
+          departureFlight: null,
           source: 'fr24',
         });
         setAutofilledFields(filled);
