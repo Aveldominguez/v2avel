@@ -1,6 +1,6 @@
 {
-  "version": "2.0.268",
+  "version": "2.0.269",
   "changelog": [
-    "Aviso LIR ahora solo visible en aerolínea WestJet."
+    "Autocompletado de vuelo con Flightradar24 en VUELO DE LLEGADA y SALIDA."
   ]
 }
