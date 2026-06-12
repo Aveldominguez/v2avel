@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      arion_credentials: {
+        Row: {
+          arion_last_sync: string | null
+          arion_login: string | null
+          arion_password: string | null
+          arion_station: string
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arion_last_sync?: string | null
+          arion_login?: string | null
+          arion_password?: string | null
+          arion_station?: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arion_last_sync?: string | null
+          arion_login?: string | null
+          arion_password?: string | null
+          arion_station?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       catalog_aircraft_models: {
         Row: {
           active: boolean
@@ -470,10 +500,6 @@ export type Database = {
       profiles: {
         Row: {
           approved: boolean
-          arion_last_sync: string | null
-          arion_login: string | null
-          arion_password: string | null
-          arion_station: string | null
           blocked: boolean
           created_at: string
           display_name: string | null
@@ -484,10 +510,6 @@ export type Database = {
         }
         Insert: {
           approved?: boolean
-          arion_last_sync?: string | null
-          arion_login?: string | null
-          arion_password?: string | null
-          arion_station?: string | null
           blocked?: boolean
           created_at?: string
           display_name?: string | null
@@ -498,10 +520,6 @@ export type Database = {
         }
         Update: {
           approved?: boolean
-          arion_last_sync?: string | null
-          arion_login?: string | null
-          arion_password?: string | null
-          arion_station?: string | null
           blocked?: boolean
           created_at?: string
           display_name?: string | null

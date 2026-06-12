@@ -12,8 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, RefreshCw, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useArionSync } from '@/hooks/useArionSync';
 
 interface ArionSettingsDialogProps {
@@ -35,8 +33,7 @@ function relativeFromNow(iso: string | null): string {
 }
 
 export const ArionSettingsDialog: React.FC<ArionSettingsDialogProps> = ({ open, onOpenChange }) => {
-  const { user } = useAuth();
-  const { profile, lastSync, syncing, syncToday, reloadProfile } = useArionSync();
+  const { status, lastSync, syncing, syncToday, saveCredentials, reloadStatus } = useArionSync();
 
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
@@ -44,33 +41,32 @@ export const ArionSettingsDialog: React.FC<ArionSettingsDialogProps> = ({ open, 
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Hydrate fields when dialog opens / profile loads
   useEffect(() => {
     if (!open) return;
-    setLogin(profile?.arion_login || '');
-    setPassword(profile?.arion_password || '');
-    setStation((profile?.arion_station || 'MAD').toUpperCase());
+    setLogin(status?.arion_login || '');
+    setPassword('');
+    setStation((status?.arion_station || 'MAD').toUpperCase());
     setShowPassword(false);
-  }, [open, profile]);
+  }, [open, status]);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!login.trim()) {
+      toast.error('Introduce el email ARION');
+      return;
+    }
+    if (!password && !status?.has_login) {
+      toast.error('Introduce la contraseña ARION');
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          arion_login: login.trim() || null,
-          arion_password: password || null,
-          arion_station: (station.trim() || 'MAD').toUpperCase().slice(0, 4),
-        })
-        .eq('user_id', user.id);
-      if (error) throw error;
-      await reloadProfile();
-      toast('Credenciales guardadas');
-    } catch (err: any) {
-      console.error('[arion] save error', err);
-      toast.error('No se pudieron guardar las credenciales');
+      const ok = await saveCredentials(login.trim(), password, station.trim() || 'MAD');
+      if (ok) {
+        toast('Credenciales guardadas');
+        setPassword('');
+      } else {
+        toast.error('No se pudieron guardar las credenciales');
+      }
     } finally {
       setSaving(false);
     }
@@ -80,11 +76,9 @@ export const ArionSettingsDialog: React.FC<ArionSettingsDialogProps> = ({ open, 
     const result = await syncToday();
     if (result) {
       toast(`${result.synced} vuelos sincronizados para hoy`);
-      await reloadProfile();
+      await reloadStatus();
     } else {
-      // Read error from hook on next render; use a quick check via reload
-      // The hook updates syncError state, but it isn't returned here. We pass a generic.
-      toast.error('Credenciales incorrectas — revisa tu email y contraseña ARION');
+      toast.error('No se pudo sincronizar — revisa tus credenciales ARION');
     }
   };
 
@@ -94,7 +88,7 @@ export const ArionSettingsDialog: React.FC<ArionSettingsDialogProps> = ({ open, 
         <DialogHeader>
           <DialogTitle>Configuración ARION</DialogTitle>
           <DialogDescription>
-            Credenciales de Aviapartner ARION para sincronizar vuelos automáticamente.
+            Credenciales de Aviapartner ARION. Se guardan únicamente en el servidor y nunca son legibles desde el navegador.
           </DialogDescription>
         </DialogHeader>
 
@@ -112,14 +106,21 @@ export const ArionSettingsDialog: React.FC<ArionSettingsDialogProps> = ({ open, 
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="arion-password">Contraseña ARION</Label>
+            <Label htmlFor="arion-password">
+              Contraseña ARION
+              {status?.has_login && (
+                <span className="ml-2 text-xs text-muted-foreground font-normal">
+                  (deja en blanco para mantener la actual)
+                </span>
+              )}
+            </Label>
             <div className="relative">
               <Input
                 id="arion-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={status?.has_login ? '••••••••' : 'Introduce la contraseña'}
                 autoComplete="new-password"
                 className="pr-10"
               />

@@ -1,5 +1,6 @@
 // Sync flights from ARION (Aviapartner) into public.scheduled_flights
-// Credentials are received per-request and used only in memory — never stored.
+// Credentials are stored server-side in public.arion_credentials and read
+// only by this function via the service role. They never leave the backend.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -27,12 +28,8 @@ function todayDdMmYyyy(): string {
 }
 
 function ddMmYyyyToIso(s: string): string {
-  // "dd/MM/yyyy" → "yyyy-MM-dd"
   const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!m) {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-  }
+  if (!m) return new Date().toISOString().slice(0, 10);
   return `${m[3]}-${m[2]}-${m[1]}`;
 }
 
@@ -41,11 +38,9 @@ serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
   try {
-    // 1) Validate Supabase JWT and extract user_id
     const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return json({ error: 'unauthorized' }, 401);
-    }
+    if (!authHeader?.startsWith('Bearer ')) return json({ error: 'unauthorized' }, 401);
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -57,58 +52,61 @@ serve(async (req) => {
     if (userErr || !userData?.user) return json({ error: 'unauthorized' }, 401);
     const userId = userData.user.id;
 
-    // 2) Parse body
-    let body: any;
-    try {
-      body = await req.json();
-    } catch {
-      return json({ error: 'invalid_body' }, 400);
+    const admin = createClient(supabaseUrl, serviceKey);
+
+    // Enforce approval gate server-side
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('approved, blocked')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!profile || !profile.approved || profile.blocked) {
+      return json({ error: 'forbidden' }, 403);
     }
-    const arion_login = typeof body?.arion_login === 'string' ? body.arion_login.trim() : '';
-    const arion_password = typeof body?.arion_password === 'string' ? body.arion_password : '';
-    const station_code = typeof body?.station_code === 'string' && body.station_code.trim()
-      ? body.station_code.trim().toUpperCase()
-      : 'MAD';
+
+    let body: any = {};
+    try { body = await req.json(); } catch { /* allow empty */ }
     const flight_date_in = typeof body?.flight_date === 'string' && body.flight_date.trim()
       ? body.flight_date.trim()
       : todayDdMmYyyy();
 
-    if (!arion_login || !arion_password) {
+    // Read credentials from server-only table
+    const { data: creds, error: credsErr } = await admin
+      .from('arion_credentials')
+      .select('arion_login, arion_password, arion_station')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (credsErr) {
+      console.error('creds read error', credsErr);
+      return json({ error: 'db_error' }, 500);
+    }
+    if (!creds?.arion_login || !creds?.arion_password) {
       return json({ error: 'missing_credentials' }, 400);
     }
+    const station_code = (creds.arion_station || 'MAD').toUpperCase();
 
-    // 3) Login to ARION
+    // Login to ARION
     const loginRes = await fetch(`${ARION_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ login: arion_login, password: arion_password }),
+      body: JSON.stringify({ login: creds.arion_login, password: creds.arion_password }),
     });
-
     if (!loginRes.ok) {
-      const t = await loginRes.text().catch(() => '');
-      console.error('ARION login failed', loginRes.status, t.slice(0, 200));
+      console.error('ARION login failed', loginRes.status);
       return json({ error: 'arion_auth_failed' }, 401);
     }
-
-    // 4) Extract JWT from Authorization header or body
     let arionJwt =
       loginRes.headers.get('Authorization') ||
-      loginRes.headers.get('authorization') ||
-      '';
+      loginRes.headers.get('authorization') || '';
     if (arionJwt.toLowerCase().startsWith('bearer ')) arionJwt = arionJwt.slice(7);
-
     if (!arionJwt) {
       try {
         const lj = await loginRes.clone().json();
         arionJwt = lj?.token || lj?.accessToken || lj?.access_token || '';
       } catch { /* ignore */ }
     }
-    if (!arionJwt) {
-      console.error('ARION login: no JWT in header or body');
-      return json({ error: 'arion_auth_failed' }, 401);
-    }
+    if (!arionJwt) return json({ error: 'arion_auth_failed' }, 401);
 
-    // 5) Fetch flights
     const flightsRes = await fetch(`${ARION_BASE}/flights`, {
       method: 'GET',
       headers: {
@@ -118,8 +116,7 @@ serve(async (req) => {
       },
     });
     if (!flightsRes.ok) {
-      const t = await flightsRes.text().catch(() => '');
-      console.error('ARION flights failed', flightsRes.status, t.slice(0, 200));
+      console.error('ARION flights failed', flightsRes.status);
       return json({ error: 'arion_flights_failed' }, 502);
     }
     const flightsJson = await flightsRes.json().catch(() => null);
@@ -152,8 +149,6 @@ serve(async (req) => {
         synced_at: nowIso,
       }));
 
-    // 6) Upsert via service role (RLS-safe; user_id pinned to authenticated user)
-    const admin = createClient(supabaseUrl, serviceKey);
     let synced = 0;
     if (rows.length > 0) {
       const { error: upErr, count } = await admin
@@ -166,9 +161,8 @@ serve(async (req) => {
       synced = count ?? rows.length;
     }
 
-    // 7) Update profile last sync
     await admin
-      .from('profiles')
+      .from('arion_credentials')
       .update({ arion_last_sync: nowIso })
       .eq('user_id', userId);
 
