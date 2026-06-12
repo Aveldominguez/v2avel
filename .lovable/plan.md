@@ -1,64 +1,50 @@
-## Objetivo
+## Problema
 
-Hacer que la app sea más rápida y estable en iPhone: que cargue antes, no entre en pantalla blanca al volver de otras apps y que los datos introducidos en una escala se mantengan aunque haya lapsos de cobertura.
+La edge function `flight-lookup` está enviando el parámetro equivocado a la API de Flightradar24, por eso TO4632 (y cualquier otro vuelo) siempre devuelve "Vuelo no encontrado".
 
-## Qué modificaría
+En los logs aparece literalmente:
 
-1. **Quitar dependencias críticas de red al arrancar**
-   - Evitar que la app espere consultas online para decidir acceso a módulos o catálogo si ya hay datos cacheados.
-   - Usar caché local como primera fuente y refrescar en segundo plano.
-   - Reducir timeouts silenciosos para que una petición colgada no deje loaders indefinidos.
+```
+FR24 .../live/flight-positions/full → 400:
+"None of the required fields were provided.
+ Please include at least one of the following:
+ bounds / flights / callsigns / registrations / painted_as / operating_as ..."
 
-2. **Cambiar la estrategia PWA para priorizar estabilidad**
-   - Desactivar Service Worker en el entorno de preview/iframe para que no cachee rutas de desarrollo ni módulos TypeScript.
-   - Ajustar la navegación para no servir un `index.html` incompatible con chunks no disponibles.
-   - Evitar borrados agresivos de cachés durante “Actualizar”, porque pueden dejar la app sin recursos si coincide con poca cobertura.
+FR24 .../historic/flight-events/full → 400:
+"The flight ids field is required., The event types field is required."
+```
 
-3. **Eliminar pantalla blanca por imports dinámicos**
-   - Convertir las rutas críticas de trabajo (`Auth`, `TurnaroundList`, `TurnaroundForm`) en imports directos o precargados de forma robusta.
-   - Mantener lazy-loading solo para pantallas secundarias pesadas como admin, PDF, QR o catálogos.
-   - Ampliar el Error Boundary para errores generales de render, no solo chunks, mostrando botón “Reintentar” en vez de blanco.
+El código envía `?flight_iata=TO4632`, pero la API de FR24 no acepta ese campo:
 
-4. **Guardar datos introducidos con más seguridad**
-   - Guardar borrador local de la escala de forma inmediata y también en `pagehide`, `visibilitychange` y `beforeunload`, no solo por debounce.
-   - Guardar al pasar la app a segundo plano antes de que iOS suspenda la WebView.
-   - Mantener el borrador incluso después de guardado online hasta confirmar navegación/estado estable.
+- `live/flight-positions/full` necesita `flights=TO4632` (o `callsigns=...`).
+- `historic/flight-events/full` requiere `flight_ids` + `event_types`, que no tenemos hasta haber resuelto antes el vuelo, por lo que no sirve como fallback directo.
 
-5. **Mejorar cola offline y sincronización**
-   - Tratar `navigator.onLine` como señal orientativa, no como verdad absoluta: si una petición falla, guardar local y encolar sin bloquear.
-   - Reintentar sincronización cuando vuelva visibilidad, foco o conexión, pero sin bloquear la UI.
-   - Evitar toasts de éxito innecesarios para respetar la regla del proyecto de no distraer.
+## Cambios
 
-6. **Optimizar carga y fluidez de la lista/formulario**
-   - Aumentar caché útil de escalas locales y renderizar primero lo local.
-   - Mover precargas y sincronizaciones masivas a segundo plano con menor prioridad.
-   - Evitar trabajo pesado al abrir la pantalla de Control de Horas.
+### `supabase/functions/flight-lookup/index.ts`
 
-7. **Subir versión y changelog**
-   - Actualizar `APP_VERSION` y `public/version.json` con una nota clara: estabilidad iPhone, guardado seguro y fluidez con cobertura intermitente.
+1. Cambiar el parámetro de la llamada live: usar `flights=<NUMERO>` en lugar de `flight_iata=...`.
+2. Reemplazar el fallback histórico por endpoints que sí aceptan número de vuelo:
+   - `historic/flight-positions/full` con `flights=<NUMERO>` + `timestamp` reciente (últimos 7 días).
+   - Como segundo fallback, `flight-summary/light` con `flights=<NUMERO>` y rango de fechas, que devuelve aerolínea, modelo y matrícula incluso de vuelos ya aterrizados.
+3. Normalizar correctamente la respuesta (los campos reales que devuelve FR24 son `painted_as`, `operating_as`, `type`, `reg`, `flight`, etc., que ya están contemplados pero los rutas `aircraft.model` no existen en la respuesta real).
+4. Loguear el JSON crudo (recortado) cuando `found = false` para poder depurar futuros vuelos no encontrados.
+5. Mantener el contrato actual con el cliente: la función sigue recibiendo `{ flight_iata }` y devolviendo `{ found, airline_iata, airline_name, aircraft_model, aircraft_registration }`, así que **no hay cambios** en `useFlightLookup.ts` ni en `FlightInfoStep.tsx`.
 
-## Resultado esperado
+### Versionado
 
-- La app no dependerá de tener cobertura perfecta para seguir trabajando en una escala ya abierta.
-- Si iOS mata o congela la app, al volver debería recuperar el formulario/borrador en vez de quedarse en blanco.
-- La navegación principal y Control de Horas cargarán más rápido porque las rutas críticas no dependerán de chunks descargados en el momento.
-- Los cortes momentáneos de internet no deberían provocar pérdida de datos introducidos.
+Subir `APP_VERSION` a `2.0.271` en `src/config/version.ts` y `public/version.json`.
 
-## Detalles técnicos
+## Lo que NO se toca
 
-Archivos principales a tocar:
-- `vite.config.ts`
-- `src/main.tsx`
-- `src/App.tsx`
-- `src/components/ChunkErrorBoundary.tsx`
-- `src/lib/lazyWithRetry.ts`
-- `src/lib/pwaResume.ts`
-- `src/hooks/useAuth.tsx`
-- `src/hooks/useModuleAccess.tsx`
-- `src/hooks/useCatalog.ts`
-- `src/hooks/useTurnarounds.ts`
-- `src/hooks/useOfflineSync.ts`
-- `src/pages/TurnaroundForm.tsx`
-- `src/pages/TurnaroundList.tsx`
-- `src/config/version.ts`
-- `public/version.json`
+- Lógica del formulario, validaciones, autocompletado UI.
+- `useFlightLookup.ts` ni el mapeo IATA→modelo en `FlightInfoStep.tsx`.
+- Reglas `FLIGHT_NUMBER_RULES` ni los iconos de estado.
+- Políticas RLS ni storage.
+
+## Verificación
+
+Tras desplegar, probar de nuevo con `TO4632`:
+- Si está en el aire → entra por live, devuelve `TO / Transavia / 737 / matrícula`.
+- Si ya aterrizó hoy → entra por `flight-summary` y devuelve los mismos datos.
+- Revisar `supabase--edge_function_logs flight-lookup` para confirmar respuesta `200` y JSON con datos.
