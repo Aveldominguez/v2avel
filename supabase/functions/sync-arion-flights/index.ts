@@ -194,6 +194,14 @@ serve(async (req) => {
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
       .map(async (f) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
+        if (isArrival) {
+          console.log('ARION flight fields:', JSON.stringify({
+            fn: f.fn,
+            registrationNumber: f.registrationNumber,
+            connectionFlight: f.connectionFlight,
+            connectionFlightSequenceNumber: f.connectionFlightSequenceNumber,
+          }));
+        }
         const ldm_raw = isArrival ? await fetchLdmRaw(f) : null;
         return {
         user_id: userId,
