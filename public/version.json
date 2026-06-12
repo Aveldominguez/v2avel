@@ -1,5 +1,5 @@
 {
-  "version": "3.29",
+  "version": "3.30",
   "changelog": [
     "ARION: cruce arrival→departure por matrícula+parking, con fallback a matrícula sola y a parking+tiempo (≤5h)."
   ]
