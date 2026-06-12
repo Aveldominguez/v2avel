@@ -194,6 +194,14 @@ serve(async (req) => {
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
       .map(async (f) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
+        if (isArrival) {
+          console.log('ARION flight fields:', JSON.stringify({
+            fn: f.fn,
+            registrationNumber: f.registrationNumber,
+            connectionFlight: f.connectionFlight,
+            connectionFlightSequenceNumber: f.connectionFlightSequenceNumber,
+          }));
+        }
         const ldm_raw = isArrival ? await fetchLdmRaw(f) : null;
         return {
         user_id: userId,
@@ -224,7 +232,7 @@ serve(async (req) => {
     if (rows.length > 0) {
       const { error: upErr, count } = await admin
         .from('scheduled_flights')
-        .upsert(rows, { onConflict: 'user_id,flight_date,flight_number', count: 'exact' });
+        .upsert(rows, { onConflict: 'user_id,flight_date,flight_number', ignoreDuplicates: false, count: 'exact' });
       if (upErr) {
         console.error('Upsert error', upErr);
         return json({ error: 'db_error', detail: upErr.message }, 500);
