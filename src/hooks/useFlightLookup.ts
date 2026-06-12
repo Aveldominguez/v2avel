@@ -149,7 +149,7 @@ const AIRLINE_NAME_MAP: Record<string, AirlineCode> = {
 
 // IATA airline code → AirlineCode
 const AIRLINE_IATA_MAP: Record<string, AirlineCode> = {
-  TP: 'TAP', W6: 'WIZZ', AZ: 'ITA', A3: 'AEGEAN', PC: 'PEGASUS',
+  TP: 'TAP', W6: 'WIZZ', W9: 'WIZZ', AZ: 'ITA', A3: 'AEGEAN', PC: 'PEGASUS',
   HV: 'TRANSAVIA', TO: 'TRANSAVIA', GQ: 'SKYEXPRESS', FX: 'FEDEX',
   AC: 'AIR_CANADA', WS: 'WESTJET', AP: 'ALBASTAR', FI: 'ICELANDAIR',
   AD: 'AZUL', VF: 'A_JET', NP: 'NILE_AIR', EW: 'EUROWINGS', OU: 'CROATIA',
