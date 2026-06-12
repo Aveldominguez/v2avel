@@ -1,6 +1,6 @@
 {
-  "version": "3.29",
+  "version": "3.27",
   "changelog": [
-    "Matrícula, vuelo de salida y LDM se leen directamente de ARION."
+    "Mapeo de variantes de nombre de aerolínea (Wizz Air Malta, etc.) y fallback de modelo cuando la aerolínea no se resuelve."
   ]
 }
