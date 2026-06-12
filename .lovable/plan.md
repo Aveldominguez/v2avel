@@ -1,31 +1,48 @@
-## Arreglo del botón "Actualizar aplicación"
+## Problema
 
-Modificar `src/hooks/useAppUpdate.ts` para que `applyUpdate()` fuerce activamente la activación del nuevo Service Worker en lugar de solo recargar (que el SW antiguo intercepta sirviendo HTML cacheado).
+El botón LDM solo aparece en `FlightInfoStep` (pantalla inicial de "Nueva Escala"). Una vez creada la escala, esa pantalla desaparece y el formulario principal ("Control de Horas") no muestra el LDM en ningún sitio. Por eso EW9510 ya guardado no tiene botón.
 
-### Nuevo flujo de `applyUpdate()`
+## Solución
 
-1. `setUpdating(true)`
-2. Re-fetch `/version.json?t=<timestamp>` con `cache: 'no-store'` para confirmar versión remota.
-3. `navigator.serviceWorker.getRegistration()` → llamar `reg.update()` para forzar descarga del nuevo SW.
-4. Si existe `reg.waiting`: enviar `postMessage({ type: 'SKIP_WAITING' })` y esperar el evento `controllerchange` (timeout ~3s como fallback).
-5. Limpiar caches relevantes vía `caches.keys()` filtrando: `workbox-precache-*`, `workbox-runtime-*`, `supabase-api-cache`. No tocar caches de Firebase Messaging ni otros.
-6. `window.location.reload()` final.
+Mover/duplicar el botón LDM al header del formulario principal (`src/pages/TurnaroundForm.tsx`), donde ya se muestra el vuelo, ruta, matrícula, etc. El LDM se lee directamente de `scheduled_flights.ldm_raw` cruzando por `flight_number + flight_date`.
 
-### Detalles técnicos
+## Cambios
 
-- El SW generado por `vite-plugin-pwa` con `generateSW` ya incluye listener por defecto para `{type:'SKIP_WAITING'}` → no requiere cambios en el SW.
-- En entorno de preview (donde `registerAppServiceWorker` rechaza) el flujo degrada limpiamente: si no hay SW registrado, salta los pasos 3-5 y recarga directamente.
-- Bumpe de versión: `2.0.279` en `src/config/version.ts` y `public/version.json` con changelog: "Corregido el botón Actualizar — ahora fuerza la activación del nuevo Service Worker."
+### `src/pages/TurnaroundForm.tsx`
 
-### Archivos modificados
+1. Añadir estado `const [ldmRaw, setLdmRaw] = useState<string | null>(null);` y `const [showLdm, setShowLdm] = useState(false);`.
+2. Extender el `useEffect` existente (líneas 79-106) que ya consulta `scheduled_flights`: añadir `ldm_raw` al `.select(...)` y guardar `setLdmRaw((arrival as any)?.ldm_raw ?? null);`. Así cubre tanto creación como edición de escalas existentes.
+3. En el bottom row del header (líneas 603-653), añadir un botón LDM al final de la fila — solo visible cuando `ldmRaw` no es null:
+   ```tsx
+   {ldmRaw && (
+     <>
+       <span>|</span>
+       <Button
+         variant="outline"
+         size="sm"
+         className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+         onClick={() => setShowLdm(true)}
+       >
+         LDM
+       </Button>
+     </>
+   )}
+   ```
+4. Añadir el `Dialog` al final del JSX (mismo formato que el de FlightInfoStep):
+   - Título: `LDM · {flightNumber}`
+   - `<pre>` monospace con `whitespace-pre-wrap` mostrando `ldmRaw` tal cual.
+5. Imports: añadir `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle` desde `@/components/ui/dialog`.
 
-- `src/hooks/useAppUpdate.ts` (única lógica funcional)
-- `src/config/version.ts` (bump)
-- `public/version.json` (bump)
+### `src/components/turnaround/FlightInfoStep.tsx`
 
-### NO se toca
+Sin cambios. El botón actual sigue funcionando en la pantalla "Nueva Escala" para el caso recién buscado.
 
-- `vite.config.ts`, `src/lib/registerSW.ts`, `public/sw.js`, `public/service-worker.js`
-- `UpdateBanner.tsx` (ya llama `applyUpdate` correctamente)
-- Firebase Messaging
-- Lógica de detección/polling de versión
+### Bump de versión
+
+`public/version.json` y `src/config/version.ts` → `3.25` con changelog "LDM accesible también desde el control de horas".
+
+## No cambiar
+
+- Edge function `sync-arion-flights` (ya guarda `ldm_raw` correctamente).
+- Esquema de base de datos (columna `ldm_raw` ya existe).
+- Lógica de autofill, cross-link arrival→departure, ni ningún otro componente.

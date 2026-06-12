@@ -30,6 +30,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
@@ -74,13 +75,16 @@ const TurnaroundForm: React.FC = () => {
   const [originStation, setOriginStation] = useState<string | null>(null);
   const [destStation, setDestStation] = useState<string | null>(null);
   const [homeStation, setHomeStation] = useState<string | null>(null);
+  const [ldmRaw, setLdmRaw] = useState<string | null>(null);
+  const [showLdm, setShowLdm] = useState(false);
+
 
   // Fetch origin (arrival source) + home station + departure dest from ARION
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!flightNumber.trim() && !departureFlightNumber.trim()) {
-        setOriginStation(null); setDestStation(null); setHomeStation(null); return;
+        setOriginStation(null); setDestStation(null); setHomeStation(null); setLdmRaw(null); return;
       }
       try {
         const { supabase } = await import('@/integrations/supabase/client');
@@ -91,7 +95,7 @@ const TurnaroundForm: React.FC = () => {
         if (numbers.length === 0) return;
         const { data } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, movement_type, source_station, home_station')
+          .select('flight_number, movement_type, source_station, home_station, ldm_raw')
           .in('flight_number', numbers)
           .eq('flight_date', dateStr);
         if (cancelled || !data) return;
@@ -100,6 +104,7 @@ const TurnaroundForm: React.FC = () => {
         setOriginStation((arrival as any)?.source_station ?? null);
         setDestStation((departure as any)?.source_station ?? null);
         setHomeStation(((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null);
+        setLdmRaw((arrival as any)?.ldm_raw ?? null);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
@@ -649,6 +654,19 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
+            {ldmRaw && (
+              <>
+                <span>|</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                  onClick={() => setShowLdm(true)}
+                >
+                  LDM
+                </Button>
+              </>
+            )}
 
           </div>
         </div>
@@ -777,6 +795,17 @@ const TurnaroundForm: React.FC = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={showLdm} onOpenChange={setShowLdm}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-mono">LDM · {flightNumber}</DialogTitle>
+          </DialogHeader>
+          <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed">
+            {ldmRaw ?? ''}
+          </pre>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
