@@ -2,7 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { VitePWA } from "vite-plugin-pwa";
 import fs from "fs";
+
 
 const VERSION_FILE = path.resolve(__dirname, 'src/config/version.ts');
 const VERSION_JSON_FILE = path.resolve(__dirname, 'public/version.json');
@@ -105,6 +107,33 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     syncAppVersion(),
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: null,
+      devOptions: { enabled: false },
+      includeAssets: ['favicon.ico', 'favicon.jpeg', 'robots.txt', 'icons/*.png'],
+      filename: 'sw.js',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,jpeg,svg,woff2}'],
+        navigateFallbackDenylist: [/^\/~oauth/],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.hostname.includes('supabase.co'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-api-cache',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 2 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+        skipWaiting: false,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+      },
+      manifest: false,
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {

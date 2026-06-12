@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { buildStoragePath } from '@/utils/storageUrl';
 import { toast } from '@/hooks/use-toast';
 import { saveImageBackup, removeImageBackup } from '@/utils/imageBackupStore';
+import { compressImage } from '@/utils/imageCompressor';
 
 export interface PendingUpload {
   localUrl: string;   // blob: URL for instant preview
@@ -116,7 +117,15 @@ export function useBackgroundUpload({
     }
 
     const newPending: PendingUpload[] = [];
-    for (const file of batch) {
+    for (const original of batch) {
+      // Compress images before upload (canvas, no network) to survive flaky ramp connections.
+      let file = original;
+      try {
+        file = await compressImage(original);
+      } catch (e) {
+        console.warn('Image compression failed, using original:', e);
+      }
+
       const backupId = `${turnaroundId || 'new'}-${filePrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       const localUrl = URL.createObjectURL(file);
 
