@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { getCatalogSnapshot, type AircraftModelOverride } from '@/lib/catalogStore';
 
 interface FlightLookupResult {
   airlineName: string | null;
@@ -10,7 +11,74 @@ interface FlightLookupResult {
   registration: string | null;
   parkingCode: string | null;
   edtHHmm: string | null;
+  departureFlight: string | null;
   source: 'arion' | 'fr24';
+}
+
+// ARION airline code → app internal code
+const ARION_TO_APP_AIRLINE: Record<string, string> = {
+  'TAP': 'TAP', 'TP': 'TAP',
+  'W': 'WIZZ', 'W6': 'WIZZ', 'WIZZ': 'WIZZ', 'WZ': 'WIZZ',
+  'ITA': 'ITA', 'AZ': 'ITA',
+  'AEGEAN': 'AEGEAN', 'A3': 'AEGEAN', 'AEG': 'AEGEAN',
+  'TO': 'TRANSAVIA', 'TRANSAVIA': 'TRANSAVIA', 'HV': 'TRANSAVIA',
+  'PC': 'PEGASUS', 'PEGASUS': 'PEGASUS',
+  'GQ': 'SKYEXPRESS', 'SKY': 'SKYEXPRESS',
+  'EW': 'EUROWINGS', 'EUROWINGS': 'EUROWINGS',
+  'WS': 'WESTJET', 'WESTJET': 'WESTJET',
+  'VF': 'A_JET', 'AJET': 'A_JET',
+  'AP': 'ALBASTAR', 'ALBASTAR': 'ALBASTAR',
+  'OU': 'CROATIA', 'CROATIA': 'CROATIA',
+  'NP': 'NILE_AIR', 'NILEAIR': 'NILE_AIR',
+  'FI': 'ICELANDAIR', 'ICELANDAIR': 'ICELANDAIR',
+  'AC': 'AIR_CANADA', 'AIRCANADA': 'AIR_CANADA',
+  'AD': 'AZUL', 'AZUL': 'AZUL',
+  'PQ': 'SKYUP', 'SKYUP': 'SKYUP',
+  'ABR': 'AMAZON', 'AMAZON': 'AMAZON',
+  '3V': 'FEDEX', 'FEDEX': 'FEDEX', 'FX': 'FEDEX',
+  'AE': 'AIR_EST', 'AIREST': 'AIR_EST',
+};
+
+const ICAO_TO_MODEL_KEYWORDS: Record<string, string[]> = {
+  '32N': ['A320', 'neo'],
+  '320': ['A320'],
+  '319': ['A319'],
+  '321': ['A321'],
+  '20N': ['A321', 'neo'],
+  '738': ['737', '800'],
+  '737': ['737'],
+  '75C': ['737'],
+  '734': ['734'],
+  '333': ['A330'],
+  '339': ['A330', '900'],
+  '767': ['767'],
+  '77W': ['777'],
+  '788': ['787', '800'],
+  '789': ['787', '900'],
+  'E90': ['E90'],
+  'E95': ['E95'],
+};
+
+function findAircraftModelCode(icaoType: string | null, models: AircraftModelOverride[]): string | null {
+  if (!icaoType) return null;
+  const key = icaoType.toUpperCase();
+  const exact = models.find(m => m.modelCode?.toUpperCase() === key);
+  if (exact) return exact.modelCode;
+  const keywords = ICAO_TO_MODEL_KEYWORDS[key];
+  if (keywords) {
+    const match = models.find(m =>
+      keywords.every(kw =>
+        m.modelCode?.toUpperCase().includes(kw.toUpperCase()) ||
+        m.label?.toUpperCase().includes(kw.toUpperCase())
+      )
+    );
+    if (match) return match.modelCode;
+  }
+  const partial = models.find(m =>
+    m.modelCode?.toUpperCase().includes(key) ||
+    m.label?.toUpperCase().includes(key)
+  );
+  return partial?.modelCode ?? null;
 }
 
 interface UseFlightLookupReturn {
