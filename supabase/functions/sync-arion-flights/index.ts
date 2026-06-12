@@ -180,6 +180,62 @@ serve(async (req) => {
       synced = count ?? rows.length;
     }
 
+    // ── Cross-link arrivals → departures by parking_code (same day) ──
+    try {
+      const { data: arrivalsDb } = await admin
+        .from('scheduled_flights')
+        .select('id, parking_code, flight_date, edt')
+        .eq('movement_type', 'A')
+        .eq('user_id', userId)
+        .eq('flight_date', isoDate)
+        .or('departure_fn.is.null,departure_fn.eq.');
+
+      const { data: departuresDb } = await admin
+        .from('scheduled_flights')
+        .select('id, flight_number, parking_code, flight_date, sdt')
+        .eq('movement_type', 'D')
+        .eq('user_id', userId)
+        .eq('flight_date', isoDate);
+
+      const parseTime = (s: string | null): number | null => {
+        if (!s) return null;
+        const m = String(s).match(/(\d{2}):(\d{2})/);
+        if (!m) return null;
+        return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+      };
+
+      for (const arr of arrivalsDb ?? []) {
+        if (!arr.parking_code) continue;
+        const candidates = (departuresDb ?? []).filter(
+          (d) => d.parking_code === arr.parking_code && d.flight_date === arr.flight_date
+        );
+        if (candidates.length === 0) continue;
+
+        let best = candidates[0];
+        if (candidates.length > 1) {
+          const arrMin = parseTime(arr.edt);
+          if (arrMin != null) {
+            const future = candidates.filter((d) => {
+              const dm = parseTime(d.sdt);
+              return dm != null && dm >= arrMin;
+            });
+            if (future.length > 0) {
+              best = future.reduce((a, b) =>
+                (parseTime(a.sdt) ?? Infinity) < (parseTime(b.sdt) ?? Infinity) ? a : b
+              );
+            }
+          }
+        }
+
+        await admin
+          .from('scheduled_flights')
+          .update({ departure_fn: best.flight_number })
+          .eq('id', arr.id);
+      }
+    } catch (linkErr) {
+      console.warn('cross-link arrivals→departures failed', linkErr);
+    }
+
     await admin
       .from('arion_credentials')
       .update({ arion_last_sync: nowIso })
