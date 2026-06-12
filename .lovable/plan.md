@@ -1,30 +1,31 @@
-## Problema
+## Arreglo del botón "Actualizar aplicación"
 
-La API devolvió `airline_iata: "TRA"` (en realidad es el **ICAO** de Transavia France, no su IATA `TO`) y `aircraft_model: "B738"`. Resultado:
+Modificar `src/hooks/useAppUpdate.ts` para que `applyUpdate()` fuerce activamente la activación del nuevo Service Worker en lugar de solo recargar (que el SW antiguo intercepta sirviendo HTML cacheado).
 
-- `matchAirlineCode("TRA")` no encuentra nada en `AIRLINE_IATA_MAP` → `airlineCode = null` → no se rellena aerolínea.
-- En `FlightInfoStep.applyLookupResult`, el modelo solo se rellena si existe en `getModelsForAirline(targetAirline)`. Como `airline` quedó vacío, `currentModels` está vacío → tampoco se rellena el modelo, aunque `B738` sí está en `IATA_TO_MODEL`.
+### Nuevo flujo de `applyUpdate()`
 
-Por eso solo se rellenó la matrícula.
+1. `setUpdating(true)`
+2. Re-fetch `/version.json?t=<timestamp>` con `cache: 'no-store'` para confirmar versión remota.
+3. `navigator.serviceWorker.getRegistration()` → llamar `reg.update()` para forzar descarga del nuevo SW.
+4. Si existe `reg.waiting`: enviar `postMessage({ type: 'SKIP_WAITING' })` y esperar el evento `controllerchange` (timeout ~3s como fallback).
+5. Limpiar caches relevantes vía `caches.keys()` filtrando: `workbox-precache-*`, `workbox-runtime-*`, `supabase-api-cache`. No tocar caches de Firebase Messaging ni otros.
+6. `window.location.reload()` final.
 
-## Cambios
+### Detalles técnicos
 
-### `src/hooks/useFlightLookup.ts`
-1. Añadir `AIRLINE_ICAO_MAP` con los códigos ICAO de las aerolíneas operadas (TRA→TRANSAVIA, TAP→TAP, WZZ→WIZZ, ITY→ITA, AEE→AEGEAN, PGT→PEGASUS, TVF→TRANSAVIA, SEH→SKYEXPRESS, FDX→FEDEX, ACA→AIR_CANADA, WJA→WESTJET, LAV→ALBASTAR, ICE→ICELANDAIR, AZU→AZUL, KKK→A_JET, NIA→NILE_AIR, EWG→EUROWINGS, CTN→CROATIA, SQP→SKYUP, GTI/PAC→AMAZON).
-2. En `matchAirlineCode`, si `iata` tiene 3 letras (es decir, viene un ICAO), probar primero `AIRLINE_ICAO_MAP` antes del IATA.
-3. **Fallback por prefijo del vuelo**: si el matching anterior falla, extraer la(s) letra(s) iniciales del `flightIata` consultado y reutilizar `AIRLINE_IATA_MAP` (p. ej. `TO4632` → `TO` → `TRANSAVIA`). Esto cubre cualquier caso futuro en el que FR24 devuelva un código no mapeado.
-4. Pasar `flightIata` a `matchAirlineCode` para el fallback.
+- El SW generado por `vite-plugin-pwa` con `generateSW` ya incluye listener por defecto para `{type:'SKIP_WAITING'}` → no requiere cambios en el SW.
+- En entorno de preview (donde `registerAppServiceWorker` rechaza) el flujo degrada limpiamente: si no hay SW registrado, salta los pasos 3-5 y recarga directamente.
+- Bumpe de versión: `2.0.279` en `src/config/version.ts` y `public/version.json` con changelog: "Corregido el botón Actualizar — ahora fuerza la activación del nuevo Service Worker."
 
-### `src/components/turnaround/FlightInfoStep.tsx`
-Sin cambios funcionales: en cuanto `airlineCode` venga relleno, `currentModels` se calcula bien y `B738` → `737-800` se aplicará automáticamente.
+### Archivos modificados
 
-### Versionado
-Subir `APP_VERSION` a `2.0.273` en `src/config/version.ts` y `public/version.json`.
+- `src/hooks/useAppUpdate.ts` (única lógica funcional)
+- `src/config/version.ts` (bump)
+- `public/version.json` (bump)
 
-## Lo que NO se toca
-- Edge function `flight-lookup` (ya funciona).
-- Lógica del formulario, validaciones, autocompletado UI.
-- `IATA_TO_MODEL`, `FLIGHT_NUMBER_RULES`, datos de aerolíneas.
+### NO se toca
 
-## Verificación
-Probar TO4632 de nuevo: debe rellenar Transavia + 737-800 + matrícula.
+- `vite.config.ts`, `src/lib/registerSW.ts`, `public/sw.js`, `public/service-worker.js`
+- `UpdateBanner.tsx` (ya llama `applyUpdate` correctamente)
+- Firebase Messaging
+- Lógica de detección/polling de versión
