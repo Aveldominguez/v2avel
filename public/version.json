@@ -1,8 +1,8 @@
 {
-  "version": "3.20",
+  "version": "3.21",
   "changelog": [
-    "ARION: lookup filtra movement_type='A' y devuelve aeropuerto de origen.",
-    "Badge ARION: cuenta sólo llegadas del día (no duplica con salidas).",
-    "Cabecera de escala: muestra origen → destino del vuelo."
+    "ARION: departure_fn por proximidad temporal (≤6h tras la llegada).",
+    "ARION: home_station guardada en cada vuelo sincronizado.",
+    "Cabecera: origen→base para llegada y base→destino para salida."
   ]
 }
