@@ -71,6 +71,38 @@ const TurnaroundForm: React.FC = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
+  const [originStation, setOriginStation] = useState<string | null>(null);
+  const [destStation, setDestStation] = useState<string | null>(null);
+
+  // Fetch origin (arrival) and destination (departure) airport codes from ARION
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!flightNumber.trim() && !departureFlightNumber.trim()) {
+        setOriginStation(null); setDestStation(null); return;
+      }
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${date.getFullYear()}-${mm}-${dd}`;
+        const numbers = [flightNumber.trim(), departureFlightNumber.trim()].filter(Boolean);
+        if (numbers.length === 0) return;
+        const { data } = await supabase
+          .from('scheduled_flights')
+          .select('flight_number, movement_type, source_station')
+          .in('flight_number', numbers)
+          .eq('flight_date', dateStr);
+        if (cancelled || !data) return;
+        const arrival = data.find((r: any) => r.flight_number === flightNumber.trim() && r.movement_type === 'A');
+        const departure = data.find((r: any) => r.flight_number === departureFlightNumber.trim() && r.movement_type === 'D');
+        setOriginStation((arrival as any)?.source_station ?? null);
+        setDestStation((departure as any)?.source_station ?? null);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [flightNumber, departureFlightNumber, date]);
+
 
   // Auto-save refs
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
