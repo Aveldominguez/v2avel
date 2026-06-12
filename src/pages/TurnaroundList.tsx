@@ -319,6 +319,7 @@ const TurnaroundList: React.FC = () => {
       <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center gap-3">
+            {/* FILA 1 — Identidad */}
             <div className="flex items-center justify-between w-full">
               <ThemeToggle />
               <div className="text-center flex-1">
@@ -340,51 +341,31 @@ const TurnaroundList: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              <div className="w-10" /> {/* spacer */}
+              <Button variant="ghost" size="icon" onClick={handleSignOut} title="Cerrar sesión">
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
 
+            {/* FILA 2 — Módulos de navegación */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 w-full">
-              {/* GRUPO IZQUIERDA — módulos de navegación */}
-              <div className="flex items-center gap-1.5">
-                {isAdmin && (
-                  <Button size="icon" className="h-8 w-8 shrink-0 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
-                    <LayoutDashboard className="h-4 w-4" />
-                  </Button>
-                )}
-                {hasEquipos && (
-                  <Button size="icon" className="h-8 w-8 shrink-0 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
-                    <Wrench className="h-4 w-4" />
-                  </Button>
-                )}
-                <ArionStatusControl />
-              </div>
-
-              {/* SPACER — empuja el grupo derecho al extremo */}
-              <div className="flex-1" />
-
-              {/* GRUPO DERECHA — acciones principales */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => {
-                    const el = document.querySelector('.card-operational');
-                    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  title="Ir a filtros"
-                >
-                  <Filter className="h-4 w-4" />
+              {isAdmin && (
+                <Button size="icon" className="h-9 w-9 shrink-0 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
+                  <LayoutDashboard className="h-4 w-4" />
                 </Button>
-                <Button onClick={() => navigate('/turnaround/new')} size="lg" className="hidden lg:flex gap-2">
-                  <Plus className="h-5 w-5" />
-                  Nueva Escala
+              )}
+              {hasEquipos && (
+                <Button size="icon" className="h-9 w-9 shrink-0 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
+                  <Wrench className="h-4 w-4" />
                 </Button>
-                <Button variant="destructive" size="icon" onClick={handleSignOut}>
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </div>
+              )}
+              <ArionStatusControl />
             </div>
+
+            {/* FILA 3 — Acción principal */}
+            <Button onClick={() => navigate('/turnaround/new')} size="lg" className="w-full gap-2">
+              <Plus className="h-4 w-4" />
+              Nueva Escala
+            </Button>
           </div>
         </div>
       </header>
