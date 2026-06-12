@@ -1,5 +1,5 @@
 {
-  "version": "3.20",
+  "version": "3.21",
   "changelog": [
     "ARION: vinculación arrival→departure por parking_code (más cercano posterior).",
     "Autofill: matrícula siempre desde FR24 para cualquier aerolínea."

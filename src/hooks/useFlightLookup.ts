@@ -407,6 +407,7 @@ export function useFlightLookup(
           parkingCode: null,
           edtHHmm: null,
           departureFlight: null,
+          originStation: null,
           source: 'fr24',
         });
         setAutofilledFields(filled);
