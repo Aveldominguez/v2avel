@@ -12,6 +12,7 @@ interface FlightLookupResult {
   parkingCode: string | null;
   edtHHmm: string | null;
   departureFlight: string | null;
+  originStation: string | null;
   source: 'arion' | 'fr24';
 }
 
