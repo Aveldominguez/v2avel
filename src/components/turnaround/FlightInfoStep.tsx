@@ -329,9 +329,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   {lookupLoading && !soloSalida && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
                   )}
+                  {!lookupLoading && successFlash.size > 0 && !soloSalida && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                  )}
                 </div>
               {lookupError && !soloSalida && (
                 <p className="text-xs text-destructive mt-1">{lookupError}</p>
+              )}
+              {arrivalNotFound && !soloSalida && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Vuelo no encontrado — rellena los datos manualmente
+                </p>
               )}
             </div>
             <div className="space-y-2">
