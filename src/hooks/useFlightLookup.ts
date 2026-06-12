@@ -19,18 +19,21 @@ interface FlightLookupResult {
 
 // ARION airline code → app internal code
 const ARION_TO_APP_AIRLINE: Record<string, string> = {
-  'TAP': 'TAP', 'TP': 'TAP',
+  'TAP': 'TAP', 'TP': 'TAP', 'TAPPORTUGAL': 'TAP', 'TAPAIRPORTUGAL': 'TAP',
   'W': 'WIZZ', 'W6': 'WIZZ', 'WIZZ': 'WIZZ', 'WZ': 'WIZZ',
-  'ITA': 'ITA', 'AZ': 'ITA',
+  'WIZZAIRMALTA': 'WIZZ', 'WIZZAIRLTD': 'WIZZ', 'WIZZAIRHUNGARY': 'WIZZ', 'WIZZAIRUK': 'WIZZ',
+  'ITA': 'ITA', 'ITAAIRWAYS': 'ITA', 'AZ': 'ITA',
   'AEGEAN': 'AEGEAN', 'A3': 'AEGEAN', 'AEG': 'AEGEAN',
+  'AEGEANAIRLINES': 'AEGEAN', 'AEGEANAIRLINESSA': 'AEGEAN',
   'TO': 'TRANSAVIA', 'TRANSAVIA': 'TRANSAVIA', 'HV': 'TRANSAVIA',
-  'PC': 'PEGASUS', 'PEGASUS': 'PEGASUS',
-  'GQ': 'SKYEXPRESS', 'SKY': 'SKYEXPRESS',
+  'TRANSAVIAFRANCE': 'TRANSAVIA', 'TRANSAVIAHOLLAND': 'TRANSAVIA', 'TRANSAVIANETHERLANDS': 'TRANSAVIA',
+  'PC': 'PEGASUS', 'PEGASUS': 'PEGASUS', 'PEGASUSAIRLINES': 'PEGASUS',
+  'GQ': 'SKYEXPRESS', 'SKY': 'SKYEXPRESS', 'SKYEXPRESS': 'SKYEXPRESS',
   'EW': 'EUROWINGS', 'EUROWINGS': 'EUROWINGS',
   'WS': 'WESTJET', 'WESTJET': 'WESTJET',
   'VF': 'A_JET', 'AJET': 'A_JET',
   'AP': 'ALBASTAR', 'ALBASTAR': 'ALBASTAR',
-  'OU': 'CROATIA', 'CROATIA': 'CROATIA',
+  'OU': 'CROATIA', 'CROATIA': 'CROATIA', 'CROATIAAIRLINES': 'CROATIA',
   'NP': 'NILE_AIR', 'NILEAIR': 'NILE_AIR',
   'FI': 'ICELANDAIR', 'ICELANDAIR': 'ICELANDAIR',
   'AC': 'AIR_CANADA', 'AIRCANADA': 'AIR_CANADA',
@@ -319,7 +322,10 @@ export function useFlightLookup(
           if (arion) {
             const rawCode = (arion.airline_code || '').toUpperCase().replace(/\s/g, '');
             const mappedCode = ARION_TO_APP_AIRLINE[rawCode] ?? rawCode;
-            const airlineCode = (AIRLINES.find((a) => a.code === mappedCode)?.code ?? null) as AirlineCode | null;
+            const airlineCode: AirlineCode | null =
+              (AIRLINES.find((a) => a.code === mappedCode)?.code as AirlineCode) ??
+              matchAirlineCode(arion.airline_code ?? null, null, clean) ??
+              null;
 
             const activeModels = getCatalogSnapshot().aircraftModels.filter(m => m.active);
             const mappedAircraft = findAircraftModelCode(arion.aircraft_type ?? null, activeModels)
