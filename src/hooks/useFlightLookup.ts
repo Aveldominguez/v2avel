@@ -59,24 +59,53 @@ const AIRLINE_IATA_MAP: Record<string, AirlineCode> = {
   PQ: 'SKYUP',
 };
 
-function matchAirlineCode(name: string | null, iata: string | null): AirlineCode | null {
+// ICAO airline code → AirlineCode (FR24 often returns ICAO in `painted_as`/`operating_as`)
+const AIRLINE_ICAO_MAP: Record<string, AirlineCode> = {
+  TAP: 'TAP', WZZ: 'WIZZ', ITY: 'ITA', AEE: 'AEGEAN', PGT: 'PEGASUS',
+  TRA: 'TRANSAVIA', TVF: 'TRANSAVIA', SEH: 'SKYEXPRESS', FDX: 'FEDEX',
+  ACA: 'AIR_CANADA', WJA: 'WESTJET', LAV: 'ALBASTAR', ICE: 'ICELANDAIR',
+  AZU: 'AZUL', KKK: 'A_JET', NIA: 'NILE_AIR', EWG: 'EUROWINGS', CTN: 'CROATIA',
+  SQP: 'SKYUP', GTI: 'AMAZON', PAC: 'AMAZON',
+};
+
+function matchAirlineCode(
+  name: string | null,
+  iata: string | null,
+  flightIata?: string,
+): AirlineCode | null {
   if (iata) {
     const up = iata.toUpperCase();
+    if (up.length === 3 && AIRLINE_ICAO_MAP[up]) return AIRLINE_ICAO_MAP[up];
     if (AIRLINE_IATA_MAP[up]) return AIRLINE_IATA_MAP[up];
+    if (AIRLINE_ICAO_MAP[up]) return AIRLINE_ICAO_MAP[up];
   }
-  if (!name) return null;
-  const lower = name.toLowerCase().trim();
-
-  if (AIRLINE_NAME_MAP[lower]) return AIRLINE_NAME_MAP[lower];
-
-  for (const [key, code] of Object.entries(AIRLINE_NAME_MAP)) {
-    if (lower.includes(key) || key.includes(lower)) return code;
+  if (name) {
+    const lower = name.toLowerCase().trim();
+    if (AIRLINE_NAME_MAP[lower]) return AIRLINE_NAME_MAP[lower];
+    for (const [key, code] of Object.entries(AIRLINE_NAME_MAP)) {
+      if (lower.includes(key) || key.includes(lower)) return code;
+    }
+    const found = AIRLINES.find(
+      (a) => a.name.toLowerCase() === lower || a.shortName.toLowerCase() === lower
+    );
+    if (found) return found.code;
   }
-
-  const found = AIRLINES.find(
-    (a) => a.name.toLowerCase() === lower || a.shortName.toLowerCase() === lower
-  );
-  return found ? found.code : null;
+  // Fallback: derive from flight-number prefix (e.g. "TO4632" → "TO" → TRANSAVIA)
+  if (flightIata) {
+    const clean = flightIata.toUpperCase().replace(/\s/g, '');
+    const m = clean.match(/^([A-Z]+)/);
+    if (m) {
+      const pfx = m[1];
+      for (const len of [3, 2, 1]) {
+        if (pfx.length >= len) {
+          const cand = pfx.slice(0, len);
+          if (AIRLINE_IATA_MAP[cand]) return AIRLINE_IATA_MAP[cand];
+          if (AIRLINE_ICAO_MAP[cand]) return AIRLINE_ICAO_MAP[cand];
+        }
+      }
+    }
+  }
+  return null;
 }
 
 // Flight number completion rules — prefix → required numeric digits
