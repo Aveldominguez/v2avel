@@ -541,6 +541,7 @@ export type Database = {
           flight_closed: boolean | null
           flight_date: string
           flight_number: string
+          home_station: string | null
           id: string
           movement_type: string | null
           parking_code: string | null
@@ -560,6 +561,7 @@ export type Database = {
           flight_closed?: boolean | null
           flight_date: string
           flight_number: string
+          home_station?: string | null
           id?: string
           movement_type?: string | null
           parking_code?: string | null
@@ -579,6 +581,7 @@ export type Database = {
           flight_closed?: boolean | null
           flight_date?: string
           flight_number?: string
+          home_station?: string | null
           id?: string
           movement_type?: string | null
           parking_code?: string | null
