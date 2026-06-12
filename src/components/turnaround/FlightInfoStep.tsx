@@ -101,8 +101,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const hasFlightConflict = hasRealArrivalContent && hasRealDepartureContent && flightNumber === departureFlightNumber;
 
   // Flight lookup hooks — independent for arrival and departure
-  const arrivalLookup = useFlightLookup(flightNumber);
-  const departureLookup = useFlightLookup(departureFlightNumber);
+  const arrivalLookup = useFlightLookup(flightNumber, date);
+  const departureLookup = useFlightLookup(departureFlightNumber, date);
   const lookupLoading = arrivalLookup.isLoading;
   const lookupError = arrivalLookup.error;
   const departureLookupLoading = departureLookup.isLoading;
