@@ -182,51 +182,77 @@ serve(async (req) => {
       synced = count ?? rows.length;
     }
 
-    // ── Cross-link arrivals → departures by parking_code + time proximity (≤6h) ──
+    // ── Cross-link arrivals → departures ──
+    // Priority: (1) registration + parking, (2) registration only, (3) parking + time ≤5h
     try {
       const { data: arrivalsDb } = await admin
         .from('scheduled_flights')
-        .select('id, parking_code, flight_date, edt')
+        .select('id, parking_code, flight_date, edt, registration')
         .eq('movement_type', 'A')
         .eq('user_id', userId)
-        .eq('flight_date', isoDate)
-        .or('departure_fn.is.null,departure_fn.eq.');
+        .eq('flight_date', isoDate);
 
       const { data: departuresDb } = await admin
         .from('scheduled_flights')
-        .select('id, flight_number, parking_code, flight_date, sdt')
+        .select('id, flight_number, parking_code, flight_date, sdt, registration')
         .eq('movement_type', 'D')
         .eq('user_id', userId)
         .eq('flight_date', isoDate);
 
-      // Build a Date from flight_date (YYYY-MM-DD) + HH:mm extracted from edt/sdt text
-      const toDateMs = (isoDay: string, timeStr: string | null): number | null => {
+      const toMs = (isoDay: string, timeStr: string | null): number | null => {
         if (!timeStr) return null;
+        const direct = new Date(timeStr).getTime();
+        if (!Number.isNaN(direct)) return direct;
         const m = String(timeStr).match(/(\d{2}):(\d{2})/);
         if (!m) return null;
-        return new Date(`${isoDay}T${m[1]}:${m[2]}:00Z`).getTime();
+        const d = new Date(`${isoDay}T${m[1]}:${m[2]}:00Z`).getTime();
+        return Number.isNaN(d) ? null : d;
       };
 
-      const SIX_H = 6 * 60 * 60 * 1000;
+      const FIVE_H = 5 * 60 * 60 * 1000;
+      const allDepartures = departuresDb ?? [];
 
       for (const arr of arrivalsDb ?? []) {
-        if (!arr.parking_code) continue;
-        const arrivalMs = toDateMs(arr.flight_date, arr.edt);
-        if (arrivalMs == null) continue;
+        let best: any = null;
+        const hasReg = arr.registration != null && arr.registration !== '';
 
-        const candidates = (departuresDb ?? [])
-          .filter((d) => d.parking_code === arr.parking_code && d.flight_date === arr.flight_date)
-          .map((d) => ({ d, ms: toDateMs(d.flight_date, d.sdt) }))
-          .filter((c) => c.ms != null && c.ms! >= arrivalMs && c.ms! <= arrivalMs + SIX_H)
-          .sort((a, b) => (a.ms! - b.ms!));
+        // Method 1: registration + parking
+        if (hasReg && arr.parking_code) {
+          best = allDepartures.find((d) =>
+            d.registration === arr.registration &&
+            d.registration != null && d.registration !== '' &&
+            d.parking_code === arr.parking_code &&
+            d.flight_date === arr.flight_date
+          ) ?? null;
+        }
 
-        if (candidates.length === 0) continue;
-        const best = candidates[0].d;
+        // Method 2: registration only
+        if (!best && hasReg) {
+          best = allDepartures.find((d) =>
+            d.registration === arr.registration &&
+            d.registration != null && d.registration !== ''
+          ) ?? null;
+        }
 
-        await admin
-          .from('scheduled_flights')
-          .update({ departure_fn: best.flight_number })
-          .eq('id', arr.id);
+        // Method 3: parking + time window
+        if (!best && arr.parking_code) {
+          const arrivalMs = toMs(arr.flight_date, arr.edt);
+          if (arrivalMs != null) {
+            const candidates = allDepartures
+              .filter((d) => d.parking_code === arr.parking_code && d.flight_date === arr.flight_date && d.sdt != null)
+              .map((d) => ({ d, ms: toMs(d.flight_date, d.sdt) }))
+              .filter((c) => c.ms != null && c.ms! > arrivalMs && c.ms! <= arrivalMs + FIVE_H)
+              .sort((a, b) => a.ms! - b.ms!);
+            best = candidates[0]?.d ?? null;
+          }
+        }
+
+        if (best) {
+          await admin
+            .from('scheduled_flights')
+            .update({ departure_fn: best.flight_number })
+            .eq('id', arr.id);
+        }
       }
     } catch (linkErr) {
       console.warn('cross-link arrivals→departures failed', linkErr);
