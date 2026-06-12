@@ -147,9 +147,61 @@ serve(async (req) => {
     const isoDate = ddMmYyyyToIso(flight_date_in);
     const nowIso = new Date().toISOString();
 
-    const rows = uniqueFlights
+    // Fetch LDM telex body for an arrival flight, if a telex reference exists
+    async function fetchLdmRaw(f: any): Promise<string | null> {
+      try {
+        const telexList: any[] = Array.isArray(f?.telexMessages)
+          ? f.telexMessages
+          : Array.isArray(f?.telexes)
+            ? f.telexes
+            : Array.isArray(f?.messages)
+              ? f.messages
+              : [];
+        const ldmRef = telexList.find((t) => String(t?.type || '').toUpperCase() === 'LDM');
+        if (!ldmRef) return null;
+        const body = {
+          messageNumber: ldmRef.messageNumber ?? ldmRef.number ?? ldmRef.id,
+          channel: 5,
+          type: 'LDM',
+          flightReference: ldmRef.flightReference ?? f.fn ?? null,
+          date: ldmRef.date ?? flight_date_in,
+          direction: ldmRef.direction ?? 'I',
+          time: ldmRef.time ?? null,
+        };
+        const res = await fetch(`${ARION_BASE}/telex-messages/body`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${arionJwt}`,
+            'X-Station': station_code,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Origin': 'https://arion.aviapartner.aero',
+            'Referer': 'https://arion.aviapartner.aero/',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) return null;
+        const j = await res.json().catch(() => null);
+        const lines: any[] = Array.isArray(j?.lines) ? j.lines : [];
+        if (lines.length === 0) return null;
+        return lines
+          .slice()
+          .sort((a, b) => (a.lineNumber ?? 0) - (b.lineNumber ?? 0))
+          .map((l) => l.data ?? '')
+          .join('\n');
+      } catch (e) {
+        console.warn('fetchLdmRaw failed', e);
+        return null;
+      }
+    }
+
+    const rows = await Promise.all(uniqueFlights
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
-      .map((f) => ({
+      .map(async (f) => {
+        const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
+        const ldm_raw = isArrival ? await fetchLdmRaw(f) : null;
+        return {
         user_id: userId,
         flight_date: isoDate,
         flight_number: String(f.fn).trim(),
