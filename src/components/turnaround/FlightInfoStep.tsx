@@ -111,6 +111,16 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
   // Success-flash state (green check next to field for ~2s)
   const [successFlash, setSuccessFlash] = React.useState<Set<string>>(new Set());
+  const [parkingFlash, setParkingFlash] = React.useState(false);
+  const [remoteFlash, setRemoteFlash] = React.useState(false);
+  const flashParking = React.useCallback(() => {
+    setParkingFlash(true);
+    setTimeout(() => setParkingFlash(false), 2000);
+  }, []);
+  const flashRemote = React.useCallback(() => {
+    setRemoteFlash(true);
+    setTimeout(() => setRemoteFlash(false), 2000);
+  }, []);
 
   // IATA aircraft type codes to our internal model names
   const IATA_TO_MODEL: Record<string, string> = {
