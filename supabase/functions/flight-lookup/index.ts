@@ -1,5 +1,5 @@
 // Flight lookup using Flightradar24 API
-// Set via: supabase secrets set FR24_API_KEY=your_key
+// Secret required: FR24_API_KEY
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -34,15 +34,28 @@ function pick<T = any>(obj: any, paths: string[]): T | null {
 }
 
 function normalize(raw: any): NormalizedResult {
-  // FR24 returns { data: [...] } typically
-  const arr = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+  const arr = Array.isArray(raw?.data) ? raw.data
+    : Array.isArray(raw) ? raw
+    : Array.isArray(raw?.results) ? raw.results
+    : [];
   if (!arr.length) return { found: false };
   const f = arr[0];
 
-  const airline_iata = pick<string>(f, ['airline.iata', 'airline_iata', 'operating_as', 'painted_as']);
-  const airline_name = pick<string>(f, ['airline.name', 'airline_name', 'operator']);
-  const aircraft_model = pick<string>(f, ['aircraft.model', 'aircraft.type', 'type', 'aircraft_type', 'aircraft.code']);
-  const aircraft_registration = pick<string>(f, ['aircraft.registration', 'registration', 'reg']);
+  const airline_iata = pick<string>(f, [
+    'painted_as', 'operating_as',
+    'airline.iata', 'airline_iata',
+    'airline.icao', 'airline_icao',
+  ]);
+  const airline_name = pick<string>(f, [
+    'airline.name', 'airline_name', 'operator', 'operator_name',
+  ]);
+  const aircraft_model = pick<string>(f, [
+    'type', 'aircraft_type', 'aircraft.model',
+    'aircraft.code', 'aircraft.type', 'model',
+  ]);
+  const aircraft_registration = pick<string>(f, [
+    'reg', 'registration', 'aircraft.registration', 'aircraft_registration',
+  ]);
 
   if (!airline_iata && !airline_name && !aircraft_model && !aircraft_registration) {
     return { found: false };
@@ -57,8 +70,7 @@ function normalize(raw: any): NormalizedResult {
   };
 }
 
-async function fr24Fetch(endpoint: string, flightIata: string, apiKey: string): Promise<any | null> {
-  const url = `${endpoint}?flight_iata=${encodeURIComponent(flightIata)}&limit=1`;
+async function fr24Fetch(url: string, apiKey: string): Promise<any | null> {
   try {
     const res = await fetch(url, {
       headers: {
@@ -67,14 +79,19 @@ async function fr24Fetch(endpoint: string, flightIata: string, apiKey: string): 
         'Accept': 'application/json',
       },
     });
+    const text = await res.text();
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      console.error(`FR24 ${endpoint} → ${res.status}: ${text.slice(0, 200)}`);
+      console.error(`FR24 ${url} → ${res.status}: ${text.slice(0, 300)}`);
       return null;
     }
-    return await res.json();
+    try {
+      return JSON.parse(text);
+    } catch {
+      console.error(`FR24 ${url} → invalid JSON: ${text.slice(0, 200)}`);
+      return null;
+    }
   } catch (err) {
-    console.error(`FR24 ${endpoint} fetch error:`, err);
+    console.error(`FR24 ${url} fetch error:`, err);
     return null;
   }
 }
@@ -101,14 +118,32 @@ serve(async (req) => {
       });
     }
 
-    // 1) Try live
-    let raw = await fr24Fetch('https://fr24api.flightradar24.com/api/live/flight-positions/full', flight_iata, apiKey);
+    const flightNum = flight_iata.toUpperCase().trim();
+    const BASE = 'https://fr24api.flightradar24.com/api';
+
+    // 1) LIVE positions — parameter is `flights`, not `flight_iata`
+    let raw = await fr24Fetch(
+      `${BASE}/live/flight-positions/full?flights=${encodeURIComponent(flightNum)}&limit=1`,
+      apiKey,
+    );
     let normalized = raw ? normalize(raw) : { found: false };
 
-    // 2) Fallback to historic
+    // 2) Fallback: flight-summary (covers landed flights within a date range)
     if (!normalized.found) {
-      raw = await fr24Fetch('https://fr24api.flightradar24.com/api/historic/flight-events/full', flight_iata, apiKey);
+      const today = new Date();
+      const from = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000)
+        .toISOString().slice(0, 10);
+      const to = new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000)
+        .toISOString().slice(0, 10);
+      raw = await fr24Fetch(
+        `${BASE}/flight-summary/light?flights=${encodeURIComponent(flightNum)}&flight_datetime_from=${from}T00:00:00&flight_datetime_to=${to}T23:59:59`,
+        apiKey,
+      );
       normalized = raw ? normalize(raw) : { found: false };
+    }
+
+    if (!normalized.found && raw) {
+      console.log(`FR24 no match for ${flightNum}. Raw sample:`, JSON.stringify(raw).slice(0, 400));
     }
 
     return new Response(JSON.stringify(normalized), {
