@@ -30,6 +30,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 
