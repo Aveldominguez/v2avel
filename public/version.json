@@ -1,8 +1,6 @@
 {
-  "version": "3.22",
+  "version": "3.23",
   "changelog": [
-    "ARION: departure_fn por proximidad temporal (≤6h tras la llegada).",
-    "ARION: home_station guardada en cada vuelo sincronizado.",
-    "Cabecera: origen→base para llegada y base→destino para salida."
+    "ARION: cruce arrival→departure por matrícula+parking, con fallback a matrícula sola y a parking+tiempo (≤5h)."
   ]
 }
