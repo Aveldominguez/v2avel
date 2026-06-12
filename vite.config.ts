@@ -8,7 +8,8 @@ import fs from "fs";
 
 const VERSION_FILE = path.resolve(__dirname, 'src/config/version.ts');
 const VERSION_JSON_FILE = path.resolve(__dirname, 'public/version.json');
-const VERSION_REGEX = /APP_VERSION\s*=\s*'(\d+)\.(\d+)\.(\d+)'/;
+// Accepts both `major.minor` (e.g. '3.0') and legacy `major.minor.patch` (e.g. '2.0.281')
+const VERSION_REGEX = /APP_VERSION\s*=\s*'(\d+)\.(\d+)(?:\.(\d+))?'/;
 const CHANGELOG_REGEX = /APP_CHANGELOG:\s*string\[\]\s*=\s*\[([\s\S]*?)\];/;
 
 function readVersionSource() {
@@ -22,12 +23,14 @@ function readVersionSource() {
   const changelogMatch = source.match(CHANGELOG_REGEX);
   const changelog = changelogMatch?.[1].match(/'([^']+)'/g)?.map((entry) => entry.replace(/'/g, '')) ?? [];
 
+  const major = Number(versionMatch[1]);
+  const minor = Number(versionMatch[2]);
+
   return {
     source,
-    version: `${versionMatch[1]}.${versionMatch[2]}.${versionMatch[3]}`,
-    major: Number(versionMatch[1]),
-    minor: Number(versionMatch[2]),
-    patch: Number(versionMatch[3]),
+    version: `${major}.${minor}`,
+    major,
+    minor,
     changelog,
   };
 }
@@ -39,8 +42,9 @@ function writeVersionFiles(version: string, source: string, changelog: string[])
 }
 
 function syncVersionFiles(increment: boolean) {
-  const { source, version, major, minor, patch, changelog } = readVersionSource();
-  const nextVersion = increment ? `${major}.${minor}.${patch + 1}` : version;
+  const { source, version, major, minor, changelog } = readVersionSource();
+  // Each increment bumps the minor by 1 (v3.0 → v3.1 → v3.2 ...)
+  const nextVersion = increment ? `${major}.${minor + 1}` : version;
   writeVersionFiles(nextVersion, source, changelog);
 }
 
