@@ -150,23 +150,17 @@ serve(async (req) => {
     // Fetch LDM telex body for an arrival flight, if a telex reference exists
     async function fetchLdmRaw(f: any): Promise<string | null> {
       try {
-        const telexList: any[] = Array.isArray(f?.telexMessages)
-          ? f.telexMessages
-          : Array.isArray(f?.telexes)
-            ? f.telexes
-            : Array.isArray(f?.messages)
-              ? f.messages
-              : [];
-        const ldmRef = telexList.find((t) => String(t?.type || '').toUpperCase() === 'LDM');
+        const telexList: any[] = Array.isArray(f?.telexMessages) ? f.telexMessages : [];
+        const ldmRef = telexList.find((t) => String(t?.type ?? '').toUpperCase() === 'LDM');
         if (!ldmRef) return null;
         const body = {
-          messageNumber: ldmRef.messageNumber ?? ldmRef.number ?? ldmRef.id,
-          channel: 5,
+          messageNumber: ldmRef.messageNumber,
+          channel: ldmRef.channel ?? 5,
           type: 'LDM',
-          flightReference: ldmRef.flightReference ?? f.fn ?? null,
-          date: ldmRef.date ?? flight_date_in,
+          flightReference: ldmRef.flightReference,
           direction: ldmRef.direction ?? 'I',
-          time: ldmRef.time ?? null,
+          date: ldmRef.date,
+          time: ldmRef.time,
         };
         const res = await fetch(`${ARION_BASE}/telex-messages/body`, {
           method: 'POST',
@@ -217,7 +211,9 @@ serve(async (req) => {
         movement_type: f.movementType ?? null,
         cancelled: Boolean(f.cancelled),
         flight_closed: Boolean(f.flightClosed),
-        departure_fn: typeof f.cfn === 'string' && f.cfn.trim() ? String(f.cfn).trim() : null,
+        departure_fn: typeof f.connectionFlight === 'string' && f.connectionFlight.trim()
+          ? String(f.connectionFlight).trim()
+          : (typeof f.cfn === 'string' && f.cfn.trim() ? String(f.cfn).trim() : null),
         ldm_raw,
         synced_at: nowIso,
         };
@@ -236,81 +232,6 @@ serve(async (req) => {
       synced = count ?? rows.length;
     }
 
-    // ── Cross-link arrivals → departures ──
-    // Priority: (1) registration + parking, (2) registration only, (3) parking + time ≤5h
-    try {
-      const { data: arrivalsDb } = await admin
-        .from('scheduled_flights')
-        .select('id, parking_code, flight_date, edt, registration')
-        .eq('movement_type', 'A')
-        .eq('user_id', userId)
-        .eq('flight_date', isoDate);
-
-      const { data: departuresDb } = await admin
-        .from('scheduled_flights')
-        .select('id, flight_number, parking_code, flight_date, sdt, registration')
-        .eq('movement_type', 'D')
-        .eq('user_id', userId)
-        .eq('flight_date', isoDate);
-
-      const toMs = (isoDay: string, timeStr: string | null): number | null => {
-        if (!timeStr) return null;
-        const direct = new Date(timeStr).getTime();
-        if (!Number.isNaN(direct)) return direct;
-        const m = String(timeStr).match(/(\d{2}):(\d{2})/);
-        if (!m) return null;
-        const d = new Date(`${isoDay}T${m[1]}:${m[2]}:00Z`).getTime();
-        return Number.isNaN(d) ? null : d;
-      };
-
-      const FIVE_H = 5 * 60 * 60 * 1000;
-      const allDepartures = departuresDb ?? [];
-
-      for (const arr of arrivalsDb ?? []) {
-        let best: any = null;
-        const hasReg = arr.registration != null && arr.registration !== '';
-
-        // Method 1: registration + parking
-        if (hasReg && arr.parking_code) {
-          best = allDepartures.find((d) =>
-            d.registration === arr.registration &&
-            d.registration != null && d.registration !== '' &&
-            d.parking_code === arr.parking_code &&
-            d.flight_date === arr.flight_date
-          ) ?? null;
-        }
-
-        // Method 2: registration only
-        if (!best && hasReg) {
-          best = allDepartures.find((d) =>
-            d.registration === arr.registration &&
-            d.registration != null && d.registration !== ''
-          ) ?? null;
-        }
-
-        // Method 3: parking + time window
-        if (!best && arr.parking_code) {
-          const arrivalMs = toMs(arr.flight_date, arr.edt);
-          if (arrivalMs != null) {
-            const candidates = allDepartures
-              .filter((d) => d.parking_code === arr.parking_code && d.flight_date === arr.flight_date && d.sdt != null)
-              .map((d) => ({ d, ms: toMs(d.flight_date, d.sdt) }))
-              .filter((c) => c.ms != null && c.ms! > arrivalMs && c.ms! <= arrivalMs + FIVE_H)
-              .sort((a, b) => a.ms! - b.ms!);
-            best = candidates[0]?.d ?? null;
-          }
-        }
-
-        if (best) {
-          await admin
-            .from('scheduled_flights')
-            .update({ departure_fn: best.flight_number })
-            .eq('id', arr.id);
-        }
-      }
-    } catch (linkErr) {
-      console.warn('cross-link arrivals→departures failed', linkErr);
-    }
 
 
     await admin

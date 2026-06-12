@@ -1,6 +1,6 @@
 {
-  "version": "3.25",
+  "version": "3.26",
   "changelog": [
-    "LDM accesible también desde el control de horas."
+    "Matrícula, vuelo de salida y LDM se leen directamente de ARION."
   ]
 }
