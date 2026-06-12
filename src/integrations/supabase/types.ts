@@ -470,6 +470,10 @@ export type Database = {
       profiles: {
         Row: {
           approved: boolean
+          arion_last_sync: string | null
+          arion_login: string | null
+          arion_password: string | null
+          arion_station: string | null
           blocked: boolean
           created_at: string
           display_name: string | null
@@ -480,6 +484,10 @@ export type Database = {
         }
         Insert: {
           approved?: boolean
+          arion_last_sync?: string | null
+          arion_login?: string | null
+          arion_password?: string | null
+          arion_station?: string | null
           blocked?: boolean
           created_at?: string
           display_name?: string | null
@@ -490,12 +498,73 @@ export type Database = {
         }
         Update: {
           approved?: boolean
+          arion_last_sync?: string | null
+          arion_login?: string | null
+          arion_password?: string | null
+          arion_station?: string | null
           blocked?: boolean
           created_at?: string
           display_name?: string | null
           email?: string
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_flights: {
+        Row: {
+          adt: string | null
+          aircraft_type: string | null
+          airline_code: string | null
+          cancelled: boolean | null
+          edt: string | null
+          flight_closed: boolean | null
+          flight_date: string
+          flight_number: string
+          id: string
+          movement_type: string | null
+          parking_code: string | null
+          registration: string | null
+          sdt: string | null
+          source_station: string | null
+          synced_at: string | null
+          user_id: string
+        }
+        Insert: {
+          adt?: string | null
+          aircraft_type?: string | null
+          airline_code?: string | null
+          cancelled?: boolean | null
+          edt?: string | null
+          flight_closed?: boolean | null
+          flight_date: string
+          flight_number: string
+          id?: string
+          movement_type?: string | null
+          parking_code?: string | null
+          registration?: string | null
+          sdt?: string | null
+          source_station?: string | null
+          synced_at?: string | null
+          user_id: string
+        }
+        Update: {
+          adt?: string | null
+          aircraft_type?: string | null
+          airline_code?: string | null
+          cancelled?: boolean | null
+          edt?: string | null
+          flight_closed?: boolean | null
+          flight_date?: string
+          flight_number?: string
+          id?: string
+          movement_type?: string | null
+          parking_code?: string | null
+          registration?: string | null
+          sdt?: string | null
+          source_station?: string | null
+          synced_at?: string | null
           user_id?: string
         }
         Relationships: []
