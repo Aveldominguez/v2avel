@@ -190,20 +190,24 @@ serve(async (req) => {
       }
     }
 
+    const snToFn = new Map<number, string>();
+    for (const f of allFlights) {
+      if (f?.sn && f?.fn) {
+        snToFn.set(Number(f.sn), String(f.fn).trim());
+      }
+    }
+
     const rows = await Promise.all(uniqueFlights
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
       .map(async (f) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
-        if (isArrival) {
-          console.log('FULL ARION arrival:', JSON.stringify(f));
-        }
         const ldm_raw = isArrival ? await fetchLdmRaw(f) : null;
         return {
         user_id: userId,
         flight_date: isoDate,
         flight_number: String(f.fn).trim(),
         airline_code: f.airline ?? null,
-        registration: f.registrationNumber ?? null,
+        registration: f.registrationNumber || null,
         aircraft_type: f.aircraftType ?? null,
         parking_code: f.parkingCode ?? null,
         source_station: f.sourceStation ?? null,
@@ -214,9 +218,9 @@ serve(async (req) => {
         movement_type: f.movementType ?? null,
         cancelled: Boolean(f.cancelled),
         flight_closed: Boolean(f.flightClosed),
-        departure_fn: typeof f.connectionFlight === 'string' && f.connectionFlight.trim()
-          ? String(f.connectionFlight).trim()
-          : (typeof f.cfn === 'string' && f.cfn.trim() ? String(f.cfn).trim() : null),
+        departure_fn: f.cfn && snToFn.has(Number(f.cfn))
+          ? snToFn.get(Number(f.cfn))!
+          : null,
         ldm_raw,
         synced_at: nowIso,
         };
