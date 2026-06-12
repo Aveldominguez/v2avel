@@ -303,7 +303,7 @@ export function useFlightLookup(
           const dateStr = `${d.getFullYear()}-${mm}-${dd}`;
           const { data: arion } = await supabase
             .from('scheduled_flights')
-            .select('flight_number, airline_code, aircraft_type, parking_code, source_station, edt, sdt, departure_fn, movement_type')
+            .select('flight_number, airline_code, aircraft_type, parking_code, source_station, edt, sdt, departure_fn, movement_type, ldm_raw')
             .eq('flight_number', clean)
             .eq('flight_date', dateStr)
             .eq('movement_type', 'A')
