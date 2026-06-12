@@ -108,7 +108,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     syncAppVersion(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       injectRegister: null,
       devOptions: { enabled: false },
       includeAssets: ['favicon.ico', 'favicon.jpeg', 'robots.txt', 'icons/*.png'],
@@ -128,7 +128,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
         ],
-        skipWaiting: false,
+        skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
       },
