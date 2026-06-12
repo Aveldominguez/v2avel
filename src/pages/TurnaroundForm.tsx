@@ -75,6 +75,9 @@ const TurnaroundForm: React.FC = () => {
   const [originStation, setOriginStation] = useState<string | null>(null);
   const [destStation, setDestStation] = useState<string | null>(null);
   const [homeStation, setHomeStation] = useState<string | null>(null);
+  const [ldmRaw, setLdmRaw] = useState<string | null>(null);
+  const [showLdm, setShowLdm] = useState(false);
+
 
   // Fetch origin (arrival source) + home station + departure dest from ARION
   useEffect(() => {
