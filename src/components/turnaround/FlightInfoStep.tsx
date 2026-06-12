@@ -450,9 +450,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Ubicación Remoto
-                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Ubicación Remoto
+                      </Label>
+                      <ParkingRefreshButton
+                        flightNumber={flightNumber}
+                        currentValue={remoteLocation}
+                        onUpdate={setRemoteLocation}
+                        onFlash={flashRemote}
+                      />
+                    </div>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -460,7 +468,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                       value={remoteLocation}
                       onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, '').slice(0, 4))}
                       placeholder="Ej: 1"
-                      className="input-operational font-mono"
+                      className={cn(
+                        "input-operational font-mono transition-all",
+                        remoteFlash && "ring-2 ring-green-500"
+                      )}
                     />
                   </div>
                   <div className="space-y-2">
