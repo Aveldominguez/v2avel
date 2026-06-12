@@ -742,6 +742,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={showLdm} onOpenChange={setShowLdm}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-mono">LDM · {flightNumber}</DialogTitle>
+          </DialogHeader>
+          <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed">
+            {arrivalLookup.result?.ldmRaw ?? ''}
+          </pre>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
