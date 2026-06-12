@@ -318,10 +318,10 @@ export function useFlightLookup(
               ? String((arion as any).departure_fn).toUpperCase().replace(/\s/g, '')
               : null;
 
-            let registration: string | null = arion.registration ?? null;
+            let registration: string | null = null;
 
-            // If ARION didn't bring matricula, try FR24 ONLY for that field
-            if (!registration && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
+            // Always fetch matricula from FR24 (ARION never stores it)
+            if (typeof navigator === 'undefined' || navigator.onLine !== false) {
               try {
                 const { data: fr24Data } = await supabase.functions.invoke('flight-lookup', {
                   body: { flight_iata: clean },
@@ -330,7 +330,7 @@ export function useFlightLookup(
                   registration = fr24Data.aircraft_registration;
                 }
               } catch (e) {
-                console.warn('[lookup] FR24 supplemental registration failed', e);
+                console.warn('[lookup] FR24 registration fetch failed', e);
               }
             }
 
