@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { AirlineCode, AIRLINES } from '@/types/turnaround';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { getCatalogSnapshot, type AircraftModelOverride } from '@/lib/catalogStore';
 
 interface FlightLookupResult {
   airlineName: string | null;
@@ -10,7 +11,74 @@ interface FlightLookupResult {
   registration: string | null;
   parkingCode: string | null;
   edtHHmm: string | null;
+  departureFlight: string | null;
   source: 'arion' | 'fr24';
+}
+
+// ARION airline code → app internal code
+const ARION_TO_APP_AIRLINE: Record<string, string> = {
+  'TAP': 'TAP', 'TP': 'TAP',
+  'W': 'WIZZ', 'W6': 'WIZZ', 'WIZZ': 'WIZZ', 'WZ': 'WIZZ',
+  'ITA': 'ITA', 'AZ': 'ITA',
+  'AEGEAN': 'AEGEAN', 'A3': 'AEGEAN', 'AEG': 'AEGEAN',
+  'TO': 'TRANSAVIA', 'TRANSAVIA': 'TRANSAVIA', 'HV': 'TRANSAVIA',
+  'PC': 'PEGASUS', 'PEGASUS': 'PEGASUS',
+  'GQ': 'SKYEXPRESS', 'SKY': 'SKYEXPRESS',
+  'EW': 'EUROWINGS', 'EUROWINGS': 'EUROWINGS',
+  'WS': 'WESTJET', 'WESTJET': 'WESTJET',
+  'VF': 'A_JET', 'AJET': 'A_JET',
+  'AP': 'ALBASTAR', 'ALBASTAR': 'ALBASTAR',
+  'OU': 'CROATIA', 'CROATIA': 'CROATIA',
+  'NP': 'NILE_AIR', 'NILEAIR': 'NILE_AIR',
+  'FI': 'ICELANDAIR', 'ICELANDAIR': 'ICELANDAIR',
+  'AC': 'AIR_CANADA', 'AIRCANADA': 'AIR_CANADA',
+  'AD': 'AZUL', 'AZUL': 'AZUL',
+  'PQ': 'SKYUP', 'SKYUP': 'SKYUP',
+  'ABR': 'AMAZON', 'AMAZON': 'AMAZON',
+  '3V': 'FEDEX', 'FEDEX': 'FEDEX', 'FX': 'FEDEX',
+  'AE': 'AIR_EST', 'AIREST': 'AIR_EST',
+};
+
+const ICAO_TO_MODEL_KEYWORDS: Record<string, string[]> = {
+  '32N': ['A320', 'neo'],
+  '320': ['A320'],
+  '319': ['A319'],
+  '321': ['A321'],
+  '20N': ['A321', 'neo'],
+  '738': ['737', '800'],
+  '737': ['737'],
+  '75C': ['737'],
+  '734': ['734'],
+  '333': ['A330'],
+  '339': ['A330', '900'],
+  '767': ['767'],
+  '77W': ['777'],
+  '788': ['787', '800'],
+  '789': ['787', '900'],
+  'E90': ['E90'],
+  'E95': ['E95'],
+};
+
+function findAircraftModelCode(icaoType: string | null, models: AircraftModelOverride[]): string | null {
+  if (!icaoType) return null;
+  const key = icaoType.toUpperCase();
+  const exact = models.find(m => m.modelCode?.toUpperCase() === key);
+  if (exact) return exact.modelCode;
+  const keywords = ICAO_TO_MODEL_KEYWORDS[key];
+  if (keywords) {
+    const match = models.find(m =>
+      keywords.every(kw =>
+        m.modelCode?.toUpperCase().includes(kw.toUpperCase()) ||
+        m.label?.toUpperCase().includes(kw.toUpperCase())
+      )
+    );
+    if (match) return match.modelCode;
+  }
+  const partial = models.find(m =>
+    m.modelCode?.toUpperCase().includes(key) ||
+    m.label?.toUpperCase().includes(key)
+  );
+  return partial?.modelCode ?? null;
 }
 
 interface UseFlightLookupReturn {
@@ -225,31 +293,42 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
         try {
           const { data: arion } = await supabase
             .from('scheduled_flights')
-            .select('airline_code, registration, aircraft_type, parking_code, edt')
+            .select('airline_code, registration, aircraft_type, parking_code, edt, departure_fn')
             .eq('user_id', user.id)
             .eq('flight_date', todayIso())
             .eq('flight_number', clean)
             .maybeSingle();
 
           if (arion) {
-            const airlineCode = arion.airline_code
-              ? (AIRLINES.find((a) => a.code === arion.airline_code.toUpperCase())?.code ?? null)
+            const rawCode = (arion.airline_code || '').toUpperCase().replace(/\s/g, '');
+            const mappedCode = ARION_TO_APP_AIRLINE[rawCode] ?? rawCode;
+            const airlineCode = (AIRLINES.find((a) => a.code === mappedCode)?.code ?? null) as AirlineCode | null;
+
+            const activeModels = getCatalogSnapshot().aircraftModels.filter(m => m.active);
+            const mappedAircraft = findAircraftModelCode(arion.aircraft_type ?? null, activeModels)
+              ?? (arion.aircraft_type ?? null);
+
+            const departureFlight = (arion as any).departure_fn
+              ? String((arion as any).departure_fn).toUpperCase().replace(/\s/g, '')
               : null;
+
             const filled = new Set<string>();
             if (airlineCode) filled.add('airline');
-            if (arion.aircraft_type) filled.add('aircraftModel');
+            if (mappedAircraft) filled.add('aircraftModel');
             if (arion.registration) filled.add('matricula');
             if (arion.parking_code) filled.add('tango');
             const edtHHmm = parseEdtHHmm(arion.edt);
             if (edtHHmm) filled.add('departureTime');
+            if (departureFlight) filled.add('departureFlight');
 
             setResult({
               airlineName: null,
               airlineCode,
-              aircraftModel: arion.aircraft_type ?? null,
+              aircraftModel: mappedAircraft,
               registration: arion.registration ?? null,
               parkingCode: arion.parking_code ?? null,
               edtHHmm,
+              departureFlight,
               source: 'arion',
             });
             setAutofilledFields(filled);
@@ -300,6 +379,7 @@ export function useFlightLookup(flightIata: string, debounceMs = 300): UseFlight
           registration,
           parkingCode: null,
           edtHHmm: null,
+          departureFlight: null,
           source: 'fr24',
         });
         setAutofilledFields(filled);

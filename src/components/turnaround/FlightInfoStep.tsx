@@ -186,13 +186,19 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       filled.add('departureTime');
     }
 
+    // Departure flight number from ARION (cfn → departure_fn)
+    if (lookupResult.departureFlight && !departureFlightNumber.trim()) {
+      setDepartureFlightNumber(lookupResult.departureFlight);
+      filled.add('departureFlight');
+    }
+
     if (filled.size > 0) {
       setAutofilledFields((prev) => new Set([...prev, ...filled]));
       setSuccessFlash(filled);
       toast('Datos del vuelo completados automáticamente', { duration: 2000 });
       setTimeout(() => setSuccessFlash(new Set()), 2000);
     }
-  }, [airline, aircraftModel, matricula, tango, isRemote, departureTime, setAirline, setAircraftModel, setMatricula, setTango, setDepartureTime]);
+  }, [airline, aircraftModel, matricula, tango, isRemote, departureTime, departureFlightNumber, setAirline, setAircraftModel, setMatricula, setTango, setDepartureTime, setDepartureFlightNumber]);
 
 
   // Track last applied keys to avoid re-applying on every render

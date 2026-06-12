@@ -164,6 +164,7 @@ serve(async (req) => {
         movement_type: f.movementType ?? null,
         cancelled: Boolean(f.cancelled),
         flight_closed: Boolean(f.flightClosed),
+        departure_fn: typeof f.cfn === 'string' && f.cfn.trim() ? String(f.cfn).trim() : null,
         synced_at: nowIso,
       }));
 

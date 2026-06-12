@@ -536,6 +536,7 @@ export type Database = {
           aircraft_type: string | null
           airline_code: string | null
           cancelled: boolean | null
+          departure_fn: string | null
           edt: string | null
           flight_closed: boolean | null
           flight_date: string
@@ -554,6 +555,7 @@ export type Database = {
           aircraft_type?: string | null
           airline_code?: string | null
           cancelled?: boolean | null
+          departure_fn?: string | null
           edt?: string | null
           flight_closed?: boolean | null
           flight_date: string
@@ -572,6 +574,7 @@ export type Database = {
           aircraft_type?: string | null
           airline_code?: string | null
           cancelled?: boolean | null
+          departure_fn?: string | null
           edt?: string | null
           flight_closed?: boolean | null
           flight_date?: string
