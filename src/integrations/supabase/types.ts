@@ -543,6 +543,7 @@ export type Database = {
           flight_number: string
           home_station: string | null
           id: string
+          ldm_raw: string | null
           movement_type: string | null
           parking_code: string | null
           registration: string | null
@@ -563,6 +564,7 @@ export type Database = {
           flight_number: string
           home_station?: string | null
           id?: string
+          ldm_raw?: string | null
           movement_type?: string | null
           parking_code?: string | null
           registration?: string | null
@@ -583,6 +585,7 @@ export type Database = {
           flight_number?: string
           home_station?: string | null
           id?: string
+          ldm_raw?: string | null
           movement_type?: string | null
           parking_code?: string | null
           registration?: string | null
