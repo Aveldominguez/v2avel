@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Loader2, Plane, RefreshCw, Settings2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Wrench } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useArionSync } from '@/hooks/useArionSync';
@@ -14,12 +13,22 @@ function todayIso() {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+function formatHm(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 /**
- * Compact ARION control: settings button + status chip for today's scheduled flights.
+ * Compact ARION control: a single badge showing last sync time.
+ * Click opens the ARION settings dialog.
  */
 export const ArionStatusControl: React.FC = () => {
   const { user } = useAuth();
-  const { hasCredentials, syncing, syncToday, lastSync } = useArionSync();
+  const { lastSync } = useArionSync();
   const [count, setCount] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -35,56 +44,25 @@ export const ArionStatusControl: React.FC = () => {
 
   useEffect(() => { fetchCount(); }, [fetchCount, lastSync]);
 
-  const handleRefresh = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await syncToday();
-    fetchCount();
-  };
+  const hm = formatHm(lastSync);
+  const hasData = (count ?? 0) > 0;
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        {syncing && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono bg-muted text-muted-foreground border border-border">
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-            Sincronizando...
-          </span>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={cn(
+          'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-mono border transition-colors',
+          hasData
+            ? 'bg-[hsl(142,70%,38%)] text-white border-[hsl(142,70%,30%)] hover:bg-[hsl(142,70%,32%)]'
+            : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
         )}
-        {!syncing && hasCredentials && count !== null && (
-          count > 0 ? (
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono bg-[hsl(142,70%,38%)] text-white border border-[hsl(142,70%,30%)]">
-              <Plane className="h-3 w-3 mr-1" />
-              {count} vuelos hoy
-            </span>
-          ) : (
-            <span className={cn(
-              'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono',
-              'bg-muted text-muted-foreground border border-border'
-            )}>
-              <Plane className="h-3 w-3 mr-1 opacity-50" />
-              Sin datos
-              <button
-                type="button"
-                onClick={handleRefresh}
-                disabled={syncing}
-                className="ml-1 inline-flex items-center justify-center h-4 w-4 hover:opacity-80 disabled:opacity-50"
-                aria-label="Sincronizar"
-              >
-                <RefreshCw className="h-3 w-3" />
-              </button>
-            </span>
-          )
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9"
-          onClick={() => setOpen(true)}
-          title="Configuración ARION"
-        >
-          <Settings2 className="h-4 w-4" />
-        </Button>
-      </div>
+        title="Configuración ARION"
+      >
+        <Wrench className="h-3.5 w-3.5 text-yellow-400" />
+        {hm && <span>✓ {hm}</span>}
+      </button>
 
       <ArionSettingsDialog open={open} onOpenChange={setOpen} />
     </>
