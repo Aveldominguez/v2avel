@@ -373,6 +373,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   Vuelo no encontrado — rellena los datos manualmente
                 </p>
               )}
+              {arrivalLookup.result?.ldmRaw && !soloSalida && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10 mt-1"
+                  onClick={() => setShowLdm(true)}
+                >
+                  LDM
+                </Button>
+              )}
             </div>
             <div className="space-y-2">
               <Label className={cn(
