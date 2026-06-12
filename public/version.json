@@ -1,6 +1,6 @@
 {
-  "version": "2.0.280",
+  "version": "2.0.281",
   "changelog": [
-    "Corregido el botón Actualizar — ahora fuerza la activación del nuevo Service Worker y limpia cachés obsoletas."
+    "Fix: Service Worker con activación automática — resuelve dispositivos iOS atascados en versión antigua."
   ]
 }
