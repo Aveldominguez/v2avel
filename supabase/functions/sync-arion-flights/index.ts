@@ -133,12 +133,21 @@ serve(async (req) => {
 
     const arrivals: any[] = Array.isArray(flightsJson?.arrivals) ? flightsJson.arrivals : [];
     const departures: any[] = Array.isArray(flightsJson?.departures) ? flightsJson.departures : [];
-    const all = [...arrivals, ...departures];
+    const allFlights = [...arrivals, ...departures];
+
+    // Deduplicar por flight_number — arrivals tienen prioridad sobre departures
+    const seen = new Map<string, typeof allFlights[0]>();
+    for (const flight of allFlights) {
+      if (flight && typeof flight.fn === 'string' && !seen.has(flight.fn)) {
+        seen.set(flight.fn, flight);
+      }
+    }
+    const uniqueFlights = Array.from(seen.values());
 
     const isoDate = ddMmYyyyToIso(flight_date_in);
     const nowIso = new Date().toISOString();
 
-    const rows = all
+    const rows = uniqueFlights
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
       .map((f) => ({
         user_id: userId,
