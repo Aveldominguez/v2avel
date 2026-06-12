@@ -341,8 +341,8 @@ const TurnaroundList: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleSignOut} title="Cerrar sesión">
-                <LogOut className="h-5 w-5" />
+              <Button size="icon" className="h-9 w-9 bg-destructive hover:bg-destructive/80 active:bg-destructive/60 text-white border-0" onClick={handleSignOut} title="Cerrar sesión">
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
 
@@ -358,6 +358,7 @@ const TurnaroundList: React.FC = () => {
                   <Wrench className="h-4 w-4" />
                 </Button>
               )}
+              <div className="flex-1" />
               <ArionStatusControl />
             </div>
 
