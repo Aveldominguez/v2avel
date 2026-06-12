@@ -73,13 +73,14 @@ const TurnaroundForm: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [originStation, setOriginStation] = useState<string | null>(null);
   const [destStation, setDestStation] = useState<string | null>(null);
+  const [homeStation, setHomeStation] = useState<string | null>(null);
 
-  // Fetch origin (arrival) and destination (departure) airport codes from ARION
+  // Fetch origin (arrival source) + home station + departure dest from ARION
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!flightNumber.trim() && !departureFlightNumber.trim()) {
-        setOriginStation(null); setDestStation(null); return;
+        setOriginStation(null); setDestStation(null); setHomeStation(null); return;
       }
       try {
         const { supabase } = await import('@/integrations/supabase/client');
@@ -90,7 +91,7 @@ const TurnaroundForm: React.FC = () => {
         if (numbers.length === 0) return;
         const { data } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, movement_type, source_station')
+          .select('flight_number, movement_type, source_station, home_station')
           .in('flight_number', numbers)
           .eq('flight_date', dateStr);
         if (cancelled || !data) return;
@@ -98,10 +99,12 @@ const TurnaroundForm: React.FC = () => {
         const departure = data.find((r: any) => r.flight_number === departureFlightNumber.trim() && r.movement_type === 'D');
         setOriginStation((arrival as any)?.source_station ?? null);
         setDestStation((departure as any)?.source_station ?? null);
+        setHomeStation(((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
   }, [flightNumber, departureFlightNumber, date]);
+
 
 
   // Auto-save refs
@@ -630,14 +633,23 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
-            {(originStation || destStation) && (
+            {homeStation && originStation && (
               <>
                 <span>|</span>
                 <span className="font-semibold">
-                  ✈ {originStation ?? ''}{originStation || destStation ? ' → ' : ''}{destStation ?? ''}
+                  ✈ {originStation} → {homeStation}
                 </span>
               </>
             )}
+            {homeStation && destStation && (
+              <>
+                <span>|</span>
+                <span className="font-semibold">
+                  ✈ {homeStation} → {destStation}
+                </span>
+              </>
+            )}
+
           </div>
         </div>
       </header>

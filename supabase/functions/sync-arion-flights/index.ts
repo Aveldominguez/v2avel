@@ -158,6 +158,7 @@ serve(async (req) => {
         aircraft_type: f.aircraftType ?? null,
         parking_code: f.parkingCode ?? null,
         source_station: f.sourceStation ?? null,
+        home_station: station_code,
         edt: f.edt ?? null,
         adt: f.adt ?? null,
         sdt: f.sdt ?? null,
@@ -167,6 +168,7 @@ serve(async (req) => {
         departure_fn: typeof f.cfn === 'string' && f.cfn.trim() ? String(f.cfn).trim() : null,
         synced_at: nowIso,
       }));
+
 
     let synced = 0;
     if (rows.length > 0) {
@@ -180,7 +182,7 @@ serve(async (req) => {
       synced = count ?? rows.length;
     }
 
-    // ── Cross-link arrivals → departures by parking_code (same day) ──
+    // ── Cross-link arrivals → departures by parking_code + time proximity (≤6h) ──
     try {
       const { data: arrivalsDb } = await admin
         .from('scheduled_flights')
@@ -197,35 +199,29 @@ serve(async (req) => {
         .eq('user_id', userId)
         .eq('flight_date', isoDate);
 
-      const parseTime = (s: string | null): number | null => {
-        if (!s) return null;
-        const m = String(s).match(/(\d{2}):(\d{2})/);
+      // Build a Date from flight_date (YYYY-MM-DD) + HH:mm extracted from edt/sdt text
+      const toDateMs = (isoDay: string, timeStr: string | null): number | null => {
+        if (!timeStr) return null;
+        const m = String(timeStr).match(/(\d{2}):(\d{2})/);
         if (!m) return null;
-        return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+        return new Date(`${isoDay}T${m[1]}:${m[2]}:00Z`).getTime();
       };
+
+      const SIX_H = 6 * 60 * 60 * 1000;
 
       for (const arr of arrivalsDb ?? []) {
         if (!arr.parking_code) continue;
-        const candidates = (departuresDb ?? []).filter(
-          (d) => d.parking_code === arr.parking_code && d.flight_date === arr.flight_date
-        );
-        if (candidates.length === 0) continue;
+        const arrivalMs = toDateMs(arr.flight_date, arr.edt);
+        if (arrivalMs == null) continue;
 
-        let best = candidates[0];
-        if (candidates.length > 1) {
-          const arrMin = parseTime(arr.edt);
-          if (arrMin != null) {
-            const future = candidates.filter((d) => {
-              const dm = parseTime(d.sdt);
-              return dm != null && dm >= arrMin;
-            });
-            if (future.length > 0) {
-              best = future.reduce((a, b) =>
-                (parseTime(a.sdt) ?? Infinity) < (parseTime(b.sdt) ?? Infinity) ? a : b
-              );
-            }
-          }
-        }
+        const candidates = (departuresDb ?? [])
+          .filter((d) => d.parking_code === arr.parking_code && d.flight_date === arr.flight_date)
+          .map((d) => ({ d, ms: toDateMs(d.flight_date, d.sdt) }))
+          .filter((c) => c.ms != null && c.ms! >= arrivalMs && c.ms! <= arrivalMs + SIX_H)
+          .sort((a, b) => (a.ms! - b.ms!));
+
+        if (candidates.length === 0) continue;
+        const best = candidates[0].d;
 
         await admin
           .from('scheduled_flights')
@@ -235,6 +231,7 @@ serve(async (req) => {
     } catch (linkErr) {
       console.warn('cross-link arrivals→departures failed', linkErr);
     }
+
 
     await admin
       .from('arion_credentials')
