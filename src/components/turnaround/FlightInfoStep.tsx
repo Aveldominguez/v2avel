@@ -99,8 +99,17 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     : departureFlightNumber.trim().length > 0;
   const hasFlightConflict = hasRealArrivalContent && hasRealDepartureContent && flightNumber === departureFlightNumber;
 
-  // Flight lookup hook
-  const { isLoading: lookupLoading, error: lookupError, result: lookupResult } = useFlightLookup(flightNumber);
+  // Flight lookup hooks — independent for arrival and departure
+  const arrivalLookup = useFlightLookup(flightNumber);
+  const departureLookup = useFlightLookup(departureFlightNumber);
+  const lookupLoading = arrivalLookup.isLoading;
+  const lookupError = arrivalLookup.error;
+  const departureLookupLoading = departureLookup.isLoading;
+  const arrivalNotFound = arrivalLookup.notFound;
+  const departureNotFound = departureLookup.notFound;
+
+  // Success-flash state (green check next to field for ~2s)
+  const [successFlash, setSuccessFlash] = React.useState<Set<string>>(new Set());
 
   // IATA aircraft type codes to our internal model names
   const IATA_TO_MODEL: Record<string, string> = {
@@ -119,28 +128,24 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     'E90': 'EMB90', 'E190': 'EMB90', 'E95': 'EMB95', 'E195': 'EMB95', 'E290': 'EMB90', 'E295': 'EMB95',
   };
 
-  // Apply autofill when result changes
-  const lastAppliedRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    if (!lookupResult || lastAppliedRef.current === flightNumber) return;
-    lastAppliedRef.current = flightNumber;
+  const applyLookupResult = React.useCallback((lookupResult: typeof arrivalLookup.result) => {
+    if (!lookupResult) return;
 
     const filled = new Set<string>();
 
-    if (lookupResult.airlineCode) {
+    // Airline → only fill if currently empty
+    if (lookupResult.airlineCode && !airline) {
       setAirline(lookupResult.airlineCode);
       filled.add('airline');
     }
 
-    // Resolve aircraft model using IATA code mapping
+    // Resolve aircraft model → only fill if currently empty
     const targetAirline = lookupResult.airlineCode || (airline as AirlineCode);
     const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];
 
-    if (lookupResult.aircraftModel) {
+    if (lookupResult.aircraftModel && !aircraftModel) {
       const iataCode = lookupResult.aircraftModel.toUpperCase();
       const mappedModel = IATA_TO_MODEL[iataCode];
-
-      // Try mapped name first, then direct match
       const match = currentModels.find(
         (m) => m.model === mappedModel ||
                m.model.toLowerCase() === iataCode.toLowerCase() ||
@@ -152,19 +157,39 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       }
     }
 
-    // If airline was set and only one model exists, auto-select it
-    if (!filled.has('aircraftModel') && currentModels.length === 1) {
-      setAircraftModel(currentModels[0].model);
-      filled.add('aircraftModel');
-    }
-
-    if (lookupResult.registration) {
+    // Matrícula → only fill if currently empty
+    if (lookupResult.registration && !matricula) {
       setMatricula(lookupResult.registration.toUpperCase());
       filled.add('matricula');
     }
 
-    setAutofilledFields(filled);
-  }, [lookupResult]);
+    if (filled.size > 0) {
+      setAutofilledFields((prev) => new Set([...prev, ...filled]));
+      setSuccessFlash(filled);
+      toast('Datos del vuelo completados automáticamente', { duration: 2000 });
+      setTimeout(() => setSuccessFlash(new Set()), 2000);
+    }
+  }, [airline, aircraftModel, matricula, setAirline, setAircraftModel, setMatricula]);
+
+  // Track last applied keys to avoid re-applying on every render
+  const lastAppliedArrivalRef = React.useRef<string | null>(null);
+  const lastAppliedDepartureRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (arrivalLookup.result && lastAppliedArrivalRef.current !== flightNumber) {
+      lastAppliedArrivalRef.current = flightNumber;
+      applyLookupResult(arrivalLookup.result);
+    }
+  }, [arrivalLookup.result, flightNumber, applyLookupResult]);
+
+  React.useEffect(() => {
+    if (departureLookup.result && lastAppliedDepartureRef.current !== departureFlightNumber) {
+      lastAppliedDepartureRef.current = departureFlightNumber;
+      applyLookupResult(departureLookup.result);
+    }
+  }, [departureLookup.result, departureFlightNumber, applyLookupResult]);
+
+
 
   // Clear autofill markers when user manually edits a field
   const clearAutofillFor = (field: string) => {
