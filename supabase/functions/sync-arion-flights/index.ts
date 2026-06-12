@@ -88,7 +88,13 @@ serve(async (req) => {
     // Login to ARION
     const loginRes = await fetch(`${ARION_BASE}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/plain, */*',
+        'Origin': 'https://arion.aviapartner.aero',
+        'Referer': 'https://arion.aviapartner.aero/login',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+      },
       body: JSON.stringify({ login: creds.arion_login, password: creds.arion_password }),
     });
     if (!loginRes.ok) {
@@ -113,6 +119,9 @@ serve(async (req) => {
         'Authorization': `Bearer ${arionJwt}`,
         'X-Station': station_code,
         'Accept': 'application/json',
+        'Origin': 'https://arion.aviapartner.aero',
+        'Referer': 'https://arion.aviapartner.aero/',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
       },
     });
     if (!flightsRes.ok) {
