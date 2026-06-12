@@ -150,23 +150,17 @@ serve(async (req) => {
     // Fetch LDM telex body for an arrival flight, if a telex reference exists
     async function fetchLdmRaw(f: any): Promise<string | null> {
       try {
-        const telexList: any[] = Array.isArray(f?.telexMessages)
-          ? f.telexMessages
-          : Array.isArray(f?.telexes)
-            ? f.telexes
-            : Array.isArray(f?.messages)
-              ? f.messages
-              : [];
-        const ldmRef = telexList.find((t) => String(t?.type || '').toUpperCase() === 'LDM');
+        const telexList: any[] = Array.isArray(f?.telexMessages) ? f.telexMessages : [];
+        const ldmRef = telexList.find((t) => String(t?.type ?? '').toUpperCase() === 'LDM');
         if (!ldmRef) return null;
         const body = {
-          messageNumber: ldmRef.messageNumber ?? ldmRef.number ?? ldmRef.id,
-          channel: 5,
+          messageNumber: ldmRef.messageNumber,
+          channel: ldmRef.channel ?? 5,
           type: 'LDM',
-          flightReference: ldmRef.flightReference ?? f.fn ?? null,
-          date: ldmRef.date ?? flight_date_in,
+          flightReference: ldmRef.flightReference,
           direction: ldmRef.direction ?? 'I',
-          time: ldmRef.time ?? null,
+          date: ldmRef.date,
+          time: ldmRef.time,
         };
         const res = await fetch(`${ARION_BASE}/telex-messages/body`, {
           method: 'POST',
