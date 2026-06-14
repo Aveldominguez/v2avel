@@ -400,7 +400,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                    className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
                     onClick={() => setShowLdm(true)}
                   >
                     VER LDM
@@ -535,7 +535,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
                 onClick={() => setShowLdm(true)}
               >
                 VER LDM
