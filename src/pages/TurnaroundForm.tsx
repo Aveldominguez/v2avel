@@ -564,7 +564,7 @@ const TurnaroundForm: React.FC = () => {
         className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border")}
         style={{ top: headerTopOffset + impersonationBarHeight }}
       >
-        <div className="container mx-auto px-4 py-3 space-y-2">
+        <div className="container mx-auto px-4 py-3 space-y-3">
           {/* Top row: back button + save */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -620,7 +620,7 @@ const TurnaroundForm: React.FC = () => {
           </div>
 
           {/* Bottom row: flight details */}
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold flex-wrap">
+          <div className="flex items-center justify-center gap-3 text-sm font-semibold font-medium flex-wrap">
             <span>{airlineInfo?.name}</span>
             <span>|</span>
             <span>{aircraftModel}</span>
@@ -657,7 +657,7 @@ const TurnaroundForm: React.FC = () => {
 
           {/* Flight route row: centered arrival/departure */}
           {(homeStation && (originStation || destStation)) && (
-            <div className="flex items-center justify-center gap-3 text-xs font-semibold">
+            <div className="flex items-center justify-center gap-3 text-sm font-semibold mt-0.5">
               {homeStation && originStation && (
                 <span className="text-emerald-600 dark:text-emerald-400">
                   ✈ {originStation} → {homeStation}
