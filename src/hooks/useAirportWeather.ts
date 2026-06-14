@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { supabase } from '@/integrations/supabase/client'
 
 export interface AirportWeather {
   temp: number | null
@@ -66,12 +67,8 @@ export function useAirportWeather() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(
-        'https://aviationweather.gov/api/data/metar?ids=LEMD&format=json&taf=false',
-        { cache: 'no-store' }
-      )
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
+      const { data, error: fnError } = await supabase.functions.invoke('get-metar')
+      if (fnError) throw new Error(fnError.message)
       const m = Array.isArray(data) ? data[0] : null
       if (!m) throw new Error('Sin datos METAR')
 
