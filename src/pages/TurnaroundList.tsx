@@ -374,12 +374,12 @@ const TurnaroundList: React.FC = () => {
         </div>
       </header>
 
-      <main className="w-full px-3 py-4 space-y-4">
+      <main className="w-full py-4 space-y-4">
         {/* METAR Weather */}
         <WeatherWidget />
 
         {/* Search toggle + filters unified block */}
-        <Card className="card-operational overflow-hidden p-0">
+        <Card className="border-0 shadow-none bg-transparent rounded-none overflow-hidden p-0">
           {/* Toggle button as card header */}
           <button
             className={cn(
@@ -457,7 +457,7 @@ const TurnaroundList: React.FC = () => {
         </Card>
 
         {/* Results */}
-        <Card className="card-operational">
+        <Card className="border-0 shadow-none bg-transparent rounded-none">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between text-base">
               <span>Últimas escalas</span>
