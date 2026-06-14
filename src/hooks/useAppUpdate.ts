@@ -66,67 +66,39 @@ export const useAppUpdate = () => {
     return () => clearInterval(interval);
   }, [fetchRemoteVersion]);
 
+  const hardReload = useCallback(async () => {
+    try {
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(r => r.unregister()));
+      }
+
+      // Clear all caches
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch {
+      // ignore errors, reload anyway
+    }
+    window.location.reload();
+  }, []);
+
   const applyUpdate = useCallback(async () => {
     setUpdating(true);
-    try {
-      // 1. Confirm remote version (best-effort)
-      try {
-        await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' });
-      } catch { /* ignore */ }
-
-      // 2. Force SW update + skipWaiting if applicable
-      if ('serviceWorker' in navigator) {
-        try {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (reg) {
-            try { await reg.update(); } catch { /* ignore */ }
-
-            const waiting = reg.waiting;
-            if (waiting) {
-              await new Promise<void>((resolve) => {
-                let done = false;
-                const finish = () => { if (!done) { done = true; resolve(); } };
-                navigator.serviceWorker.addEventListener('controllerchange', finish, { once: true });
-                try { waiting.postMessage({ type: 'SKIP_WAITING' }); } catch { /* ignore */ }
-                setTimeout(finish, 3000);
-              });
-            }
-          }
-        } catch { /* ignore */ }
-      }
-
-      // 3. Clear stale app caches (leave messaging/other caches alone)
-      if ('caches' in window) {
-        try {
-          const names = await caches.keys();
-          await Promise.all(
-            names
-              .filter((n) =>
-                n.startsWith('workbox-precache') ||
-                n.startsWith('workbox-runtime') ||
-                n === 'supabase-api-cache'
-              )
-              .map((n) => caches.delete(n))
-          );
-        } catch { /* ignore */ }
-      }
-    } finally {
-      // 4. Reload (now served by new SW)
-      window.location.reload();
-    }
-  }, []);
+    await hardReload();
+  }, [hardReload]);
 
   const checkForUpdate = useCallback(async () => {
     setUpdating(true);
     try {
       await fetchRemoteVersion();
-      window.location.reload();
     } catch {
-      window.location.reload();
-    } finally {
-      setUpdating(false);
+      // ignore
     }
-  }, [fetchRemoteVersion]);
+    await hardReload();
+  }, [fetchRemoteVersion, hardReload]);
 
   return { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate };
 };
