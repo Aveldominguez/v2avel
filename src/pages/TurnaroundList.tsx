@@ -379,6 +379,23 @@ const TurnaroundList: React.FC = () => {
         {/* METAR Weather */}
         <WeatherWidget />
 
+        {/* Search toggle button */}
+        <div className="flex justify-center w-full">
+          <Button
+            size="default"
+            className={cn(
+              'w-full gap-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white border-0',
+              hasFilters && 'ring-2 ring-primary ring-offset-2'
+            )}
+            onClick={() => setShowFilters(v => !v)}
+          >
+            <Search className="h-4 w-4" />
+            Buscar Escala
+            {hasFilters && <span className="h-2 w-2 rounded-full bg-white inline-block" />}
+            {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </div>
+
         {/* Filters collapsible */}
         {showFilters && (
           <Card className="card-operational">
@@ -454,20 +471,6 @@ const TurnaroundList: React.FC = () => {
         {/* Results */}
         <Card className="card-operational">
           <CardHeader className="pb-4">
-            {/* Search toggle button */}
-            <div className="flex items-center justify-between mb-1">
-              <Button
-                variant={showFilters ? 'secondary' : 'outline'}
-                size="sm"
-                className={cn('gap-2 text-sm', hasFilters && 'border-primary text-primary')}
-                onClick={() => setShowFilters(v => !v)}
-              >
-                <Search className="h-4 w-4" />
-                Buscar Escala
-                {hasFilters && <span className="ml-1 h-2 w-2 rounded-full bg-primary inline-block" />}
-                {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
-            </div>
             <CardTitle className="flex items-center justify-between text-base">
               <span>Últimas escalas</span>
               {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
