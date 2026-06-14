@@ -84,7 +84,7 @@ const TurnaroundForm: React.FC = () => {
     let cancelled = false;
     (async () => {
       if (!flightNumber.trim() && !departureFlightNumber.trim()) {
-        setOriginStation(null); setDestStation(null); setHomeStation(null); setLdmRaw(null); return;
+        setOriginStation(null); setDestStation(null); setHomeStation(null); setLdmRaw(null); setAirlineLogo(null); return;
       }
       try {
         const { supabase } = await import('@/integrations/supabase/client');
@@ -95,7 +95,7 @@ const TurnaroundForm: React.FC = () => {
         if (numbers.length === 0) return;
         const { data } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, movement_type, source_station, home_station, ldm_raw')
+          .select('flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo')
           .in('flight_number', numbers)
           .eq('flight_date', dateStr);
         if (cancelled || !data) return;
@@ -105,6 +105,7 @@ const TurnaroundForm: React.FC = () => {
         setDestStation((departure as any)?.source_station ?? null);
         setHomeStation(((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null);
         setLdmRaw((arrival as any)?.ldm_raw ?? null);
+        setAirlineLogo(((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
