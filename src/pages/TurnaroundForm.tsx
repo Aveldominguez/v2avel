@@ -579,6 +579,14 @@ const TurnaroundForm: React.FC = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}
+              {airlineLogo && (
+                <img
+                  src={airlineLogo}
+                  alt={airlineInfo?.name ?? 'Airline logo'}
+                  className="h-8 w-auto max-w-[80px] object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              )}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
