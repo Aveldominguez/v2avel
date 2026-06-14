@@ -76,7 +76,6 @@ const TurnaroundForm: React.FC = () => {
   const [destStation, setDestStation] = useState<string | null>(null);
   const [homeStation, setHomeStation] = useState<string | null>(null);
   const [ldmRaw, setLdmRaw] = useState<string | null>(null);
-  const [showLdm, setShowLdm] = useState(false);
 
 
   // Fetch origin (arrival source) + home station + departure dest from ARION
@@ -654,19 +653,6 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
-            {ldmRaw && (
-              <>
-                <span>|</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
-                  onClick={() => setShowLdm(true)}
-                >
-                  LDM
-                </Button>
-              </>
-            )}
 
           </div>
         </div>
@@ -691,6 +677,7 @@ const TurnaroundForm: React.FC = () => {
           departureTime={departureTime}
           onDepartureTimeChange={setDepartureTime}
           flightNumber={flightNumber}
+          ldmRaw={ldmRaw}
         />
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
@@ -796,16 +783,6 @@ const TurnaroundForm: React.FC = () => {
         </Card>
       </main>
 
-      <Dialog open={showLdm} onOpenChange={setShowLdm}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-mono">LDM · {flightNumber}</DialogTitle>
-          </DialogHeader>
-          <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed">
-            {ldmRaw ?? ''}
-          </pre>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

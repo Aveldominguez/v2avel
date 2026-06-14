@@ -28,6 +28,7 @@ interface AirlineTimesBlockProps {
   departureTime?: string | null;
   onDepartureTimeChange?: (value: string | null) => void;
   flightNumber?: string;
+  ldmRaw?: string | null;
 }
 
 // Shared field renderer
@@ -314,6 +315,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   departureTime,
   onDepartureTimeChange,
   flightNumber = '',
+  ldmRaw,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
@@ -335,6 +337,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const [showRistra2, setShowRistra2] = useState(!!times.ristra2 || !!times.ristra3 || !!times.ristra4);
   const [showRistra3, setShowRistra3] = useState(!!times.ristra3 || !!times.ristra4);
   const [showRistra4, setShowRistra4] = useState(!!times.ristra4);
+
+  // LDM dialog state
+  const [showLdm, setShowLdm] = useState(false);
 
   // Collapsible arrival/departure sections (split layout only)
   const [arrivalOpen, setArrivalOpen] = useState(true);
@@ -389,6 +394,17 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
           <CardHeader className="pb-2">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
               <span className="shrink-0">Control de Horas ⏰</span>
+              {ldmRaw && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs font-bold border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                  onClick={() => setShowLdm(true)}
+                >
+                  VER LDM
+                </Button>
+              )}
               {!soloLlegada && (
                 <CountdownTimer
                   chocksOnTime={times.chocksOnArrival}
@@ -483,6 +499,21 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             )}
           </Card>
         )}
+
+        {/* LDM dialog */}
+        {showLdm && ldmRaw && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
+            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold font-mono">LDM</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
+              </div>
+              <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
+                {ldmRaw}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -496,6 +527,17 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       <CardHeader className="pb-4">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
           <span className="shrink-0">Control de Horas ⏰</span>
+          {ldmRaw && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs font-bold border-amber-500 text-amber-600 hover:bg-amber-500/10"
+              onClick={() => setShowLdm(true)}
+            >
+              VER LDM
+            </Button>
+          )}
           {!soloLlegada && (
             <CountdownTimer
               chocksOnTime={times.chocksOnArrival}
@@ -516,6 +558,21 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
           ))}
         </div>
       </CardContent>
+
+      {/* LDM dialog */}
+      {showLdm && ldmRaw && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
+          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold font-mono">LDM</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
+            </div>
+            <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
+              {ldmRaw}
+            </pre>
+          </div>
+        </div>
+      )}
     </Card>
   );
 };
