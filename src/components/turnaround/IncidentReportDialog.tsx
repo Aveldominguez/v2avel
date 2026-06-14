@@ -30,6 +30,12 @@ interface IncidentReportDialogProps {
   onSave: (data: IncidentReportData) => void;
 }
 
+const esc = (s: string) => {
+  const d = document.createElement('div');
+  d.textContent = s ?? '';
+  return d.innerHTML;
+};
+
 const generateIncidentPdf = async (data: {
   nombre: string;
   vueloFecha: string;
