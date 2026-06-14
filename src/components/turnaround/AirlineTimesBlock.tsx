@@ -393,14 +393,14 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         <Card className="card-operational">
           <CardHeader className="pb-2">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-3 w-full">
                 <span className="shrink-0">Control de Horas ⏰</span>
                 {ldmRaw && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-7 px-2 text-xs font-bold border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                    className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 text-amber-600 hover:bg-amber-500/10"
                     onClick={() => setShowLdm(true)}
                   >
                     VER LDM
@@ -528,14 +528,14 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
     <Card className="card-operational">
       <CardHeader className="pb-4">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3 w-full">
             <span className="shrink-0">Control de Horas ⏰</span>
             {ldmRaw && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs font-bold border-amber-500 text-amber-600 hover:bg-amber-500/10"
+                className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 text-amber-600 hover:bg-amber-500/10"
                 onClick={() => setShowLdm(true)}
               >
                 VER LDM
