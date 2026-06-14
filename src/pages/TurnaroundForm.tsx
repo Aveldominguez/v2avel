@@ -654,19 +654,6 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
-            {ldmRaw && (
-              <>
-                <span>|</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
-                  onClick={() => setShowLdm(true)}
-                >
-                  LDM
-                </Button>
-              </>
-            )}
 
           </div>
         </div>
