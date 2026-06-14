@@ -63,6 +63,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 import { ArionStatusControl } from '@/components/ArionStatusControl';
+import { WeatherWidget } from '@/components/WeatherWidget';
 
 const PAGE_SIZE = 25;
 const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
@@ -372,6 +373,9 @@ const TurnaroundList: React.FC = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* METAR Weather */}
+        <WeatherWidget />
+
         {/* Filters */}
         <Card className="card-operational">
           <CardHeader className="pb-4">
