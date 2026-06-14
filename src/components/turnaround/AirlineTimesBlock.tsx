@@ -393,7 +393,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         <Card className="card-operational">
           <CardHeader className="pb-2">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className="shrink-0">Control de Horas ⏰</span>
                 {ldmRaw && (
                   <Button
@@ -528,7 +528,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
     <Card className="card-operational">
       <CardHeader className="pb-4">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="shrink-0">Control de Horas ⏰</span>
             {ldmRaw && (
               <Button
