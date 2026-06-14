@@ -379,6 +379,23 @@ const TurnaroundList: React.FC = () => {
         {/* METAR Weather */}
         <WeatherWidget />
 
+        {/* Search toggle button */}
+        <div className="flex justify-center w-full">
+          <Button
+            size="default"
+            className={cn(
+              'w-full gap-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white border-0',
+              hasFilters && 'ring-2 ring-primary ring-offset-2'
+            )}
+            onClick={() => setShowFilters(v => !v)}
+          >
+            <Search className="h-4 w-4" />
+            Buscar Escala
+            {hasFilters && <span className="h-2 w-2 rounded-full bg-white inline-block" />}
+            {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </div>
+
         {/* Filters collapsible */}
         {showFilters && (
           <Card className="card-operational">
