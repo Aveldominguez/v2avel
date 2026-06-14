@@ -200,7 +200,7 @@ serve(async (req) => {
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
       .map(async (f) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
-        const ldm_raw = isArrival ? await fetchLdmRaw(f) : null;
+        const ldm_raw = isArrival ? await fetchLdmRaw(f, authHeaders) : null;
         return {
         user_id: userId,
         flight_date: isoDate,
