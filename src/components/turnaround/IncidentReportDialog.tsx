@@ -30,6 +30,12 @@ interface IncidentReportDialogProps {
   onSave: (data: IncidentReportData) => void;
 }
 
+const esc = (s: string) => {
+  const d = document.createElement('div');
+  d.textContent = s ?? '';
+  return d.innerHTML;
+};
+
 const generateIncidentPdf = async (data: {
   nombre: string;
   vueloFecha: string;
@@ -60,7 +66,7 @@ const generateIncidentPdf = async (data: {
           </tr>
           <tr>
             <td style="width:45%;border:1px solid #000;padding:6px 10px;vertical-align:middle;">
-              <div><span style="font-weight:bold;font-size:11px;">FECHA:</span> ${data.fecha}</div>
+              <div><span style="font-weight:bold;font-size:11px;">FECHA:</span> ${esc(data.fecha)}</div>
               <div style="margin-top:4px;"><span style="font-weight:bold;font-size:11px;">Rev:</span></div>
               <div style="margin-top:4px;"><span style="font-weight:bold;font-size:11px;">Página:</span> 1</div>
             </td>
@@ -68,14 +74,14 @@ const generateIncidentPdf = async (data: {
         </table>
         <table style="width:100%;border-collapse:collapse;flex-shrink:0;">
           <tr>
-            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:33%;">NOMBRE: <span style="font-weight:normal;">${data.nombre}</span></td>
-            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:33%;">VUELO/FECHA: <span style="font-weight:normal;">${data.vueloFecha}</span></td>
-            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:34%;">PARKING: <span style="font-weight:normal;">${data.parking}</span></td>
+            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:33%;">NOMBRE: <span style="font-weight:normal;">${esc(data.nombre)}</span></td>
+            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:33%;">VUELO/FECHA: <span style="font-weight:normal;">${esc(data.vueloFecha)}</span></td>
+            <td style="border:1px solid #000;padding:8px 10px;font-weight:bold;width:34%;">PARKING: <span style="font-weight:normal;">${esc(data.parking)}</span></td>
           </tr>
         </table>
         <div style="border:1px solid #000;border-top:none;flex:1;padding:10px;display:flex;flex-direction:column;">
           <div style="font-weight:bold;margin-bottom:8px;">DESCRIPCIÓN:</div>
-          <div style="white-space:pre-wrap;font-size:12px;line-height:1.6;flex:1;">${data.descripcion}</div>
+          <div style="white-space:pre-wrap;font-size:12px;line-height:1.6;flex:1;">${esc(data.descripcion)}</div>
         </div>
         <div style="position:absolute;left:-2px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:10px;font-weight:bold;letter-spacing:1px;color:#555;white-space:nowrap;">AVIAPARTNER (MAD)</div>
         <div style="flex-shrink:0;display:flex;justify-content:space-between;padding:10px 16px;font-size:9px;color:#333;border-top:1px solid #ccc;">

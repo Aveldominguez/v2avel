@@ -1,6 +1,7 @@
 // Flight lookup using Flightradar24 API
 // Secret required: FR24_API_KEY
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -102,6 +103,26 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: claimsData, error: authErr } = await userClient.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (authErr || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { flight_iata } = await req.json();
     if (!flight_iata || typeof flight_iata !== 'string' || flight_iata.length < 3) {
       return new Response(JSON.stringify({ error: 'Invalid flight_iata' }), {

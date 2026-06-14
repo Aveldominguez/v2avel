@@ -1,5 +1,5 @@
 {
-  "version": "3.48",
+  "version": "3.51",
   "changelog": [
     "Mapeo de variantes de nombre de aerolínea (Wizz Air Malta, etc.) y fallback de modelo cuando la aerolínea no se resuelve."
   ]
