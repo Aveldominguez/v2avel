@@ -55,6 +55,8 @@ import {
   RefreshCw,
   LayoutDashboard,
   Wrench,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -77,6 +79,7 @@ const TurnaroundList: React.FC = () => {
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
   const allAirlines = useAllAirlines();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Auto-open update dialog once per remote version
   useEffect(() => {
@@ -376,87 +379,95 @@ const TurnaroundList: React.FC = () => {
         {/* METAR Weather */}
         <WeatherWidget />
 
-        {/* Filters */}
-        <Card className="card-operational">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Filter className="h-4 w-4" />
-              Filtros
-              {hasFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="ml-auto text-xs"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Limpiar
-                </Button>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar por vuelo..."
-                  className="pl-10 h-11"
-                />
-              </div>
-
-              {/* Date filter */}
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
+        {/* Filters collapsible */}
+        {showFilters && (
+          <Card className="card-operational">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Filter className="h-4 w-4" />
+                Filtros
+                {hasFilters && (
                   <Button
-                    variant="outline"
-                    className={cn(
-                      'h-11 w-full justify-start text-left font-normal',
-                      !dateFilter && 'text-muted-foreground'
-                    )}
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="ml-auto text-xs"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFilter ? format(dateFilter, 'PPP', { locale: es }) : 'Filtrar por fecha'}
+                    <X className="h-3 w-3 mr-1" />
+                    Limpiar
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dateFilter}
-                    onSelect={(d) => {
-                      setDateFilter(d);
-                      setIsCalendarOpen(false);
-                    }}
-                    initialFocus
-                    className="pointer-events-auto"
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por vuelo..."
+                    className="pl-10 h-11"
                   />
-                </PopoverContent>
-              </Popover>
+                </div>
 
-              {/* Airline filter */}
-              <Select value={airlineFilter} onValueChange={(v) => setAirlineFilter(v as AirlineCode | 'ALL')}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Todas las aerolíneas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
-                  {allAirlines.map((a) => (
-                    <SelectItem key={a.code} value={a.code}>
-                      {a.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+                {/* Date filter */}
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn('h-11 w-full justify-start text-left font-normal', !dateFilter && 'text-muted-foreground')}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateFilter ? format(dateFilter, 'PPP', { locale: es }) : 'Filtrar por fecha'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFilter}
+                      onSelect={(d) => { setDateFilter(d); setIsCalendarOpen(false); }}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {/* Airline filter */}
+                <Select value={airlineFilter} onValueChange={(v) => setAirlineFilter(v as AirlineCode | 'ALL')}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Todas las aerolíneas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
+                    {allAirlines.map((a) => (
+                      <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Results */}
         <Card className="card-operational">
           <CardHeader className="pb-4">
+            {/* Search toggle button */}
+            <div className="flex items-center justify-between mb-1">
+              <Button
+                variant={showFilters ? 'secondary' : 'outline'}
+                size="sm"
+                className={cn('gap-2 text-sm', hasFilters && 'border-primary text-primary')}
+                onClick={() => setShowFilters(v => !v)}
+              >
+                <Search className="h-4 w-4" />
+                Buscar Escala
+                {hasFilters && <span className="ml-1 h-2 w-2 rounded-full bg-primary inline-block" />}
+                {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </div>
             <CardTitle className="flex items-center justify-between text-base">
               <span>Últimas escalas</span>
               {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
