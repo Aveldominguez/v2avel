@@ -147,65 +147,44 @@ serve(async (req) => {
     const isoDate = ddMmYyyyToIso(flight_date_in);
     const nowIso = new Date().toISOString();
 
+    const authHeaders: Record<string, string> = {
+      'Authorization': `Bearer ${arionJwt}`,
+      'X-Station': station_code,
+      'Accept': 'application/json',
+      'Origin': 'https://arion.aviapartner.aero',
+      'Referer': 'https://arion.aviapartner.aero/',
+      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    };
+
     // Fetch LDM telex body for an arrival flight, if a telex reference exists
-    async function fetchLdmRaw(f: any): Promise<string | null> {
+    async function fetchLdmRaw(f: any, authHeaders: Record<string, string>): Promise<string | null> {
       try {
-        if (!f?.sn) {
-          console.log('fetchLdmRaw: no sn', f?.fn);
-          return null;
-        }
-        const detailRes = await fetch(`${ARION_BASE}/flights/${f.sn}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${arionJwt}`,
-            'X-Station': station_code,
-            'Accept': 'application/json',
-            'Origin': 'https://arion.aviapartner.aero',
-            'Referer': 'https://arion.aviapartner.aero/',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-          },
-        });
-        console.log('fetchLdmRaw detail status:', f.fn, detailRes.status);
-        if (!detailRes.ok) return null;
-        const detail = await detailRes.json().catch(() => null);
-        console.log('fetchLdmRaw detail keys:', f.fn, detail ? Object.keys(detail).join(',') : 'null');
-        const telexList: any[] = Array.isArray(detail?.telexMessages) ? detail.telexMessages : [];
-        console.log('fetchLdmRaw telexList length:', f.fn, telexList.length);
-        const ldmRef = telexList.find((t) => String(t?.type ?? '').toUpperCase() === 'LDM');
-        console.log('fetchLdmRaw ldmRef:', f.fn, ldmRef ? 'found' : 'not found');
+        // Fetch detail endpoint to get telexMessages (not present in list endpoint)
+        const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
+        if (!detailResp.ok) return null;
+        const detail = await detailResp.json();
+        // Pick the correct side based on movement type
+        const side = f.movementType === 'A' ? detail?.arrival : detail?.departure;
+        const telexList = Array.isArray(side?.telexMessages) ? side.telexMessages : [];
+        const ldmRef = telexList.find((t: any) => String(t?.type ?? '').toUpperCase() === 'LDM');
         if (!ldmRef) return null;
-        const bodyRes = await fetch(`${ARION_BASE}/telex-messages/body`, {
+        const bodyResp = await fetch(`${ARION_BASE}/telex-messages/body`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${arionJwt}`,
-            'X-Station': station_code,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Origin': 'https://arion.aviapartner.aero',
-            'Referer': 'https://arion.aviapartner.aero/',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-          },
+          headers: { ...authHeaders, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             messageNumber: ldmRef.messageNumber,
-            channel: ldmRef.channel ?? 5,
-            type: 'LDM',
+            channel: ldmRef.channel,
+            type: ldmRef.type,
             flightReference: ldmRef.flightReference,
-            direction: ldmRef.direction ?? 'I',
             date: ldmRef.date,
+            direction: ldmRef.direction,
             time: ldmRef.time,
           }),
         });
-        if (!bodyRes.ok) return null;
-        const j = await bodyRes.json().catch(() => null);
-        const lines: any[] = Array.isArray(j?.lines) ? j.lines : [];
-        if (lines.length === 0) return null;
-        return lines
-          .slice()
-          .sort((a, b) => (a.lineNumber ?? 0) - (b.lineNumber ?? 0))
-          .map((l) => l.data ?? '')
-          .join('\n');
-      } catch (e) {
-        console.warn('fetchLdmRaw failed', e);
+        if (!bodyResp.ok) return null;
+        const lines = await bodyResp.json();
+        return Array.isArray(lines) ? lines.join('\n') : null;
+      } catch {
         return null;
       }
     }
