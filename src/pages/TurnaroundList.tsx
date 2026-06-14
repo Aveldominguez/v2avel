@@ -284,7 +284,7 @@ const TurnaroundList: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Auto-emergent update dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={(open) => { if (!open) dismissUpdateDialog(); }}>
         <DialogContent className="max-w-md">
