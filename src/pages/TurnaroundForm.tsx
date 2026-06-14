@@ -76,6 +76,7 @@ const TurnaroundForm: React.FC = () => {
   const [destStation, setDestStation] = useState<string | null>(null);
   const [homeStation, setHomeStation] = useState<string | null>(null);
   const [ldmRaw, setLdmRaw] = useState<string | null>(null);
+  const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
 
   // Fetch origin (arrival source) + home station + departure dest from ARION
