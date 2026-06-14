@@ -206,7 +206,46 @@ serve(async (req) => {
       .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
       .map(async (f) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
-        const ldm_raw = isArrival ? await fetchLdmRaw(f, authHeaders) : null;
+        let ldm_raw: string | null = null;
+        let airline_logo: string | null = null;
+        try {
+          const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
+          if (detailResp.ok) {
+            const detail = await detailResp.json();
+            const side = isArrival ? detail?.arrival : detail?.departure;
+            airline_logo = side?.airlineLogo ?? null;
+            if (isArrival) {
+              const telexList = Array.isArray(side?.telexMessages) ? side.telexMessages : [];
+              const ldmRef = telexList.find((t: any) => String(t?.type ?? '').toUpperCase() === 'LDM');
+              if (ldmRef) {
+                const bodyResp = await fetch(`${ARION_BASE}/telex-messages/body`, {
+                  method: 'POST',
+                  headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    messageNumber: ldmRef.messageNumber,
+                    channel: ldmRef.channel,
+                    type: ldmRef.type,
+                    flightReference: ldmRef.flightReference,
+                    date: ldmRef.date,
+                    direction: ldmRef.direction,
+                    time: ldmRef.time,
+                  }),
+                });
+                if (bodyResp.ok) {
+                  const j = await bodyResp.json().catch(() => null);
+                  const lines: any[] = Array.isArray(j?.lines) ? j.lines : [];
+                  if (lines.length > 0) {
+                    ldm_raw = lines
+                      .slice()
+                      .sort((a: any, b: any) => (a.lineNumber ?? 0) - (b.lineNumber ?? 0))
+                      .map((l: any) => l.data ?? '')
+                      .join('\n');
+                  }
+                }
+              }
+            }
+          }
+        } catch { /* ignore */ }
         return {
         user_id: userId,
         flight_date: isoDate,
@@ -228,6 +267,7 @@ serve(async (req) => {
           : null,
         connection_sdt: f.connectionSdt ?? null,
         ldm_raw,
+        airline_logo,
         synced_at: nowIso,
         };
       }));
