@@ -339,12 +339,30 @@ export function useFlightLookup(
               ? String((arion as any).registration).toUpperCase().replace(/\s/g, '')
               : null;
 
+            // 2. Si hay vuelo de salida, obtener su sdt
+            let departureSdt: string | null = null;
+            if (arion.departure_fn) {
+              const { data: depFlight } = await supabase
+                .from('scheduled_flights')
+                .select('sdt')
+                .eq('flight_number', arion.departure_fn)
+                .eq('flight_date', dateStr)
+                .eq('movement_type', 'D')
+                .maybeSingle();
+              departureSdt = depFlight?.sdt ?? null;
+            }
+
+            // 3. Extraer HH:MM del sdt del vuelo de salida, fallback connection_sdt
+            const rawTime = departureSdt ?? arion.connection_sdt ?? null;
+            const edtHHmm = rawTime
+              ? rawTime.split(' ')[1]?.slice(0, 5) ?? null
+              : null;
+
             const filled = new Set<string>();
             if (airlineCode) filled.add('airline');
             if (mappedAircraft) filled.add('aircraftModel');
             if (registration) filled.add('matricula');
             if (arion.parking_code) filled.add('tango');
-            const edtHHmm = parseEdtHHmm((arion as any).connection_sdt) ?? parseEdtHHmm(arion.edt);
             if (edtHHmm) filled.add('departureTime');
             if (departureFlight) filled.add('departureFlight');
 
