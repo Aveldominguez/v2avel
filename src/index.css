@@ -211,3 +211,17 @@
     border-color: hsl(var(--destructive)) !important;
   }
 }
+
+/* Mobile scroll lock — disable horizontal scroll and overscroll bounce */
+@layer base {
+  html, body {
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    touch-action: pan-y;
+  }
+
+  #root {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+}
