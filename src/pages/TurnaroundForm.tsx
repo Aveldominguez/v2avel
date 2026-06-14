@@ -637,24 +637,26 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
-            {homeStation && originStation && (
-              <>
-                <span>|</span>
-                <span className="font-semibold">
+          </div>
+
+          {/* Flight route row: centered arrival/departure */}
+          {(homeStation && (originStation || destStation)) && (
+            <div className="flex items-center justify-center gap-3 text-xs font-semibold">
+              {homeStation && originStation && (
+                <span className="text-emerald-600 dark:text-emerald-400">
                   ✈ {originStation} → {homeStation}
                 </span>
-              </>
-            )}
-            {homeStation && destStation && (
-              <>
-                <span>|</span>
-                <span className="font-semibold">
+              )}
+              {homeStation && originStation && homeStation && destStation && (
+                <span className="text-muted-foreground">|</span>
+              )}
+              {homeStation && destStation && (
+                <span className="text-rose-600 dark:text-rose-400">
                   ✈ {homeStation} → {destStation}
                 </span>
-              </>
-            )}
-
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
