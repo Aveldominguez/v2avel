@@ -18,6 +18,11 @@ export const ThemeToggle: React.FC = () => {
       root.classList.remove('light');
     }
     localStorage.setItem('theme', theme);
+
+    const themeColor = theme === 'light' ? '#ffffff' : '#18202e';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
+      (el as HTMLMetaElement).content = themeColor;
+    });
   }, [theme]);
 
   return (
