@@ -47,7 +47,6 @@ import {
   Calendar as CalendarIcon,
   Plane,
   Trash2,
-  Filter,
   X,
   LogOut,
   Loader2,
