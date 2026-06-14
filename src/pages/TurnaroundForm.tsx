@@ -604,7 +604,7 @@ const TurnaroundForm: React.FC = () => {
           </div>
 
           {/* Bottom row: flight details */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+          <div className="flex items-center justify-center gap-2 text-xs font-semibold flex-wrap">
             <span>{airlineInfo?.name}</span>
             <span>|</span>
             <span>{aircraftModel}</span>
@@ -613,19 +613,19 @@ const TurnaroundForm: React.FC = () => {
             {isRemote && remoteLocation && (
               <>
                 <span>|</span>
-                <span className="text-warning font-semibold">{remoteLocation}</span>
+                <span className="text-warning">{remoteLocation}</span>
               </>
             )}
             {!isRemote && tango && (
               <>
                 <span>|</span>
-                <span className="font-semibold">T{tango}</span>
+                <span>T{tango}</span>
               </>
             )}
             {matricula && (
               <>
                 <span>|</span>
-                <span className="font-semibold">{matricula}</span>
+                <span>{matricula}</span>
               </>
             )}
             {errors.length > 0 && (
