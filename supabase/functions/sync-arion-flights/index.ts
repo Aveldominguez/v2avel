@@ -241,6 +241,7 @@ serve(async (req) => {
         departure_fn: f.cfn && snToFn.has(Number(f.cfn))
           ? snToFn.get(Number(f.cfn))!
           : null,
+        connection_sdt: f.connectionSdt ?? null,
         ldm_raw,
         synced_at: nowIso,
         };
