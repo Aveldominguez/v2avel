@@ -47,7 +47,6 @@ import {
   Calendar as CalendarIcon,
   Plane,
   Trash2,
-  Filter,
   X,
   LogOut,
   Loader2,
@@ -379,13 +378,13 @@ const TurnaroundList: React.FC = () => {
         {/* METAR Weather */}
         <WeatherWidget />
 
-        {/* Search toggle button */}
-        <div className="flex justify-center w-full">
-          <Button
-            size="default"
+        {/* Search toggle + filters unified block */}
+        <Card className="card-operational overflow-hidden p-0">
+          {/* Toggle button as card header */}
+          <button
             className={cn(
-              'w-full gap-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white border-0',
-              hasFilters && 'ring-2 ring-primary ring-offset-2'
+              'w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white transition-colors',
+              showFilters ? 'bg-amber-500 hover:bg-amber-600' : 'bg-amber-500 hover:bg-amber-600'
             )}
             onClick={() => setShowFilters(v => !v)}
           >
@@ -393,30 +392,19 @@ const TurnaroundList: React.FC = () => {
             Buscar Escala
             {hasFilters && <span className="h-2 w-2 rounded-full bg-white inline-block" />}
             {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-        </div>
+          </button>
 
-        {/* Filters collapsible */}
-        {showFilters && (
-          <Card className="card-operational">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Filter className="h-4 w-4" />
-                Filtros
-                {hasFilters && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="ml-auto text-xs"
-                  >
+          {/* Filters — only rendered when open, no separator card */}
+          {showFilters && (
+            <div className="p-4">
+              {hasFilters && (
+                <div className="flex justify-end mb-3">
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
                     <X className="h-3 w-3 mr-1" />
                     Limpiar
                   </Button>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Search */}
                 <div className="relative">
@@ -464,9 +452,9 @@ const TurnaroundList: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+        </Card>
 
         {/* Results */}
         <Card className="card-operational">
