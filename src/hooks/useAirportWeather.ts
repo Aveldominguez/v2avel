@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { supabase } from '@/integrations/supabase/client'
 
 export interface AirportWeather {
   temp: number | null
