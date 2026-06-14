@@ -99,17 +99,18 @@ export function WeatherWidget() {
                 <div className="flex items-start gap-2 col-span-full sm:col-span-2 p-2 rounded-md bg-secondary/40">
                   <Wind className="h-5 w-5 shrink-0 mt-0.5 text-primary" />
                   <div className="flex-1">
-                    <div className="font-mono font-bold text-base">
+                    <span className="font-bold">
                       {weather.windVariable
-                        ? `VRB ${weather.windSpeed} kt`
+                        ? `VRB ${weather.windSpeed} kt (${Math.round(weather.windSpeed * 1.852)} km/h)`
                         : weather.windDir !== null
-                          ? `${String(weather.windDir).padStart(3,'0')}° (${degToCompass(weather.windDir)}) ${weather.windSpeed} kt`
-                          : `${weather.windSpeed} kt`}
-                    </div>
+                          ? `${String(weather.windDir).padStart(3,'0')}° (${degToCompass(weather.windDir)}) ${weather.windSpeed} kt (${Math.round(weather.windSpeed * 1.852)} km/h)`
+                          : `${weather.windSpeed} kt (${Math.round(weather.windSpeed * 1.852)} km/h)`
+                      }
+                    </span>
                     {weather.windGusts && (
-                      <div className="text-sm font-bold text-destructive">
-                        ráfagas {weather.windGusts} kt
-                      </div>
+                      <span className="text-xs ml-2 font-semibold text-destructive">
+                        ráfagas {weather.windGusts} kt ({Math.round(weather.windGusts * 1.852)} km/h)
+                      </span>
                     )}
                   </div>
                 </div>
