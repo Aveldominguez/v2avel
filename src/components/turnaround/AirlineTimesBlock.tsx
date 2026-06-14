@@ -161,17 +161,24 @@ const FieldRenderer: React.FC<{
         ? 'Destino'
         : undefined;
 
+    const isActive = times[field.key] as boolean;
+
     return (
-      <BooleanInput
-        key={field.key}
-        label={field.label}
-        value={times[field.key] as boolean}
-        onChange={(v) => updateTime(field.key, v)}
-        disabled={disabled}
-        warning={warning}
-        destination={destination}
-        destinationLabel={destinationLabel}
-      />
+      <React.Fragment key={field.key}>
+        <BooleanInput
+          label={field.label}
+          value={isActive}
+          onChange={(v) => updateTime(field.key, v)}
+          disabled={disabled}
+          destination={destination}
+          destinationLabel={destinationLabel}
+        />
+        {isActive && warning && (
+          <div className="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-6 rounded-md p-3 text-xs font-semibold border border-amber-500 bg-amber-500/10 text-amber-600">
+            {warning}
+          </div>
+        )}
+      </React.Fragment>
     );
   }
 
