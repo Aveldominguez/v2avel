@@ -344,7 +344,7 @@ export function useFlightLookup(
             if (mappedAircraft) filled.add('aircraftModel');
             if (registration) filled.add('matricula');
             if (arion.parking_code) filled.add('tango');
-            const edtHHmm = parseEdtHHmm(arion.edt);
+            const edtHHmm = parseEdtHHmm((arion as any).connection_sdt) ?? parseEdtHHmm(arion.edt);
             if (edtHHmm) filled.add('departureTime');
             if (departureFlight) filled.add('departureFlight');
 
