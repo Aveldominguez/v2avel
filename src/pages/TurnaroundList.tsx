@@ -66,7 +66,7 @@ import { useAppUpdate } from '@/hooks/useAppUpdate';
 import { ArionStatusControl } from '@/components/ArionStatusControl';
 import { WeatherWidget } from '@/components/WeatherWidget';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 4;
 const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
 
 const TurnaroundList: React.FC = () => {
@@ -320,7 +320,7 @@ const TurnaroundList: React.FC = () => {
 
       {/* Header */}
       <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
-        <div className="container mx-auto px-4 py-4">
+        <div className="w-full px-3 py-4">
           <div className="flex flex-col items-center gap-3">
             {/* FILA 1 — Identidad */}
             <div className="flex items-center justify-between w-full">
@@ -374,7 +374,7 @@ const TurnaroundList: React.FC = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="w-full px-3 py-4 space-y-4">
         {/* METAR Weather */}
         <WeatherWidget />
 
@@ -545,19 +545,6 @@ const TurnaroundList: React.FC = () => {
                     })}
                   </TableBody>
                 </Table>
-                {hasMore && (
-                  <div className="p-4 flex justify-center border-t border-border">
-                    <Button
-                      variant="outline"
-                      onClick={loadMore}
-                      disabled={loadingMore}
-                      className="w-full sm:w-auto"
-                    >
-                      {loadingMore ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Cargar más escalas
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
           </CardContent>
