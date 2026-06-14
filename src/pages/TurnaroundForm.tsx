@@ -635,7 +635,7 @@ const TurnaroundForm: React.FC = () => {
             {!isRemote && tango && (
               <>
                 <span>|</span>
-                <span>T{tango}</span>
+                <span>{tango}</span>
               </>
             )}
             {matricula && (
