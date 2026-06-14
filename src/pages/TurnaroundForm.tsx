@@ -569,10 +569,13 @@ const TurnaroundForm: React.FC = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {!isEditing && (
-                <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="gap-1 shrink-0">
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Volver atrás</span>
-                </Button>
+                <button
+                  onClick={() => setStep(1)}
+                  className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  aria-label="Volver atrás"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
               )}
               {isEditing && (
                 <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
