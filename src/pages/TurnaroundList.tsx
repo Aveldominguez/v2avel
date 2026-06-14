@@ -379,7 +379,7 @@ const TurnaroundList: React.FC = () => {
         <WeatherWidget />
 
         {/* Search toggle + filters unified block */}
-        <Card className="border-0 shadow-none bg-transparent rounded-none overflow-hidden p-0">
+        <Card className="border-0 shadow-none bg-card rounded-none overflow-hidden p-0">
           {/* Toggle button as card header */}
           <button
             className={cn(
@@ -457,7 +457,7 @@ const TurnaroundList: React.FC = () => {
         </Card>
 
         {/* Results */}
-        <Card className="border-0 shadow-none bg-transparent rounded-none">
+        <Card className="border-0 shadow-none bg-card rounded-none">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between text-base">
               <span>Últimas escalas</span>

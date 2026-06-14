@@ -71,7 +71,7 @@ export function WeatherWidget() {
         </div>
       )}
 
-      <Card className="border-0 shadow-none bg-transparent rounded-none">
+      <Card className="border-0 shadow-none bg-card rounded-none">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
