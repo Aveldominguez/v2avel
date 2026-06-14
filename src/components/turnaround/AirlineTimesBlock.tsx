@@ -499,6 +499,21 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             )}
           </Card>
         )}
+
+        {/* LDM dialog */}
+        {showLdm && ldmRaw && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
+            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold font-mono">LDM</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
+              </div>
+              <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
+                {ldmRaw}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
