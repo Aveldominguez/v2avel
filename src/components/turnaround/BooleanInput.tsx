@@ -9,7 +9,6 @@ interface BooleanInputProps {
   label: string;
   className?: string;
   disabled?: boolean;
-  warning?: string;
   destination?: string;
   destinationLabel?: string;
 }
@@ -20,7 +19,6 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
   label,
   className,
   disabled = false,
-  warning,
   destination,
   destinationLabel = 'Destino',
 }) => {
@@ -46,14 +44,6 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
       {value && destination && (
         <div className="mt-1 rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wide bg-primary/15 text-primary border border-primary/40 text-center">
           {destinationLabel}: {destination}
-        </div>
-      )}
-      {value && warning && (
-        <div
-          className="mt-1 rounded-md p-2 text-[11px] font-semibold text-black leading-tight w-[calc(200%+1rem)] mr-[calc(-100%-1rem)] md:w-full md:mr-0 relative z-10"
-          style={{ backgroundColor: '#FFFF00' }}
-        >
-          {warning}
         </div>
       )}
     </div>
