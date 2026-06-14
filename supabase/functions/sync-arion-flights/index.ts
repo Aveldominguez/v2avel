@@ -182,8 +182,14 @@ serve(async (req) => {
           }),
         });
         if (!bodyResp.ok) return null;
-        const lines = await bodyResp.json();
-        return Array.isArray(lines) ? lines.join('\n') : null;
+        const j = await bodyResp.json().catch(() => null);
+        const lines: any[] = Array.isArray(j?.lines) ? j.lines : [];
+        if (lines.length === 0) return null;
+        return lines
+          .slice()
+          .sort((a: any, b: any) => (a.lineNumber ?? 0) - (b.lineNumber ?? 0))
+          .map((l: any) => l.data ?? '')
+          .join('\n');
       } catch {
         return null;
       }
