@@ -1,0 +1,1 @@
+ALTER TABLE public.scheduled_flights ADD COLUMN IF NOT EXISTS connection_sdt text;
