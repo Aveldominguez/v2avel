@@ -79,12 +79,14 @@ const TurnaroundForm: React.FC = () => {
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
 
-  // Fetch origin (arrival source) + home station + departure dest from ARION
+  // Fetch origin (arrival source) + home station + departure dest from ARION.
+  // If ARION has no row we keep whatever we hydrated from the saved turnaround
+  // so persisted info (origin/dest/home/LDM/logo) survives even if scheduled_flights is gone.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!flightNumber.trim() && !departureFlightNumber.trim()) {
-        setOriginStation(null); setDestStation(null); setHomeStation(null); setLdmRaw(null); setAirlineLogo(null); return;
+        return;
       }
       try {
         const { supabase } = await import('@/integrations/supabase/client');
@@ -101,15 +103,22 @@ const TurnaroundForm: React.FC = () => {
         if (cancelled || !data) return;
         const arrival = data.find((r: any) => r.flight_number === flightNumber.trim() && r.movement_type === 'A');
         const departure = data.find((r: any) => r.flight_number === departureFlightNumber.trim() && r.movement_type === 'D');
-        setOriginStation((arrival as any)?.source_station ?? null);
-        setDestStation((departure as any)?.source_station ?? null);
-        setHomeStation(((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null);
-        setLdmRaw((arrival as any)?.ldm_raw ?? null);
-        setAirlineLogo(((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null);
+        const arrOrigin = (arrival as any)?.source_station ?? null;
+        const depDest = (departure as any)?.source_station ?? null;
+        const home = ((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null;
+        const ldm = (arrival as any)?.ldm_raw ?? null;
+        const logo = ((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null;
+        // Keep previous value when ARION returns nothing (preserve persisted info)
+        if (arrOrigin !== null) setOriginStation(arrOrigin);
+        if (depDest !== null) setDestStation(depDest);
+        if (home !== null) setHomeStation(home);
+        if (ldm !== null) setLdmRaw(ldm);
+        if (logo !== null) setAirlineLogo(logo);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
   }, [flightNumber, departureFlightNumber, date]);
+
 
 
 
