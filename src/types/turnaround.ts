@@ -85,6 +85,11 @@ export interface TurnaroundTimes {
     a2: string;
     a3: string;
   };
+  originStation?: string | null;       // Estación origen del vuelo de llegada (ARION)
+  destStation?: string | null;         // Estación destino del vuelo de salida (ARION)
+  homeStation?: string | null;         // Estación local / base (ARION)
+  ldmRaw?: string | null;              // LDM bruto recibido de ARION
+  airlineLogo?: string | null;         // Logo aerolínea (data URL) recibido de ARION
 }
 
 export interface FieldDefinition {
