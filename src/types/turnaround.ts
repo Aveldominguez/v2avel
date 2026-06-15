@@ -462,7 +462,6 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): Tim
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
   'stairsTime',
-  'stairsRemovalArrival',
   'unloadingStart',
   'unloadingEnd',
   'firstBag',
