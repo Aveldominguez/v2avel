@@ -79,12 +79,14 @@ const TurnaroundForm: React.FC = () => {
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
 
-  // Fetch origin (arrival source) + home station + departure dest from ARION
+  // Fetch origin (arrival source) + home station + departure dest from ARION.
+  // If ARION has no row we keep whatever we hydrated from the saved turnaround
+  // so persisted info (origin/dest/home/LDM/logo) survives even if scheduled_flights is gone.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (!flightNumber.trim() && !departureFlightNumber.trim()) {
-        setOriginStation(null); setDestStation(null); setHomeStation(null); setLdmRaw(null); setAirlineLogo(null); return;
+        return;
       }
       try {
         const { supabase } = await import('@/integrations/supabase/client');
@@ -101,15 +103,22 @@ const TurnaroundForm: React.FC = () => {
         if (cancelled || !data) return;
         const arrival = data.find((r: any) => r.flight_number === flightNumber.trim() && r.movement_type === 'A');
         const departure = data.find((r: any) => r.flight_number === departureFlightNumber.trim() && r.movement_type === 'D');
-        setOriginStation((arrival as any)?.source_station ?? null);
-        setDestStation((departure as any)?.source_station ?? null);
-        setHomeStation(((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null);
-        setLdmRaw((arrival as any)?.ldm_raw ?? null);
-        setAirlineLogo(((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null);
+        const arrOrigin = (arrival as any)?.source_station ?? null;
+        const depDest = (departure as any)?.source_station ?? null;
+        const home = ((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null;
+        const ldm = (arrival as any)?.ldm_raw ?? null;
+        const logo = ((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null;
+        // Keep previous value when ARION returns nothing (preserve persisted info)
+        if (arrOrigin !== null) setOriginStation(arrOrigin);
+        if (depDest !== null) setDestStation(depDest);
+        if (home !== null) setHomeStation(home);
+        if (ldm !== null) setLdmRaw(ldm);
+        if (logo !== null) setAirlineLogo(logo);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
   }, [flightNumber, departureFlightNumber, date]);
+
 
 
 
@@ -173,6 +182,12 @@ const TurnaroundForm: React.FC = () => {
             setIncidentReport(existing.times.incidentReport || null);
             setEquipmentSelections(existing.times.equipment || []);
             setBodegasData(existing.times.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
+            // Hydrate ARION-derived info from saved record (will be refreshed if scheduled_flights still has data)
+            setOriginStation((existing.times as any).originStation ?? null);
+            setDestStation((existing.times as any).destStation ?? null);
+            setHomeStation((existing.times as any).homeStation ?? null);
+            setLdmRaw((existing.times as any).ldmRaw ?? null);
+            setAirlineLogo((existing.times as any).airlineLogo ?? null);
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
@@ -252,7 +267,13 @@ const TurnaroundForm: React.FC = () => {
     incidentReport,
     equipment: equipmentSelections,
     bodegasData,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
+    // ARION-derived info (persisted with the turnaround so it survives in PDFs/offline)
+    originStation: originStation || null,
+    destStation: destStation || null,
+    homeStation: homeStation || null,
+    ldmRaw: ldmRaw || null,
+    airlineLogo: airlineLogo || null,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo]);
 
   // --- Build current draft snapshot ---
   const buildDraft = useCallback((): TurnaroundDraft => ({
@@ -295,7 +316,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo]);
 
   // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
   useEffect(() => {
