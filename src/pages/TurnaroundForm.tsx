@@ -267,7 +267,13 @@ const TurnaroundForm: React.FC = () => {
     incidentReport,
     equipment: equipmentSelections,
     bodegasData,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData]);
+    // ARION-derived info (persisted with the turnaround so it survives in PDFs/offline)
+    originStation: originStation || null,
+    destStation: destStation || null,
+    homeStation: homeStation || null,
+    ldmRaw: ldmRaw || null,
+    airlineLogo: airlineLogo || null,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo]);
 
   // --- Build current draft snapshot ---
   const buildDraft = useCallback((): TurnaroundDraft => ({
