@@ -244,8 +244,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     <div class="header-left">
       <h1>✈️ Escala</h1>
       <div class="meta">
-        <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}</span>
-        <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}</span>
+        <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}${data.times.originStation && data.times.homeStation ? ` <span style="color:#555;">(${data.times.originStation} → ${data.times.homeStation})</span>` : ''}</span>
+        <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}${data.times.homeStation && data.times.destStation ? ` <span style="color:#555;">(${data.times.homeStation} → ${data.times.destStation})</span>` : ''}</span>
       </div>
       <div class="meta">
         <span><b>Aerolínea:</b> ${airlineInfo?.name || data.airline}</span>
@@ -258,7 +258,12 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
         ${data.isRemote ? `<span><b>🟠 Remoto:</b> ${data.remoteLocation || '—'}</span>` : ''}
       </div>
     </div>
+    ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}
   </div>
+
+  ${data.times.ldmRaw ? `
+  <h2>LDM</h2>
+  <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.ldmRaw.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>` : ''}
 
   <h2>Control de Horas</h2>
   <table class="data-table">
