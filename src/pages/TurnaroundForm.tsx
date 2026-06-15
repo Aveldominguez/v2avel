@@ -182,6 +182,12 @@ const TurnaroundForm: React.FC = () => {
             setIncidentReport(existing.times.incidentReport || null);
             setEquipmentSelections(existing.times.equipment || []);
             setBodegasData(existing.times.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
+            // Hydrate ARION-derived info from saved record (will be refreshed if scheduled_flights still has data)
+            setOriginStation((existing.times as any).originStation ?? null);
+            setDestStation((existing.times as any).destStation ?? null);
+            setHomeStation((existing.times as any).homeStation ?? null);
+            setLdmRaw((existing.times as any).ldmRaw ?? null);
+            setAirlineLogo((existing.times as any).airlineLogo ?? null);
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
