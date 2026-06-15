@@ -444,7 +444,14 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): Tim
     fields.splice(fields.length - 1, 0, { key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
   }
 
-  return applyTimeFieldOverrides(airline, fields, DEPARTURE_ONLY_KEYS as Set<string>);
+  // Restrict admin-override appended keys when not remote: gpuOff must only
+  // appear on remote parkings, regardless of airline-specific overrides.
+  const allowedKeys = new Set<string>(DEPARTURE_ONLY_KEYS as Set<string>);
+  if (!isRemote) allowedKeys.delete('gpuOff');
+
+  let result = applyTimeFieldOverrides(airline, fields, allowedKeys);
+  if (!isRemote) result = result.filter(f => f.key !== 'gpuOff');
+  return result;
 };
 
 // Fields to keep in "Sólo llegada" mode (arrival only)
