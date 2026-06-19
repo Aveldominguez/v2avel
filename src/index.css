@@ -214,10 +214,16 @@
 
 /* Mobile scroll lock — disable horizontal scroll and overscroll bounce */
 @layer base {
-  html, body {
+  html {
+    overflow-y: auto;
     overflow-x: hidden;
-    overscroll-behavior: none;
-    touch-action: pan-y;
+    overscroll-behavior-x: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
 
   #root {
