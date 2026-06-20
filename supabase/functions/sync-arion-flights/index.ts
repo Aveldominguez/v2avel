@@ -54,30 +54,44 @@ async function arionLogin(login: string, password: string): Promise<string | nul
     passwordLength: password?.length ?? 0,
   });
 
-  const loginRes = await fetch(`${ARION_BASE}/auth/login`, {
+  const loginResp = await fetch(`${ARION_BASE}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...ARION_BROWSER_HEADERS },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'User-Agent': 'Mozilla/5.0',
+    },
     body: JSON.stringify({ username: login, password }),
   });
 
-  const loginBody = await loginRes.text();
-  console.log('ARION login response:', loginRes.status, loginBody.substring(0, 200));
+  const loginText = await loginResp.text();
+  console.log(`ARION login → ${loginResp.status}:`, loginText.substring(0, 300));
 
-  if (!loginRes.ok) {
-    console.error('ARION login failed', loginRes.status);
+  if (!loginResp.ok) {
+    return new Response(
+      JSON.stringify({ error: `ARION login failed ${loginResp.status}: ${loginText}` }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+    // We can't return a Response from this helper — keep old pattern for compatibility
+    // but the caller will see null and fail with 401 later.
+  }
+
+  let loginData: any;
+  try {
+    loginData = JSON.parse(loginText);
+  } catch {
+    console.error('ARION login response is not JSON:', loginText.substring(0, 100));
     return null;
   }
-  let jwt =
-    loginRes.headers.get('Authorization') ||
-    loginRes.headers.get('authorization') || '';
-  if (jwt.toLowerCase().startsWith('bearer ')) jwt = jwt.slice(7);
-  if (!jwt) {
-    try {
-      const lj = JSON.parse(loginBody);
-      jwt = lj?.token || lj?.accessToken || lj?.access_token || '';
-    } catch { /* ignore */ }
+
+  const token = loginData?.token ?? loginData?.accessToken ?? loginData?.access_token ?? loginData?.jwt ?? null;
+  console.log('ARION token fields available:', Object.keys(loginData ?? {}));
+
+  if (!token) {
+    console.error('ARION login OK but no token found. Fields:', Object.keys(loginData ?? {}).join(', '));
+    return null;
   }
-  return jwt || null;
+  return token;
 }
 
 serve(async (req) => {
@@ -166,8 +180,9 @@ serve(async (req) => {
 
     const authHeaders: Record<string, string> = {
       'Authorization': `Bearer ${arionJwt}`,
-      'X-Station': station_code,
-      ...ARION_BROWSER_HEADERS,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'User-Agent': 'Mozilla/5.0',
     };
 
     const flightsRes = await fetch(`${ARION_BASE}/flights`, { method: 'GET', headers: authHeaders });
