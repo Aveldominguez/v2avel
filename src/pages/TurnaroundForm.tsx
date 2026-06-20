@@ -119,7 +119,7 @@ const TurnaroundForm: React.FC = () => {
         if (ldm !== null) setLdmRaw(ldm);
         if (logo !== null) setAirlineLogo(logo);
         if (sta !== null) setScheduledArrival(sta);
-        if (std !== null) setScheduledDeparture(std);
+        if (std !== null) setDepartureTime((prev) => prev || std);
 
       } catch { /* ignore */ }
     })();
