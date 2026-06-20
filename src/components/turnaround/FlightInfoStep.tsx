@@ -259,7 +259,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     supabase
       .from('scheduled_flights')
-      .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type')
+      .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd')
       .eq('flight_number', clean)
       .order('flight_date', { ascending: false })
       .limit(1)
@@ -289,6 +289,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         if (data.connection_sdt) {
           setScheduledStd(extractTime(data.connection_sdt));
           filled.add('scheduledStd');
+        }
+        // ETD — estimated departure time
+        if (data.etd) {
+          setScheduledEtd(extractTime(data.etd));
+          filled.add('scheduledEtd');
         }
         // Aircraft type fallback from ARION
         if (data.aircraft_type && !aircraftModel) {
