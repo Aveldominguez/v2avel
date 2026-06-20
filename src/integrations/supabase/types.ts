@@ -35,6 +35,30 @@ export type Database = {
         }
         Relationships: []
       }
+      arion_config: {
+        Row: {
+          id: string
+          password: string
+          updated_at: string
+          updated_by: string | null
+          username: string
+        }
+        Insert: {
+          id?: string
+          password: string
+          updated_at?: string
+          updated_by?: string | null
+          username: string
+        }
+        Update: {
+          id?: string
+          password?: string
+          updated_at?: string
+          updated_by?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       arion_credentials: {
         Row: {
           arion_last_sync: string | null

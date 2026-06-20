@@ -27,9 +27,9 @@ import {
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
   Download, Upload, Sparkles, RefreshCw, Settings,
 } from 'lucide-react';
-import { ArionSettingsDialog } from '@/components/ArionSettingsDialog';
-import { useArionSync } from '@/hooks/useArionSync';
+import { supabase } from '@/integrations/supabase/client';
 import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
+
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -68,17 +68,72 @@ const AdminPanel: React.FC = () => {
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const importFileRef = React.useRef<HTMLInputElement>(null);
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
-  const [arionDialogOpen, setArionDialogOpen] = useState(false);
-  const { status: arionStatus, lastSync: arionLastSync, syncing: arionSyncing, syncToday: arionSyncToday } = useArionSync();
+  const [arionUser, setArionUser] = useState('');
+  const [arionPass, setArionPass] = useState('');
+  const [arionSaving, setArionSaving] = useState(false);
+  const [arionSyncing, setArionSyncing] = useState(false);
+  const [arionConfigured, setArionConfigured] = useState(false);
+  const [arionUpdatedAt, setArionUpdatedAt] = useState<string | null>(null);
+  const [arionConfigId, setArionConfigId] = useState<string | null>(null);
+  const [lastArionSync, setLastArionSync] = useState<string | null>(null);
 
-  const handleArionSync = async () => {
-    const res = await arionSyncToday();
-    if (res) {
-      toast({ title: 'Sincronización completada', description: `${res.synced} vuelos actualizados.` });
-    } else {
-      toast({ title: 'Error al sincronizar', description: 'Revisa las credenciales ARION.', variant: 'destructive' });
+  useEffect(() => {
+    supabase
+      .from('arion_config')
+      .select('id, username, updated_at')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setArionConfigured(true);
+          setArionUpdatedAt(data.updated_at);
+          setArionConfigId(data.id);
+          setArionUser(data.username);
+        }
+      });
+  }, []);
+
+  const handleSaveArionCredentials = async () => {
+    if (!arionUser || !arionPass) return;
+    setArionSaving(true);
+    try {
+      const payload: any = { username: arionUser, password: arionPass, updated_by: user?.id };
+      if (arionConfigId) payload.id = arionConfigId;
+      const { data, error } = await supabase
+        .from('arion_config')
+        .upsert(payload, { onConflict: 'id' })
+        .select('id, updated_at')
+        .single();
+      if (error) throw error;
+      setArionConfigured(true);
+      setArionConfigId(data.id);
+      setArionUpdatedAt(data.updated_at);
+      setArionPass('');
+      toast({ title: 'Credenciales guardadas', description: 'Las credenciales ARION han sido guardadas.' });
+    } catch (err: any) {
+      toast({ title: 'Error al guardar', description: err.message, variant: 'destructive' });
+    } finally {
+      setArionSaving(false);
     }
   };
+
+  const handleArionSync = async () => {
+    setArionSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-arion-flights', {
+        body: { force: true },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setLastArionSync(new Date().toISOString());
+      toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
+    } catch (err: any) {
+      toast({ title: 'Error de sincronización', description: err.message ?? 'Revisa las credenciales ARION.', variant: 'destructive' });
+    } finally {
+      setArionSyncing(false);
+    }
+  };
+
 
   useEffect(() => {
     if (!loading && isAdmin) {
@@ -335,42 +390,78 @@ const AdminPanel: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              {arionStatus?.has_login ? (
-                <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1">
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  Conectado{arionStatus.arion_login ? ` — ${arionStatus.arion_login}` : ''}
-                </Badge>
+            <div className="flex items-center gap-2 flex-wrap text-sm">
+              {arionConfigured ? (
+                <>
+                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">Credenciales guardadas</span>
+                </>
               ) : (
-                <Badge variant="destructive" className="gap-1">
-                  <XCircle className="h-3.5 w-3.5" />
-                  No conectado
-                </Badge>
+                <>
+                  <XCircle className="h-4 w-4 text-destructive" />
+                  <span className="text-muted-foreground">Sin credenciales configuradas</span>
+                </>
               )}
-              {arionLastSync && (
-                <span className="text-xs text-muted-foreground">
-                  Última sincronización: {format(new Date(arionLastSync), 'dd/MM/yyyy HH:mm', { locale: es })}
+              {arionUpdatedAt && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  · Guardadas el {format(new Date(arionUpdatedAt), 'dd/MM/yyyy HH:mm', { locale: es })}
+                </span>
+              )}
+              {lastArionSync && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  · Última sync: {format(new Date(lastArionSync), 'dd/MM/yyyy HH:mm', { locale: es })}
                 </span>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Solo el administrador gestiona las credenciales de ARION. Los usuarios consumen los datos sincronizados sin necesidad de iniciar sesión.
+              Las credenciales se guardan cifradas en la base de datos. La función de sincronización inicia sesión en ARION en cada ejecución.
             </p>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => setArionDialogOpen(true)} className="gap-2">
-                <Settings className="h-4 w-4" />
-                {arionStatus?.has_login ? 'Reconectar / Editar credenciales' : 'Conectar ARION'}
-              </Button>
-              {arionStatus?.has_login && (
-                <Button onClick={handleArionSync} disabled={arionSyncing} variant="outline" className="gap-2">
+            <div className="grid gap-3 max-w-sm">
+              <div className="space-y-1">
+                <Label htmlFor="arion-user">Usuario ARION</Label>
+                <Input
+                  id="arion-user"
+                  type="text"
+                  placeholder="Usuario"
+                  value={arionUser}
+                  onChange={(e) => setArionUser(e.target.value)}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="arion-pass">Contraseña ARION</Label>
+                <Input
+                  id="arion-pass"
+                  type="password"
+                  placeholder={arionConfigured ? '•••••••• (introduce para cambiar)' : 'Contraseña'}
+                  value={arionPass}
+                  onChange={(e) => setArionPass(e.target.value)}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={handleSaveArionCredentials}
+                  disabled={arionSaving || !arionUser || !arionPass}
+                  className="gap-1.5"
+                >
+                  {arionSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                  Guardar credenciales
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleArionSync}
+                  disabled={arionSyncing || !arionConfigured}
+                  className="gap-1.5"
+                >
                   {arionSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   Sincronizar ahora
                 </Button>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
-        <ArionSettingsDialog open={arionDialogOpen} onOpenChange={setArionDialogOpen} />
+
 
 
         {/* Pending approvals */}

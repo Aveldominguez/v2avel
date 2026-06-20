@@ -94,13 +94,25 @@ serve(async (req) => {
     let station_code = 'MAD';
 
     if (isSystemSync) {
-      arionLoginName = Deno.env.get('ARION_SYSTEM_USER') ?? null;
-      arionPassword = Deno.env.get('ARION_SYSTEM_PASS') ?? null;
+      // Prefer credentials stored in DB (managed from admin panel). Fall back to env secrets.
+      const { data: cfg } = await admin
+        .from('arion_config')
+        .select('username, password')
+        .limit(1)
+        .maybeSingle();
+      if (cfg?.username && cfg?.password) {
+        arionLoginName = cfg.username;
+        arionPassword = cfg.password;
+      } else {
+        arionLoginName = Deno.env.get('ARION_SYSTEM_USER') ?? null;
+        arionPassword = Deno.env.get('ARION_SYSTEM_PASS') ?? null;
+      }
       station_code = (Deno.env.get('ARION_SYSTEM_STATION') ?? 'MAD').toUpperCase();
       if (!arionLoginName || !arionPassword) {
         return json({ error: 'missing_system_credentials' }, 500);
       }
     } else {
+
       // Per-user mode (legacy)
       const userClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
