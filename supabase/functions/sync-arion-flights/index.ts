@@ -280,10 +280,13 @@ serve(async (req) => {
         ...ARION_API_HEADERS,
       };
 
-      const flightsRes = await fetch(`${ARION_BASE}/flights`, { method: 'GET', headers: authHeaders });
+      const flightsUrl = `${ARION_BASE}/flights?date=${encodeURIComponent(flight_date_in)}&station=${encodeURIComponent(station_code)}`;
+      console.log('ARION flights GET:', flightsUrl);
+      const flightsRes = await fetch(flightsUrl, { method: 'GET', headers: authHeaders });
       if (!flightsRes.ok) {
-        console.error('ARION flights failed', flightsRes.status);
-        return json({ error: 'arion_flights_failed' }, 502);
+        const errBody = await flightsRes.text().catch(() => '');
+        console.error('ARION flights failed', flightsRes.status, errBody.substring(0, 500));
+        return json({ error: 'arion_flights_failed', status: flightsRes.status, detail: errBody.substring(0, 500), url: flightsUrl }, 502);
       }
       const flightsJson = await flightsRes.json().catch(() => null);
       if (!flightsJson) return json({ error: 'arion_flights_failed' }, 502);
