@@ -50,6 +50,8 @@ interface FlightInfoStepProps {
   setDepartureTime: (v: string | null) => void;
   scheduledArrival: string | null;
   setScheduledArrival: (v: string | null) => void;
+  scheduledDeparture: string | null;
+  setScheduledDeparture: (v: string | null) => void;
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;
@@ -84,6 +86,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setDepartureTime,
   scheduledArrival,
   setScheduledArrival,
+  scheduledDeparture,
+  setScheduledDeparture,
   isEditing = false,
   onContinue,
   onCancel,
@@ -237,14 +241,20 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     }
   }, [departureLookup.result, departureFlightNumber, applyLookupResult]);
 
-  // Secondary ARION fallback: query scheduled_flights directly (any date) for tango / departure flight / departure time
+  // Secondary ARION fallback: query scheduled_flights directly (any date) for tango / departure flight / times
+  const extractTime = (val: string | null): string | null => {
+    if (!val) return null;
+    const match = String(val).match(/(\d{2}:\d{2})$/);
+    return match ? match[1] : null;
+  };
+
   React.useEffect(() => {
     const clean = flightNumber.trim();
     if (clean.length < 4) return;
 
     supabase
       .from('scheduled_flights')
-      .select('parking_code, departure_fn, edt, scheduled_departure_time, scheduled_arrival_time')
+      .select('parking_code, departure_fn, edt, sdt')
       .eq('flight_number', clean)
       .order('flight_date', { ascending: false })
       .limit(1)
@@ -260,21 +270,15 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           setDepartureFlightNumber(String(data.departure_fn).trim().toUpperCase());
           filled.add('departureFlight');
         }
-        const depTime = (data as any).edt ?? (data as any).scheduled_departure_time ?? null;
-        if (depTime && !departureTime) {
-          const m = String(depTime).match(/(\d{2}:\d{2})/);
-          if (m) {
-            setDepartureTime(m[1]);
-            filled.add('departureTime');
-          }
+        const edtTime = extractTime((data as any).edt);
+        if (edtTime && !departureTime) {
+          setDepartureTime(edtTime);
+          filled.add('departureTime');
         }
-        const arrTime = (data as any).scheduled_arrival_time ?? null;
-        if (arrTime && !scheduledArrival) {
-          const m = String(arrTime).match(/(\d{2}:\d{2})/);
-          if (m) {
-            setScheduledArrival(m[1]);
-            filled.add('scheduledArrival');
-          }
+        const sdtTime = extractTime((data as any).sdt);
+        if (sdtTime) {
+          setScheduledDeparture(sdtTime);
+          filled.add('scheduledDeparture');
         }
         if (filled.size > 0) {
           setAutofilledFields((prev) => new Set([...prev, ...filled]));
