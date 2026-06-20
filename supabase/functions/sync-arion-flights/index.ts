@@ -50,12 +50,12 @@ function ddMmYyyyToIso(s: string): string {
 
 async function arionLogin(login: string, password: string): Promise<string | null> {
   console.log('Attempting ARION login:', {
-    url: `${ARION_BASE}/authenticate`,
+    url: `${ARION_BASE}/auth/login`,
     username: login,
     passwordLength: password?.length ?? 0,
   });
 
-  const loginResp = await fetch(`${ARION_BASE}/authenticate`, {
+  const loginResp = await fetch(`${ARION_BASE}/auth/login`, {
     method: 'POST',
     headers: ARION_HEADERS_BASE,
     body: JSON.stringify({ username: login, password }),
