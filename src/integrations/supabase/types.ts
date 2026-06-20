@@ -554,7 +554,7 @@ export type Database = {
           sdt: string | null
           source_station: string | null
           synced_at: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           adt?: string | null
@@ -579,7 +579,7 @@ export type Database = {
           sdt?: string | null
           source_station?: string | null
           synced_at?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           adt?: string | null
@@ -604,7 +604,7 @@ export type Database = {
           sdt?: string | null
           source_station?: string | null
           synced_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
