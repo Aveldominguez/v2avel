@@ -199,7 +199,7 @@ serve(async (req) => {
       username_length: arionLoginName?.trim().length ?? 0,
       password_length: arionPassword?.trim().length ?? 0,
       station_code,
-      station_allowed: (ALLOWED_STATIONS as readonly string[]).includes(station_code),
+      station_valid: STATION_REGEX.test(station_code),
       expected_config_fields: EXPECTED_CONFIG_FIELDS,
       login_headers: Object.keys(ARION_LOGIN_HEADERS),
       api_headers: Object.keys(ARION_API_HEADERS),
