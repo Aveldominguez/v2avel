@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useCatalog } from '@/hooks/useCatalog';
 import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, getAirlinePrefix, getCargoMailDestination } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
@@ -325,9 +326,33 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   onDepartureTimeChange,
   flightNumber = '',
   ldmRaw,
-  scheduledArrival,
-  scheduledDeparture,
+  scheduledArrival: propScheduledArrival,
+  scheduledDeparture: propScheduledDeparture,
 }) => {
+  const [scheduledArrival, setScheduledArrival] = React.useState<string | null>(propScheduledArrival ?? null);
+  const [scheduledDeparture, setScheduledDeparture] = React.useState<string | null>(propScheduledDeparture ?? null);
+
+  React.useEffect(() => {
+    if (!flightNumber || flightNumber.trim().length < 4) return;
+    supabase
+      .from('scheduled_flights')
+      .select('scheduled_arrival_time, scheduled_departure_time')
+      .eq('flight_number', flightNumber.trim())
+      .order('flight_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        if (data.scheduled_arrival_time) {
+          const match = String(data.scheduled_arrival_time).match(/(\d{2}:\d{2})/);
+          setScheduledArrival(match ? match[1] : null);
+        }
+        if (data.scheduled_departure_time) {
+          const match = String(data.scheduled_departure_time).match(/(\d{2}:\d{2})/);
+          setScheduledDeparture(match ? match[1] : null);
+        }
+      });
+  }, [flightNumber]);
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
