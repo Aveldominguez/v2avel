@@ -326,7 +326,6 @@ serve(async (req) => {
       }
 
       const cpmRowsAll: any[] = [];
-      const cpmFlightSns: number[] = [];
 
       const rows = await Promise.all(uniqueFlights
         .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
