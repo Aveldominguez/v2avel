@@ -515,65 +515,87 @@ const TurnaroundList: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table className="table-operational w-full table-fixed">
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-8 px-2"></TableHead>
-                      <TableHead className="px-2">Vuelo</TableHead>
-                      <TableHead className="px-2">Fecha</TableHead>
-                      <TableHead className="w-12 px-2"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((t) => {
-                      const status = getCompletionStatus(t);
+              <>
+                <div className="overflow-x-auto">
+                  <Table className="table-operational w-full table-fixed">
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-8 px-2"></TableHead>
+                        <TableHead className="px-2">Vuelo</TableHead>
+                        <TableHead className="px-2">Fecha</TableHead>
+                        <TableHead className="w-12 px-2"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rows.map((t) => {
+                        const status = getCompletionStatus(t);
 
-                      return (
-                        <TableRow key={t.id} className="hover:bg-secondary/30">
-                          <TableCell className="w-8 px-2">
-                            <Circle
-                              className={cn(
-                                'h-3.5 w-3.5',
-                                status === 'completed' && 'fill-success text-success',
-                                status === 'in-progress' && 'fill-warning text-warning',
-                                status === 'pending' && 'fill-muted text-muted-foreground'
-                              )}
-                            />
-                          </TableCell>
-                          <TableCell className="px-2">
-                            <button
-                              onClick={() => navigate(`/turnaround/${t.id}`)}
-                              className="font-mono font-bold text-base text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
-                            >
-                              {(t.times?.soloSalida && t.times?.departureFlightNumber) ? t.times.departureFlightNumber : t.flightNumber}
-                              {t.observations && t.observations.replace(/[\s\u200B\uFEFF\u00A0]/g, '').length > 0 && (
-                                <span className="text-destructive ml-0.5">*</span>
-                              )}
-                            </button>
-                          </TableCell>
-                          <TableCell className="px-2">
-                            <div className="flex items-center gap-1.5 text-sm">
-                              <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                              <span className="whitespace-nowrap">{formatDate(t.date)}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="w-12 px-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeleteId(t.id)}
-                              className="text-destructive hover:text-destructive h-8 w-8"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                        return (
+                          <TableRow key={t.id} className="hover:bg-secondary/30">
+                            <TableCell className="w-8 px-2">
+                              <Circle
+                                className={cn(
+                                  'h-3.5 w-3.5',
+                                  status === 'completed' && 'fill-success text-success',
+                                  status === 'in-progress' && 'fill-warning text-warning',
+                                  status === 'pending' && 'fill-muted text-muted-foreground'
+                                )}
+                              />
+                            </TableCell>
+                            <TableCell className="px-2">
+                              <button
+                                onClick={() => navigate(`/turnaround/${t.id}`)}
+                                className="font-mono font-bold text-base text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
+                              >
+                                {(t.times?.soloSalida && t.times?.departureFlightNumber) ? t.times.departureFlightNumber : t.flightNumber}
+                                {t.observations && t.observations.replace(/[\s\u200B\uFEFF\u00A0]/g, '').length > 0 && (
+                                  <span className="text-destructive ml-0.5">*</span>
+                                )}
+                              </button>
+                            </TableCell>
+                            <TableCell className="px-2">
+                              <div className="flex items-center gap-1.5 text-sm">
+                                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                <span className="whitespace-nowrap">{formatDate(t.date)}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="w-12 px-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setDeleteId(t.id)}
+                                className="text-destructive hover:text-destructive h-8 w-8"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Load more button */}
+                {hasMore && (
+                  <div className="flex justify-center py-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="gap-2"
+                    >
+                      {loadingMore ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                      {loadingMore ? 'Cargando...' : 'Ver más'}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
