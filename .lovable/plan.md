@@ -1,53 +1,30 @@
-## Problema
+## Diagnóstico
 
-La edge function `change-password` devuelve un genérico `"Error al cambiar contraseña"` con status 400, ocultando el motivo real (en este caso `weak_password` / `pwned` de HIBP). El frontend tampoco propaga el detalle, por eso solo se ve *"Edge Function returned a non-2xx status code"*.
+En `supabase/functions/sync-arion-flights/index.ts` el header `X-Station` está fijado a **`LEMD`** (código ICAO de Madrid) tanto en el login como en las llamadas autenticadas:
 
-## Solución (Opción A)
-
-Mantener activa la protección HIBP y mostrar el mensaje real, más añadir un medidor de fortaleza con sugerencias accionables al admin mientras escribe.
-
-### 1. `supabase/functions/change-password/index.ts`
-- En el `catch` del `updateUserById`, devolver el mensaje real de Supabase y mapear los códigos conocidos a texto en español:
-  - `weak_password` con `reasons: ["pwned"]` → "Esta contraseña aparece en filtraciones conocidas. Elige otra distinta."
-  - `weak_password` genérico → "Contraseña demasiado débil. Usa mayúsculas, números y símbolos."
-  - resto → el `error.message` original.
-- Devolver también `code` y `reasons` en el JSON para que el cliente pueda reaccionar.
-
-### 2. `src/hooks/useAdmin.ts` — `changePassword`
-- Cuando `supabase.functions.invoke` devuelve error, leer el body de respuesta (`error.context.response`) para extraer `error` real en lugar de quedarse con el genérico `"non-2xx status code"`. Lanzar `new Error(mensajeReal)`.
-
-### 3. `src/pages/AdminPanel.tsx` — diálogo "Cambiar contraseña"
-Añadir debajo del input un **indicador de fortaleza** en vivo con barra de color y lista de checks:
-
-```
-[████████░░] Fuerte
-✓ Al menos 8 caracteres
-✓ Una mayúscula
-✗ Un número      ← sugerencia: añade un número
-✗ Un símbolo (!@#$…)
+```ts
+// línea 29
+const ARION_HEADERS_BASE = {
+  ...
+  'X-Station': 'LEMD',
+};
 ```
 
-Reglas:
-- Mínimo 8 caracteres (subir desde 6 para alinear con HIBP y la edge function que ya valida >= 8).
-- Una minúscula, una mayúscula, un número, un símbolo.
-- Puntuación 0–5 → etiqueta: Muy débil / Débil / Aceptable / Buena / Fuerte.
-- Color de la barra: rojo → ámbar → verde según puntuación.
-- El botón "Cambiar Contraseña" se mantiene deshabilitado hasta cumplir las 4 reglas mínimas (no solo longitud), para que casi nunca llegue una contraseña débil al servidor.
-- Añadir botón "Generar contraseña segura" que crea una de 14 caracteres con los 4 tipos garantizados y la rellena en el input (se puede copiar/mostrar con un toggle ojo).
+Tienes razón en que ARION suele esperar el **código IATA** (`MAD`) y no el ICAO (`LEMD`). Si la estación no coincide con la que el usuario tiene asignada en ARION, el login devuelve 401 aunque las credenciales sean correctas — que es justo el síntoma que vemos.
 
-### 4. Sin cambios de seguridad
-- No se desactiva HIBP.
-- No se tocan RLS, secrets ni migraciones.
+## Plan
 
-## Detalles técnicos
+1. **Cambiar `X-Station` de `LEMD` a `MAD`** en `ARION_HEADERS_BASE` (línea 29). Eso aplica automáticamente al login y a todas las llamadas posteriores (lista de vuelos, detalle, telex), porque todas hacen spread de `ARION_HEADERS_BASE`.
 
-- El medidor vive como un pequeño componente local en `AdminPanel.tsx` (o `src/components/admin/PasswordStrength.tsx` si crece). Sin dependencias nuevas — lógica con regex.
-- El toggle mostrar/ocultar usa los iconos `Eye` / `EyeOff` de `lucide-react` (ya disponibles en el bundle).
-- El generador usa `crypto.getRandomValues` para aleatoriedad criptográfica.
+2. **Mantener el resto del flujo intacto** (logging, fallback de `username`/`login`, manejo de errores controlado a 200).
 
-## Archivos modificados
+3. **Desplegar** `sync-arion-flights` y disparar un sync manual desde el Admin Panel.
 
-- `supabase/functions/change-password/index.ts`
-- `src/hooks/useAdmin.ts`
-- `src/pages/AdminPanel.tsx`
-- `public/version.json` + `src/config/version.ts` (bump menor)
+4. **Revisar logs** de la Edge Function:
+   - Si el login devuelve 200 → problema resuelto, ARION aceptó `MAD`.
+   - Si sigue 401 con el mismo cuerpo de error → las credenciales realmente están mal y hay que re-guardarlas.
+   - Si devuelve otro error (p.ej. "station not allowed") → sabremos que la cuenta no tiene permiso sobre MAD y habrá que pedir alta.
+
+## Nota
+
+Si en el futuro hay que operar más de una base, conviene mover `X-Station` a una columna en `arion_config` (p.ej. `station_code text default 'MAD'`) en lugar de hard-codearlo. Pero eso lo dejamos para una segunda iteración una vez confirmemos que `MAD` desbloquea el login.
