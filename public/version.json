@@ -1,5 +1,5 @@
 {
-  "version": "3.140",
+  "version": "3.142",
   "changelog": [
     "ARION sync: extrae ETD del bloque departure y parsea telex CPM por vuelo de llegada en flight_cpm_data."
   ]
