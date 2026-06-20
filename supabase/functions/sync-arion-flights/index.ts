@@ -203,7 +203,40 @@ serve(async (req) => {
               detail?.departure?.std ??
               detail?.departure?.scheduledTime ??
               null;
+
+            // TEMP DEBUG — remove after confirming field names
+            console.log('ARION flight fields:', JSON.stringify({
+              sn: f.sn,
+              movementType: f.movementType,
+              allListFields: Object.keys(f),
+              allDetailFields: f.movementType === 'A'
+                ? Object.keys(detail?.arrival ?? {})
+                : Object.keys(detail?.departure ?? {}),
+              candidates: {
+                listLevel: {
+                  sta: f.sta,
+                  std: f.std,
+                  scheduledTime: f.scheduledTime,
+                  scheduledArrivalTime: f.scheduledArrivalTime,
+                  scheduledDepartureTime: f.scheduledDepartureTime,
+                },
+                detailArrival: {
+                  sta: detail?.arrival?.sta,
+                  std: detail?.arrival?.std,
+                  scheduledTime: detail?.arrival?.scheduledTime,
+                  scheduledArrivalTime: detail?.arrival?.scheduledArrivalTime,
+                },
+                detailDeparture: {
+                  sta: detail?.departure?.sta,
+                  std: detail?.departure?.std,
+                  scheduledTime: detail?.departure?.scheduledTime,
+                  scheduledDepartureTime: detail?.departure?.scheduledDepartureTime,
+                }
+              }
+            }));
+
             if (isArrival) {
+
               const telexList = Array.isArray(side?.telexMessages) ? side.telexMessages : [];
               const ldmRef = telexList.find((t: any) => String(t?.type ?? '').toUpperCase() === 'LDM');
               if (ldmRef) {
