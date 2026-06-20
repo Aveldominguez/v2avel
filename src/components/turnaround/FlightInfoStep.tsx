@@ -90,6 +90,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setScheduledArrival,
   scheduledEta,
   setScheduledEta,
+  scheduledStd,
+  setScheduledStd,
   isEditing = false,
   onContinue,
   onCancel,
@@ -200,14 +202,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       filled.add('matricula');
     }
 
-    // ARION extras: parking → tango (only if empty), edt → departureTime (only if empty)
+    // ARION extras: parking → tango (only if empty), departure flight number
     if (lookupResult.parkingCode && !tango && !isRemote) {
       setTango(lookupResult.parkingCode.toUpperCase().slice(0, 6));
       filled.add('tango');
-    }
-    if (lookupResult.edtHHmm && !departureTime) {
-      setDepartureTime(lookupResult.edtHHmm);
-      filled.add('departureTime');
     }
 
     // Departure flight number from ARION (cfn → departure_fn)
@@ -284,11 +282,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           setScheduledEta(etaTime);
           filled.add('scheduledEta');
         }
-        // STD — scheduled departure (used by countdown via departureTime)
+        // STD — scheduled departure (display only, separate from countdown departureTime)
         const stdTime = extractTime((data as any).connection_sdt);
-        if (stdTime && !departureTime) {
-          setDepartureTime(stdTime);
-          filled.add('departureTime');
+        if (stdTime) {
+          setScheduledStd(stdTime);
+          filled.add('scheduledStd');
         }
         // Aircraft type fallback from ARION
         const at = (data as any).aircraft_type;
