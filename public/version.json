@@ -1,5 +1,5 @@
 {
-  "version": "3.135",
+  "version": "3.136",
   "changelog": [
     "Fix píldora STD: ahora usa connection_sdt (STD) como valor independiente, separado de departureTime (cuenta atrás). Se elimina el mapeo incorrecto de edt (ETA) a departureTime."
   ]

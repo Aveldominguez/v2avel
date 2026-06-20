@@ -11,6 +11,7 @@ interface FlightLookupResult {
   registration: string | null;
   parkingCode: string | null;
   edtHHmm: string | null;
+  etdHHmm: string | null;
   departureFlight: string | null;
   originStation: string | null;
   ldmRaw: string | null;
