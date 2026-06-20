@@ -447,6 +447,22 @@ const AdminPanel: React.FC = () => {
                   autoComplete="new-password"
                 />
               </div>
+              <div className="space-y-1">
+                <Label htmlFor="arion-station">Estación / Base ARION (IATA)</Label>
+                <Input
+                  id="arion-station"
+                  type="text"
+                  maxLength={3}
+                  placeholder="MAD"
+                  value={arionStation}
+                  onChange={(e) => setArionStation(e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))}
+                  autoComplete="off"
+                  className="uppercase font-mono"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Código IATA de 3 letras (MAD, BCN, PMI, AGP, VLC...).
+                </p>
+              </div>
               <div className="flex gap-2 flex-wrap">
                 <Button
                   onClick={handleSaveArionCredentials}
