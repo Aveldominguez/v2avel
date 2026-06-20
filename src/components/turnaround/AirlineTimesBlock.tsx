@@ -601,6 +601,25 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             </div>
           </div>
         )}
+
+        {/* CPM dialog */}
+        {showCpm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
+            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold font-mono">CPM</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>
+              </div>
+              <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
+                {cpmLoading
+                  ? 'Cargando...'
+                  : (cpmLines && cpmLines.length > 0)
+                    ? cpmLines.join('\n')
+                    : 'Sin datos CPM para este vuelo'}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
