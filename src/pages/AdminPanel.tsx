@@ -68,6 +68,17 @@ const AdminPanel: React.FC = () => {
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const importFileRef = React.useRef<HTMLInputElement>(null);
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
+  const [arionDialogOpen, setArionDialogOpen] = useState(false);
+  const { status: arionStatus, lastSync: arionLastSync, syncing: arionSyncing, syncToday: arionSyncToday } = useArionSync();
+
+  const handleArionSync = async () => {
+    const res = await arionSyncToday();
+    if (res) {
+      toast({ title: 'Sincronización completada', description: `${res.synced} vuelos actualizados.` });
+    } else {
+      toast({ title: 'Error al sincronizar', description: 'Revisa las credenciales ARION.', variant: 'destructive' });
+    }
+  };
 
   useEffect(() => {
     if (!loading && isAdmin) {
