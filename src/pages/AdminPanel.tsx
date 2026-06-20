@@ -97,9 +97,14 @@ const AdminPanel: React.FC = () => {
 
   const handleSaveArionCredentials = async () => {
     if (!arionUser || !arionPass) return;
+    const station = (arionStation || 'MAD').trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(station)) {
+      toast({ title: 'Estación inválida', description: 'Debe ser un código IATA de 3 letras (ej: MAD, BCN).', variant: 'destructive' });
+      return;
+    }
     setArionSaving(true);
     try {
-      const payload: any = { username: arionUser, password: arionPass, updated_by: user?.id };
+      const payload: any = { username: arionUser, password: arionPass, station_code: station, updated_by: user?.id };
       if (arionConfigId) payload.id = arionConfigId;
       const { data, error } = await supabase
         .from('arion_config')
@@ -110,8 +115,9 @@ const AdminPanel: React.FC = () => {
       setArionConfigured(true);
       setArionConfigId(data.id);
       setArionUpdatedAt(data.updated_at);
+      setArionStation(station);
       setArionPass('');
-      toast({ title: 'Credenciales guardadas', description: 'Las credenciales ARION han sido guardadas.' });
+      toast({ title: 'Credenciales guardadas', description: `ARION configurado para estación ${station}.` });
     } catch (err: any) {
       toast({ title: 'Error al guardar', description: err.message, variant: 'destructive' });
     } finally {
