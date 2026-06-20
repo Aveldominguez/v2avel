@@ -223,6 +223,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       setDepartureFlightNumber(lookupResult.departureFlight);
       filled.add('departureFlight');
     }
+    // Auto-fill departure countdown field from ETD (fallback to STD)
+    if (!departureTime && lookupResult.edtHHmm) {
+      setDepartureTime(lookupResult.edtHHmm);
+      filled.add('departureTime');
+    }
 
     if (filled.size > 0) {
       setAutofilledFields((prev) => new Set([...prev, ...filled]));
@@ -298,6 +303,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         if (data.etd) {
           setScheduledEtd(extractTime(data.etd));
           filled.add('scheduledEtd');
+        }
+        // Auto-fill departure countdown field from ETD (fallback to STD)
+        if (!departureTime) {
+          const autoDepart = extractTime(data.etd) ?? extractTime(data.connection_sdt);
+          if (autoDepart) {
+            setDepartureTime(autoDepart);
+            filled.add('departureTime');
+          }
         }
         // Aircraft type fallback from ARION
         if (data.aircraft_type && !aircraftModel) {
