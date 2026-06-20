@@ -325,6 +325,8 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   onDepartureTimeChange,
   flightNumber = '',
   ldmRaw,
+  scheduledArrival,
+  scheduledDeparture,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
