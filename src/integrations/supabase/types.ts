@@ -488,6 +488,48 @@ export type Database = {
           },
         ]
       }
+      flight_cpm_data: {
+        Row: {
+          arrival_fn: string | null
+          container_id: string | null
+          content_code: string | null
+          created_at: string | null
+          flight_date: string
+          flight_sn: string
+          id: string
+          pieces: number | null
+          position: string | null
+          raw_line: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          arrival_fn?: string | null
+          container_id?: string | null
+          content_code?: string | null
+          created_at?: string | null
+          flight_date: string
+          flight_sn: string
+          id?: string
+          pieces?: number | null
+          position?: string | null
+          raw_line?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          arrival_fn?: string | null
+          container_id?: string | null
+          content_code?: string | null
+          created_at?: string | null
+          flight_date?: string
+          flight_sn?: string
+          id?: string
+          pieces?: number | null
+          position?: string | null
+          raw_line?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       pending_airlines: {
         Row: {
           cargo_arrival: string | null
@@ -567,6 +609,7 @@ export type Database = {
           connection_sdt: string | null
           departure_fn: string | null
           edt: string | null
+          etd: string | null
           flight_closed: boolean | null
           flight_date: string
           flight_number: string
@@ -592,6 +635,7 @@ export type Database = {
           connection_sdt?: string | null
           departure_fn?: string | null
           edt?: string | null
+          etd?: string | null
           flight_closed?: boolean | null
           flight_date: string
           flight_number: string
@@ -617,6 +661,7 @@ export type Database = {
           connection_sdt?: string | null
           departure_fn?: string | null
           edt?: string | null
+          etd?: string | null
           flight_closed?: boolean | null
           flight_date?: string
           flight_number?: string
