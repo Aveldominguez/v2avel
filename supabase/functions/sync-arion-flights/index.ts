@@ -26,7 +26,7 @@ const ARION_HEADERS_BASE = {
   'Referer': 'https://arion.aviapartner.aero/',
   'User-Agent':
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-  'X-Station': 'LEMD',
+  'X-Station': 'MAD',
 };
 
 function json(body: unknown, status = 200) {
