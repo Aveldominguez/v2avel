@@ -19,14 +19,21 @@ const corsHeaders = {
 };
 
 const ARION_BASE = 'https://api.aviapartner.aero/arion-services';
-const ARION_HEADERS_BASE = {
+const ARION_LOGIN_HEADERS = {
   'Content-Type': 'application/json',
-  'Accept': 'application/json',
+  'Accept': 'application/json, text/plain, */*',
+  'Origin': 'https://arion.aviapartner.aero',
+  'Referer': 'https://arion.aviapartner.aero/login',
+  'User-Agent':
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+};
+const ARION_API_HEADERS = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json, text/plain, */*',
   'Origin': 'https://arion.aviapartner.aero',
   'Referer': 'https://arion.aviapartner.aero/',
   'User-Agent':
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-  'X-Station': 'MAD',
 };
 
 function json(body: unknown, status = 200) {
@@ -62,14 +69,14 @@ async function arionLogin(login: string, password: string): Promise<string | nul
     console.log('Attempting ARION login:', {
       url,
       bodyFields: Object.keys(attempt.body),
-      headerFields: Object.keys(ARION_HEADERS_BASE),
+      headerFields: Object.keys(ARION_LOGIN_HEADERS),
       username: login,
       passwordLength: password?.length ?? 0,
     });
 
     const loginResp = await fetch(url, {
       method: 'POST',
-      headers: ARION_HEADERS_BASE,
+      headers: ARION_LOGIN_HEADERS,
       body: JSON.stringify(attempt.body),
     });
 
@@ -192,9 +199,8 @@ serve(async (req) => {
     }
 
     const authHeaders: Record<string, string> = {
-      ...ARION_HEADERS_BASE,
       'Authorization': `Bearer ${arionJwt}`,
-      'X-Station': 'MAD',
+      ...ARION_API_HEADERS,
     };
 
     const flightsRes = await fetch(`${ARION_BASE}/flights`, { method: 'GET', headers: authHeaders });
