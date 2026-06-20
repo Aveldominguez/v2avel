@@ -263,7 +263,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     supabase
       .from('scheduled_flights')
-      .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, sn')
+      .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd')
       .eq('flight_number', clean)
       .order('flight_date', { ascending: false })
       .limit(1)
