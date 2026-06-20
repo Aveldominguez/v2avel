@@ -135,7 +135,7 @@ serve(async (req) => {
       // Prefer credentials stored in DB (managed from admin panel). Fall back to env secrets.
       const { data: cfg } = await admin
         .from('arion_config')
-        .select('username, password')
+        .select('username, password, station_code')
         .limit(1)
         .maybeSingle();
       if (cfg?.username && cfg?.password) {
@@ -145,7 +145,7 @@ serve(async (req) => {
         arionLoginName = Deno.env.get('ARION_SYSTEM_USER') ?? null;
         arionPassword = Deno.env.get('ARION_SYSTEM_PASS') ?? null;
       }
-      station_code = (Deno.env.get('ARION_SYSTEM_STATION') ?? 'MAD').toUpperCase();
+      station_code = (cfg?.station_code || Deno.env.get('ARION_SYSTEM_STATION') || 'MAD').toUpperCase();
       if (!arionLoginName || !arionPassword) {
         return json({ error: 'missing_system_credentials' }, 500);
       }
