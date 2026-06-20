@@ -172,11 +172,9 @@ serve(async (req) => {
     if (!arionJwt) return json({ error: 'arion_auth_failed' }, 401);
 
     const authHeaders: Record<string, string> = {
+      ...ARION_HEADERS_BASE,
       'Authorization': `Bearer ${arionJwt}`,
-      'X-Station': station_code,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0',
+      'X-Station': 'LEMD',
     };
 
     const flightsRes = await fetch(`${ARION_BASE}/flights`, { method: 'GET', headers: authHeaders });
