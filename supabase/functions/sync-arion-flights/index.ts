@@ -19,8 +19,9 @@ const corsHeaders = {
 };
 
 const ARION_BASE = 'https://api.aviapartner.aero/arion-services';
-const ARION_BROWSER_HEADERS = {
-  'Accept': 'application/json, text/plain, */*',
+const ARION_HEADERS_BASE = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
   'Origin': 'https://arion.aviapartner.aero',
   'Referer': 'https://arion.aviapartner.aero/',
   'User-Agent':
@@ -56,11 +57,7 @@ async function arionLogin(login: string, password: string): Promise<string | nul
 
   const loginResp = await fetch(`${ARION_BASE}/auth/login`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0',
-    },
+    headers: ARION_HEADERS_BASE,
     body: JSON.stringify({ username: login, password }),
   });
 
@@ -175,11 +172,9 @@ serve(async (req) => {
     if (!arionJwt) return json({ error: 'arion_auth_failed' }, 401);
 
     const authHeaders: Record<string, string> = {
+      ...ARION_HEADERS_BASE,
       'Authorization': `Bearer ${arionJwt}`,
-      'X-Station': station_code,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0',
+      'X-Station': 'LEMD',
     };
 
     const flightsRes = await fetch(`${ARION_BASE}/flights`, { method: 'GET', headers: authHeaders });
