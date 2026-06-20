@@ -77,7 +77,7 @@ const TurnaroundForm: React.FC = () => {
   const [homeStation, setHomeStation] = useState<string | null>(null);
   const [ldmRaw, setLdmRaw] = useState<string | null>(null);
   const [scheduledArrival, setScheduledArrival] = useState<string | null>(null);
-  const [scheduledDeparture, setScheduledDeparture] = useState<string | null>(null);
+  const [scheduledEta, setScheduledEta] = useState<string | null>(null);
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
 
