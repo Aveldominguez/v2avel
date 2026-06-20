@@ -1,1 +1,6 @@
-{ "version": "3.173" }
+{
+  "version": "3.174",
+  "changelog": [
+    "Persistencia STA/ETA/STD/ETD, LDM y CPM en la escala. Visibles en consultas antiguas y en el PDF exportado."
+  ]
+}
