@@ -325,6 +325,9 @@ serve(async (req) => {
         }
       }
 
+      const cpmRowsAll: any[] = [];
+      const cpmFlightSns: number[] = [];
+
       const rows = await Promise.all(uniqueFlights
         .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
         .map(async (f) => {
@@ -333,6 +336,7 @@ serve(async (req) => {
           let airline_logo: string | null = null;
           let scheduled_arrival_time: string | null = null;
           let scheduled_departure_time: string | null = null;
+          let etd: string | null = null;
           try {
             const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
             if (detailResp.ok) {
@@ -349,6 +353,16 @@ serve(async (req) => {
                 detail?.departure?.std ??
                 detail?.departure?.scheduledTime ??
                 null;
+
+              // ETD: estimated time of departure (from the departure object on arrival flights, or self on departures)
+              const depObj = detail?.departure || detail?.departures?.[0] || (!isArrival ? side : null) || {};
+              etd =
+                depObj?.edt ??
+                depObj?.etd ??
+                depObj?.estimatedDepartureTime ??
+                depObj?.estimated_departure ??
+                null;
+
 
               // TEMP DEBUG — remove after confirming field names
               console.log('ARION flight fields:', JSON.stringify({
