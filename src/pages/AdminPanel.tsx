@@ -714,7 +714,7 @@ const AdminPanel: React.FC = () => {
       </Dialog>
 
       {/* Change password dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={() => { setPasswordDialog(null); setNewUserPassword(''); }}>
+      <Dialog open={!!passwordDialog} onOpenChange={() => { setPasswordDialog(null); setNewUserPassword(''); setShowNewPassword(false); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cambiar contraseña</DialogTitle>
@@ -725,13 +725,35 @@ const AdminPanel: React.FC = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="change-password">Nueva contraseña *</Label>
-              <Input
-                id="change-password"
-                type="password"
-                value={newUserPassword}
-                onChange={(e) => setNewUserPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-              />
+              <div className="relative">
+                <Input
+                  id="change-password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newUserPassword}
+                  onChange={(e) => setNewUserPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { setNewUserPassword(generateStrongPassword(14)); setShowNewPassword(true); }}
+                className="w-full gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generar contraseña segura
+              </Button>
+              <PasswordStrength password={newUserPassword} />
             </div>
             <Button
               onClick={async () => {
@@ -742,13 +764,14 @@ const AdminPanel: React.FC = () => {
                   toast({ title: 'Contraseña actualizada' });
                   setPasswordDialog(null);
                   setNewUserPassword('');
+                  setShowNewPassword(false);
                 } catch (err: any) {
                   toast({ title: 'Error', description: err.message, variant: 'destructive' });
                 } finally {
                   setPasswordLoading(false);
                 }
               }}
-              disabled={passwordLoading || newUserPassword.length < 6}
+              disabled={passwordLoading || !isPasswordStrong(evaluatePassword(newUserPassword))}
               className="w-full"
             >
               {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}
