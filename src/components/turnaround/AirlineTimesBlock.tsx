@@ -8,7 +8,7 @@ import { CountdownTimer } from './CountdownTimer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Plane } from 'lucide-react';
 
 const getDockLabel = (airline: AirlineCode, dockNum: number): string => {
   const term = (airline === 'FEDEX' || airline === 'AMAZON') ? 'Ristra' : 'Muelle';
@@ -29,6 +29,8 @@ interface AirlineTimesBlockProps {
   onDepartureTimeChange?: (value: string | null) => void;
   flightNumber?: string;
   ldmRaw?: string | null;
+  scheduledArrival?: string | null;
+  scheduledDeparture?: string | null;
 }
 
 // Shared field renderer
