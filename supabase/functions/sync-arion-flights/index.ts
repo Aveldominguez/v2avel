@@ -277,6 +277,7 @@ serve(async (req) => {
 
       const authHeaders: Record<string, string> = {
         'Authorization': `Bearer ${arionJwt}`,
+        'X-Station': station_code,
         ...ARION_API_HEADERS,
       };
 
