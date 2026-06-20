@@ -191,7 +191,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     // ARION extras: parking → tango (only if empty), edt → departureTime (only if empty)
     if (lookupResult.parkingCode && !tango && !isRemote) {
-      setTango(lookupResult.parkingCode.toUpperCase().slice(0, 4));
+      setTango(lookupResult.parkingCode.toUpperCase().slice(0, 6));
       filled.add('tango');
     }
     if (lookupResult.edtHHmm && !departureTime) {
@@ -568,10 +568,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   </div>
                   <Input
                     type="text"
-                    inputMode="numeric"
-                    maxLength={4}
+                    maxLength={6}
                     value={tango}
-                    onChange={(e) => setTango(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    onChange={(e) => setTango(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6))}
                     placeholder="Tango"
                     className={cn(
                       "input-operational font-mono transition-all",
