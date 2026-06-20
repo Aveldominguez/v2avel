@@ -402,7 +402,7 @@ const TurnaroundList: React.FC = () => {
             className="gap-1.5 text-xs"
           >
             {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-            {syncing ? 'Sincronizando...' : 'Actualizar ARION'}
+            {syncing ? 'Sincronizando...' : 'ACTUALIZAR BASE DE VUELOS'}
           </Button>
         </div>
 
