@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX IF NOT EXISTS scheduled_flights_system_unique ON public.scheduled_flights (flight_date, flight_number) WHERE user_id IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS scheduled_flights_user_unique ON public.scheduled_flights (user_id, flight_date, flight_number) WHERE user_id IS NOT NULL;
