@@ -733,7 +733,7 @@ const TurnaroundForm: React.FC = () => {
           ldmRaw={ldmRaw}
           scheduledArrival={scheduledArrival}
           scheduledEta={scheduledEta}
-          scheduledDeparture={scheduledStd}
+          scheduledStd={scheduledStd}
         />
 
 
