@@ -1,48 +1,53 @@
 ## Problema
 
-El botón LDM solo aparece en `FlightInfoStep` (pantalla inicial de "Nueva Escala"). Una vez creada la escala, esa pantalla desaparece y el formulario principal ("Control de Horas") no muestra el LDM en ningún sitio. Por eso EW9510 ya guardado no tiene botón.
+La edge function `change-password` devuelve un genérico `"Error al cambiar contraseña"` con status 400, ocultando el motivo real (en este caso `weak_password` / `pwned` de HIBP). El frontend tampoco propaga el detalle, por eso solo se ve *"Edge Function returned a non-2xx status code"*.
 
-## Solución
+## Solución (Opción A)
 
-Mover/duplicar el botón LDM al header del formulario principal (`src/pages/TurnaroundForm.tsx`), donde ya se muestra el vuelo, ruta, matrícula, etc. El LDM se lee directamente de `scheduled_flights.ldm_raw` cruzando por `flight_number + flight_date`.
+Mantener activa la protección HIBP y mostrar el mensaje real, más añadir un medidor de fortaleza con sugerencias accionables al admin mientras escribe.
 
-## Cambios
+### 1. `supabase/functions/change-password/index.ts`
+- En el `catch` del `updateUserById`, devolver el mensaje real de Supabase y mapear los códigos conocidos a texto en español:
+  - `weak_password` con `reasons: ["pwned"]` → "Esta contraseña aparece en filtraciones conocidas. Elige otra distinta."
+  - `weak_password` genérico → "Contraseña demasiado débil. Usa mayúsculas, números y símbolos."
+  - resto → el `error.message` original.
+- Devolver también `code` y `reasons` en el JSON para que el cliente pueda reaccionar.
 
-### `src/pages/TurnaroundForm.tsx`
+### 2. `src/hooks/useAdmin.ts` — `changePassword`
+- Cuando `supabase.functions.invoke` devuelve error, leer el body de respuesta (`error.context.response`) para extraer `error` real en lugar de quedarse con el genérico `"non-2xx status code"`. Lanzar `new Error(mensajeReal)`.
 
-1. Añadir estado `const [ldmRaw, setLdmRaw] = useState<string | null>(null);` y `const [showLdm, setShowLdm] = useState(false);`.
-2. Extender el `useEffect` existente (líneas 79-106) que ya consulta `scheduled_flights`: añadir `ldm_raw` al `.select(...)` y guardar `setLdmRaw((arrival as any)?.ldm_raw ?? null);`. Así cubre tanto creación como edición de escalas existentes.
-3. En el bottom row del header (líneas 603-653), añadir un botón LDM al final de la fila — solo visible cuando `ldmRaw` no es null:
-   ```tsx
-   {ldmRaw && (
-     <>
-       <span>|</span>
-       <Button
-         variant="outline"
-         size="sm"
-         className="h-7 text-xs font-mono border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
-         onClick={() => setShowLdm(true)}
-       >
-         LDM
-       </Button>
-     </>
-   )}
-   ```
-4. Añadir el `Dialog` al final del JSX (mismo formato que el de FlightInfoStep):
-   - Título: `LDM · {flightNumber}`
-   - `<pre>` monospace con `whitespace-pre-wrap` mostrando `ldmRaw` tal cual.
-5. Imports: añadir `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle` desde `@/components/ui/dialog`.
+### 3. `src/pages/AdminPanel.tsx` — diálogo "Cambiar contraseña"
+Añadir debajo del input un **indicador de fortaleza** en vivo con barra de color y lista de checks:
 
-### `src/components/turnaround/FlightInfoStep.tsx`
+```
+[████████░░] Fuerte
+✓ Al menos 8 caracteres
+✓ Una mayúscula
+✗ Un número      ← sugerencia: añade un número
+✗ Un símbolo (!@#$…)
+```
 
-Sin cambios. El botón actual sigue funcionando en la pantalla "Nueva Escala" para el caso recién buscado.
+Reglas:
+- Mínimo 8 caracteres (subir desde 6 para alinear con HIBP y la edge function que ya valida >= 8).
+- Una minúscula, una mayúscula, un número, un símbolo.
+- Puntuación 0–5 → etiqueta: Muy débil / Débil / Aceptable / Buena / Fuerte.
+- Color de la barra: rojo → ámbar → verde según puntuación.
+- El botón "Cambiar Contraseña" se mantiene deshabilitado hasta cumplir las 4 reglas mínimas (no solo longitud), para que casi nunca llegue una contraseña débil al servidor.
+- Añadir botón "Generar contraseña segura" que crea una de 14 caracteres con los 4 tipos garantizados y la rellena en el input (se puede copiar/mostrar con un toggle ojo).
 
-### Bump de versión
+### 4. Sin cambios de seguridad
+- No se desactiva HIBP.
+- No se tocan RLS, secrets ni migraciones.
 
-`public/version.json` y `src/config/version.ts` → `3.25` con changelog "LDM accesible también desde el control de horas".
+## Detalles técnicos
 
-## No cambiar
+- El medidor vive como un pequeño componente local en `AdminPanel.tsx` (o `src/components/admin/PasswordStrength.tsx` si crece). Sin dependencias nuevas — lógica con regex.
+- El toggle mostrar/ocultar usa los iconos `Eye` / `EyeOff` de `lucide-react` (ya disponibles en el bundle).
+- El generador usa `crypto.getRandomValues` para aleatoriedad criptográfica.
 
-- Edge function `sync-arion-flights` (ya guarda `ldm_raw` correctamente).
-- Esquema de base de datos (columna `ldm_raw` ya existe).
-- Lógica de autofill, cross-link arrival→departure, ni ningún otro componente.
+## Archivos modificados
+
+- `supabase/functions/change-password/index.ts`
+- `src/hooks/useAdmin.ts`
+- `src/pages/AdminPanel.tsx`
+- `public/version.json` + `src/config/version.ts` (bump menor)
