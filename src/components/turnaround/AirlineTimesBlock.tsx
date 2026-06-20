@@ -327,6 +327,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   flightNumber = '',
   ldmRaw,
   scheduledArrival,
+  scheduledEta,
   scheduledDeparture,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
