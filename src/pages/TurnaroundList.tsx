@@ -574,6 +574,26 @@ const TurnaroundList: React.FC = () => {
                   </TableBody>
                 </Table>
               </div>
+
+              {/* Load more button */}
+              {hasMore && (
+                <div className="flex justify-center py-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="gap-2"
+                  >
+                    {loadingMore ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                    {loadingMore ? 'Cargando...' : 'Ver más'}
+                  </Button>
+                </div>
+              )}
             )}
           </CardContent>
         </Card>
