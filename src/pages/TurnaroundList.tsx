@@ -57,9 +57,10 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
@@ -115,6 +116,8 @@ const TurnaroundList: React.FC = () => {
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
 
   // List state
   const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
@@ -273,6 +276,15 @@ const TurnaroundList: React.FC = () => {
     setSearchQuery('');
   };
 
+  const handleForceSync = async () => {
+    setSyncing(true);
+    try {
+      await supabase.functions.invoke('sync-arion-flights', { body: { force: true } });
+      setLastSync(new Date());
+    } catch {}
+    setSyncing(false);
+  };
+
   const getCompletionStatus = (t: Turnaround) => {
     const times = t.times;
     const hasArrival = times.chocksOnArrival;
@@ -377,6 +389,23 @@ const TurnaroundList: React.FC = () => {
       <main className="w-full py-4 space-y-4">
         {/* METAR Weather */}
         <WeatherWidget />
+
+        {/* ARION manual sync */}
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs text-muted-foreground">
+            {lastSync ? `Datos ARION actualizados ${formatDistanceToNow(lastSync, { locale: es, addSuffix: true })}` : 'Toca para sincronizar datos de vuelos'}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleForceSync}
+            disabled={syncing}
+            className="gap-1.5 text-xs"
+          >
+            {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            {syncing ? 'Sincronizando...' : 'Actualizar ARION'}
+          </Button>
+        </div>
 
         {/* Search toggle + filters unified block */}
         <Card className="border-0 shadow-none bg-card rounded-none overflow-hidden p-0">
