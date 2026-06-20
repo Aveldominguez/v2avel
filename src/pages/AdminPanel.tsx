@@ -70,6 +70,7 @@ const AdminPanel: React.FC = () => {
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
   const [arionUser, setArionUser] = useState('');
   const [arionPass, setArionPass] = useState('');
+  const [arionStation, setArionStation] = useState('MAD');
   const [arionSaving, setArionSaving] = useState(false);
   const [arionSyncing, setArionSyncing] = useState(false);
   const [arionConfigured, setArionConfigured] = useState(false);
@@ -80,7 +81,7 @@ const AdminPanel: React.FC = () => {
   useEffect(() => {
     supabase
       .from('arion_config')
-      .select('id, username, updated_at')
+      .select('id, username, station_code, updated_at')
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
@@ -89,15 +90,21 @@ const AdminPanel: React.FC = () => {
           setArionUpdatedAt(data.updated_at);
           setArionConfigId(data.id);
           setArionUser(data.username);
+          if ((data as any).station_code) setArionStation((data as any).station_code);
         }
       });
   }, []);
 
   const handleSaveArionCredentials = async () => {
     if (!arionUser || !arionPass) return;
+    const station = (arionStation || 'MAD').trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(station)) {
+      toast({ title: 'Estación inválida', description: 'Debe ser un código IATA de 3 letras (ej: MAD, BCN).', variant: 'destructive' });
+      return;
+    }
     setArionSaving(true);
     try {
-      const payload: any = { username: arionUser, password: arionPass, updated_by: user?.id };
+      const payload: any = { username: arionUser, password: arionPass, station_code: station, updated_by: user?.id };
       if (arionConfigId) payload.id = arionConfigId;
       const { data, error } = await supabase
         .from('arion_config')
@@ -108,8 +115,9 @@ const AdminPanel: React.FC = () => {
       setArionConfigured(true);
       setArionConfigId(data.id);
       setArionUpdatedAt(data.updated_at);
+      setArionStation(station);
       setArionPass('');
-      toast({ title: 'Credenciales guardadas', description: 'Las credenciales ARION han sido guardadas.' });
+      toast({ title: 'Credenciales guardadas', description: `ARION configurado para estación ${station}.` });
     } catch (err: any) {
       toast({ title: 'Error al guardar', description: err.message, variant: 'destructive' });
     } finally {
@@ -438,6 +446,22 @@ const AdminPanel: React.FC = () => {
                   onChange={(e) => setArionPass(e.target.value)}
                   autoComplete="new-password"
                 />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="arion-station">Estación / Base ARION (IATA)</Label>
+                <Input
+                  id="arion-station"
+                  type="text"
+                  maxLength={3}
+                  placeholder="MAD"
+                  value={arionStation}
+                  onChange={(e) => setArionStation(e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))}
+                  autoComplete="off"
+                  className="uppercase font-mono"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Código IATA de 3 letras (MAD, BCN, PMI, AGP, VLC...).
+                </p>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <Button

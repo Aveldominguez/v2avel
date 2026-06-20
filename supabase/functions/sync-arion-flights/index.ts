@@ -135,7 +135,7 @@ serve(async (req) => {
       // Prefer credentials stored in DB (managed from admin panel). Fall back to env secrets.
       const { data: cfg } = await admin
         .from('arion_config')
-        .select('username, password')
+        .select('username, password, station_code')
         .limit(1)
         .maybeSingle();
       if (cfg?.username && cfg?.password) {
@@ -145,7 +145,7 @@ serve(async (req) => {
         arionLoginName = Deno.env.get('ARION_SYSTEM_USER') ?? null;
         arionPassword = Deno.env.get('ARION_SYSTEM_PASS') ?? null;
       }
-      station_code = (Deno.env.get('ARION_SYSTEM_STATION') ?? 'MAD').toUpperCase();
+      station_code = (cfg?.station_code || Deno.env.get('ARION_SYSTEM_STATION') || 'MAD').toUpperCase();
       if (!arionLoginName || !arionPassword) {
         return json({ error: 'missing_system_credentials' }, 500);
       }
@@ -190,8 +190,8 @@ serve(async (req) => {
       : todayDdMmYyyy();
 
     // ---- Pre-flight validation: arion_config schema + station coherence ----
-    const EXPECTED_CONFIG_FIELDS = ['username', 'password'] as const;
-    const ALLOWED_STATIONS = ['MAD'] as const;
+    const EXPECTED_CONFIG_FIELDS = ['username', 'password', 'station_code'] as const;
+    const STATION_REGEX = /^[A-Z]{3}$/;
     const validation = {
       source: isSystemSync ? 'arion_config/env' : 'arion_credentials',
       username_present: Boolean(arionLoginName && arionLoginName.trim()),
@@ -199,7 +199,7 @@ serve(async (req) => {
       username_length: arionLoginName?.trim().length ?? 0,
       password_length: arionPassword?.trim().length ?? 0,
       station_code,
-      station_allowed: (ALLOWED_STATIONS as readonly string[]).includes(station_code),
+      station_valid: STATION_REGEX.test(station_code),
       expected_config_fields: EXPECTED_CONFIG_FIELDS,
       login_headers: Object.keys(ARION_LOGIN_HEADERS),
       api_headers: Object.keys(ARION_API_HEADERS),
@@ -243,13 +243,12 @@ serve(async (req) => {
       });
     }
 
-    if (!validation.station_allowed) {
+    if (!validation.station_valid) {
       return json({
         ok: false,
         error: 'arion_station_invalid',
         validation,
-        allowed: ALLOWED_STATIONS,
-        message: `La estación configurada (${station_code}) no coincide con las permitidas: ${ALLOWED_STATIONS.join(', ')}.`,
+        message: `La estación configurada (${station_code}) no es válida. Debe ser un código IATA de 3 letras (ej: MAD, BCN).`,
       });
     }
     // ---- End pre-flight validation ----

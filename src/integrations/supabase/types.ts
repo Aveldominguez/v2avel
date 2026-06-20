@@ -39,6 +39,7 @@ export type Database = {
         Row: {
           id: string
           password: string
+          station_code: string
           updated_at: string
           updated_by: string | null
           username: string
@@ -46,6 +47,7 @@ export type Database = {
         Insert: {
           id?: string
           password: string
+          station_code?: string
           updated_at?: string
           updated_by?: string | null
           username: string
@@ -53,6 +55,7 @@ export type Database = {
         Update: {
           id?: string
           password?: string
+          station_code?: string
           updated_at?: string
           updated_by?: string | null
           username?: string
