@@ -430,8 +430,30 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 />
               )}
             </CardTitle>
+            {(scheduledArrival || scheduledDeparture) && (
+              <div className="flex items-center gap-4 text-sm font-medium mt-1">
+                {scheduledArrival && (
+                  <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                    <Plane className="h-3.5 w-3.5" />
+                    <span className="text-muted-foreground text-xs">LLegada</span>
+                    <span>{scheduledArrival}</span>
+                  </span>
+                )}
+                {scheduledArrival && scheduledDeparture && (
+                  <span className="text-muted-foreground">|</span>
+                )}
+                {scheduledDeparture && (
+                  <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                    <Plane className="h-3.5 w-3.5 rotate-90" />
+                    <span className="text-muted-foreground text-xs">Salida</span>
+                    <span>{scheduledDeparture}</span>
+                  </span>
+                )}
+              </div>
+            )}
           </CardHeader>
         </Card>
+
 
         {/* Arrival block */}
         {filteredArrival.length > 0 && (
@@ -565,7 +587,29 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             />
           )}
         </CardTitle>
+        {(scheduledArrival || scheduledDeparture) && (
+          <div className="flex items-center gap-4 text-sm font-medium mt-1">
+            {scheduledArrival && (
+              <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                <Plane className="h-3.5 w-3.5" />
+                <span className="text-muted-foreground text-xs">LLegada</span>
+                <span>{scheduledArrival}</span>
+              </span>
+            )}
+            {scheduledArrival && scheduledDeparture && (
+              <span className="text-muted-foreground">|</span>
+            )}
+            {scheduledDeparture && (
+              <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                <Plane className="h-3.5 w-3.5 rotate-90" />
+                <span className="text-muted-foreground text-xs">Salida</span>
+                <span>{scheduledDeparture}</span>
+              </span>
+            )}
+          </div>
+        )}
       </CardHeader>
+
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {allFields.map((field) => (
