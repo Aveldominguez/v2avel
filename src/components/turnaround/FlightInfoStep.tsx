@@ -233,6 +233,44 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     }
   }, [departureLookup.result, departureFlightNumber, applyLookupResult]);
 
+  // Secondary ARION fallback: query scheduled_flights directly (any date) for tango / departure flight / departure time
+  React.useEffect(() => {
+    const clean = flightNumber.trim();
+    if (clean.length < 4) return;
+
+    supabase
+      .from('scheduled_flights')
+      .select('parking_code, departure_fn, edt, scheduled_departure_time')
+      .eq('flight_number', clean)
+      .order('flight_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const filled = new Set<string>();
+        if (data.parking_code && !tango && !isRemote) {
+          setTango(String(data.parking_code).toUpperCase().slice(0, 6));
+          filled.add('tango');
+        }
+        if (data.departure_fn && !departureFlightNumber.trim()) {
+          setDepartureFlightNumber(String(data.departure_fn).trim().toUpperCase());
+          filled.add('departureFlight');
+        }
+        const depTime = (data as any).edt ?? (data as any).scheduled_departure_time ?? null;
+        if (depTime && !departureTime) {
+          const m = String(depTime).match(/(\d{2}:\d{2})/);
+          if (m) {
+            setDepartureTime(m[1]);
+            filled.add('departureTime');
+          }
+        }
+        if (filled.size > 0) {
+          setAutofilledFields((prev) => new Set([...prev, ...filled]));
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flightNumber]);
+
 
 
   // Clear autofill markers when user manually edits a field
