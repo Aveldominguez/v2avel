@@ -335,6 +335,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   scheduledEta,
   scheduledStd,
   scheduledEtd,
+  flightDate,
 
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
