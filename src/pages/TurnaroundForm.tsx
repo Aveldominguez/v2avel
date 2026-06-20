@@ -746,7 +746,7 @@ const TurnaroundForm: React.FC = () => {
           scheduledEta={scheduledEta}
           scheduledStd={scheduledStd}
           scheduledEtd={scheduledEtd}
-          flightSn={flightSn}
+          flightDate={date}
         />
 
 
