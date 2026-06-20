@@ -30,6 +30,7 @@ interface AirlineTimesBlockProps {
   flightNumber?: string;
   ldmRaw?: string | null;
   scheduledArrival?: string | null;
+  scheduledEta?: string | null;
   scheduledDeparture?: string | null;
 }
 
@@ -326,6 +327,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   flightNumber = '',
   ldmRaw,
   scheduledArrival,
+  scheduledEta,
   scheduledDeparture,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
@@ -430,17 +432,24 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 />
               )}
             </CardTitle>
-            {/* EDT / SDT row */}
-            {scheduledDeparture && (
-              <div className="flex items-center gap-2 mt-2 text-xs font-mono">
-                {departureTime && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold">
-                    EDT {departureTime}
+            {/* STA / ETA / STD row */}
+            {(scheduledArrival || scheduledEta || scheduledDeparture) && (
+              <div className="flex items-center gap-2 flex-wrap mt-2 text-xs font-mono">
+                {scheduledArrival && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold">
+                    STA {scheduledArrival}
                   </span>
                 )}
-                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
-                  SDT {scheduledDeparture}
-                </span>
+                {scheduledEta && scheduledEta !== scheduledArrival && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold">
+                    ETA {scheduledEta}
+                  </span>
+                )}
+                {scheduledDeparture && (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
+                    STD {scheduledDeparture}
+                  </span>
+                )}
               </div>
             )}
 
@@ -580,17 +589,24 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             />
           )}
         </CardTitle>
-        {/* EDT / SDT row */}
-        {scheduledDeparture && (
-          <div className="flex items-center gap-2 mt-2 text-xs font-mono">
-            {departureTime && (
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold">
-                EDT {departureTime}
+        {/* STA / ETA / STD row */}
+        {(scheduledArrival || scheduledEta || scheduledDeparture) && (
+          <div className="flex items-center gap-2 flex-wrap mt-2 text-xs font-mono">
+            {scheduledArrival && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold">
+                STA {scheduledArrival}
               </span>
             )}
-            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
-              SDT {scheduledDeparture}
-            </span>
+            {scheduledEta && scheduledEta !== scheduledArrival && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold">
+                ETA {scheduledEta}
+              </span>
+            )}
+            {scheduledDeparture && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
+                STD {scheduledDeparture}
+              </span>
+            )}
           </div>
         )}
 

@@ -50,8 +50,8 @@ interface FlightInfoStepProps {
   setDepartureTime: (v: string | null) => void;
   scheduledArrival: string | null;
   setScheduledArrival: (v: string | null) => void;
-  scheduledDeparture: string | null;
-  setScheduledDeparture: (v: string | null) => void;
+  scheduledEta: string | null;
+  setScheduledEta: (v: string | null) => void;
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;
@@ -86,8 +86,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setDepartureTime,
   scheduledArrival,
   setScheduledArrival,
-  scheduledDeparture,
-  setScheduledDeparture,
+  scheduledEta,
+  setScheduledEta,
   isEditing = false,
   onContinue,
   onCancel,
@@ -254,7 +254,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     supabase
       .from('scheduled_flights')
-      .select('parking_code, departure_fn, edt, sdt')
+      .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type')
       .eq('flight_number', clean)
       .order('flight_date', { ascending: false })
       .limit(1)
@@ -270,15 +270,38 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           setDepartureFlightNumber(String(data.departure_fn).trim().toUpperCase());
           filled.add('departureFlight');
         }
-        const edtTime = extractTime((data as any).edt);
-        if (edtTime && !departureTime) {
-          setDepartureTime(edtTime);
+        // STA — scheduled arrival
+        const staTime = extractTime((data as any).sdt);
+        if (staTime) {
+          setScheduledArrival(staTime);
+          filled.add('scheduledArrival');
+        }
+        // ETA — estimated arrival
+        const etaTime = extractTime((data as any).edt);
+        if (etaTime) {
+          setScheduledEta(etaTime);
+          filled.add('scheduledEta');
+        }
+        // STD — scheduled departure (used by countdown via departureTime)
+        const stdTime = extractTime((data as any).connection_sdt);
+        if (stdTime && !departureTime) {
+          setDepartureTime(stdTime);
           filled.add('departureTime');
         }
-        const sdtTime = extractTime((data as any).sdt);
-        if (sdtTime) {
-          setScheduledDeparture(sdtTime);
-          filled.add('scheduledDeparture');
+        // Aircraft type fallback from ARION
+        const at = (data as any).aircraft_type;
+        if (at && !aircraftModel) {
+          const iataCode = String(at).toUpperCase();
+          const mappedModel = IATA_TO_MODEL[iataCode];
+          const airlineForLookup = (airline as AirlineCode) || undefined;
+          const currentModels = airlineForLookup ? getModelsForAirline(airlineForLookup) : [];
+          const match = currentModels.find(
+            (m) => m.model === mappedModel || m.model.toLowerCase() === iataCode.toLowerCase()
+          );
+          if (match) {
+            setAircraftModel(match.model);
+            filled.add('aircraftModel');
+          }
         }
         if (filled.size > 0) {
           setAutofilledFields((prev) => new Set([...prev, ...filled]));
