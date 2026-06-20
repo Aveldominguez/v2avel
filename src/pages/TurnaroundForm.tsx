@@ -549,6 +549,8 @@ const TurnaroundForm: React.FC = () => {
         setDepartureTime={setDepartureTime}
         scheduledArrival={scheduledArrival}
         setScheduledArrival={setScheduledArrival}
+        scheduledDeparture={scheduledDeparture}
+        setScheduledDeparture={setScheduledDeparture}
         isEditing={isEditing}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}

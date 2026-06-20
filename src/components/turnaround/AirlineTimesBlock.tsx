@@ -430,28 +430,19 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 />
               )}
             </CardTitle>
-            {/* STA / STD row */}
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                scheduledArrival
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-                  : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
-              }`}>
-                <PlaneLanding className="h-4 w-4 shrink-0" />
-                <span className="text-xs opacity-70 font-normal">STA</span>
-                <span className="font-bold tabular-nums">{scheduledArrival ?? '--:--'}</span>
+            {/* EDT / SDT row */}
+            {scheduledDeparture && (
+              <div className="flex items-center gap-2 mt-2 text-xs font-mono">
+                {departureTime && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold">
+                    EDT {departureTime}
+                  </span>
+                )}
+                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
+                  SDT {scheduledDeparture}
+                </span>
               </div>
-              <span className="text-muted-foreground/30 text-lg">|</span>
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                scheduledDeparture
-                  ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
-                  : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
-              }`}>
-                <PlaneTakeoff className="h-4 w-4 shrink-0" />
-                <span className="text-xs opacity-70 font-normal">STD</span>
-                <span className="font-bold tabular-nums">{scheduledDeparture ?? '--:--'}</span>
-              </div>
-            </div>
+            )}
 
           </CardHeader>
         </Card>
@@ -589,28 +580,19 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             />
           )}
         </CardTitle>
-        {/* STA / STD row */}
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
-            scheduledArrival
-              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-              : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
-          }`}>
-            <PlaneLanding className="h-4 w-4 shrink-0" />
-            <span className="text-xs opacity-70 font-normal">STA</span>
-            <span className="font-bold tabular-nums">{scheduledArrival ?? '--:--'}</span>
+        {/* EDT / SDT row */}
+        {scheduledDeparture && (
+          <div className="flex items-center gap-2 mt-2 text-xs font-mono">
+            {departureTime && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold">
+                EDT {departureTime}
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
+              SDT {scheduledDeparture}
+            </span>
           </div>
-          <span className="text-muted-foreground/30 text-lg">|</span>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
-            scheduledDeparture
-              ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
-              : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
-          }`}>
-            <PlaneTakeoff className="h-4 w-4 shrink-0" />
-            <span className="text-xs opacity-70 font-normal">STD</span>
-            <span className="font-bold tabular-nums">{scheduledDeparture ?? '--:--'}</span>
-          </div>
-        </div>
+        )}
 
       </CardHeader>
 
