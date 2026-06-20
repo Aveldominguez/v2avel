@@ -1,6 +1,6 @@
 {
-  "version": "3.89",
+  "version": "3.90",
   "changelog": [
-    "Logo de la aerolínea (sincronizado desde ARION) visible en la cabecera del Control de Horas."
+    "Sincronización ARION centralizada automática cada 20 minutos. Todos los usuarios aprobados ven los vuelos sin necesidad de credenciales propias."
   ]
 }
