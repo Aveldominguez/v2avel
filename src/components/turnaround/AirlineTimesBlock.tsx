@@ -487,7 +487,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             </CardTitle>
             {/* STA / ETA / STD row */}
             {(scheduledArrival || scheduledEta || scheduledStd || scheduledEtd) && (
-              <div className="flex items-center gap-0.5 overflow-x-auto flex-nowrap text-[13px] font-mono">
+              <div className="flex items-center justify-center gap-0.5 overflow-x-auto flex-nowrap w-full text-[13px] font-mono">
                 {scheduledArrival && (
                   <span className="shrink-0 px-1 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold whitespace-nowrap text-center">
                     STA {scheduledArrival}
