@@ -62,6 +62,7 @@ const AdminPanel: React.FC = () => {
   const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
   const [newUserPassword, setNewUserPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const importFileRef = React.useRef<HTMLInputElement>(null);
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
