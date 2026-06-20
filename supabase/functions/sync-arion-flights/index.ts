@@ -68,12 +68,8 @@ async function arionLogin(login: string, password: string): Promise<string | nul
   console.log(`ARION login → ${loginResp.status}:`, loginText.substring(0, 300));
 
   if (!loginResp.ok) {
-    return new Response(
-      JSON.stringify({ error: `ARION login failed ${loginResp.status}: ${loginText}` }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-    // We can't return a Response from this helper — keep old pattern for compatibility
-    // but the caller will see null and fail with 401 later.
+    console.error(`ARION login failed ${loginResp.status}:`, loginText);
+    return null;
   }
 
   let loginData: any;
