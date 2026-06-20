@@ -48,11 +48,21 @@ function ddMmYyyyToIso(s: string): string {
 }
 
 async function arionLogin(login: string, password: string): Promise<string | null> {
+  console.log('Attempting ARION login:', {
+    url: `${ARION_BASE}/auth/login`,
+    username: login,
+    passwordLength: password?.length ?? 0,
+  });
+
   const loginRes = await fetch(`${ARION_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...ARION_BROWSER_HEADERS },
-    body: JSON.stringify({ login, password }),
+    body: JSON.stringify({ username: login, password }),
   });
+
+  const loginBody = await loginRes.text();
+  console.log('ARION login response:', loginRes.status, loginBody.substring(0, 200));
+
   if (!loginRes.ok) {
     console.error('ARION login failed', loginRes.status);
     return null;
@@ -63,7 +73,7 @@ async function arionLogin(login: string, password: string): Promise<string | nul
   if (jwt.toLowerCase().startsWith('bearer ')) jwt = jwt.slice(7);
   if (!jwt) {
     try {
-      const lj = await loginRes.clone().json();
+      const lj = JSON.parse(loginBody);
       jwt = lj?.token || lj?.accessToken || lj?.access_token || '';
     } catch { /* ignore */ }
   }
