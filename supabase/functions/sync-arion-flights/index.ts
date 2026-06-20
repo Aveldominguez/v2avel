@@ -326,7 +326,6 @@ serve(async (req) => {
       }
 
       const cpmRowsAll: any[] = [];
-      const cpmFlightSns: number[] = [];
 
       const rows = await Promise.all(uniqueFlights
         .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
@@ -447,7 +446,6 @@ serve(async (req) => {
                       const cj = await cpmResp.json().catch(() => null);
                       const cpmLines: any[] = Array.isArray(cj?.lines) ? cj.lines : [];
                       if (cpmLines.length > 0) {
-                        cpmFlightSns.push(Number(f.sn));
                         for (const line of cpmLines) {
                           const data: string = line?.data ?? '';
                           cpmRowsAll.push({
@@ -522,19 +520,11 @@ serve(async (req) => {
         synced = count ?? rows.length;
       }
 
-      // CPM data: replace any existing rows for the flights we just processed, then bulk insert
-      if (cpmFlightSns.length > 0) {
-        const { error: cpmDelErr } = await admin
-          .from('flight_cpm_data')
-          .delete()
-          .eq('flight_date', isoDate)
-          .in('flight_sn', cpmFlightSns);
-        if (cpmDelErr) console.error('CPM delete error', cpmDelErr);
-      }
+      // CPM data: upsert with ignore duplicates on unique constraint
       if (cpmRowsAll.length > 0) {
         const { error: cpmInsErr } = await admin
           .from('flight_cpm_data')
-          .insert(cpmRowsAll);
+          .insert(cpmRowsAll, { onConflict: 'flight_sn,flight_date,raw_line', ignoreDuplicates: true });
         if (cpmInsErr) console.error('CPM insert error', cpmInsErr);
       }
 
