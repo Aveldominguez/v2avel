@@ -57,6 +57,10 @@ interface FlightInfoStepProps {
   scheduledEtd: string | null;
   setScheduledEtd: (v: string | null) => void;
 
+
+
+
+
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;

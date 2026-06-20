@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Plane } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 const getDockLabel = (airline: AirlineCode, dockNum: number): string => {
   const term = (airline === 'FEDEX' || airline === 'AMAZON') ? 'Ristra' : 'Muelle';
@@ -33,6 +35,7 @@ interface AirlineTimesBlockProps {
   scheduledEta?: string | null;
   scheduledStd?: string | null;
   scheduledEtd?: string | null;
+  flightDate?: Date;
 
 }
 
@@ -332,6 +335,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   scheduledEta,
   scheduledStd,
   scheduledEtd,
+  flightDate,
 
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
@@ -357,6 +361,30 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   // LDM dialog state
   const [showLdm, setShowLdm] = useState(false);
+
+  // CPM dialog state
+  const [showCpm, setShowCpm] = useState(false);
+  const [cpmLines, setCpmLines] = useState<string[] | null>(null);
+  const [cpmLoading, setCpmLoading] = useState(false);
+
+  const cleanFlightNumber = (flightNumber || '').trim().toUpperCase();
+  const flightDateIso = flightDate ? format(flightDate, 'yyyy-MM-dd') : null;
+  const cpmAvailable = !!cleanFlightNumber && !!flightDateIso;
+
+  const openCpm = async () => {
+    setShowCpm(true);
+    if (cpmLines !== null || !cpmAvailable) return;
+    setCpmLoading(true);
+    const { data } = await supabase
+      .from('flight_cpm_data')
+      .select('raw_line')
+      .eq('arrival_fn', cleanFlightNumber)
+      .eq('flight_date', flightDateIso!)
+      .order('id', { ascending: true });
+    setCpmLines((data || []).map((r: any) => r.raw_line ?? ''));
+    setCpmLoading(false);
+  };
+
 
   // Collapsible arrival/departure sections (split layout only)
   const [arrivalOpen, setArrivalOpen] = useState(true);
@@ -412,17 +440,30 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
               <div className="flex items-center justify-between gap-3 w-full">
                 <span className="shrink-0">Control de Horas ⏰</span>
-                {ldmRaw && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
-                    onClick={() => setShowLdm(true)}
-                  >
-                    VER LDM
-                  </Button>
-                )}
+                <div className="flex flex-col items-end gap-1">
+                  {ldmRaw && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
+                      onClick={() => setShowLdm(true)}
+                    >
+                      VER LDM
+                    </Button>
+                  )}
+                  {cpmAvailable && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
+                      onClick={openCpm}
+                    >
+                      VER CPM
+                    </Button>
+                  )}
+                </div>
               </div>
               {!soloLlegada && (
                 <CountdownTimer
@@ -560,6 +601,25 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             </div>
           </div>
         )}
+
+        {/* CPM dialog */}
+        {showCpm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
+            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold font-mono">CPM</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>
+              </div>
+              <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
+                {cpmLoading
+                  ? 'Cargando...'
+                  : (cpmLines && cpmLines.length > 0)
+                    ? cpmLines.join('\n')
+                    : 'Sin datos CPM para este vuelo'}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -574,17 +634,30 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
           <div className="flex items-center justify-between gap-3 w-full">
             <span className="shrink-0">Control de Horas ⏰</span>
-            {ldmRaw && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
-                onClick={() => setShowLdm(true)}
-              >
-                VER LDM
-              </Button>
-            )}
+            <div className="flex flex-col items-end gap-1">
+              {ldmRaw && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
+                  onClick={() => setShowLdm(true)}
+                >
+                  VER LDM
+                </Button>
+              )}
+              {cpmAvailable && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs font-bold tracking-wider border-amber-500 bg-amber-500/10 text-amber-600 hover:bg-transparent"
+                  onClick={openCpm}
+                >
+                  VER CPM
+                </Button>
+              )}
+            </div>
           </div>
           {!soloLlegada && (
             <CountdownTimer
@@ -639,6 +712,25 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             </div>
             <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
               {ldmRaw}
+            </pre>
+          </div>
+        </div>
+      )}
+
+      {/* CPM dialog */}
+      {showCpm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
+          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold font-mono">CPM</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>
+            </div>
+            <pre className="text-sm font-mono bg-muted p-4 rounded-lg whitespace-pre-wrap leading-relaxed overflow-auto max-h-96">
+              {cpmLoading
+                ? 'Cargando...'
+                : (cpmLines && cpmLines.length > 0)
+                  ? cpmLines.join('\n')
+                  : 'Sin datos CPM para este vuelo'}
             </pre>
           </div>
         </div>

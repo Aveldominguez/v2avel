@@ -564,6 +564,7 @@ const TurnaroundForm: React.FC = () => {
         setScheduledStd={setScheduledStd}
         scheduledEtd={scheduledEtd}
         setScheduledEtd={setScheduledEtd}
+        
         isEditing={isEditing}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
@@ -745,6 +746,7 @@ const TurnaroundForm: React.FC = () => {
           scheduledEta={scheduledEta}
           scheduledStd={scheduledStd}
           scheduledEtd={scheduledEtd}
+          flightDate={date}
         />
 
 

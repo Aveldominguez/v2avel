@@ -1,6 +1,6 @@
 {
-  "version": "3.143",
+  "version": "3.164",
   "changelog": [
-    "ARION sync: upsert CPM con onConflict ignoreDuplicates para evitar duplicados."
+    "Control de Horas: botón VER CPM junto a VER LDM, abre modal con datos CPM del vuelo."
   ]
 }
