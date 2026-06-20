@@ -1,0 +1,1 @@
+ALTER TABLE public.arion_config ADD COLUMN IF NOT EXISTS station_code text NOT NULL DEFAULT 'MAD';
