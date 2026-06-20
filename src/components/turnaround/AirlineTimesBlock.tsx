@@ -489,22 +489,22 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             {(scheduledArrival || scheduledEta || scheduledStd || scheduledEtd) && (
               <div className="flex items-center gap-0.5 overflow-x-auto flex-nowrap text-[13px] font-mono">
                 {scheduledArrival && (
-                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold whitespace-nowrap text-center">
                     STA {scheduledArrival}
                   </span>
                 )}
                 {scheduledEta && scheduledEta !== scheduledArrival && (
-                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold whitespace-nowrap text-center">
                     ETA {scheduledEta}
                   </span>
                 )}
                 {scheduledStd && (
-                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold whitespace-nowrap text-center">
                     STD {scheduledStd}
                   </span>
                 )}
                 {scheduledEtd && (
-                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold whitespace-nowrap text-center">
                     ETD {scheduledEtd}
                   </span>
                 )}
