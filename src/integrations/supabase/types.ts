@@ -549,6 +549,8 @@ export type Database = {
           movement_type: string | null
           parking_code: string | null
           registration: string | null
+          scheduled_arrival_time: string | null
+          scheduled_departure_time: string | null
           sdt: string | null
           source_station: string | null
           synced_at: string | null
@@ -572,6 +574,8 @@ export type Database = {
           movement_type?: string | null
           parking_code?: string | null
           registration?: string | null
+          scheduled_arrival_time?: string | null
+          scheduled_departure_time?: string | null
           sdt?: string | null
           source_station?: string | null
           synced_at?: string | null
@@ -595,6 +599,8 @@ export type Database = {
           movement_type?: string | null
           parking_code?: string | null
           registration?: string | null
+          scheduled_arrival_time?: string | null
+          scheduled_departure_time?: string | null
           sdt?: string | null
           source_station?: string | null
           synced_at?: string | null
