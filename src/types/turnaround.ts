@@ -90,6 +90,11 @@ export interface TurnaroundTimes {
   homeStation?: string | null;         // Estación local / base (ARION)
   ldmRaw?: string | null;              // LDM bruto recibido de ARION
   airlineLogo?: string | null;         // Logo aerolínea (data URL) recibido de ARION
+  scheduledArrival?: string | null;    // STA (HH:mm)
+  scheduledEta?: string | null;        // ETA (HH:mm)
+  scheduledStd?: string | null;        // STD (HH:mm)
+  scheduledEtd?: string | null;        // ETD (HH:mm)
+  cpmRawLines?: string[] | null;       // CPM raw lines snapshot (persistente)
 }
 
 export interface FieldDefinition {
