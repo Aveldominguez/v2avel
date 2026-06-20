@@ -23,10 +23,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye,
+  ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye, EyeOff,
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
-  Download, Upload,
+  Download, Upload, Sparkles,
 } from 'lucide-react';
+import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
