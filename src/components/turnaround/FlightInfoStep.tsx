@@ -52,6 +52,8 @@ interface FlightInfoStepProps {
   setScheduledArrival: (v: string | null) => void;
   scheduledEta: string | null;
   setScheduledEta: (v: string | null) => void;
+  scheduledStd: string | null;
+  setScheduledStd: (v: string | null) => void;
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;
