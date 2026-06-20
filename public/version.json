@@ -1,6 +1,6 @@
 {
-  "version": "3.136",
+  "version": "3.138",
   "changelog": [
-    "Fix píldora STD: ahora usa connection_sdt (STD) como valor independiente, separado de departureTime (cuenta atrás). Se elimina el mapeo incorrecto de edt (ETA) a departureTime."
+    "Fix ARION autofill: sdt→STA, edt→ETA, connection_sdt→STD. Elimina columnas vacías scheduled_arrival_time/scheduled_departure_time. Limpia campo muerto etdHHmm."
   ]
 }

@@ -241,11 +241,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     }
   }, [departureLookup.result, departureFlightNumber, applyLookupResult]);
 
-  // Secondary ARION fallback: query scheduled_flights directly (any date) for tango / departure flight / times
-  const extractTime = (val: string | null): string | null => {
+  const extractTime = (val: string | null | undefined): string | null => {
     if (!val) return null;
-    const match = String(val).match(/(\d{2}:\d{2})$/);
-    return match ? match[1] : null;
+    const m = String(val).match(/(\d{2}:\d{2})$/);
+    return m ? m[1] : null;
   };
 
   React.useEffect(() => {
@@ -271,36 +270,31 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           filled.add('departureFlight');
         }
         // STA — scheduled arrival
-        const staTime = extractTime((data as any).sdt);
-        if (staTime) {
-          setScheduledArrival(staTime);
+        if (data.sdt) {
+          setScheduledArrival(extractTime(data.sdt));
           filled.add('scheduledArrival');
         }
         // ETA — estimated arrival
-        const etaTime = extractTime((data as any).edt);
-        if (etaTime) {
-          setScheduledEta(etaTime);
+        if (data.edt) {
+          setScheduledEta(extractTime(data.edt));
           filled.add('scheduledEta');
         }
         // STD — scheduled departure (display only, separate from countdown departureTime)
-        const stdTime = extractTime((data as any).connection_sdt);
-        if (stdTime) {
-          setScheduledStd(stdTime);
+        if (data.connection_sdt) {
+          setScheduledStd(extractTime(data.connection_sdt));
           filled.add('scheduledStd');
         }
         // Aircraft type fallback from ARION
-        const at = (data as any).aircraft_type;
-        if (at && !aircraftModel) {
-          const iataCode = String(at).toUpperCase();
+        if (data.aircraft_type && !aircraftModel) {
+          const iataCode = String(data.aircraft_type).toUpperCase();
           const mappedModel = IATA_TO_MODEL[iataCode];
-          const airlineForLookup = (airline as AirlineCode) || undefined;
-          const currentModels = airlineForLookup ? getModelsForAirline(airlineForLookup) : [];
+          const currentModels = airline ? getModelsForAirline(airline as AirlineCode) : [];
           const match = currentModels.find(
-            (m) => m.model === mappedModel || m.model.toLowerCase() === iataCode.toLowerCase()
+            m => m.model === mappedModel || m.model.toLowerCase() === iataCode.toLowerCase()
           );
           if (match) {
             setAircraftModel(match.model);
-            filled.add('aircraftModel');
+            setAutofilledFields(prev => new Set(prev).add('aircraftModel'));
           }
         }
         if (filled.size > 0) {
