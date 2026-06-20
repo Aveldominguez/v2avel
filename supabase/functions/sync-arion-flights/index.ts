@@ -325,6 +325,9 @@ serve(async (req) => {
         }
       }
 
+      const cpmRowsAll: any[] = [];
+      const cpmFlightSns: number[] = [];
+
       const rows = await Promise.all(uniqueFlights
         .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
         .map(async (f) => {
@@ -333,6 +336,7 @@ serve(async (req) => {
           let airline_logo: string | null = null;
           let scheduled_arrival_time: string | null = null;
           let scheduled_departure_time: string | null = null;
+          let etd: string | null = null;
           try {
             const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
             if (detailResp.ok) {
@@ -349,6 +353,16 @@ serve(async (req) => {
                 detail?.departure?.std ??
                 detail?.departure?.scheduledTime ??
                 null;
+
+              // ETD: estimated time of departure (from the departure object on arrival flights, or self on departures)
+              const depObj = detail?.departure || detail?.departures?.[0] || (!isArrival ? side : null) || {};
+              etd =
+                depObj?.edt ??
+                depObj?.etd ??
+                depObj?.estimatedDepartureTime ??
+                depObj?.estimated_departure ??
+                null;
+
 
               // TEMP DEBUG — remove after confirming field names
               console.log('ARION flight fields:', JSON.stringify({
@@ -411,6 +425,44 @@ serve(async (req) => {
                     }
                   }
                 }
+
+                // CPM telex parsing — collect rows for bulk insert later
+                const cpmRef = telexList.find((t: any) => String(t?.type ?? '').toUpperCase() === 'CPM');
+                if (cpmRef) {
+                  try {
+                    const cpmResp = await fetch(`${ARION_BASE}/telex-messages/body`, {
+                      method: 'POST',
+                      headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        messageNumber: cpmRef.messageNumber,
+                        channel: cpmRef.channel,
+                        type: cpmRef.type,
+                        flightReference: cpmRef.flightReference,
+                        date: cpmRef.date,
+                        direction: cpmRef.direction,
+                        time: cpmRef.time,
+                      }),
+                    });
+                    if (cpmResp.ok) {
+                      const cj = await cpmResp.json().catch(() => null);
+                      const cpmLines: any[] = Array.isArray(cj?.lines) ? cj.lines : [];
+                      if (cpmLines.length > 0) {
+                        cpmFlightSns.push(Number(f.sn));
+                        for (const line of cpmLines) {
+                          const data: string = line?.data ?? '';
+                          cpmRowsAll.push({
+                            flight_sn: Number(f.sn),
+                            flight_date: isoDate,
+                            arrival_fn: String(f.fn).trim(),
+                            raw_line: data,
+                            container_id: data.match(/^([A-Z]{3}\d+[A-Z]{2})/)?.[1] ?? null,
+                            position: data.match(/\/([A-Z0-9]+)\//)?.[1] ?? null,
+                          });
+                        }
+                      }
+                    }
+                  } catch { /* ignore */ }
+                }
               }
             }
           } catch { /* ignore */ }
@@ -427,6 +479,7 @@ serve(async (req) => {
             edt: f.edt ?? null,
             adt: f.adt ?? null,
             sdt: f.sdt ?? null,
+            etd,
             movement_type: f.movementType ?? null,
             cancelled: Boolean(f.cancelled),
             flight_closed: Boolean(f.flightClosed),
@@ -440,6 +493,7 @@ serve(async (req) => {
             scheduled_departure_time,
             synced_at: nowIso,
           };
+
         }));
 
       let synced = 0;
@@ -467,6 +521,23 @@ serve(async (req) => {
         }
         synced = count ?? rows.length;
       }
+
+      // CPM data: replace any existing rows for the flights we just processed, then bulk insert
+      if (cpmFlightSns.length > 0) {
+        const { error: cpmDelErr } = await admin
+          .from('flight_cpm_data')
+          .delete()
+          .eq('flight_date', isoDate)
+          .in('flight_sn', cpmFlightSns);
+        if (cpmDelErr) console.error('CPM delete error', cpmDelErr);
+      }
+      if (cpmRowsAll.length > 0) {
+        const { error: cpmInsErr } = await admin
+          .from('flight_cpm_data')
+          .insert(cpmRowsAll);
+        if (cpmInsErr) console.error('CPM insert error', cpmInsErr);
+      }
+
 
 
 
