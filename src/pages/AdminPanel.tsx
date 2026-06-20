@@ -25,8 +25,10 @@ import { Label } from '@/components/ui/label';
 import {
   ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye, EyeOff,
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
-  Download, Upload, Sparkles,
+  Download, Upload, Sparkles, RefreshCw, Settings,
 } from 'lucide-react';
+import { ArionSettingsDialog } from '@/components/ArionSettingsDialog';
+import { useArionSync } from '@/hooks/useArionSync';
 import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -66,6 +68,17 @@ const AdminPanel: React.FC = () => {
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const importFileRef = React.useRef<HTMLInputElement>(null);
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
+  const [arionDialogOpen, setArionDialogOpen] = useState(false);
+  const { status: arionStatus, lastSync: arionLastSync, syncing: arionSyncing, syncToday: arionSyncToday } = useArionSync();
+
+  const handleArionSync = async () => {
+    const res = await arionSyncToday();
+    if (res) {
+      toast({ title: 'Sincronización completada', description: `${res.synced} vuelos actualizados.` });
+    } else {
+      toast({ title: 'Error al sincronizar', description: 'Revisa las credenciales ARION.', variant: 'destructive' });
+    }
+  };
 
   useEffect(() => {
     if (!loading && isAdmin) {
@@ -312,6 +325,53 @@ const AdminPanel: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* ARION Sync Management */}
+        <Card className="card-operational">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plane className="h-5 w-5" />
+              Sincronización ARION
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              {arionStatus?.has_login ? (
+                <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Conectado{arionStatus.arion_login ? ` — ${arionStatus.arion_login}` : ''}
+                </Badge>
+              ) : (
+                <Badge variant="destructive" className="gap-1">
+                  <XCircle className="h-3.5 w-3.5" />
+                  No conectado
+                </Badge>
+              )}
+              {arionLastSync && (
+                <span className="text-xs text-muted-foreground">
+                  Última sincronización: {format(new Date(arionLastSync), 'dd/MM/yyyy HH:mm', { locale: es })}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Solo el administrador gestiona las credenciales de ARION. Los usuarios consumen los datos sincronizados sin necesidad de iniciar sesión.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setArionDialogOpen(true)} className="gap-2">
+                <Settings className="h-4 w-4" />
+                {arionStatus?.has_login ? 'Reconectar / Editar credenciales' : 'Conectar ARION'}
+              </Button>
+              {arionStatus?.has_login && (
+                <Button onClick={handleArionSync} disabled={arionSyncing} variant="outline" className="gap-2">
+                  {arionSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  Sincronizar ahora
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <ArionSettingsDialog open={arionDialogOpen} onOpenChange={setArionDialogOpen} />
+
 
         {/* Pending approvals */}
         {pendingUsers.length > 0 && (

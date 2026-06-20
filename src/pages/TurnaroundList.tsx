@@ -64,7 +64,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
-import { ArionStatusControl } from '@/components/ArionStatusControl';
+
 import { WeatherWidget } from '@/components/WeatherWidget';
 
 const PAGE_SIZE = 4;
@@ -374,7 +374,6 @@ const TurnaroundList: React.FC = () => {
                 </Button>
               )}
               <div className="flex-1" />
-              <ArionStatusControl />
             </div>
 
             {/* FILA 3 — Acción principal */}
