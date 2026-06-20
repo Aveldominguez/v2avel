@@ -277,19 +277,29 @@ serve(async (req) => {
 
       const authHeaders: Record<string, string> = {
         'Authorization': `Bearer ${arionJwt}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/plain, */*',
+        'Origin': 'https://arion.aviapartner.aero',
+        'Referer': 'https://arion.aviapartner.aero/',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
         'X-Station': station_code,
-        ...ARION_API_HEADERS,
       };
 
-      const flightsUrl = `${ARION_BASE}/flights?date=${encodeURIComponent(flight_date_in)}&station=${encodeURIComponent(station_code)}`;
-      console.log('ARION flights GET:', flightsUrl);
+      const flightsUrl = `${ARION_BASE}/flights?date=${encodeURIComponent(flight_date_in)}`;
+      console.log('Fetching ARION flights:', flightsUrl, 'station:', station_code);
       const flightsRes = await fetch(flightsUrl, { method: 'GET', headers: authHeaders });
+      const flightsText = await flightsRes.text();
+      console.log('ARION flights response:', flightsRes.status, flightsText.substring(0, 300));
       if (!flightsRes.ok) {
-        const errBody = await flightsRes.text().catch(() => '');
-        console.error('ARION flights failed', flightsRes.status, errBody.substring(0, 500));
-        return json({ error: 'arion_flights_failed', status: flightsRes.status, detail: errBody.substring(0, 500), url: flightsUrl }, 502);
+        console.error('ARION flights failed', flightsRes.status, flightsText.substring(0, 500));
+        return json({ error: 'arion_flights_failed', status: flightsRes.status, detail: flightsText.substring(0, 500), url: flightsUrl }, 502);
       }
-      const flightsJson = await flightsRes.json().catch(() => null);
+      let flightsJson: any;
+      try {
+        flightsJson = JSON.parse(flightsText);
+      } catch {
+        return json({ error: 'arion_flights_failed', detail: flightsText.substring(0, 200) }, 502);
+      }
       if (!flightsJson) return json({ error: 'arion_flights_failed' }, 502);
 
       const arrivals: any[] = Array.isArray(flightsJson?.arrivals) ? flightsJson.arrivals : [];
