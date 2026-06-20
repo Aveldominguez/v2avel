@@ -194,7 +194,7 @@ serve(async (req) => {
     const authHeaders: Record<string, string> = {
       ...ARION_HEADERS_BASE,
       'Authorization': `Bearer ${arionJwt}`,
-      'X-Station': 'LEMD',
+      'X-Station': 'MAD',
     };
 
     const flightsRes = await fetch(`${ARION_BASE}/flights`, { method: 'GET', headers: authHeaders });
