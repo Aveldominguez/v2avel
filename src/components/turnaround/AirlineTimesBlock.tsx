@@ -35,6 +35,7 @@ interface AirlineTimesBlockProps {
   scheduledEta?: string | null;
   scheduledStd?: string | null;
   scheduledEtd?: string | null;
+  flightDate?: Date;
 
 }
 
