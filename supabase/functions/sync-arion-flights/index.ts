@@ -434,16 +434,28 @@ serve(async (req) => {
 
       let synced = 0;
       if (rows.length > 0) {
-        const onConflict = isSystemSync ? 'flight_date,flight_number' : 'user_id,flight_date,flight_number';
-        const { error: upErr, count } = await admin
+        // Manual upsert: delete existing rows for this date/scope, then insert.
+        // Avoids needing a base unique constraint (we use partial indexes).
+        const flightNumbers = rows.map((r) => r.flight_number);
+        let delQuery = admin
           .from('scheduled_flights')
-          .upsert(rows, { onConflict, ignoreDuplicates: false, count: 'exact' });
-        if (upErr) {
-          console.error('Upsert error', upErr);
-          return json({ error: 'db_error', detail: upErr.message }, 500);
+          .delete()
+          .eq('flight_date', isoDate)
+          .in('flight_number', flightNumbers);
+        delQuery = isSystemSync ? delQuery.is('user_id', null) : delQuery.eq('user_id', userId!);
+        const { error: delErr } = await delQuery;
+        if (delErr) {
+          console.error('Delete (pre-insert) error', delErr);
+          return json({ error: 'db_error', detail: delErr.message }, 500);
+        }
+        const { error: insErr, count } = await admin
+          .from('scheduled_flights')
+          .insert(rows, { count: 'exact' });
+        if (insErr) {
+          console.error('Insert error', insErr);
+          return json({ error: 'db_error', detail: insErr.message }, 500);
         }
         synced = count ?? rows.length;
-      }
 
       if (!isSystemSync && userId) {
         await admin
