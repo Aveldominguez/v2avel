@@ -294,7 +294,12 @@ serve(async (req) => {
         console.error('ARION flights failed', flightsRes.status, flightsText.substring(0, 500));
         return json({ error: 'arion_flights_failed', status: flightsRes.status, detail: flightsText.substring(0, 500), url: flightsUrl }, 502);
       }
-      const flightsJson = JSON.parse(flightsText);
+      let flightsJson: any;
+      try {
+        flightsJson = JSON.parse(flightsText);
+      } catch {
+        return json({ error: 'arion_flights_failed', detail: flightsText.substring(0, 200) }, 502);
+      }
       if (!flightsJson) return json({ error: 'arion_flights_failed' }, 502);
 
       const arrivals: any[] = Array.isArray(flightsJson?.arrivals) ? flightsJson.arrivals : [];
