@@ -27,9 +27,9 @@ import {
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
   Download, Upload, Sparkles, RefreshCw, Settings,
 } from 'lucide-react';
-import { ArionSettingsDialog } from '@/components/ArionSettingsDialog';
-import { useArionSync } from '@/hooks/useArionSync';
+import { supabase } from '@/integrations/supabase/client';
 import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
+
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
