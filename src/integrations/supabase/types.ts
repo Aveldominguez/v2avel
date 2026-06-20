@@ -497,6 +497,7 @@ export type Database = {
           flight_date: string
           flight_sn: string
           id: string
+          line_number: number | null
           pieces: number | null
           position: string | null
           raw_line: string | null
@@ -510,6 +511,7 @@ export type Database = {
           flight_date: string
           flight_sn: string
           id?: string
+          line_number?: number | null
           pieces?: number | null
           position?: string | null
           raw_line?: string | null
@@ -523,6 +525,7 @@ export type Database = {
           flight_date?: string
           flight_sn?: string
           id?: string
+          line_number?: number | null
           pieces?: number | null
           position?: string | null
           raw_line?: string | null
