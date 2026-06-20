@@ -430,27 +430,29 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 />
               )}
             </CardTitle>
-            {(scheduledArrival || scheduledDeparture) && (
-              <div className="flex items-center gap-4 text-sm font-medium mt-1">
-                {scheduledArrival && (
-                  <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
-                    <Plane className="h-3.5 w-3.5" />
-                    <span className="text-muted-foreground text-xs">LLegada</span>
-                    <span>{scheduledArrival}</span>
-                  </span>
-                )}
-                {scheduledArrival && scheduledDeparture && (
-                  <span className="text-muted-foreground">|</span>
-                )}
-                {scheduledDeparture && (
-                  <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
-                    <Plane className="h-3.5 w-3.5 rotate-90" />
-                    <span className="text-muted-foreground text-xs">Salida</span>
-                    <span>{scheduledDeparture}</span>
-                  </span>
-                )}
+            {/* STA / STD row */}
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                scheduledArrival
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                  : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
+              }`}>
+                <PlaneLanding className="h-4 w-4 shrink-0" />
+                <span className="text-xs opacity-70 font-normal">STA</span>
+                <span className="font-bold tabular-nums">{scheduledArrival ?? '--:--'}</span>
               </div>
-            )}
+              <span className="text-muted-foreground/30 text-lg">|</span>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                scheduledDeparture
+                  ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
+                  : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
+              }`}>
+                <PlaneTakeoff className="h-4 w-4 shrink-0" />
+                <span className="text-xs opacity-70 font-normal">STD</span>
+                <span className="font-bold tabular-nums">{scheduledDeparture ?? '--:--'}</span>
+              </div>
+            </div>
+
           </CardHeader>
         </Card>
 
@@ -587,27 +589,29 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             />
           )}
         </CardTitle>
-        {(scheduledArrival || scheduledDeparture) && (
-          <div className="flex items-center gap-4 text-sm font-medium mt-1">
-            {scheduledArrival && (
-              <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
-                <Plane className="h-3.5 w-3.5" />
-                <span className="text-muted-foreground text-xs">LLegada</span>
-                <span>{scheduledArrival}</span>
-              </span>
-            )}
-            {scheduledArrival && scheduledDeparture && (
-              <span className="text-muted-foreground">|</span>
-            )}
-            {scheduledDeparture && (
-              <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
-                <Plane className="h-3.5 w-3.5 rotate-90" />
-                <span className="text-muted-foreground text-xs">Salida</span>
-                <span>{scheduledDeparture}</span>
-              </span>
-            )}
+        {/* STA / STD row */}
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+            scheduledArrival
+              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+              : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
+          }`}>
+            <PlaneLanding className="h-4 w-4 shrink-0" />
+            <span className="text-xs opacity-70 font-normal">STA</span>
+            <span className="font-bold tabular-nums">{scheduledArrival ?? '--:--'}</span>
           </div>
-        )}
+          <span className="text-muted-foreground/30 text-lg">|</span>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+            scheduledDeparture
+              ? 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
+              : 'bg-muted/50 text-muted-foreground/50 border border-border/50'
+          }`}>
+            <PlaneTakeoff className="h-4 w-4 shrink-0" />
+            <span className="text-xs opacity-70 font-normal">STD</span>
+            <span className="font-bold tabular-nums">{scheduledDeparture ?? '--:--'}</span>
+          </div>
+        </div>
+
       </CardHeader>
 
       <CardContent>
