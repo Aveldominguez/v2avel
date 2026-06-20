@@ -446,7 +446,6 @@ serve(async (req) => {
                       const cj = await cpmResp.json().catch(() => null);
                       const cpmLines: any[] = Array.isArray(cj?.lines) ? cj.lines : [];
                       if (cpmLines.length > 0) {
-                        cpmFlightSns.push(Number(f.sn));
                         for (const line of cpmLines) {
                           const data: string = line?.data ?? '';
                           cpmRowsAll.push({
