@@ -1,6 +1,6 @@
 {
-  "version": "3.165",
+  "version": "3.166",
   "changelog": [
-    "Control de Horas: botón VER CPM junto a VER LDM, abre modal con datos CPM del vuelo."
+    "Sync ARION: CPM inserta line_number por cada línea. Visualizador CPM ordena por line_number."
   ]
 }

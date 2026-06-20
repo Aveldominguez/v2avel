@@ -380,7 +380,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       .select('raw_line')
       .eq('arrival_fn', cleanFlightNumber)
       .eq('flight_date', flightDateIso!)
-      .order('id', { ascending: true });
+      .order('line_number', { ascending: true });
     setCpmLines((data || []).map((r: any) => r.raw_line ?? ''));
     setCpmLoading(false);
   };

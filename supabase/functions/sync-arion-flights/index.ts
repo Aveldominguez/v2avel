@@ -446,12 +446,14 @@ serve(async (req) => {
                       const cj = await cpmResp.json().catch(() => null);
                       const cpmLines: any[] = Array.isArray(cj?.lines) ? cj.lines : [];
                       if (cpmLines.length > 0) {
-                        for (const line of cpmLines) {
+                        for (let idx = 0; idx < cpmLines.length; idx++) {
+                          const line = cpmLines[idx];
                           const data: string = line?.data ?? '';
                           cpmRowsAll.push({
                             flight_sn: Number(f.sn),
                             flight_date: isoDate,
                             arrival_fn: String(f.fn).trim(),
+                            line_number: line?.lineNumber ?? idx + 1,
                             raw_line: data,
                             container_id: data.match(/^([A-Z]{3}\d+[A-Z]{2})/)?.[1] ?? null,
                             position: data.match(/\/([A-Z0-9]+)\//)?.[1] ?? null,
