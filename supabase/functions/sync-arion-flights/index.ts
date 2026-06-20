@@ -243,13 +243,12 @@ serve(async (req) => {
       });
     }
 
-    if (!validation.station_allowed) {
+    if (!validation.station_valid) {
       return json({
         ok: false,
         error: 'arion_station_invalid',
         validation,
-        allowed: ALLOWED_STATIONS,
-        message: `La estación configurada (${station_code}) no coincide con las permitidas: ${ALLOWED_STATIONS.join(', ')}.`,
+        message: `La estación configurada (${station_code}) no es válida. Debe ser un código IATA de 3 letras (ej: MAD, BCN).`,
       });
     }
     // ---- End pre-flight validation ----
