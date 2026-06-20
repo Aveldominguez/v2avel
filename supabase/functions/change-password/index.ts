@@ -80,7 +80,17 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error("Error updating password:", updateError);
-      return new Response(JSON.stringify({ error: "Error al cambiar contraseña" }), {
+      const code = (updateError as any).code ?? null;
+      const reasons = (updateError as any).reasons ?? [];
+      let message = updateError.message || "Error al cambiar contraseña";
+      if (code === "weak_password") {
+        if (Array.isArray(reasons) && reasons.includes("pwned")) {
+          message = "Esta contraseña aparece en filtraciones conocidas. Elige otra distinta.";
+        } else {
+          message = "Contraseña demasiado débil. Usa mayúsculas, minúsculas, números y símbolos.";
+        }
+      }
+      return new Response(JSON.stringify({ error: message, code, reasons }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

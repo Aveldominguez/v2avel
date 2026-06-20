@@ -1,5 +1,5 @@
 {
-  "version": "3.90",
+  "version": "3.91",
   "changelog": [
     "Sincronización ARION centralizada automática cada 20 minutos. Todos los usuarios aprobados ven los vuelos sin necesidad de credenciales propias."
   ]
