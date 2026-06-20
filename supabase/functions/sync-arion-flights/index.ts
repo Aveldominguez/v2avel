@@ -190,8 +190,8 @@ serve(async (req) => {
       : todayDdMmYyyy();
 
     // ---- Pre-flight validation: arion_config schema + station coherence ----
-    const EXPECTED_CONFIG_FIELDS = ['username', 'password'] as const;
-    const ALLOWED_STATIONS = ['MAD'] as const;
+    const EXPECTED_CONFIG_FIELDS = ['username', 'password', 'station_code'] as const;
+    const STATION_REGEX = /^[A-Z]{3}$/;
     const validation = {
       source: isSystemSync ? 'arion_config/env' : 'arion_credentials',
       username_present: Boolean(arionLoginName && arionLoginName.trim()),
