@@ -51,7 +51,6 @@ function ddMmYyyyToIso(s: string): string {
 
 async function arionLogin(login: string, password: string): Promise<string | null> {
   const attempts = [
-    { path: '/authenticate', body: { username: login, password } },
     { path: '/auth/login', body: { username: login, password } },
     { path: '/auth/login', body: { login, password } },
   ];
