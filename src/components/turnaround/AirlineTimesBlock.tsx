@@ -31,7 +31,7 @@ interface AirlineTimesBlockProps {
   ldmRaw?: string | null;
   scheduledArrival?: string | null;
   scheduledEta?: string | null;
-  scheduledDeparture?: string | null;
+  scheduledStd?: string | null;
 }
 
 // Shared field renderer
