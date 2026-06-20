@@ -80,6 +80,7 @@ const TurnaroundForm: React.FC = () => {
   const [scheduledEta, setScheduledEta] = useState<string | null>(null);
   const [scheduledStd, setScheduledStd] = useState<string | null>(null);
   const [scheduledEtd, setScheduledEtd] = useState<string | null>(null);
+  const [flightSn, setFlightSn] = useState<string | null>(null);
 
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
