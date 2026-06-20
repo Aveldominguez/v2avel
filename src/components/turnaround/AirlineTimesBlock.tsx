@@ -436,7 +436,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       <div className="space-y-4">
         {/* Header with countdown */}
         <Card className="card-operational">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 px-3 sm:px-6">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
               <div className="flex items-center justify-between gap-3 w-full">
                 <span className="shrink-0">Control de Horas ⏰</span>
