@@ -76,6 +76,8 @@ const TurnaroundForm: React.FC = () => {
   const [destStation, setDestStation] = useState<string | null>(null);
   const [homeStation, setHomeStation] = useState<string | null>(null);
   const [ldmRaw, setLdmRaw] = useState<string | null>(null);
+  const [scheduledArrival, setScheduledArrival] = useState<string | null>(null);
+  const [scheduledDeparture, setScheduledDeparture] = useState<string | null>(null);
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
 
@@ -97,7 +99,7 @@ const TurnaroundForm: React.FC = () => {
         if (numbers.length === 0) return;
         const { data } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo')
+          .select('flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, scheduled_arrival_time, scheduled_departure_time')
           .in('flight_number', numbers)
           .eq('flight_date', dateStr);
         if (cancelled || !data) return;
@@ -108,12 +110,17 @@ const TurnaroundForm: React.FC = () => {
         const home = ((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null;
         const ldm = (arrival as any)?.ldm_raw ?? null;
         const logo = ((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null;
+        const sta = (arrival as any)?.scheduled_arrival_time ?? null;
+        const std = (departure as any)?.scheduled_departure_time ?? null;
         // Keep previous value when ARION returns nothing (preserve persisted info)
         if (arrOrigin !== null) setOriginStation(arrOrigin);
         if (depDest !== null) setDestStation(depDest);
         if (home !== null) setHomeStation(home);
         if (ldm !== null) setLdmRaw(ldm);
         if (logo !== null) setAirlineLogo(logo);
+        if (sta !== null) setScheduledArrival(sta);
+        if (std !== null) setScheduledDeparture(std);
+
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
@@ -717,7 +724,10 @@ const TurnaroundForm: React.FC = () => {
           onDepartureTimeChange={setDepartureTime}
           flightNumber={flightNumber}
           ldmRaw={ldmRaw}
+          scheduledArrival={scheduledArrival}
+          scheduledDeparture={scheduledDeparture}
         />
+
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
           <BodegasSection

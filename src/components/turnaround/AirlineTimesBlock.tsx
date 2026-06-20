@@ -8,7 +8,7 @@ import { CountdownTimer } from './CountdownTimer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Plane } from 'lucide-react';
 
 const getDockLabel = (airline: AirlineCode, dockNum: number): string => {
   const term = (airline === 'FEDEX' || airline === 'AMAZON') ? 'Ristra' : 'Muelle';
@@ -29,6 +29,8 @@ interface AirlineTimesBlockProps {
   onDepartureTimeChange?: (value: string | null) => void;
   flightNumber?: string;
   ldmRaw?: string | null;
+  scheduledArrival?: string | null;
+  scheduledDeparture?: string | null;
 }
 
 // Shared field renderer
@@ -323,6 +325,8 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   onDepartureTimeChange,
   flightNumber = '',
   ldmRaw,
+  scheduledArrival,
+  scheduledDeparture,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
@@ -426,8 +430,30 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 />
               )}
             </CardTitle>
+            {(scheduledArrival || scheduledDeparture) && (
+              <div className="flex items-center gap-4 text-sm font-medium mt-1">
+                {scheduledArrival && (
+                  <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                    <Plane className="h-3.5 w-3.5" />
+                    <span className="text-muted-foreground text-xs">LLegada</span>
+                    <span>{scheduledArrival}</span>
+                  </span>
+                )}
+                {scheduledArrival && scheduledDeparture && (
+                  <span className="text-muted-foreground">|</span>
+                )}
+                {scheduledDeparture && (
+                  <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                    <Plane className="h-3.5 w-3.5 rotate-90" />
+                    <span className="text-muted-foreground text-xs">Salida</span>
+                    <span>{scheduledDeparture}</span>
+                  </span>
+                )}
+              </div>
+            )}
           </CardHeader>
         </Card>
+
 
         {/* Arrival block */}
         {filteredArrival.length > 0 && (
@@ -561,7 +587,29 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             />
           )}
         </CardTitle>
+        {(scheduledArrival || scheduledDeparture) && (
+          <div className="flex items-center gap-4 text-sm font-medium mt-1">
+            {scheduledArrival && (
+              <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                <Plane className="h-3.5 w-3.5" />
+                <span className="text-muted-foreground text-xs">LLegada</span>
+                <span>{scheduledArrival}</span>
+              </span>
+            )}
+            {scheduledArrival && scheduledDeparture && (
+              <span className="text-muted-foreground">|</span>
+            )}
+            {scheduledDeparture && (
+              <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                <Plane className="h-3.5 w-3.5 rotate-90" />
+                <span className="text-muted-foreground text-xs">Salida</span>
+                <span>{scheduledDeparture}</span>
+              </span>
+            )}
+          </div>
+        )}
       </CardHeader>
+
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {allFields.map((field) => (

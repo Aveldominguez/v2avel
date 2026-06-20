@@ -208,12 +208,24 @@ serve(async (req) => {
         const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
         let ldm_raw: string | null = null;
         let airline_logo: string | null = null;
+        let scheduled_arrival_time: string | null = null;
+        let scheduled_departure_time: string | null = null;
         try {
           const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
           if (detailResp.ok) {
             const detail = await detailResp.json();
             const side = isArrival ? detail?.arrival : detail?.departure;
             airline_logo = side?.airlineLogo ?? null;
+            scheduled_arrival_time =
+              detail?.arrival?.scheduledArrivalTime ??
+              detail?.arrival?.sta ??
+              detail?.arrival?.scheduledTime ??
+              null;
+            scheduled_departure_time =
+              detail?.departure?.scheduledDepartureTime ??
+              detail?.departure?.std ??
+              detail?.departure?.scheduledTime ??
+              null;
             if (isArrival) {
               const telexList = Array.isArray(side?.telexMessages) ? side.telexMessages : [];
               const ldmRef = telexList.find((t: any) => String(t?.type ?? '').toUpperCase() === 'LDM');
@@ -268,9 +280,12 @@ serve(async (req) => {
         connection_sdt: f.connectionSdt ?? null,
         ldm_raw,
         airline_logo,
+        scheduled_arrival_time,
+        scheduled_departure_time,
         synced_at: nowIso,
         };
       }));
+
 
 
     let synced = 0;
