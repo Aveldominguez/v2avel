@@ -1,7 +1,7 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '3.89';
+export const APP_VERSION = '3.90';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Logo de la aerolínea (sincronizado desde ARION) visible en la cabecera del Control de Horas.',
+  'Sincronización ARION centralizada automática cada 20 minutos. Todos los usuarios aprobados ven los vuelos sin necesidad de credenciales propias.',
 ];
