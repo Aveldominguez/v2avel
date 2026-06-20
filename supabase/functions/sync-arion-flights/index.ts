@@ -183,8 +183,14 @@ serve(async (req) => {
       ? body.flight_date.trim()
       : todayDdMmYyyy();
 
-    const arionJwt = await arionLogin(arionLoginName!, arionPassword!);
-    if (!arionJwt) return json({ error: 'arion_auth_failed' }, 401);
+    const arionJwt = await arionLogin(arionLoginName!.trim(), arionPassword!.trim());
+    if (!arionJwt) {
+      return json({
+        ok: false,
+        error: 'arion_auth_failed',
+        message: 'ARION rechazó las credenciales guardadas. Revisa usuario/contraseña en el panel de administración.',
+      });
+    }
 
     const authHeaders: Record<string, string> = {
       ...ARION_HEADERS_BASE,
