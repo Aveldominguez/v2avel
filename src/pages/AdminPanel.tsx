@@ -70,6 +70,7 @@ const AdminPanel: React.FC = () => {
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
   const [arionUser, setArionUser] = useState('');
   const [arionPass, setArionPass] = useState('');
+  const [arionStation, setArionStation] = useState('MAD');
   const [arionSaving, setArionSaving] = useState(false);
   const [arionSyncing, setArionSyncing] = useState(false);
   const [arionConfigured, setArionConfigured] = useState(false);
@@ -80,7 +81,7 @@ const AdminPanel: React.FC = () => {
   useEffect(() => {
     supabase
       .from('arion_config')
-      .select('id, username, updated_at')
+      .select('id, username, station_code, updated_at')
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
@@ -89,6 +90,7 @@ const AdminPanel: React.FC = () => {
           setArionUpdatedAt(data.updated_at);
           setArionConfigId(data.id);
           setArionUser(data.username);
+          if ((data as any).station_code) setArionStation((data as any).station_code);
         }
       });
   }, []);
