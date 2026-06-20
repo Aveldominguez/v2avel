@@ -364,16 +364,18 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   // CPM dialog state
   const [showCpm, setShowCpm] = useState(false);
-  const [cpmLines, setCpmLines] = useState<string[] | null>(null);
+  const storedCpm = (times as any).cpmRawLines as string[] | null | undefined;
+  const [cpmLines, setCpmLines] = useState<string[] | null>(storedCpm && storedCpm.length > 0 ? storedCpm : null);
   const [cpmLoading, setCpmLoading] = useState(false);
 
   const cleanFlightNumber = (flightNumber || '').trim().toUpperCase();
   const flightDateIso = flightDate ? format(flightDate, 'yyyy-MM-dd') : null;
-  const cpmAvailable = !!cleanFlightNumber && !!flightDateIso;
+  const cpmFetchable = !!cleanFlightNumber && !!flightDateIso;
+  const cpmAvailable = cpmFetchable || (storedCpm && storedCpm.length > 0);
 
   const openCpm = async () => {
     setShowCpm(true);
-    if (cpmLines !== null || !cpmAvailable) return;
+    if (cpmLines !== null || !cpmFetchable) return;
     setCpmLoading(true);
     const { data } = await supabase
       .from('flight_cpm_data')
@@ -381,9 +383,15 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       .eq('arrival_fn', cleanFlightNumber)
       .eq('flight_date', flightDateIso!)
       .order('line_number', { ascending: true });
-    setCpmLines((data || []).map((r: any) => r.raw_line ?? ''));
+    const lines = (data || []).map((r: any) => r.raw_line ?? '');
+    setCpmLines(lines);
     setCpmLoading(false);
+    // Persist snapshot so it survives in the saved turnaround and in PDF exports
+    if (lines.length > 0) {
+      onChange({ ...times, cpmRawLines: lines } as TurnaroundTimes);
+    }
   };
+
 
 
   // Collapsible arrival/departure sections (split layout only)

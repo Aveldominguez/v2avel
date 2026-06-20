@@ -261,14 +261,29 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}
   </div>
 
+
+  ${(data.times.scheduledArrival || data.times.scheduledEta || data.times.scheduledStd || data.times.scheduledEtd) ? `
+  <h2>Horarios Programados</h2>
+  <table class="data-table">
+    ${data.times.scheduledArrival ? `<tr><td>STA (Programada Llegada)</td><td>${data.times.scheduledArrival}</td></tr>` : ''}
+    ${data.times.scheduledEta ? `<tr><td>ETA (Estimada Llegada)</td><td>${data.times.scheduledEta}</td></tr>` : ''}
+    ${data.times.scheduledStd ? `<tr><td>STD (Programada Salida)</td><td>${data.times.scheduledStd}</td></tr>` : ''}
+    ${data.times.scheduledEtd ? `<tr><td>ETD (Estimada Salida)</td><td>${data.times.scheduledEtd}</td></tr>` : ''}
+  </table>` : ''}
+
   ${data.times.ldmRaw ? `
   <h2>LDM</h2>
   <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.ldmRaw.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>` : ''}
+
+  ${(data.times.cpmRawLines && data.times.cpmRawLines.length > 0) ? `
+  <h2>CPM</h2>
+  <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.cpmRawLines.join('\n').replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>` : ''}
 
   <h2>Control de Horas</h2>
   <table class="data-table">
     ${timesRows}
   </table>
+
 
   ${compartmentsHtml ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
 

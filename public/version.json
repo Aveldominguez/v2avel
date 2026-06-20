@@ -1,6 +1,6 @@
 {
-  "version": "3.172",
+  "version": "3.174",
   "changelog": [
-    "Sync ARION: CPM inserta line_number por cada línea. Visualizador CPM ordena por line_number."
+    "Persistencia STA/ETA/STD/ETD, LDM y CPM en la escala. Visibles en consultas antiguas y en el PDF exportado."
   ]
 }

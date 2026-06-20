@@ -204,6 +204,10 @@ const TurnaroundForm: React.FC = () => {
             setHomeStation((existing.times as any).homeStation ?? null);
             setLdmRaw((existing.times as any).ldmRaw ?? null);
             setAirlineLogo((existing.times as any).airlineLogo ?? null);
+            setScheduledArrival((existing.times as any).scheduledArrival ?? null);
+            setScheduledEta((existing.times as any).scheduledEta ?? null);
+            setScheduledStd((existing.times as any).scheduledStd ?? null);
+            setScheduledEtd((existing.times as any).scheduledEtd ?? null);
             setLastSaved(existing.updatedAt);
           } else if (draft) {
             applyDraft(draft);
@@ -289,7 +293,13 @@ const TurnaroundForm: React.FC = () => {
     homeStation: homeStation || null,
     ldmRaw: ldmRaw || null,
     airlineLogo: airlineLogo || null,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo]);
+    scheduledArrival: scheduledArrival || (times as any).scheduledArrival || null,
+    scheduledEta: scheduledEta || (times as any).scheduledEta || null,
+    scheduledStd: scheduledStd || (times as any).scheduledStd || null,
+    scheduledEtd: scheduledEtd || (times as any).scheduledEtd || null,
+    // CPM snapshot survives in 'times' (set by AirlineTimesBlock when CPM is opened)
+    cpmRawLines: (times as any).cpmRawLines ?? null,
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   // --- Build current draft snapshot ---
   const buildDraft = useCallback((): TurnaroundDraft => ({
@@ -332,7 +342,7 @@ const TurnaroundForm: React.FC = () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
   useEffect(() => {
