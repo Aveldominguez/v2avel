@@ -75,10 +75,10 @@ export function WeatherWidget() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm">METAR · LEMD</span>
+              <span className="font-bold text-sm">METAR · LEMD (MAD)</span>
               {weather && (
                 <span className="text-xs text-muted-foreground font-mono">
-                  {weather.obsTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} UTC
+                  ULTIMA ACTUALIZACION {weather.obsTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} UTC
                 </span>
               )}
             </div>
@@ -101,10 +101,10 @@ export function WeatherWidget() {
                   <div className="flex-1">
                     <span className="font-bold">
                       {weather.windVariable
-                        ? `VRB ${weather.windSpeed} kt (${Math.round(weather.windSpeed * 1.852)} km/h)`
+                        ? `VRB ${weather.windSpeed} kt = (${Math.round(weather.windSpeed * 1.852)} km/h)`
                         : weather.windDir !== null
-                          ? `${String(weather.windDir).padStart(3,'0')}° (${degToCompass(weather.windDir)}) ${weather.windSpeed} kt (${Math.round(weather.windSpeed * 1.852)} km/h)`
-                          : `${weather.windSpeed} kt (${Math.round(weather.windSpeed * 1.852)} km/h)`
+                          ? `${String(weather.windDir).padStart(3,'0')}° (${degToCompass(weather.windDir)}) ${weather.windSpeed} kt = (${Math.round(weather.windSpeed * 1.852)} km/h)`
+                          : `${weather.windSpeed} kt = (${Math.round(weather.windSpeed * 1.852)} km/h)`
                       }
                     </span>
                     {weather.windGusts && (
