@@ -49,33 +49,46 @@ function ddMmYyyyToIso(s: string): string {
 }
 
 async function arionLogin(login: string, password: string): Promise<string | null> {
-  console.log('Attempting ARION login:', {
-    url: `${ARION_BASE}/auth/login`,
-    username: login,
-    passwordLength: password?.length ?? 0,
-  });
+  const attempts = [
+    { path: '/authenticate', body: { username: login, password } },
+    { path: '/auth/login', body: { username: login, password } },
+    { path: '/auth/login', body: { login, password } },
+  ];
 
-  const loginResp = await fetch(`${ARION_BASE}/auth/login`, {
-    method: 'POST',
-    headers: ARION_HEADERS_BASE,
-    body: JSON.stringify({ username: login, password }),
-  });
+  let loginData: any = null;
 
-  const loginText = await loginResp.text();
-  console.log(`ARION login → ${loginResp.status}:`, loginText.substring(0, 300));
+  for (const attempt of attempts) {
+    const url = `${ARION_BASE}${attempt.path}`;
+    console.log('Attempting ARION login:', {
+      url,
+      bodyFields: Object.keys(attempt.body),
+      username: login,
+      passwordLength: password?.length ?? 0,
+    });
 
-  if (!loginResp.ok) {
-    console.error(`ARION login failed ${loginResp.status}:`, loginText);
-    return null;
+    const loginResp = await fetch(url, {
+      method: 'POST',
+      headers: ARION_HEADERS_BASE,
+      body: JSON.stringify(attempt.body),
+    });
+
+    const loginText = await loginResp.text();
+    console.log(`ARION login ${attempt.path} → ${loginResp.status}:`, loginText.substring(0, 300));
+
+    if (!loginResp.ok) {
+      console.error(`ARION login ${attempt.path} failed ${loginResp.status}:`, loginText.substring(0, 300));
+      continue;
+    }
+
+    try {
+      loginData = JSON.parse(loginText);
+      break;
+    } catch {
+      console.error('ARION login response is not JSON:', loginText.substring(0, 100));
+    }
   }
 
-  let loginData: any;
-  try {
-    loginData = JSON.parse(loginText);
-  } catch {
-    console.error('ARION login response is not JSON:', loginText.substring(0, 100));
-    return null;
-  }
+  if (!loginData) return null;
 
   const token = loginData?.token ?? loginData?.accessToken ?? loginData?.access_token ?? loginData?.jwt ?? null;
   console.log('ARION token fields available:', Object.keys(loginData ?? {}));
