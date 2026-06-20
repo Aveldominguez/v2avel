@@ -1,6 +1,6 @@
 {
-  "version": "3.139",
+  "version": "3.140",
   "changelog": [
-    "Fix ARION autofill: sdt→STA, edt→ETA, connection_sdt→STD. Elimina columnas vacías scheduled_arrival_time/scheduled_departure_time. Limpia campo muerto etdHHmm."
+    "ARION sync: extrae ETD del bloque departure y parsea telex CPM por vuelo de llegada en flight_cpm_data."
   ]
 }
