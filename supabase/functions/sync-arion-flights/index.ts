@@ -136,8 +136,10 @@ serve(async (req) => {
       const { data: cfg } = await admin
         .from('arion_config')
         .select('username, password, station_code')
+        .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
+
       if (cfg?.username && cfg?.password) {
         arionLoginName = cfg.username;
         arionPassword = cfg.password;
