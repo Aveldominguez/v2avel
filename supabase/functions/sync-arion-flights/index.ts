@@ -26,6 +26,7 @@ const ARION_HEADERS_BASE = {
   'Referer': 'https://arion.aviapartner.aero/',
   'User-Agent':
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  'X-Station': 'LEMD',
 };
 
 function json(body: unknown, status = 200) {
@@ -62,6 +63,7 @@ async function arionLogin(login: string, password: string): Promise<string | nul
     console.log('Attempting ARION login:', {
       url,
       bodyFields: Object.keys(attempt.body),
+      headerFields: Object.keys(ARION_HEADERS_BASE),
       username: login,
       passwordLength: password?.length ?? 0,
     });
