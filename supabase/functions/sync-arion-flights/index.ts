@@ -522,6 +522,23 @@ serve(async (req) => {
         synced = count ?? rows.length;
       }
 
+      // CPM data: replace any existing rows for the flights we just processed, then bulk insert
+      if (cpmFlightSns.length > 0) {
+        const { error: cpmDelErr } = await admin
+          .from('flight_cpm_data')
+          .delete()
+          .eq('flight_date', isoDate)
+          .in('flight_sn', cpmFlightSns);
+        if (cpmDelErr) console.error('CPM delete error', cpmDelErr);
+      }
+      if (cpmRowsAll.length > 0) {
+        const { error: cpmInsErr } = await admin
+          .from('flight_cpm_data')
+          .insert(cpmRowsAll);
+        if (cpmInsErr) console.error('CPM insert error', cpmInsErr);
+      }
+
+
 
 
       if (!isSystemSync && userId) {
