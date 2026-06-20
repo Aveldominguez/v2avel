@@ -362,6 +362,30 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   // LDM dialog state
   const [showLdm, setShowLdm] = useState(false);
 
+  // CPM dialog state
+  const [showCpm, setShowCpm] = useState(false);
+  const [cpmLines, setCpmLines] = useState<string[] | null>(null);
+  const [cpmLoading, setCpmLoading] = useState(false);
+
+  const cleanFlightNumber = (flightNumber || '').trim().toUpperCase();
+  const flightDateIso = flightDate ? format(flightDate, 'yyyy-MM-dd') : null;
+  const cpmAvailable = !!cleanFlightNumber && !!flightDateIso;
+
+  const openCpm = async () => {
+    setShowCpm(true);
+    if (cpmLines !== null || !cpmAvailable) return;
+    setCpmLoading(true);
+    const { data } = await supabase
+      .from('flight_cpm_data')
+      .select('raw_line')
+      .eq('arrival_fn', cleanFlightNumber)
+      .eq('flight_date', flightDateIso!)
+      .order('id', { ascending: true });
+    setCpmLines((data || []).map((r: any) => r.raw_line ?? ''));
+    setCpmLoading(false);
+  };
+
+
   // Collapsible arrival/departure sections (split layout only)
   const [arrivalOpen, setArrivalOpen] = useState(true);
   // Note: departureFlightNumber is pre-filled from "Nueva Escala", so it's NOT a signal that the user has started departure work.
