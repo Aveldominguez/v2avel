@@ -30,6 +30,7 @@ interface AirlineTimesBlockProps {
   flightNumber?: string;
   ldmRaw?: string | null;
   scheduledArrival?: string | null;
+  scheduledEta?: string | null;
   scheduledDeparture?: string | null;
 }
 
