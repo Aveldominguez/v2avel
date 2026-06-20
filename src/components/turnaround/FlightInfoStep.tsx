@@ -86,6 +86,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setDepartureTime,
   scheduledArrival,
   setScheduledArrival,
+  scheduledDeparture,
+  setScheduledDeparture,
   isEditing = false,
   onContinue,
   onCancel,
