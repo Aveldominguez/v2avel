@@ -425,6 +425,44 @@ serve(async (req) => {
                     }
                   }
                 }
+
+                // CPM telex parsing — collect rows for bulk insert later
+                const cpmRef = telexList.find((t: any) => String(t?.type ?? '').toUpperCase() === 'CPM');
+                if (cpmRef) {
+                  try {
+                    const cpmResp = await fetch(`${ARION_BASE}/telex-messages/body`, {
+                      method: 'POST',
+                      headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        messageNumber: cpmRef.messageNumber,
+                        channel: cpmRef.channel,
+                        type: cpmRef.type,
+                        flightReference: cpmRef.flightReference,
+                        date: cpmRef.date,
+                        direction: cpmRef.direction,
+                        time: cpmRef.time,
+                      }),
+                    });
+                    if (cpmResp.ok) {
+                      const cj = await cpmResp.json().catch(() => null);
+                      const cpmLines: any[] = Array.isArray(cj?.lines) ? cj.lines : [];
+                      if (cpmLines.length > 0) {
+                        cpmFlightSns.push(Number(f.sn));
+                        for (const line of cpmLines) {
+                          const data: string = line?.data ?? '';
+                          cpmRowsAll.push({
+                            flight_sn: Number(f.sn),
+                            flight_date: isoDate,
+                            arrival_fn: String(f.fn).trim(),
+                            raw_line: data,
+                            container_id: data.match(/^([A-Z]{3}\d+[A-Z]{2})/)?.[1] ?? null,
+                            position: data.match(/\/([A-Z0-9]+)\//)?.[1] ?? null,
+                          });
+                        }
+                      }
+                    }
+                  } catch { /* ignore */ }
+                }
               }
             }
           } catch { /* ignore */ }
@@ -441,6 +479,7 @@ serve(async (req) => {
             edt: f.edt ?? null,
             adt: f.adt ?? null,
             sdt: f.sdt ?? null,
+            etd,
             movement_type: f.movementType ?? null,
             cancelled: Boolean(f.cancelled),
             flight_closed: Boolean(f.flightClosed),
@@ -454,6 +493,7 @@ serve(async (req) => {
             scheduled_departure_time,
             synced_at: nowIso,
           };
+
         }));
 
       let synced = 0;
