@@ -25,8 +25,10 @@ import { Label } from '@/components/ui/label';
 import {
   ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye, EyeOff,
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
-  Download, Upload, Sparkles,
+  Download, Upload, Sparkles, RefreshCw, Settings,
 } from 'lucide-react';
+import { ArionSettingsDialog } from '@/components/ArionSettingsDialog';
+import { useArionSync } from '@/hooks/useArionSync';
 import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
