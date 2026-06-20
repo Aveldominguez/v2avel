@@ -19,8 +19,9 @@ const corsHeaders = {
 };
 
 const ARION_BASE = 'https://api.aviapartner.aero/arion-services';
-const ARION_BROWSER_HEADERS = {
-  'Accept': 'application/json, text/plain, */*',
+const ARION_HEADERS_BASE = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
   'Origin': 'https://arion.aviapartner.aero',
   'Referer': 'https://arion.aviapartner.aero/',
   'User-Agent':
@@ -49,18 +50,14 @@ function ddMmYyyyToIso(s: string): string {
 
 async function arionLogin(login: string, password: string): Promise<string | null> {
   console.log('Attempting ARION login:', {
-    url: `${ARION_BASE}/auth/login`,
+    url: `${ARION_BASE}/authenticate`,
     username: login,
     passwordLength: password?.length ?? 0,
   });
 
-  const loginResp = await fetch(`${ARION_BASE}/auth/login`, {
+  const loginResp = await fetch(`${ARION_BASE}/authenticate`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'User-Agent': 'Mozilla/5.0',
-    },
+    headers: ARION_HEADERS_BASE,
     body: JSON.stringify({ username: login, password }),
   });
 
