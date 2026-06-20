@@ -469,7 +469,7 @@ const AdminPanel: React.FC = () => {
               <div className="flex gap-2 flex-wrap">
                 <Button
                   onClick={handleSaveArionCredentials}
-                  disabled={arionSaving || !arionUser || !arionPass}
+                  disabled={arionSaving || !arionUser || (!arionConfigured && !arionPass)}
                   className="gap-1.5"
                 >
                   {arionSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
