@@ -96,7 +96,8 @@ const AdminPanel: React.FC = () => {
   }, []);
 
   const handleSaveArionCredentials = async () => {
-    if (!arionUser || !arionPass) return;
+    if (!arionUser) return;
+    if (!arionConfigured && !arionPass) return;
     const station = (arionStation || 'MAD').trim().toUpperCase();
     if (!/^[A-Z]{3}$/.test(station)) {
       toast({ title: 'Estación inválida', description: 'Debe ser un código IATA de 3 letras (ej: MAD, BCN).', variant: 'destructive' });
@@ -104,7 +105,8 @@ const AdminPanel: React.FC = () => {
     }
     setArionSaving(true);
     try {
-      const payload: any = { username: arionUser, password: arionPass, station_code: station, updated_by: user?.id };
+      const payload: any = { username: arionUser, station_code: station, updated_by: user?.id, updated_at: new Date().toISOString() };
+      if (arionPass) payload.password = arionPass;
       if (arionConfigId) payload.id = arionConfigId;
       const { data, error } = await supabase
         .from('arion_config')
@@ -124,6 +126,7 @@ const AdminPanel: React.FC = () => {
       setArionSaving(false);
     }
   };
+
 
   const handleArionSync = async () => {
     setArionSyncing(true);
@@ -466,7 +469,7 @@ const AdminPanel: React.FC = () => {
               <div className="flex gap-2 flex-wrap">
                 <Button
                   onClick={handleSaveArionCredentials}
-                  disabled={arionSaving || !arionUser || !arionPass}
+                  disabled={arionSaving || !arionUser || (!arionConfigured && !arionPass)}
                   className="gap-1.5"
                 >
                   {arionSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
