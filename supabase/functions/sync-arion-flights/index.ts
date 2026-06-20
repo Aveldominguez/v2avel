@@ -26,6 +26,7 @@ const ARION_HEADERS_BASE = {
   'Referer': 'https://arion.aviapartner.aero/',
   'User-Agent':
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+  'X-Station': 'LEMD',
 };
 
 function json(body: unknown, status = 200) {
@@ -49,33 +50,46 @@ function ddMmYyyyToIso(s: string): string {
 }
 
 async function arionLogin(login: string, password: string): Promise<string | null> {
-  console.log('Attempting ARION login:', {
-    url: `${ARION_BASE}/auth/login`,
-    username: login,
-    passwordLength: password?.length ?? 0,
-  });
+  const attempts = [
+    { path: '/auth/login', body: { username: login, password } },
+    { path: '/auth/login', body: { login, password } },
+  ];
 
-  const loginResp = await fetch(`${ARION_BASE}/auth/login`, {
-    method: 'POST',
-    headers: ARION_HEADERS_BASE,
-    body: JSON.stringify({ username: login, password }),
-  });
+  let loginData: any = null;
 
-  const loginText = await loginResp.text();
-  console.log(`ARION login → ${loginResp.status}:`, loginText.substring(0, 300));
+  for (const attempt of attempts) {
+    const url = `${ARION_BASE}${attempt.path}`;
+    console.log('Attempting ARION login:', {
+      url,
+      bodyFields: Object.keys(attempt.body),
+      headerFields: Object.keys(ARION_HEADERS_BASE),
+      username: login,
+      passwordLength: password?.length ?? 0,
+    });
 
-  if (!loginResp.ok) {
-    console.error(`ARION login failed ${loginResp.status}:`, loginText);
-    return null;
+    const loginResp = await fetch(url, {
+      method: 'POST',
+      headers: ARION_HEADERS_BASE,
+      body: JSON.stringify(attempt.body),
+    });
+
+    const loginText = await loginResp.text();
+    console.log(`ARION login ${attempt.path} → ${loginResp.status}:`, loginText.substring(0, 300));
+
+    if (!loginResp.ok) {
+      console.error(`ARION login ${attempt.path} failed ${loginResp.status}:`, loginText.substring(0, 300));
+      continue;
+    }
+
+    try {
+      loginData = JSON.parse(loginText);
+      break;
+    } catch {
+      console.error('ARION login response is not JSON:', loginText.substring(0, 100));
+    }
   }
 
-  let loginData: any;
-  try {
-    loginData = JSON.parse(loginText);
-  } catch {
-    console.error('ARION login response is not JSON:', loginText.substring(0, 100));
-    return null;
-  }
+  if (!loginData) return null;
 
   const token = loginData?.token ?? loginData?.accessToken ?? loginData?.access_token ?? loginData?.jwt ?? null;
   console.log('ARION token fields available:', Object.keys(loginData ?? {}));
@@ -168,8 +182,14 @@ serve(async (req) => {
       ? body.flight_date.trim()
       : todayDdMmYyyy();
 
-    const arionJwt = await arionLogin(arionLoginName!, arionPassword!);
-    if (!arionJwt) return json({ error: 'arion_auth_failed' }, 401);
+    const arionJwt = await arionLogin(arionLoginName!.trim(), arionPassword!.trim());
+    if (!arionJwt) {
+      return json({
+        ok: false,
+        error: 'arion_auth_failed',
+        message: 'ARION rechazó las credenciales guardadas. Revisa usuario/contraseña en el panel de administración.',
+      });
+    }
 
     const authHeaders: Record<string, string> = {
       ...ARION_HEADERS_BASE,

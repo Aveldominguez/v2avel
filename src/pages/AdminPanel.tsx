@@ -124,7 +124,7 @@ const AdminPanel: React.FC = () => {
         body: { force: true },
       });
       if (error) throw new Error(error.message);
-      if ((data as any)?.error) throw new Error((data as any).error);
+      if ((data as any)?.error) throw new Error((data as any)?.message ?? (data as any).error);
       setLastArionSync(new Date().toISOString());
       toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
     } catch (err: any) {
