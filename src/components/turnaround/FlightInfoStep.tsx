@@ -48,6 +48,8 @@ interface FlightInfoStepProps {
   setSoloSalida: (v: boolean) => void;
   departureTime: string | null;
   setDepartureTime: (v: string | null) => void;
+  scheduledArrival: string | null;
+  setScheduledArrival: (v: string | null) => void;
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;
@@ -80,6 +82,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setSoloSalida,
   departureTime,
   setDepartureTime,
+  scheduledArrival,
+  setScheduledArrival,
   isEditing = false,
   onContinue,
   onCancel,
@@ -240,7 +244,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     supabase
       .from('scheduled_flights')
-      .select('parking_code, departure_fn, edt, scheduled_departure_time')
+      .select('parking_code, departure_fn, edt, scheduled_departure_time, scheduled_arrival_time')
       .eq('flight_number', clean)
       .order('flight_date', { ascending: false })
       .limit(1)
@@ -262,6 +266,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           if (m) {
             setDepartureTime(m[1]);
             filled.add('departureTime');
+          }
+        }
+        const arrTime = (data as any).scheduled_arrival_time ?? null;
+        if (arrTime && !scheduledArrival) {
+          const m = String(arrTime).match(/(\d{2}:\d{2})/);
+          if (m) {
+            setScheduledArrival(m[1]);
+            filled.add('scheduledArrival');
           }
         }
         if (filled.size > 0) {
