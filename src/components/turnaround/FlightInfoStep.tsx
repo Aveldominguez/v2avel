@@ -56,7 +56,8 @@ interface FlightInfoStepProps {
   setScheduledStd: (v: string | null) => void;
   scheduledEtd: string | null;
   setScheduledEtd: (v: string | null) => void;
-  setFlightSn?: (v: string | null) => void;
+
+
 
 
 

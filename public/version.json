@@ -1,5 +1,5 @@
 {
-  "version": "3.152",
+  "version": "3.153",
   "changelog": [
     "ARION sync: upsert CPM con onConflict ignoreDuplicates para evitar duplicados."
   ]
