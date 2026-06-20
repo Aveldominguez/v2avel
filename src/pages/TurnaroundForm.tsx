@@ -565,6 +565,7 @@ const TurnaroundForm: React.FC = () => {
         setScheduledStd={setScheduledStd}
         scheduledEtd={scheduledEtd}
         setScheduledEtd={setScheduledEtd}
+        setFlightSn={setFlightSn}
         isEditing={isEditing}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
