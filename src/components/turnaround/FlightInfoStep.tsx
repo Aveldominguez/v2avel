@@ -54,6 +54,9 @@ interface FlightInfoStepProps {
   setScheduledEta: (v: string | null) => void;
   scheduledStd: string | null;
   setScheduledStd: (v: string | null) => void;
+  scheduledEtd: string | null;
+  setScheduledEtd: (v: string | null) => void;
+
   isEditing?: boolean;
   onContinue: () => void;
   onCancel: () => void;
@@ -92,7 +95,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   setScheduledEta,
   scheduledStd,
   setScheduledStd,
+  scheduledEtd,
+  setScheduledEtd,
   isEditing = false,
+
   onContinue,
   onCancel,
 }) => {

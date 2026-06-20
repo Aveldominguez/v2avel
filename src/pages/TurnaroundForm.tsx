@@ -79,6 +79,8 @@ const TurnaroundForm: React.FC = () => {
   const [scheduledArrival, setScheduledArrival] = useState<string | null>(null);
   const [scheduledEta, setScheduledEta] = useState<string | null>(null);
   const [scheduledStd, setScheduledStd] = useState<string | null>(null);
+  const [scheduledEtd, setScheduledEtd] = useState<string | null>(null);
+
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
 
 
@@ -560,6 +562,8 @@ const TurnaroundForm: React.FC = () => {
         setScheduledEta={setScheduledEta}
         scheduledStd={scheduledStd}
         setScheduledStd={setScheduledStd}
+        scheduledEtd={scheduledEtd}
+        setScheduledEtd={setScheduledEtd}
         isEditing={isEditing}
         onContinue={handleContinue}
         onCancel={() => { clearDraft(); navigate('/'); }}
@@ -740,6 +744,7 @@ const TurnaroundForm: React.FC = () => {
           scheduledArrival={scheduledArrival}
           scheduledEta={scheduledEta}
           scheduledStd={scheduledStd}
+          scheduledEtd={scheduledEtd}
         />
 
 
