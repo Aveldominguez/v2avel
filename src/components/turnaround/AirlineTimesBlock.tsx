@@ -436,7 +436,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       <div className="space-y-4">
         {/* Header with countdown */}
         <Card className="card-operational">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 px-3 sm:px-6">
             <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
               <div className="flex items-center justify-between gap-3 w-full">
                 <span className="shrink-0">Control de Horas ⏰</span>
@@ -479,24 +479,24 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             </CardTitle>
             {/* STA / ETA / STD row */}
             {(scheduledArrival || scheduledEta || scheduledStd || scheduledEtd) && (
-              <div className="flex items-center gap-1 overflow-x-auto flex-nowrap text-[13px] font-mono">
+              <div className="flex items-center gap-0.5 overflow-x-auto flex-nowrap text-[13px] font-mono">
                 {scheduledArrival && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold whitespace-nowrap">
                     STA {scheduledArrival}
                   </span>
                 )}
                 {scheduledEta && scheduledEta !== scheduledArrival && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-semibold whitespace-nowrap">
                     ETA {scheduledEta}
                   </span>
                 )}
                 {scheduledStd && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold whitespace-nowrap">
                     STD {scheduledStd}
                   </span>
                 )}
                 {scheduledEtd && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold whitespace-nowrap">
+                  <span className="shrink-0 px-1 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold whitespace-nowrap">
                     ETD {scheduledEtd}
                   </span>
                 )}
