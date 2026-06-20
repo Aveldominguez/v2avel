@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FlightInfoStepProps {
   flightNumber: string;
