@@ -1,5 +1,5 @@
 {
-  "version": "3.97",
+  "version": "3.98",
   "changelog": [
     "Cambio de contraseña: ahora se muestra el motivo exacto del error (incluyendo contraseñas filtradas en HIBP), un medidor de fortaleza con requisitos y un generador de contraseña segura."
   ]

@@ -68,17 +68,72 @@ const AdminPanel: React.FC = () => {
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const importFileRef = React.useRef<HTMLInputElement>(null);
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
-  const [arionDialogOpen, setArionDialogOpen] = useState(false);
-  const { status: arionStatus, lastSync: arionLastSync, syncing: arionSyncing, syncToday: arionSyncToday } = useArionSync();
+  const [arionUser, setArionUser] = useState('');
+  const [arionPass, setArionPass] = useState('');
+  const [arionSaving, setArionSaving] = useState(false);
+  const [arionSyncing, setArionSyncing] = useState(false);
+  const [arionConfigured, setArionConfigured] = useState(false);
+  const [arionUpdatedAt, setArionUpdatedAt] = useState<string | null>(null);
+  const [arionConfigId, setArionConfigId] = useState<string | null>(null);
+  const [lastArionSync, setLastArionSync] = useState<string | null>(null);
 
-  const handleArionSync = async () => {
-    const res = await arionSyncToday();
-    if (res) {
-      toast({ title: 'Sincronización completada', description: `${res.synced} vuelos actualizados.` });
-    } else {
-      toast({ title: 'Error al sincronizar', description: 'Revisa las credenciales ARION.', variant: 'destructive' });
+  useEffect(() => {
+    supabase
+      .from('arion_config')
+      .select('id, username, updated_at')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setArionConfigured(true);
+          setArionUpdatedAt(data.updated_at);
+          setArionConfigId(data.id);
+          setArionUser(data.username);
+        }
+      });
+  }, []);
+
+  const handleSaveArionCredentials = async () => {
+    if (!arionUser || !arionPass) return;
+    setArionSaving(true);
+    try {
+      const payload: any = { username: arionUser, password: arionPass, updated_by: user?.id };
+      if (arionConfigId) payload.id = arionConfigId;
+      const { data, error } = await supabase
+        .from('arion_config')
+        .upsert(payload, { onConflict: 'id' })
+        .select('id, updated_at')
+        .single();
+      if (error) throw error;
+      setArionConfigured(true);
+      setArionConfigId(data.id);
+      setArionUpdatedAt(data.updated_at);
+      setArionPass('');
+      toast({ title: 'Credenciales guardadas', description: 'Las credenciales ARION han sido guardadas.' });
+    } catch (err: any) {
+      toast({ title: 'Error al guardar', description: err.message, variant: 'destructive' });
+    } finally {
+      setArionSaving(false);
     }
   };
+
+  const handleArionSync = async () => {
+    setArionSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-arion-flights', {
+        body: { force: true },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setLastArionSync(new Date().toISOString());
+      toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
+    } catch (err: any) {
+      toast({ title: 'Error de sincronización', description: err.message ?? 'Revisa las credenciales ARION.', variant: 'destructive' });
+    } finally {
+      setArionSyncing(false);
+    }
+  };
+
 
   useEffect(() => {
     if (!loading && isAdmin) {
