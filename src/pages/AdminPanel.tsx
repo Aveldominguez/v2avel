@@ -23,10 +23,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye,
+  ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye, EyeOff,
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
-  Download, Upload,
+  Download, Upload, Sparkles,
 } from 'lucide-react';
+import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -61,6 +62,7 @@ const AdminPanel: React.FC = () => {
   const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
   const [newUserPassword, setNewUserPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [backupLoading, setBackupLoading] = useState<string | null>(null);
   const importFileRef = React.useRef<HTMLInputElement>(null);
   const [importTarget, setImportTarget] = useState<{ userId: string; email: string } | null>(null);
@@ -713,7 +715,7 @@ const AdminPanel: React.FC = () => {
       </Dialog>
 
       {/* Change password dialog */}
-      <Dialog open={!!passwordDialog} onOpenChange={() => { setPasswordDialog(null); setNewUserPassword(''); }}>
+      <Dialog open={!!passwordDialog} onOpenChange={() => { setPasswordDialog(null); setNewUserPassword(''); setShowNewPassword(false); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cambiar contraseña</DialogTitle>
@@ -724,13 +726,35 @@ const AdminPanel: React.FC = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="change-password">Nueva contraseña *</Label>
-              <Input
-                id="change-password"
-                type="password"
-                value={newUserPassword}
-                onChange={(e) => setNewUserPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-              />
+              <div className="relative">
+                <Input
+                  id="change-password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newUserPassword}
+                  onChange={(e) => setNewUserPassword(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { setNewUserPassword(generateStrongPassword(14)); setShowNewPassword(true); }}
+                className="w-full gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generar contraseña segura
+              </Button>
+              <PasswordStrength password={newUserPassword} />
             </div>
             <Button
               onClick={async () => {
@@ -741,13 +765,14 @@ const AdminPanel: React.FC = () => {
                   toast({ title: 'Contraseña actualizada' });
                   setPasswordDialog(null);
                   setNewUserPassword('');
+                  setShowNewPassword(false);
                 } catch (err: any) {
                   toast({ title: 'Error', description: err.message, variant: 'destructive' });
                 } finally {
                   setPasswordLoading(false);
                 }
               }}
-              disabled={passwordLoading || newUserPassword.length < 6}
+              disabled={passwordLoading || !isPasswordStrong(evaluatePassword(newUserPassword))}
               className="w-full"
             >
               {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}

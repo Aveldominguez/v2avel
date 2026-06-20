@@ -316,7 +316,20 @@ export const useAdmin = () => {
       body: { user_id: userId, new_password: newPassword },
     });
 
-    if (error) throw new Error(error.message || 'Error al cambiar contraseña');
+    if (error) {
+      // Extract the real error message from the edge function response body
+      let realMessage = error.message || 'Error al cambiar contraseña';
+      try {
+        const ctx: any = (error as any).context;
+        if (ctx?.response && typeof ctx.response.json === 'function') {
+          const body = await ctx.response.clone().json();
+          if (body?.error) realMessage = body.error;
+        }
+      } catch {
+        // ignore parse errors, keep the generic message
+      }
+      throw new Error(realMessage);
+    }
     if (data?.error) throw new Error(data.error);
     return data;
   };

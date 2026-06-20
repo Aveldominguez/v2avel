@@ -1,7 +1,7 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '3.90';
+export const APP_VERSION = '3.92';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Sincronización ARION centralizada automática cada 20 minutos. Todos los usuarios aprobados ven los vuelos sin necesidad de credenciales propias.',
+  'Cambio de contraseña: ahora se muestra el motivo exacto del error (incluyendo contraseñas filtradas en HIBP), un medidor de fortaleza con requisitos y un generador de contraseña segura.',
 ];
