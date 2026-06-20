@@ -189,11 +189,77 @@ serve(async (req) => {
       ? body.flight_date.trim()
       : todayDdMmYyyy();
 
+    // ---- Pre-flight validation: arion_config schema + station coherence ----
+    const EXPECTED_CONFIG_FIELDS = ['username', 'password'] as const;
+    const ALLOWED_STATIONS = ['MAD'] as const;
+    const validation = {
+      source: isSystemSync ? 'arion_config/env' : 'arion_credentials',
+      username_present: Boolean(arionLoginName && arionLoginName.trim()),
+      password_present: Boolean(arionPassword && arionPassword.trim()),
+      username_length: arionLoginName?.trim().length ?? 0,
+      password_length: arionPassword?.trim().length ?? 0,
+      station_code,
+      station_allowed: (ALLOWED_STATIONS as readonly string[]).includes(station_code),
+      expected_config_fields: EXPECTED_CONFIG_FIELDS,
+      login_headers: Object.keys(ARION_LOGIN_HEADERS),
+      api_headers: Object.keys(ARION_API_HEADERS),
+    };
+    console.log('ARION pre-flight validation:', validation);
+
+    if (isSystemSync) {
+      // Re-read full row to verify schema matches what we expect
+      const { data: cfgRow, error: cfgErr } = await admin
+        .from('arion_config')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+      if (cfgErr) {
+        console.error('arion_config read error', cfgErr);
+        return json({ ok: false, error: 'arion_config_unreadable', detail: cfgErr.message });
+      }
+      const presentFields = cfgRow ? Object.keys(cfgRow) : [];
+      const missing = EXPECTED_CONFIG_FIELDS.filter((f) => !presentFields.includes(f));
+      if (missing.length > 0) {
+        console.error('arion_config missing expected fields', { presentFields, missing });
+        return json({
+          ok: false,
+          error: 'arion_config_schema_mismatch',
+          missing,
+          present: presentFields,
+          message: `arion_config no contiene los campos esperados: ${missing.join(', ')}`,
+        });
+      }
+      if (!cfgRow?.username || !cfgRow?.password) {
+        console.warn('arion_config row empty, falling back to env secrets');
+      }
+    }
+
+    if (!validation.username_present || !validation.password_present) {
+      return json({
+        ok: false,
+        error: 'arion_credentials_empty',
+        validation,
+        message: 'Faltan usuario o contraseña ARION en la configuración.',
+      });
+    }
+
+    if (!validation.station_allowed) {
+      return json({
+        ok: false,
+        error: 'arion_station_invalid',
+        validation,
+        allowed: ALLOWED_STATIONS,
+        message: `La estación configurada (${station_code}) no coincide con las permitidas: ${ALLOWED_STATIONS.join(', ')}.`,
+      });
+    }
+    // ---- End pre-flight validation ----
+
     const arionJwt = await arionLogin(arionLoginName!.trim(), arionPassword!.trim());
     if (!arionJwt) {
       return json({
         ok: false,
         error: 'arion_auth_failed',
+        validation,
         message: 'ARION rechazó las credenciales guardadas. Revisa usuario/contraseña en el panel de administración.',
       });
     }
