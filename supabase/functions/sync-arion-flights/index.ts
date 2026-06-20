@@ -456,6 +456,9 @@ serve(async (req) => {
           return json({ error: 'db_error', detail: insErr.message }, 500);
         }
         synced = count ?? rows.length;
+      }
+
+
 
       if (!isSystemSync && userId) {
         await admin
