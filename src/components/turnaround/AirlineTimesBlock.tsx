@@ -31,7 +31,7 @@ interface AirlineTimesBlockProps {
   ldmRaw?: string | null;
   scheduledArrival?: string | null;
   scheduledEta?: string | null;
-  scheduledDeparture?: string | null;
+  scheduledStd?: string | null;
 }
 
 // Shared field renderer
@@ -328,7 +328,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   ldmRaw,
   scheduledArrival,
   scheduledEta,
-  scheduledDeparture,
+  scheduledStd,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
@@ -433,7 +433,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
               )}
             </CardTitle>
             {/* STA / ETA / STD row */}
-            {(scheduledArrival || scheduledEta || scheduledDeparture) && (
+            {(scheduledArrival || scheduledEta || scheduledStd) && (
               <div className="flex items-center gap-2 flex-wrap mt-2 text-xs font-mono">
                 {scheduledArrival && (
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold">
@@ -445,9 +445,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                     ETA {scheduledEta}
                   </span>
                 )}
-                {scheduledDeparture && (
+                {scheduledStd && (
                   <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
-                    STD {scheduledDeparture}
+                    STD {scheduledStd}
                   </span>
                 )}
               </div>
@@ -590,7 +590,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
           )}
         </CardTitle>
         {/* STA / ETA / STD row */}
-        {(scheduledArrival || scheduledEta || scheduledDeparture) && (
+        {(scheduledArrival || scheduledEta || scheduledStd) && (
           <div className="flex items-center gap-2 flex-wrap mt-2 text-xs font-mono">
             {scheduledArrival && (
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-semibold">
@@ -602,9 +602,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 ETA {scheduledEta}
               </span>
             )}
-            {scheduledDeparture && (
+            {scheduledStd && (
               <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-500 font-semibold">
-                STD {scheduledDeparture}
+                STD {scheduledStd}
               </span>
             )}
           </div>
