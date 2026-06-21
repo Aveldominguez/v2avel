@@ -1,0 +1,1 @@
+TRUNCATE flight_cpm_data;
