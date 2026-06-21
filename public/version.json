@@ -1,1 +1,7 @@
-{"version":"3.185"}
+{
+  "version": "3.186",
+  "changelog": [
+    "Nuevo aviso flotante de viento (METAR LEMD) con niveles Precaución/Restricción/Suspensión.",
+    "Botón flotante \"Guardar\" en la escala cuando el botón del cabecero queda fuera de pantalla."
+  ]
+}
