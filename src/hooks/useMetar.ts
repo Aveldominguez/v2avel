@@ -52,6 +52,8 @@ export const ALERT_CONFIG = {
   },
 } as const;
 
+const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes (catches SPECI reports)
+
 export function useMetar() {
   const [windData, setWindData] = useState<WindData | null>(null);
   const [alertLevel, setAlertLevel] = useState<WindAlertLevel>(null);
@@ -84,7 +86,7 @@ export function useMetar() {
 
   useEffect(() => {
     fetchMetar();
-    const id = setInterval(fetchMetar, 30 * 60 * 1000);
+    const id = setInterval(fetchMetar, REFRESH_INTERVAL);
     return () => clearInterval(id);
   }, []);
 
