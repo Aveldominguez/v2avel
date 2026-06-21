@@ -72,6 +72,19 @@ const TurnaroundForm: React.FC = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
+  const saveButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [showSaveFab, setShowSaveFab] = useState(false);
+
+  useEffect(() => {
+    const el = saveButtonRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowSaveFab(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, step]);
   const [originStation, setOriginStation] = useState<string | null>(null);
   const [destStation, setDestStation] = useState<string | null>(null);
   const [homeStation, setHomeStation] = useState<string | null>(null);
@@ -668,7 +681,7 @@ const TurnaroundForm: React.FC = () => {
                 pendingCount={pendingCount}
                 lastSaved={lastSaved}
               />
-              <Button onClick={handleSave} size="sm" className="gap-1.5" disabled={saving}>
+              <Button ref={saveButtonRef} onClick={handleSave} size="sm" className="gap-1.5" disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 <span>Guardar</span>
               </Button>
@@ -863,6 +876,21 @@ const TurnaroundForm: React.FC = () => {
         </Card>
       </main>
 
+      {showSaveFab && step === 2 && (
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          aria-label="Guardar"
+          className="fixed bottom-20 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-95 transition-transform"
+        >
+          {saving ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Save className="h-5 w-5" />
+          )}
+          <span>Guardar</span>
+        </button>
+      )}
     </div>
   );
 };
