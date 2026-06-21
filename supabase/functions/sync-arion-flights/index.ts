@@ -336,6 +336,44 @@ serve(async (req) => {
           let scheduled_arrival_time: string | null = null;
           let scheduled_departure_time: string | null = null;
           let etd: string | null = null;
+
+          // Smart re-fetch: skip detail fetch if CPM already exists for this flight+date
+          const { count: existingCpm } = await admin
+            .from('flight_cpm_data')
+            .select('*', { count: 'exact', head: true })
+            .eq('flight_sn', String(f.sn))
+            .eq('flight_date', isoDate);
+          if (existingCpm && existingCpm > 0) {
+            // Already have CPM — skip the ARION detail call entirely
+            return {
+              user_id: userId,
+              flight_date: isoDate,
+              flight_number: String(f.fn).trim(),
+              airline_code: f.airline ?? null,
+              registration: f.registrationNumber || null,
+              aircraft_type: f.aircraftType ?? null,
+              parking_code: f.parkingCode ?? null,
+              source_station: f.sourceStation ?? null,
+              home_station: station_code,
+              edt: f.edt ?? null,
+              adt: f.adt ?? null,
+              sdt: f.sdt ?? null,
+              etd: f.etd ?? null,
+              movement_type: f.movementType ?? null,
+              cancelled: Boolean(f.cancelled),
+              flight_closed: Boolean(f.flightClosed),
+              departure_fn: f.cfn && snToFn.has(Number(f.cfn))
+                ? snToFn.get(Number(f.cfn))!
+                : null,
+              connection_sdt: f.connectionSdt ?? null,
+              ldm_raw: null,
+              airline_logo: null,
+              scheduled_arrival_time: f.sta ?? null,
+              scheduled_departure_time: f.std ?? null,
+              synced_at: nowIso,
+            };
+          }
+
           try {
             const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
             if (detailResp.ok) {
@@ -522,12 +560,20 @@ serve(async (req) => {
         synced = count ?? rows.length;
       }
 
-      // CPM data: upsert with ignore duplicates on unique constraint
+      // CPM data: delete stale rows for the flights we re-fetched (using ISO date), then upsert
       if (cpmRowsAll.length > 0) {
-        const { error: cpmInsErr } = await admin
+        const cpmFlightSns = [...new Set(cpmRowsAll.map((r) => r.flight_sn))];
+        const { error: cpmDelErr } = await admin
           .from('flight_cpm_data')
-          .insert(cpmRowsAll, { onConflict: 'flight_sn,flight_date,raw_line', ignoreDuplicates: true });
-        if (cpmInsErr) console.error('CPM insert error', cpmInsErr);
+          .delete()
+          .eq('flight_date', isoDate)
+          .in('flight_sn', cpmFlightSns);
+        if (cpmDelErr) console.error('CPM delete error', cpmDelErr);
+
+        const { error: cpmUpsertErr } = await admin
+          .from('flight_cpm_data')
+          .upsert(cpmRowsAll, { onConflict: 'flight_sn,flight_date,raw_line', ignoreDuplicates: true });
+        if (cpmUpsertErr) console.error('CPM upsert error', cpmUpsertErr);
       }
 
 
