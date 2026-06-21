@@ -271,8 +271,8 @@ const AIRLINE_RULES: Record<string, AirlineEquipmentRules> = {
   AZUL: WIDEBODY_RULES,
   AIR_CANADA: WIDEBODY_RULES,
   AIR_CANADA_CARGO: WIDEBODY_RULES,
-  TAP: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never', TRANSFER: 'never' },
-  ITA: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never' },
+  TAP: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never', PLATAFORMAS_PQ: 'always', TRANSFER: 'never' },
+  ITA: { ...WIDEBODY_RULES, PLATAFORMAS_GD: 'never', PLATAFORMAS_PQ: 'always' },
   AMAZON: CARGO_RULES,
   FEDEX: CARGO_RULES,
   SIN_MARCA: ALL_RULES,
@@ -301,12 +301,6 @@ export const getFilteredEquipmentCategories = (
     if (vis === 'never') return false;
     // 'remote' → show only when isRemote
     return isRemote;
-  }).filter(cat => {
-    // TAP / ITA: Plataformas Pequeñas only for A320/A321
-    if (cat.id === 'PLATAFORMAS_PQ' && (airline === 'TAP' || airline === 'ITA')) {
-      return aircraftModel === 'A320' || aircraftModel === 'A321';
-    }
-    return true;
   });
 };
 
