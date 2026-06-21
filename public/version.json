@@ -1,7 +1,7 @@
 {
   "version": "3.186",
   "changelog": [
-    "Plataformas PQ disponibles para todos los modelos de TAP e ITA.",
-    "Puesta y Retirada de Escalera añadidas en Control de Horas para Sky (Sky Express y SkyUp)."
+    "Nuevo aviso flotante de viento (METAR LEMD) con niveles Precaución/Restricción/Suspensión.",
+    "Botón flotante \"Guardar\" en la escala cuando el botón del cabecero queda fuera de pantalla."
   ]
 }
