@@ -301,12 +301,6 @@ export const getFilteredEquipmentCategories = (
     if (vis === 'never') return false;
     // 'remote' → show only when isRemote
     return isRemote;
-  }).filter(cat => {
-    // TAP / ITA: Plataformas Pequeñas only for A320/A321
-    if (cat.id === 'PLATAFORMAS_PQ' && (airline === 'TAP' || airline === 'ITA')) {
-      return aircraftModel === 'A320' || aircraftModel === 'A321';
-    }
-    return true;
   });
 };
 
