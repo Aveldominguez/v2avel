@@ -318,8 +318,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           setAutofilledFields((prev) => new Set([...prev, ...filled]));
         }
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber]);
+  }, [flightNumber, airline, aircraftModel]);
 
 
 
