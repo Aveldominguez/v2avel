@@ -192,17 +192,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       if (match) {
         setAircraftModel(match.model);
         filled.add('aircraftModel');
-      } else if (mappedModel) {
-        // Fallback: airline not resolved → search across all airlines for the mapped model
-        const allAirlines = AIRLINES.map(a => a.code as AirlineCode);
-        for (const ac of allAirlines) {
-          const altMatch = getModelsForAirline(ac).find(m => m.model === mappedModel);
-          if (altMatch) {
-            setAircraftModel(altMatch.model);
-            filled.add('aircraftModel');
-            break;
-          }
-        }
       }
     }
 
