@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
 import { TimeInput } from './TimeInput';
-import { format } from 'date-fns';
+import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useFlightLookup } from '@/hooks/useFlightLookup';
@@ -255,70 +255,81 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     const clean = flightNumber.trim();
     if (clean.length < 4) return;
 
-    supabase
-      .from('scheduled_flights')
-      .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd')
-      .eq('flight_number', clean)
-      .order('flight_date', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!data) return;
-        const filled = new Set<string>();
-        if (data.parking_code && !tango && !isRemote) {
-          setTango(String(data.parking_code).toUpperCase().slice(0, 6));
-          filled.add('tango');
+    (async () => {
+      const formDateISO = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+      const nextDayISO = format(addDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
+      const prevDayISO = format(subDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
+
+      const { data } = await supabase
+        .from('scheduled_flights')
+        .select('flight_date, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code')
+        .eq('flight_number', clean)
+        .eq('movement_type', 'A')
+        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
+        .order('flight_date', { ascending: true })
+        .limit(3);
+
+      const record = data?.find((r: any) => r.flight_date === formDateISO)
+        ?? data?.find((r: any) => r.flight_date === nextDayISO)
+        ?? data?.find((r: any) => r.flight_date === prevDayISO)
+        ?? null;
+
+      if (!record) return;
+      const filled = new Set<string>();
+      if (record.parking_code && !tango && !isRemote) {
+        setTango(String(record.parking_code).toUpperCase().slice(0, 6));
+        filled.add('tango');
+      }
+      if (record.departure_fn && !departureFlightNumber.trim()) {
+        setDepartureFlightNumber(String(record.departure_fn).trim().toUpperCase());
+        filled.add('departureFlight');
+      }
+      // STA — scheduled arrival
+      if (record.sdt) {
+        setScheduledArrival(extractTime(record.sdt));
+        filled.add('scheduledArrival');
+      }
+      // ETA — estimated arrival
+      if (record.edt) {
+        setScheduledEta(extractTime(record.edt));
+        filled.add('scheduledEta');
+      }
+      // STD — scheduled departure (display only, separate from countdown departureTime)
+      if (record.connection_sdt) {
+        setScheduledStd(extractTime(record.connection_sdt));
+        filled.add('scheduledStd');
+      }
+      // ETD — estimated departure time
+      if (record.etd) {
+        setScheduledEtd(extractTime(record.etd));
+        filled.add('scheduledEtd');
+      }
+      // Auto-fill departure countdown field from ETD (fallback to STD)
+      if (!departureTime) {
+        const autoDepart = extractTime(record.etd) ?? extractTime(record.connection_sdt);
+        if (autoDepart) {
+          setDepartureTime(autoDepart);
+          filled.add('departureTime');
         }
-        if (data.departure_fn && !departureFlightNumber.trim()) {
-          setDepartureFlightNumber(String(data.departure_fn).trim().toUpperCase());
-          filled.add('departureFlight');
+      }
+      // Aircraft type fallback from ARION
+      if (record.aircraft_type && !aircraftModel) {
+        const iataCode = String(record.aircraft_type).toUpperCase();
+        const mappedModel = IATA_TO_MODEL[iataCode];
+        const currentModels = airline ? getModelsForAirline(airline as AirlineCode) : [];
+        const match = currentModels.find(
+          m => m.model === mappedModel || m.model.toLowerCase() === iataCode.toLowerCase()
+        );
+        if (match) {
+          setAircraftModel(match.model);
+          setAutofilledFields(prev => new Set(prev).add('aircraftModel'));
         }
-        // STA — scheduled arrival
-        if (data.sdt) {
-          setScheduledArrival(extractTime(data.sdt));
-          filled.add('scheduledArrival');
-        }
-        // ETA — estimated arrival
-        if (data.edt) {
-          setScheduledEta(extractTime(data.edt));
-          filled.add('scheduledEta');
-        }
-        // STD — scheduled departure (display only, separate from countdown departureTime)
-        if (data.connection_sdt) {
-          setScheduledStd(extractTime(data.connection_sdt));
-          filled.add('scheduledStd');
-        }
-        // ETD — estimated departure time
-        if (data.etd) {
-          setScheduledEtd(extractTime(data.etd));
-          filled.add('scheduledEtd');
-        }
-        // Auto-fill departure countdown field from ETD (fallback to STD)
-        if (!departureTime) {
-          const autoDepart = extractTime(data.etd) ?? extractTime(data.connection_sdt);
-          if (autoDepart) {
-            setDepartureTime(autoDepart);
-            filled.add('departureTime');
-          }
-        }
-        // Aircraft type fallback from ARION
-        if (data.aircraft_type && !aircraftModel) {
-          const iataCode = String(data.aircraft_type).toUpperCase();
-          const mappedModel = IATA_TO_MODEL[iataCode];
-          const currentModels = airline ? getModelsForAirline(airline as AirlineCode) : [];
-          const match = currentModels.find(
-            m => m.model === mappedModel || m.model.toLowerCase() === iataCode.toLowerCase()
-          );
-          if (match) {
-            setAircraftModel(match.model);
-            setAutofilledFields(prev => new Set(prev).add('aircraftModel'));
-          }
-        }
-        if (filled.size > 0) {
-          setAutofilledFields((prev) => new Set([...prev, ...filled]));
-        }
-      });
-  }, [flightNumber, airline, aircraftModel]);
+      }
+      if (filled.size > 0) {
+        setAutofilledFields((prev) => new Set([...prev, ...filled]));
+      }
+    })();
+  }, [flightNumber, airline, aircraftModel, date]);
 
 
 
