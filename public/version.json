@@ -1,7 +1,6 @@
 {
   "version": "3.193",
   "changelog": [
-    "Nuevo aviso flotante de viento (METAR LEMD) con niveles Precaución/Restricción/Suspensión.",
-    "Botón flotante \"Guardar\" en la escala cuando el botón del cabecero queda fuera de pantalla."
+    "Eliminado fallback FR24 en búsqueda de vuelos: ahora solo se consulta ARION."
   ]
 }
