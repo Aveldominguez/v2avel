@@ -230,6 +230,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   // Track last applied keys to avoid re-applying on every render
   const lastAppliedArrivalRef = React.useRef<string | null>(null);
   const lastAppliedDepartureRef = React.useRef<string | null>(null);
+  const lastArionKeyRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (arrivalLookup.result && lastAppliedArrivalRef.current !== flightNumber) {
@@ -257,6 +258,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     (async () => {
       const formDateISO = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+      const arionKey = `${clean}__${formDateISO}`;
+      if (lastArionKeyRef.current === arionKey) return; // already applied for this flight+date
       const nextDayISO = format(addDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
       const prevDayISO = format(subDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
 
@@ -328,8 +331,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       if (filled.size > 0) {
         setAutofilledFields((prev) => new Set([...prev, ...filled]));
       }
+      lastArionKeyRef.current = arionKey;
     })();
-  }, [flightNumber, airline, aircraftModel, date]);
+  }, [flightNumber, date]);
 
 
 
