@@ -258,6 +258,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
     (async () => {
       const formDateISO = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+      const arionKey = `${clean}__${formDateISO}`;
+      if (lastArionKeyRef.current === arionKey) return; // already applied for this flight+date
       const nextDayISO = format(addDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
       const prevDayISO = format(subDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
 
