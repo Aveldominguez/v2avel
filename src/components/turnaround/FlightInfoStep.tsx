@@ -331,8 +331,9 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       if (filled.size > 0) {
         setAutofilledFields((prev) => new Set([...prev, ...filled]));
       }
+      lastArionKeyRef.current = arionKey;
     })();
-  }, [flightNumber, airline, aircraftModel, date]);
+  }, [flightNumber, date]);
 
 
 
