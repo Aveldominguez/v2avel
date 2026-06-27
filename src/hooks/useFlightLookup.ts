@@ -384,61 +384,14 @@ export function useFlightLookup(
           }
 
         } catch (err) {
-          console.warn('[lookup] ARION query failed, falling back to FR24', err);
+          console.warn('[lookup] ARION query failed', err);
         }
       }
 
-      // ── 2) FR24 fallback (only if not found in ARION) ──
-      // Offline guard for FR24
-      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const { data: responseData, error: fnError } = await supabase.functions.invoke('flight-lookup', {
-          body: { flight_iata: clean },
-        });
-
-        if (fnError) throw new Error('Error al consultar la API');
-
-        const json = responseData;
-
-        if (!json || json.found === false) {
-          setNotFound(true);
-          setResult(null);
-          setIsLoading(false);
-          return;
-        }
-
-        const filled = new Set<string>();
-        const airlineCode = matchAirlineCode(json.airline_name ?? null, json.airline_iata ?? null, clean);
-        const aircraftModel = json.aircraft_model || null;
-        const registration = json.aircraft_registration || null;
-
-        if (airlineCode) filled.add('airline');
-        if (aircraftModel) filled.add('aircraftModel');
-        if (registration) filled.add('matricula');
-
-        setResult({
-          airlineName: json.airline_name ?? null,
-          airlineCode,
-          aircraftModel,
-          registration,
-          parkingCode: null,
-          edtHHmm: null,
-          departureFlight: null,
-          originStation: null,
-          ldmRaw: null,
-          source: 'fr24',
-        });
-        setAutofilledFields(filled);
-        setIsLoading(false);
-      } catch (err: any) {
-        if (err.name === 'AbortError') return;
-        setNotFound(true);
-        setIsLoading(false);
-      }
+      // No record found in ARION — mark as not found (FR24 fallback removed)
+      setNotFound(true);
+      setResult(null);
+      setIsLoading(false);
     }, debounceMs);
 
     return () => {
