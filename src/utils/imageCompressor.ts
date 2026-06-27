@@ -1,11 +1,11 @@
 /**
  * Comprime una imagen antes de subir a Storage.
- * Target: máximo 1200px en el lado mayor, calidad JPEG 75%.
- * Reduce fotos de móvil de 4-8MB a 150-400KB típicamente.
+ * Target: máximo 1920px en el lado mayor, calidad JPEG 88%.
+ * Reduce fotos de móvil de 4-8MB a 300-700KB típicamente.
  */
 export async function compressImage(file: File): Promise<File> {
   if (!file.type.startsWith('image/')) return file;
-  if (file.size < 300 * 1024) return file;
+  if (file.size < 500 * 1024) return file;
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -14,7 +14,7 @@ export async function compressImage(file: File): Promise<File> {
     img.onload = () => {
       URL.revokeObjectURL(url);
 
-      const MAX = 1200;
+      const MAX = 1920;
       let { width, height } = img;
       if (width > MAX || height > MAX) {
         if (width > height) {
@@ -43,7 +43,7 @@ export async function compressImage(file: File): Promise<File> {
           }));
         },
         'image/jpeg',
-        0.75,
+        0.88,
       );
     };
 
