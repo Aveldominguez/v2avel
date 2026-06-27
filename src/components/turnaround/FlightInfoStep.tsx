@@ -230,6 +230,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   // Track last applied keys to avoid re-applying on every render
   const lastAppliedArrivalRef = React.useRef<string | null>(null);
   const lastAppliedDepartureRef = React.useRef<string | null>(null);
+  const lastArionKeyRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (arrivalLookup.result && lastAppliedArrivalRef.current !== flightNumber) {
