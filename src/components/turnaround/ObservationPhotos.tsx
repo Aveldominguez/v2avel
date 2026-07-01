@@ -58,13 +58,13 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
   };
 
   const totalCount = photos.length + pending.filter(p => p.status !== 'error').length;
-  const canAddMore = totalCount < MAX_PHOTOS;
+  const canAddMore = true;
 
   return (
     <div className="space-y-3 mt-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-muted-foreground">
-          Fotografías ({photos.length}/{MAX_PHOTOS})
+          Fotografías ({photos.length})
           {isUploading && <Loader2 className="inline h-3 w-3 ml-1 animate-spin" />}
         </span>
         {canAddMore && (
