@@ -296,7 +296,11 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   const fileSignedUrls = fileUrls.length ? await getSignedUrls(fileUrls) : [];
   const obsPhotoSignedUrls = data.times.observationPhotos?.length
     ? await getSignedUrls(data.times.observationPhotos)
-    : [];
+
+  const acScannerHtml = (data.airline === 'AIR_CANADA' || data.airline === 'AIR_CANADA_CARGO')
+    ? await buildAirCanadaScannerHtml(data.flightNumber, format(data.date, 'yyyy-MM-dd'))
+    : '';
+
 
   const html = `<!DOCTYPE html>
 <html lang="es">
