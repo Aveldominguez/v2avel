@@ -59,7 +59,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   };
 
   const totalCount = fileUrls.length + pending.filter(p => p.status !== 'error').length;
-  const canAdd = totalCount < MAX_FILES;
+  const canAdd = true;
 
   return (
     <Card className="card-operational">
@@ -70,7 +70,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
           </div>
           Adjuntar File
           <span className="text-xs text-muted-foreground font-normal ml-auto">
-            {fileUrls.length}/{MAX_FILES}
+            {fileUrls.length}
             {isUploading && <Loader2 className="inline h-3 w-3 ml-1 animate-spin" />}
           </span>
         </CardTitle>
