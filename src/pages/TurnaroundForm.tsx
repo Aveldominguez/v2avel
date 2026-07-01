@@ -792,7 +792,7 @@ const TurnaroundForm: React.FC = () => {
           />
         )}
 
-        {selectedAirline !== 'FEDEX' && selectedAirline !== 'AMAZON' && !soloLlegada && (
+        {selectedAirline !== 'FEDEX' && selectedAirline !== 'AMAZON' && selectedAirline !== 'AIR_CANADA' && selectedAirline !== 'AIR_CANADA_CARGO' && !soloLlegada && (
           <AirlineTabs
             airline={selectedAirline}
             aircraftModel={aircraftModel}
