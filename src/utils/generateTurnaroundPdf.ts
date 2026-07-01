@@ -5,6 +5,102 @@ import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefi
 import { format } from 'date-fns';
 import { getSignedUrl, getSignedUrls } from '@/utils/storageUrl';
 import { es } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+
+const escapeHtml = (s: string) =>
+  String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string));
+
+async function buildAirCanadaScannerHtml(flightNumber: string, flightDate: string): Promise<string> {
+  if (!flightNumber || !flightDate) return '';
+  const [{ data: positions }, { data: bulkRows }] = await Promise.all([
+    supabase
+      .from('ac_load_sheet_data')
+      .select('*')
+      .eq('flight_number', flightNumber)
+      .eq('flight_date', flightDate),
+    supabase
+      .from('ac_bulk_data')
+      .select('*')
+      .eq('flight_number', flightNumber)
+      .eq('flight_date', flightDate),
+  ]);
+
+  const pos = positions ?? [];
+  const bulks = bulkRows ?? [];
+  if (pos.length === 0 && bulks.length === 0) return '';
+
+  const bulkLabels: Array<[string, string]> = [
+    ['bf', 'BF'], ['by_val', 'BY'], ['dom', 'DOM'], ['usa', 'USA'],
+    ['int_val', 'INT'], ['bg', 'BG'], ['rush', 'RUSH'],
+  ];
+
+  const renderSection = (scanType: 'arrival' | 'departure', title: string) => {
+    const rows = pos.filter((r: any) => r.scan_type === scanType);
+    const bulk = bulks.find((b: any) => b.scan_type === scanType);
+    if (rows.length === 0 && !bulk) return '';
+
+    const renderTable = (section: 'FWD' | 'AFT') => {
+      const sec = rows
+        .filter((r: any) => r.fwd_section === section)
+        .sort((a: any, b: any) => String(a.position).localeCompare(String(b.position)));
+      if (sec.length === 0) return '';
+      const body = sec.map((r: any) => `
+        <tr>
+          <td style="text-align:center;font-family:monospace;">${escapeHtml(r.position)}${r.is_door_position ? ' 🚪' : ''}</td>
+          <td style="font-family:monospace;">${escapeHtml(r.container_id ?? '')}</td>
+          <td style="text-align:right;">${r.weight_kg ?? ''}</td>
+          <td style="text-align:right;">${r.pieces ?? ''}</td>
+          <td style="text-align:right;">${r.percentage ?? ''}</td>
+          <td>${escapeHtml(r.notes ?? '')}</td>
+          <td style="text-align:center;">${escapeHtml(r.manual_order ?? '')}</td>
+        </tr>
+      `).join('');
+      return `
+        <h3>${section}</h3>
+        <table class="data-table">
+          <tr style="background:#e5e5e5;font-weight:bold;">
+            <td style="text-align:center;">Pos</td>
+            <td>Contenedor</td>
+            <td style="text-align:right;">Peso (kg)</td>
+            <td style="text-align:right;">Piezas</td>
+            <td style="text-align:right;">%</td>
+            <td>Notas</td>
+            <td style="text-align:center;">Orden</td>
+          </tr>
+          ${body}
+        </table>
+      `;
+    };
+
+    let bulkHtml = '';
+    if (bulk) {
+      const active = bulkLabels.filter(([k]) => Number((bulk as any)[k] ?? 0) > 0);
+      if (active.length > 0) {
+        bulkHtml = `
+          <h3>BULK</h3>
+          <table class="data-table">
+            <tr style="background:#e5e5e5;font-weight:bold;">
+              ${active.map(([, l]) => `<td style="text-align:center;">${l}</td>`).join('')}
+            </tr>
+            <tr>
+              ${active.map(([k]) => `<td style="text-align:center;font-family:monospace;">${(bulk as any)[k]}</td>`).join('')}
+            </tr>
+          </table>
+        `;
+      }
+    }
+
+    return `
+      <h2>${title}</h2>
+      ${renderTable('FWD')}
+      ${renderTable('AFT')}
+      ${bulkHtml}
+    `;
+  };
+
+  return renderSection('arrival', 'Escáner Descarga (Arrival)') +
+         renderSection('departure', 'Escáner Carga (Departure)');
+}
 
 interface PdfData {
   flightNumber: string;
@@ -202,6 +298,12 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     ? await getSignedUrls(data.times.observationPhotos)
     : [];
 
+
+  const acScannerHtml = (data.airline === 'AIR_CANADA' || data.airline === 'AIR_CANADA_CARGO')
+    ? await buildAirCanadaScannerHtml(data.flightNumber, format(data.date, 'yyyy-MM-dd'))
+    : '';
+
+
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -286,6 +388,9 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
 
   ${compartmentsHtml ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
+
+  ${acScannerHtml}
+
 
   ${equipmentHtml}
 

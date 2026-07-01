@@ -1,30 +1,30 @@
-## Diagnóstico
+## Objetivo
+Incluir los datos del escáner de Air Canada (descarga = arrival, carga = departure) en el PDF exportado. Los datos ya se persisten en `ac_load_sheet_data` y `ac_bulk_data`, solo falta leerlos y renderizarlos al generar el PDF.
 
-En `supabase/functions/sync-arion-flights/index.ts` el header `X-Station` está fijado a **`LEMD`** (código ICAO de Madrid) tanto en el login como en las llamadas autenticadas:
+## Cambios
 
-```ts
-// línea 29
-const ARION_HEADERS_BASE = {
-  ...
-  'X-Station': 'LEMD',
-};
-```
+### 1. `src/utils/generateTurnaroundPdf.ts`
+- Aceptar `flightDate` y (opcional) `flightNumber` ya vienen. Añadir consulta a Supabase cuando `data.airline === 'AIR_CANADA' | 'AIR_CANADA_CARGO'`:
+  - `ac_load_sheet_data` filtrado por `flight_number` + `flight_date`.
+  - `ac_bulk_data` filtrado igual.
+- Agrupar filas por `scan_type` (`arrival` / `departure`) y `fwd_section` (FWD / AFT).
+- Renderizar dos bloques nuevos: **"Descarga (Arrival)"** y **"Carga (Departure)"**, cada uno con:
+  - Sub-tabla FWD y AFT con columnas: Posición, Contenedor, Peso (kg), Piezas, %, Notas, Orden manual (si tiene), Puerta.
+  - Fila resumen BULK con contadores: BF, BY, DOM, USA, INT, BG, RUSH (solo los > 0).
+- Insertar los bloques después de `Horarios Programados` y antes de `Control de Horas` (o donde encaje mejor visualmente, decisión menor).
+- Si no hay filas para una sección, se omite; si no hay ninguna, no se muestra el encabezado.
 
-Tienes razón en que ARION suele esperar el **código IATA** (`MAD`) y no el ICAO (`LEMD`). Si la estación no coincide con la que el usuario tiene asignada en ARION, el login devuelve 401 aunque las credenciales sean correctas — que es justo el síntoma que vemos.
+### 2. `src/pages/TurnaroundForm.tsx`
+- No requiere cambios funcionales: ya pasa `flightNumber` y `date` a `generateTurnaroundPdf`. Solo verificar que `flightDate` en formato `yyyy-MM-dd` esté disponible al llamar (usar `format(date, 'yyyy-MM-dd')` si hace falta).
 
-## Plan
+### 3. Persistencia
+- No requiere cambios: `AirCanadaCargoScanner` ya guarda posiciones (con debounce 800 ms) y contadores BULK en Supabase, y los recarga al abrir el vuelo. RLS existentes se mantienen.
 
-1. **Cambiar `X-Station` de `LEMD` a `MAD`** en `ARION_HEADERS_BASE` (línea 29). Eso aplica automáticamente al login y a todas las llamadas posteriores (lista de vuelos, detalle, telex), porque todas hacen spread de `ARION_HEADERS_BASE`.
+## Fuera de alcance
+- Bodegas de FedEx/Amazon (no son módulo de escáner y ya están en `times.bodegasData`).
+- Cambios visuales en el propio componente scanner.
 
-2. **Mantener el resto del flujo intacto** (logging, fallback de `username`/`login`, manejo de errores controlado a 200).
-
-3. **Desplegar** `sync-arion-flights` y disparar un sync manual desde el Admin Panel.
-
-4. **Revisar logs** de la Edge Function:
-   - Si el login devuelve 200 → problema resuelto, ARION aceptó `MAD`.
-   - Si sigue 401 con el mismo cuerpo de error → las credenciales realmente están mal y hay que re-guardarlas.
-   - Si devuelve otro error (p.ej. "station not allowed") → sabremos que la cuenta no tiene permiso sobre MAD y habrá que pedir alta.
-
-## Nota
-
-Si en el futuro hay que operar más de una base, conviene mover `X-Station` a una columna en `arion_config` (p.ej. `station_code text default 'MAD'`) en lugar de hard-codearlo. Pero eso lo dejamos para una segunda iteración una vez confirmemos que `MAD` desbloquea el login.
+## Verificación
+- Abrir un vuelo AC con datos escaneados → pulsar "Exportar PDF" → confirmar que aparecen las secciones Descarga y Carga con FWD/AFT y BULK.
+- Vuelo AC sin datos → las secciones no aparecen.
+- Vuelo de otra aerolínea → PDF sin cambios.
