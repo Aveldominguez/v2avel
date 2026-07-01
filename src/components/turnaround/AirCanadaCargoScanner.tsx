@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Camera, RotateCcw, Loader2, AlertCircle, ChevronDown, Plane } from 'lucide-react';
+import { Camera, RotateCcw, Loader2, AlertCircle, ChevronDown, Plane, ImageIcon } from 'lucide-react';
 import { compressImage } from '@/utils/imageCompressor';
 import { groupPositionsForDisplay } from '@/utils/acCargoLayout';
 import { cn } from '@/lib/utils';
