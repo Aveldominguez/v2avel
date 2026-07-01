@@ -13,6 +13,7 @@ import { AirlineTimesBlock } from '@/components/turnaround/AirlineTimesBlock';
 import { AirlineTabs } from '@/components/turnaround/AirlineTabs';
 import { ConnectionStatus } from '@/components/turnaround/ConnectionStatus';
 import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
+import AirCanadaCargoScanner from '@/components/turnaround/AirCanadaCargoScanner';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
@@ -771,6 +772,17 @@ const TurnaroundForm: React.FC = () => {
           scheduledEtd={scheduledEtd}
           flightDate={date}
         />
+
+        {(selectedAirline === 'AIR_CANADA' || selectedAirline === 'AIR_CANADA_CARGO') && (
+          <AirCanadaCargoScanner
+            flightNumber={flightNumber}
+            flightDate={date ? format(date, 'yyyy-MM-dd') : ''}
+            aircraftType={aircraftModel}
+            turnaroundId={id}
+          />
+        )}
+
+
 
 
         {(selectedAirline === 'FEDEX' || selectedAirline === 'AMAZON') && (
