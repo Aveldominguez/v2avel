@@ -6,7 +6,7 @@ import { DeletePhotoButton } from './DeletePhotoButton';
 import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
-const MAX_PHOTOS = 7;
+const MAX_PHOTOS = Number.POSITIVE_INFINITY;
 
 interface ObservationPhotosProps {
   turnaroundId?: string;
