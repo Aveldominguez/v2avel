@@ -215,7 +215,6 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
       if ((data as any)?.error) throw new Error((data as any).error);
 
       const mapped: PositionData[] = ((data as any).positions ?? [])
-        .filter((p: any) => p.containerId)
         .map((p: any) => ({
           position: p.position,
           section: expectedSection,
@@ -225,6 +224,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           percentage: String(p.percentage ?? ''),
           notes: p.notes ?? '',
           isDoorPosition: p.isDoorPosition ?? false,
+          isNil: p.isNil ?? !p.containerId,
           manualOrder: '',
         }));
 
