@@ -445,9 +445,9 @@ export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeF
     }
   }
 
-  // Air Canada exclusive: Último Carreteo (before Calzos Llegada)
+  // Air Canada exclusive: Último Carreteo (at the end of arrival fields)
   if (airline === 'AIR_CANADA') {
-    fields.unshift({ key: 'lastTaxi', label: 'Último Carreteo', clockColor: 'green', type: 'time' });
+    fields.push({ key: 'lastTaxi', label: 'Último Carreteo', clockColor: 'green', type: 'time' });
   }
 
   return applyTimeFieldOverrides(airline, fields, ARRIVAL_ONLY_KEYS as Set<string>);
