@@ -44,7 +44,17 @@ async function buildAirCanadaScannerHtml(flightNumber: string, flightDate: strin
         .filter((r: any) => r.fwd_section === section)
         .sort((a: any, b: any) => String(a.position).localeCompare(String(b.position)));
       if (sec.length === 0) return '';
-      const body = sec.map((r: any) => `
+      const body = sec.map((r: any) => {
+        const isNil = !r.container_id && !r.weight_kg && !r.pieces;
+        if (isNil) {
+          return `
+        <tr style="background:#f5f5f5;color:#666;">
+          <td style="text-align:center;font-family:monospace;">${escapeHtml(r.position)}${r.is_door_position ? ' 🚪' : ''}</td>
+          <td style="font-family:monospace;font-weight:bold;text-align:center;" colspan="6">NIL</td>
+        </tr>
+      `;
+        }
+        return `
         <tr>
           <td style="text-align:center;font-family:monospace;">${escapeHtml(r.position)}${r.is_door_position ? ' 🚪' : ''}</td>
           <td style="font-family:monospace;">${escapeHtml(r.container_id ?? '')}</td>
@@ -54,7 +64,8 @@ async function buildAirCanadaScannerHtml(flightNumber: string, flightDate: strin
           <td>${escapeHtml(r.notes ?? '')}</td>
           <td style="text-align:center;">${escapeHtml(r.manual_order ?? '')}</td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
       return `
         <h3>${section}</h3>
         <table class="data-table">
