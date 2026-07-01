@@ -99,10 +99,16 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
     body: string;
   }>({ open: false, title: '', body: '' });
 
-  const fwdArrivalRef = useRef<HTMLInputElement>(null);
-  const aftArrivalRef = useRef<HTMLInputElement>(null);
-  const fwdDepartureRef = useRef<HTMLInputElement>(null);
-  const aftDepartureRef = useRef<HTMLInputElement>(null);
+  // Camera refs
+  const fwdArrivalCameraRef = useRef<HTMLInputElement>(null);
+  const aftArrivalCameraRef = useRef<HTMLInputElement>(null);
+  const fwdDepartureCameraRef = useRef<HTMLInputElement>(null);
+  const aftDepartureCameraRef = useRef<HTMLInputElement>(null);
+  // Gallery refs
+  const fwdArrivalGalleryRef = useRef<HTMLInputElement>(null);
+  const aftArrivalGalleryRef = useRef<HTMLInputElement>(null);
+  const fwdDepartureGalleryRef = useRef<HTMLInputElement>(null);
+  const aftDepartureGalleryRef = useRef<HTMLInputElement>(null);
 
   const debouncedSave = useDebouncedSave();
 
