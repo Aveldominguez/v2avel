@@ -7,7 +7,7 @@ import { DeletePhotoButton } from './DeletePhotoButton';
 import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
-const MAX_FILES = 7;
+const MAX_FILES = Number.POSITIVE_INFINITY;
 
 interface FileUploadFieldProps {
   turnaroundId?: string;
