@@ -575,19 +575,32 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
 
   const ScanModule: React.FC<{ scanType: 'arrival' | 'departure' }> = ({ scanType }) => {
     const state = scanType === 'arrival' ? arrival : departure;
-    const fwdRef = scanType === 'arrival' ? fwdArrivalRef : fwdDepartureRef;
-    const aftRef = scanType === 'arrival' ? aftArrivalRef : aftDepartureRef;
+    const fwdCameraRef = scanType === 'arrival' ? fwdArrivalCameraRef : fwdDepartureCameraRef;
+    const fwdGalleryRef = scanType === 'arrival' ? fwdArrivalGalleryRef : fwdDepartureGalleryRef;
+    const aftCameraRef = scanType === 'arrival' ? aftArrivalCameraRef : aftDepartureCameraRef;
+    const aftGalleryRef = scanType === 'arrival' ? aftArrivalGalleryRef : aftDepartureGalleryRef;
     const hasAny = state.fwdScanned || state.aftScanned;
 
     return (
       <div className="p-3 border border-border rounded-b-md bg-background/40 space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
-          {/* FWD */}
+          {/* FWD scan inputs */}
           <input
-            ref={fwdRef}
+            ref={fwdCameraRef}
             type="file"
             accept="image/*"
             capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleScan(f, scanType, 'FWD');
+              e.target.value = '';
+            }}
+          />
+          <input
+            ref={fwdGalleryRef}
+            type="file"
+            accept="image/*"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -599,7 +612,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => fwdRef.current?.click()}
+            onClick={() => fwdCameraRef.current?.click()}
             disabled={state.isScanningFwd}
             className="gap-1.5 text-xs h-7"
           >
@@ -613,16 +626,37 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
               </>
             )}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fwdGalleryRef.current?.click()}
+            disabled={state.isScanningFwd}
+            className="gap-1.5 text-xs h-7"
+          >
+            <ImageIcon className="h-3.5 w-3.5" /> Galería FWD
+          </Button>
           {state.fwdScanned && (
             <span className="text-[10px] font-bold text-emerald-600">✓ FWD</span>
           )}
 
-          {/* AFT */}
+          {/* AFT scan inputs */}
           <input
-            ref={aftRef}
+            ref={aftCameraRef}
             type="file"
             accept="image/*"
             capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleScan(f, scanType, 'AFT');
+              e.target.value = '';
+            }}
+          />
+          <input
+            ref={aftGalleryRef}
+            type="file"
+            accept="image/*"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -634,7 +668,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => aftRef.current?.click()}
+            onClick={() => aftCameraRef.current?.click()}
             disabled={state.isScanningAft}
             className="gap-1.5 text-xs h-7"
           >
@@ -647,6 +681,16 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
                 <Camera className="h-3.5 w-3.5" /> {state.aftScanned ? '↺ Re-escanear AFT' : 'Escanear AFT'}
               </>
             )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => aftGalleryRef.current?.click()}
+            disabled={state.isScanningAft}
+            className="gap-1.5 text-xs h-7"
+          >
+            <ImageIcon className="h-3.5 w-3.5" /> Galería AFT
           </Button>
           {state.aftScanned && (
             <span className="text-[10px] font-bold text-emerald-600">✓ AFT</span>
