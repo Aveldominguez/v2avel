@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, mimeType } = await req.json();
+    const { imageBase64, mimeType, expectedSection } = await req.json();
 
     if (!imageBase64 || !mimeType) {
       return new Response(
@@ -31,37 +31,39 @@ serve(async (req) => {
 
     const prompt = `You are an expert aviation load sheet reader. Extract ALL cargo positions from this Air Canada load sheet image.
 
+The sheet is for the ${expectedSection || 'unknown'} section of the aircraft.
+
 Return a JSON object with this exact structure:
 {
   "flightNumber": "AC0824",
   "flightDate": "30JUN2026",
   "aircraftType": "A333",
+  "section": "FWD",
   "positions": [
     {
       "section": "FWD",
       "position": "11P",
       "containerId": "PMC48758R7",
-      "destination": "MAD",
-      "contentCode": "E",
-      "pieces": 2,
       "weightKg": 530,
+      "pieces": 2,
       "percentage": 100,
-      "notes": "PRI, PIL, COL, HAZ ULDEAST",
+      "notes": "PRI, PIL, COL, HAZ ULDEAST — E",
       "isDoorPosition": false
     }
   ]
 }
 
 Rules:
-- section: "FWD" for forward hold, "AFT" for aft hold, "BLK" for bulk
-- position: exactly as printed (11P, 12P, 21P, 32L, 32R, 44, 53, etc.)
-- contentCode: B=Baggage, C=Cargo, E=Economy express, X=Empty, BF=Business First, Q=other
-- isDoorPosition: true ONLY if the position has a black background with white "DOOR" text label next to it on the sheet
-- If a cell shows "NIL" it means empty — skip it or include with containerId null
-- Extract ALL rows visible, both L and R for each row number
-- weightKg and pieces from the line like "1/1384kg 100%" → pieces=1, weightKg=1384, percentage=100
-- notes: any additional text lines below the main container line
-- Return ONLY valid JSON, no explanation.`;
+- section field at root level: "FWD" or "AFT" based on the header of the sheet
+- Each position's section: "FWD" or "AFT" depending on which hold it belongs to
+- position: exactly as printed (11P, 12P, 32L, 32R, 44, 53, etc.)
+- isDoorPosition: true ONLY if the position has a black background with white "DOOR" text label on the sheet
+- If a cell shows "NIL" — skip it entirely (do not include)
+- Extract ALL rows, both L and R for each row number
+- weightKg and pieces from lines like "1/1384kg 100%" → pieces=1, weightKg=1384, percentage=100
+- notes: ALL text lines below the container ID line, including content codes (B, C, E, BF, etc.) — include them as part of the notes string (e.g. "C — PES SEAFOOD XYVR 034-3+")
+- Do NOT include a separate contentCode field
+- Return ONLY valid JSON, no explanation, no markdown.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -73,15 +75,13 @@ Rules:
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 4096,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "image", source: { type: "base64", media_type: mimeType, data: imageBase64 } },
-              { type: "text", text: prompt },
-            ],
-          },
-        ],
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mimeType, data: imageBase64 } },
+            { type: "text", text: prompt },
+          ],
+        }],
       }),
     });
 
@@ -95,7 +95,6 @@ Rules:
 
     const data = await response.json();
     const content = data.content?.[0]?.text || "";
-
     const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || content.match(/(\{[\s\S]*\})/);
     const jsonStr = jsonMatch ? jsonMatch[1] : content;
 
