@@ -138,6 +138,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           percentage: r.percentage != null ? String(r.percentage) : '',
           notes: r.notes ?? '',
           isDoorPosition: r.is_door_position ?? false,
+          isNil: !r.container_id && !r.weight_kg && !r.pieces,
           manualOrder: r.manual_order != null ? String(r.manual_order) : '',
         }));
 
