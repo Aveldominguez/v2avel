@@ -14,14 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      ac_bulk_data: {
+        Row: {
+          bf: number
+          bg: number
+          by_val: number
+          created_at: string
+          dom: number
+          flight_date: string
+          flight_number: string
+          id: string
+          int_val: number
+          rush: number
+          scan_type: string
+          turnaround_id: string | null
+          updated_at: string
+          usa: number
+        }
+        Insert: {
+          bf?: number
+          bg?: number
+          by_val?: number
+          created_at?: string
+          dom?: number
+          flight_date: string
+          flight_number: string
+          id?: string
+          int_val?: number
+          rush?: number
+          scan_type: string
+          turnaround_id?: string | null
+          updated_at?: string
+          usa?: number
+        }
+        Update: {
+          bf?: number
+          bg?: number
+          by_val?: number
+          created_at?: string
+          dom?: number
+          flight_date?: string
+          flight_number?: string
+          id?: string
+          int_val?: number
+          rush?: number
+          scan_type?: string
+          turnaround_id?: string | null
+          updated_at?: string
+          usa?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ac_bulk_data_turnaround_id_fkey"
+            columns: ["turnaround_id"]
+            isOneToOne: false
+            referencedRelation: "turnarounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ac_load_sheet_data: {
         Row: {
           aircraft_type: string
           container_id: string | null
-          content_code: string | null
           created_at: string
           flight_date: string
           flight_number: string
+          fwd_section: string
           id: string
           is_door_position: boolean | null
           manual_order: number | null
@@ -30,7 +89,6 @@ export type Database = {
           pieces: number | null
           position: string
           scan_type: string
-          section: string
           turnaround_id: string | null
           updated_at: string
           weight_kg: number | null
@@ -38,10 +96,10 @@ export type Database = {
         Insert: {
           aircraft_type: string
           container_id?: string | null
-          content_code?: string | null
           created_at?: string
           flight_date: string
           flight_number: string
+          fwd_section: string
           id?: string
           is_door_position?: boolean | null
           manual_order?: number | null
@@ -50,7 +108,6 @@ export type Database = {
           pieces?: number | null
           position: string
           scan_type: string
-          section: string
           turnaround_id?: string | null
           updated_at?: string
           weight_kg?: number | null
@@ -58,10 +115,10 @@ export type Database = {
         Update: {
           aircraft_type?: string
           container_id?: string | null
-          content_code?: string | null
           created_at?: string
           flight_date?: string
           flight_number?: string
+          fwd_section?: string
           id?: string
           is_door_position?: boolean | null
           manual_order?: number | null
@@ -70,7 +127,6 @@ export type Database = {
           pieces?: number | null
           position?: string
           scan_type?: string
-          section?: string
           turnaround_id?: string | null
           updated_at?: string
           weight_kg?: number | null
