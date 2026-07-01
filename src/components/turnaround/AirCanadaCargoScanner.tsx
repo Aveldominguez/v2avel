@@ -747,12 +747,12 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
       </div>
 
       <div>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-t-md border border-border bg-muted/40">
-          <span className="text-sm font-bold">Comoditys</span>
-        </div>
-        <div className="p-3 border border-t-0 border-border rounded-b-md bg-background/40">
-          <BulkSection scanType="departure" />
-        </div>
+        <ModuleHeader
+          scanType="departure"
+          label="✈️ Carga — Salida"
+          color="bg-rose-500/15 text-rose-700 dark:text-rose-400"
+        />
+        {openModule === 'departure' && <ScanModule scanType="departure" />}
       </div>
 
       <Dialog open={lirDialog.open} onOpenChange={(o) => setLirDialog((p) => ({ ...p, open: o }))}>
