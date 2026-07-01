@@ -398,14 +398,15 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
       );
     }
     return (
-      <div className="flex-1 border border-border rounded-md p-2 space-y-1.5 bg-card">
+      <div className={`flex-1 border rounded-md p-2 space-y-1.5 ${pos.isNil ? 'border-dashed border-muted bg-muted/30' : 'border-border bg-card'}`}>
         <div className="flex items-center gap-1.5">
           <input
             type="number"
             value={pos.manualOrder}
             onChange={(e) => updatePosition(scanType, pos.position, 'manualOrder', e.target.value)}
             placeholder="–"
-            className="w-8 h-6 text-center text-xs font-bold text-red-500 border border-red-500 rounded bg-transparent focus:outline-none focus:ring-1 focus:ring-red-500"
+            disabled={pos.isNil}
+            className="w-8 h-6 text-center text-xs font-bold text-red-500 border border-red-500 rounded bg-transparent focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-40"
           />
           <span className="text-xs font-mono font-bold text-foreground">{posKey}</span>
           {pos.isDoorPosition && (
@@ -413,15 +414,21 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
               PUERTA
             </span>
           )}
-          <input
-            type="text"
-            value={pos.containerId}
-            onChange={(e) =>
-              updatePosition(scanType, pos.position, 'containerId', e.target.value.toUpperCase())
-            }
-            placeholder="ID contenedor"
-            className="flex-1 h-6 font-mono text-xs px-1.5 border border-input rounded bg-background"
-          />
+          {pos.isNil ? (
+            <span className="flex-1 text-center px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-bold tracking-wider">
+              NIL
+            </span>
+          ) : (
+            <input
+              type="text"
+              value={pos.containerId}
+              onChange={(e) =>
+                updatePosition(scanType, pos.position, 'containerId', e.target.value.toUpperCase())
+              }
+              placeholder="ID contenedor"
+              className="flex-1 h-6 font-mono text-xs px-1.5 border border-input rounded bg-background"
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-2 text-[11px]">
