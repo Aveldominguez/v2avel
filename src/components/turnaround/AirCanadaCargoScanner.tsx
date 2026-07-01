@@ -31,6 +31,7 @@ interface PositionData {
   percentage: string;
   notes: string;
   isDoorPosition: boolean;
+  isNil: boolean;
   manualOrder: string;
 }
 
