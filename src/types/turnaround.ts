@@ -95,6 +95,10 @@ export interface TurnaroundTimes {
   scheduledStd?: string | null;        // STD (HH:mm)
   scheduledEtd?: string | null;        // ETD (HH:mm)
   cpmRawLines?: string[] | null;       // CPM raw lines snapshot (persistente)
+  lastTaxi?: string | null;            // Último Carreteo (Air Canada - llegada)
+  crewArrival?: string | null;         // Llegada Tripulación (Air Canada - salida)
+  lirChangeNotice?: string | null;     // Aviso Cambio de LIR (Air Canada - salida)
+  lirNewReceived?: string | null;      // Recibo Nueva LIR (Air Canada - salida)
 }
 
 export interface FieldDefinition {
@@ -441,6 +445,11 @@ export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeF
     }
   }
 
+  // Air Canada exclusive: Último Carreteo (before Calzos Llegada)
+  if (airline === 'AIR_CANADA') {
+    fields.unshift({ key: 'lastTaxi', label: 'Último Carreteo', clockColor: 'green', type: 'time' });
+  }
+
   return applyTimeFieldOverrides(airline, fields, ARRIVAL_ONLY_KEYS as Set<string>);
 };
 
@@ -451,6 +460,18 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): Tim
 
   if (isRemote) {
     fields.splice(fields.length - 1, 0, { key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
+  }
+
+  // Air Canada exclusive: Llegada Tripulación + Aviso/Recibo LIR
+  if (airline === 'AIR_CANADA') {
+    const lirIdx = fields.findIndex(f => f.key === 'lirReception');
+    const extras: TimeFieldConfig[] = [
+      { key: 'crewArrival', label: 'Llegada Tripulación', clockColor: 'green', type: 'time' },
+      { key: 'lirChangeNotice', label: 'Aviso Cambio de LIR', type: 'time' },
+      { key: 'lirNewReceived', label: 'Recibo Nueva LIR', type: 'time' },
+    ];
+    if (lirIdx >= 0) fields.splice(lirIdx + 1, 0, ...extras);
+    else fields.push(...extras);
   }
 
   // Restrict admin-override appended keys when not remote: gpuOff must only
@@ -475,6 +496,7 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'cargoArrival',
   'mailArrival',
   'aviArrival',
+  'lastTaxi',
 ]);
 
 // Fields to keep in "Sólo salida" mode (departure only)
@@ -498,6 +520,9 @@ const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'gpuOff',
   'bagSearchStart',
   'bagSearchEnd',
+  'crewArrival',
+  'lirChangeNotice',
+  'lirNewReceived',
 ]);
 
 export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false, soloSalida: boolean = false): TimeFieldConfig[] => {
