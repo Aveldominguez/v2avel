@@ -59,7 +59,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   };
 
   const totalCount = imageUrls.length + pending.filter(p => p.status !== 'error').length;
-  const canAdd = totalCount < MAX_FILES;
+  const canAdd = true;
 
   return (
     <Card className="card-operational">
@@ -70,7 +70,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
           </div>
           Hoja de carga
           <span className="text-xs text-muted-foreground font-normal ml-auto">
-            {imageUrls.length}/{MAX_FILES}
+            {imageUrls.length}
             {isUploading && <Loader2 className="inline h-3 w-3 ml-1 animate-spin" />}
           </span>
         </CardTitle>
