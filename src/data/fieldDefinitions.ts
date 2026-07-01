@@ -133,17 +133,14 @@ export const SKYEXPRESS_FIELDS: FieldDefinition[] = [
   createField('SKYEXPRESS', 'E', 'Equipment', 7),
 ];
 export const AIR_CANADA_FIELDS: FieldDefinition[] = [
-  createField('AIR_CANADA', 'BT', 'Tránsito', 1),
+  createField('AIR_CANADA', 'BF', 'Priority', 1),
   createField('AIR_CANADA', 'BY', 'Local', 2),
-  createField('AIR_CANADA', 'BG', 'Gate / Mano / Puerta', 3),
-  createField('AIR_CANADA', 'BP', 'Priority', 4),
-  createField('AIR_CANADA', 'DAA', 'Delivery at Aircraft (Carrito)', 5),
-  createField('AIR_CANADA', 'D', 'Crew', 6),
-  createField('AIR_CANADA', 'E', 'Equipment', 7),
-  createField('AIR_CANADA', 'BH', 'Grupo (Varios tránsitos mismo destino)', 8),
-  createField('AIR_CANADA', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
-  createField('AIR_CANADA', 'WCH', 'Wheelchair', 10),
-  createField('AIR_CANADA', 'WDB', 'Wheelchair – Dry Battery', 11),
+  createField('AIR_CANADA', 'DOM', 'Doméstica', 3),
+  createField('AIR_CANADA', 'USA', 'Estados Unidos', 4),
+  createField('AIR_CANADA', 'INT', 'Fuera de Canadá y USA', 5),
+  createField('AIR_CANADA', 'BG', 'De mano', 6),
+  createField('AIR_CANADA', 'Rush', 'Maleta sin pasajero', 7),
+  createField('AIR_CANADA', 'UFC', 'Grupo', 8),
 ];
 export const AIR_CANADA_CARGO_FIELDS: FieldDefinition[] = [
   createField('AIR_CANADA_CARGO', 'BT', 'Tránsito', 1),
