@@ -1,6 +1,6 @@
 {
-  "version": "3.201",
+  "version": "3.200",
   "changelog": [
-    "Eliminado fallback FR24 en búsqueda de vuelos: ahora solo se consulta ARION."
+    "Air Canada: escáner de hoja de carga (Descarga/Carga) con OCR Claude Vision, edición manual y campo de orden manual en rojo."
   ]
 }
