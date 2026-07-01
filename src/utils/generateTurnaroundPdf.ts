@@ -387,7 +387,7 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   </table>
 
 
-  ${compartmentsHtml ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
+  ${compartmentsHtml && data.airline !== 'AIR_CANADA' && data.airline !== 'AIR_CANADA_CARGO' ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
 
   ${acScannerHtml}
 
