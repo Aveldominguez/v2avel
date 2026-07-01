@@ -1,5 +1,5 @@
 {
-  "version": "3.205",
+  "version": "3.206",
   "changelog": [
     "Air Canada: escáner de hoja de carga v2 con FWD/AFT independientes, contadores BULK, persistencia en Cloud y visor LIR."
   ]
