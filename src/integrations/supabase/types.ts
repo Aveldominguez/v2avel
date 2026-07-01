@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      ac_load_sheet_data: {
+        Row: {
+          aircraft_type: string
+          container_id: string | null
+          content_code: string | null
+          created_at: string
+          flight_date: string
+          flight_number: string
+          id: string
+          is_door_position: boolean | null
+          manual_order: number | null
+          notes: string | null
+          percentage: number | null
+          pieces: number | null
+          position: string
+          scan_type: string
+          section: string
+          turnaround_id: string | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          aircraft_type: string
+          container_id?: string | null
+          content_code?: string | null
+          created_at?: string
+          flight_date: string
+          flight_number: string
+          id?: string
+          is_door_position?: boolean | null
+          manual_order?: number | null
+          notes?: string | null
+          percentage?: number | null
+          pieces?: number | null
+          position: string
+          scan_type: string
+          section: string
+          turnaround_id?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          aircraft_type?: string
+          container_id?: string | null
+          content_code?: string | null
+          created_at?: string
+          flight_date?: string
+          flight_number?: string
+          id?: string
+          is_door_position?: boolean | null
+          manual_order?: number | null
+          notes?: string | null
+          percentage?: number | null
+          pieces?: number | null
+          position?: string
+          scan_type?: string
+          section?: string
+          turnaround_id?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ac_load_sheet_data_turnaround_id_fkey"
+            columns: ["turnaround_id"]
+            isOneToOne: false
+            referencedRelation: "turnarounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_managed_users: {
         Row: {
           admin_user_id: string
