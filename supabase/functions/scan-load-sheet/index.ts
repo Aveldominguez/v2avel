@@ -48,7 +48,8 @@ Return a JSON object with this exact structure:
       "pieces": 2,
       "percentage": 100,
       "notes": "PRI, PIL, COL, HAZ ULDEAST — E",
-      "isDoorPosition": false
+      "isDoorPosition": false,
+      "isNil": false
     }
   ]
 }
@@ -58,7 +59,8 @@ Rules:
 - Each position's section: "FWD" or "AFT" depending on which hold it belongs to
 - position: exactly as printed (11P, 12P, 32L, 32R, 44, 53, etc.)
 - isDoorPosition: true ONLY if the position has a black background with white "DOOR" text label on the sheet
-- If a cell shows "NIL" — skip it entirely (do not include)
+- If a cell shows "NIL" — include it with containerId: null and isNil: true. Do NOT skip NIL positions.
+- For non-NIL positions set isNil: false.
 - Extract ALL rows, both L and R for each row number
 - weightKg and pieces from lines like "1/1384kg 100%" → pieces=1, weightKg=1384, percentage=100
 - notes: ALL text lines below the container ID line, including content codes (B, C, E, BF, etc.) — include them as part of the notes string (e.g. "C — PES SEAFOOD XYVR 034-3+")
