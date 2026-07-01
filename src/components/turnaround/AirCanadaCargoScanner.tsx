@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
@@ -84,6 +84,474 @@ function useDebouncedSave() {
   }, []);
 }
 
+// ============ Top-level sub-components (stable identity) ============
+
+type UpdatePositionFn = (position: string, field: keyof PositionData, value: string) => void;
+
+interface PositionCellProps {
+  pos: PositionData | undefined;
+  posKey: string;
+  onUpdate: UpdatePositionFn;
+}
+
+const PositionCell = React.memo(function PositionCell({ pos, posKey, onUpdate }: PositionCellProps) {
+  if (!pos) {
+    return (
+      <div className="flex-1 border border-dashed border-muted rounded-md p-2 text-center text-xs text-muted-foreground">
+        —
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`flex-1 border rounded-md p-2 space-y-1.5 ${
+        pos.isNil ? 'border-dashed border-muted bg-muted/30' : 'border-border bg-card'
+      }`}
+    >
+      <div className="flex items-center gap-1.5">
+        <input
+          type="number"
+          value={pos.manualOrder}
+          onChange={(e) => onUpdate(pos.position, 'manualOrder', e.target.value)}
+          placeholder="–"
+          disabled={pos.isNil}
+          className="w-8 h-6 text-center text-xs font-bold text-red-500 border border-red-500 rounded bg-transparent focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-40"
+        />
+        <span className="text-xs font-mono font-bold text-foreground">{posKey}</span>
+        {pos.isDoorPosition && (
+          <span className="px-1.5 py-0.5 rounded bg-black text-white text-[9px] font-bold tracking-wider">
+            PUERTA
+          </span>
+        )}
+        {pos.isNil ? (
+          <span className="flex-1 text-center px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-bold tracking-wider">
+            NIL
+          </span>
+        ) : (
+          <input
+            type="text"
+            value={pos.containerId}
+            onChange={(e) => onUpdate(pos.position, 'containerId', e.target.value.toUpperCase())}
+            placeholder="ID contenedor"
+            className="flex-1 h-6 font-mono text-xs px-1.5 border border-input rounded bg-background"
+          />
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 text-[11px]">
+        <input
+          type="number"
+          value={pos.weightKg}
+          onChange={(e) => onUpdate(pos.position, 'weightKg', e.target.value)}
+          placeholder="0"
+          className="w-14 h-6 text-xs border border-input rounded px-1 bg-background text-right"
+        />
+        <span className="text-muted-foreground">kg</span>
+        <input
+          type="number"
+          value={pos.pieces}
+          onChange={(e) => onUpdate(pos.position, 'pieces', e.target.value)}
+          placeholder="0"
+          className="w-10 h-6 text-xs border border-input rounded px-1 bg-background text-right"
+        />
+        <span className="text-muted-foreground">#</span>
+        <input
+          type="number"
+          value={pos.percentage}
+          onChange={(e) => onUpdate(pos.position, 'percentage', e.target.value)}
+          placeholder="100"
+          className="w-12 h-6 text-xs border border-input rounded px-1 bg-background text-right"
+        />
+        <span className="text-muted-foreground">%</span>
+      </div>
+
+      <input
+        type="text"
+        value={pos.notes}
+        onChange={(e) => onUpdate(pos.position, 'notes', e.target.value)}
+        placeholder="Notas..."
+        className="w-full h-6 text-[11px] text-muted-foreground border border-input rounded px-1.5 bg-background"
+      />
+    </div>
+  );
+});
+
+interface PositionGridProps {
+  fwdPositions: PositionData[];
+  aftPositions: PositionData[];
+  onUpdate: UpdatePositionFn;
+}
+
+const PositionGrid = React.memo(function PositionGrid({
+  fwdPositions,
+  aftPositions,
+  onUpdate,
+}: PositionGridProps) {
+  const all = useMemo(() => [...fwdPositions, ...aftPositions], [fwdPositions, aftPositions]);
+  if (all.length === 0) return null;
+
+  const displayRows = groupPositionsForDisplay(
+    all.map((p) => ({ section: p.section, position: p.position, isDoorPosition: p.isDoorPosition })),
+  );
+  const byKey = new Map(all.map((p) => [p.position, p]));
+
+  let lastSection = '';
+  return (
+    <div className="space-y-2">
+      {displayRows.map((row) => {
+        const showHeader = row.section !== lastSection;
+        lastSection = row.section;
+        return (
+          <React.Fragment key={`${row.section}-${row.rowKey}`}>
+            {showHeader && (
+              <div className="pt-2 pb-1 flex items-center gap-2">
+                <span className="text-xs font-bold tracking-wider text-muted-foreground">
+                  {row.section}
+                </span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            )}
+            {row.single !== undefined ? (
+              <PositionCell posKey={row.single} pos={byKey.get(row.single)} onUpdate={onUpdate} />
+            ) : (
+              <div className="flex items-stretch gap-2">
+                {row.left ? (
+                  <PositionCell posKey={row.left} pos={byKey.get(row.left)} onUpdate={onUpdate} />
+                ) : (
+                  <div className="flex-1" />
+                )}
+                <div className="w-px bg-border" />
+                {row.right ? (
+                  <PositionCell posKey={row.right} pos={byKey.get(row.right)} onUpdate={onUpdate} />
+                ) : (
+                  <div className="flex-1" />
+                )}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+});
+
+interface CounterProps {
+  field: keyof BulkData;
+  label: string;
+  value: number;
+  onDelta: (field: keyof BulkData, delta: number) => void;
+}
+
+const Counter = React.memo(function Counter({ field, label, value, onDelta }: CounterProps) {
+  return (
+    <div className="flex flex-col items-center gap-1 border border-border rounded-md p-2 bg-card">
+      <span className="text-[10px] font-bold tracking-wider text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onDelta(field, -1)}
+          className="w-6 h-6 rounded bg-muted text-foreground font-bold hover:bg-muted/70"
+        >
+          −
+        </button>
+        <span className="w-8 text-center text-sm font-mono font-bold text-foreground">{value}</span>
+        <button
+          type="button"
+          onClick={() => onDelta(field, +1)}
+          className="w-6 h-6 rounded bg-primary text-primary-foreground font-bold hover:bg-primary/80"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+});
+
+interface BulkSectionProps {
+  bulk: BulkData;
+  onDelta: (field: keyof BulkData, delta: number) => void;
+}
+
+const BulkSection = React.memo(function BulkSection({ bulk, onDelta }: BulkSectionProps) {
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold tracking-wider text-muted-foreground">BULK</span>
+        <div className="flex-1 h-px bg-border" />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <Counter field="bf" label="BF" value={bulk.bf} onDelta={onDelta} />
+        <Counter field="by_val" label="BY" value={bulk.by_val} onDelta={onDelta} />
+        <Counter field="dom" label="DOM" value={bulk.dom} onDelta={onDelta} />
+        <Counter field="usa" label="USA" value={bulk.usa} onDelta={onDelta} />
+        <Counter field="int_val" label="INT" value={bulk.int_val} onDelta={onDelta} />
+        <Counter field="bg" label="BG" value={bulk.bg} onDelta={onDelta} />
+        <div className="col-span-3 flex justify-center">
+          <div className="w-1/3">
+            <Counter field="rush" label="RUSH" value={bulk.rush} onDelta={onDelta} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+interface ScanModuleProps {
+  scanType: 'arrival' | 'departure';
+  state: ScanModuleState;
+  onScan: (file: File, scanType: 'arrival' | 'departure', section: 'FWD' | 'AFT') => void;
+  onUpdatePosition: UpdatePositionFn;
+  onBulkDelta: (field: keyof BulkData, delta: number) => void;
+  onOpenLir: (scanType: 'arrival' | 'departure', section: 'FWD' | 'AFT') => void;
+  onReset: (scanType: 'arrival' | 'departure') => void;
+}
+
+const ScanModule = React.memo(function ScanModule({
+  scanType,
+  state,
+  onScan,
+  onUpdatePosition,
+  onBulkDelta,
+  onOpenLir,
+  onReset,
+}: ScanModuleProps) {
+  const fwdCameraRef = useRef<HTMLInputElement>(null);
+  const fwdGalleryRef = useRef<HTMLInputElement>(null);
+  const aftCameraRef = useRef<HTMLInputElement>(null);
+  const aftGalleryRef = useRef<HTMLInputElement>(null);
+  const hasAny = state.fwdScanned || state.aftScanned;
+
+  return (
+    <div className="p-3 border border-border rounded-b-md bg-background/40 space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <input
+          ref={fwdCameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onScan(f, scanType, 'FWD');
+            e.target.value = '';
+          }}
+        />
+        <input
+          ref={fwdGalleryRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onScan(f, scanType, 'FWD');
+            e.target.value = '';
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => fwdCameraRef.current?.click()}
+          disabled={state.isScanningFwd}
+          className="gap-1.5 text-xs h-7"
+        >
+          {state.isScanningFwd ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Escaneando FWD...
+            </>
+          ) : (
+            <>
+              <Camera className="h-3.5 w-3.5" /> {state.fwdScanned ? '↺ Re-escanear FWD' : 'Escanear FWD'}
+            </>
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => fwdGalleryRef.current?.click()}
+          disabled={state.isScanningFwd}
+          className="gap-1.5 text-xs h-7"
+        >
+          <ImageIcon className="h-3.5 w-3.5" /> Galería FWD
+        </Button>
+        {state.fwdScanned && <span className="text-[10px] font-bold text-emerald-600">✓ FWD</span>}
+
+        <input
+          ref={aftCameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onScan(f, scanType, 'AFT');
+            e.target.value = '';
+          }}
+        />
+        <input
+          ref={aftGalleryRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onScan(f, scanType, 'AFT');
+            e.target.value = '';
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => aftCameraRef.current?.click()}
+          disabled={state.isScanningAft}
+          className="gap-1.5 text-xs h-7"
+        >
+          {state.isScanningAft ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Escaneando AFT...
+            </>
+          ) : (
+            <>
+              <Camera className="h-3.5 w-3.5" /> {state.aftScanned ? '↺ Re-escanear AFT' : 'Escanear AFT'}
+            </>
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => aftGalleryRef.current?.click()}
+          disabled={state.isScanningAft}
+          className="gap-1.5 text-xs h-7"
+        >
+          <ImageIcon className="h-3.5 w-3.5" /> Galería AFT
+        </Button>
+        {state.aftScanned && <span className="text-[10px] font-bold text-emerald-600">✓ AFT</span>}
+
+        {state.fwdScanned && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => onOpenLir(scanType, 'FWD')}
+            className="text-xs h-7"
+          >
+            LIR FWD
+          </Button>
+        )}
+        {state.aftScanned && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => onOpenLir(scanType, 'AFT')}
+            className="text-xs h-7"
+          >
+            LIR AFT
+          </Button>
+        )}
+
+        {hasAny && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onReset(scanType)}
+            className="gap-1.5 text-xs h-7 text-red-500 hover:text-red-700 ml-auto"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset
+          </Button>
+        )}
+      </div>
+
+      {state.scanError && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            {state.scanError}
+          </div>
+        </div>
+      )}
+
+      {!hasAny && !state.isScanningFwd && !state.isScanningAft && (
+        <div className="rounded-md border border-dashed border-muted p-6 text-center">
+          <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Escanea la hoja FWD y la hoja AFT</p>
+          <p className="text-xs text-muted-foreground/70">Puedes escanear una o las dos</p>
+        </div>
+      )}
+
+      {hasAny && (
+        <PositionGrid
+          fwdPositions={state.fwdPositions}
+          aftPositions={state.aftPositions}
+          onUpdate={onUpdatePosition}
+        />
+      )}
+
+      <BulkSection bulk={state.bulk} onDelta={onBulkDelta} />
+    </div>
+  );
+});
+
+interface ModuleHeaderProps {
+  scanType: 'arrival' | 'departure';
+  label: string;
+  color: string;
+  active: boolean;
+  fwdScanned: boolean;
+  aftScanned: boolean;
+  onToggle: (scanType: 'arrival' | 'departure') => void;
+}
+
+const ModuleHeader = React.memo(function ModuleHeader({
+  scanType,
+  label,
+  color,
+  active,
+  fwdScanned,
+  aftScanned,
+  onToggle,
+}: ModuleHeaderProps) {
+  const scanned = [fwdScanned && 'FWD', aftScanned && 'AFT'].filter(Boolean).join(' + ');
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(scanType)}
+      className={cn(
+        'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-t-md border border-b-0 border-border transition-colors',
+        active ? color : 'bg-muted/40',
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <Plane className="h-4 w-4" />
+        <span className="text-sm font-bold">{label}</span>
+        {scanned && (
+          <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+            {scanned} escaneado
+          </span>
+        )}
+      </div>
+      <ChevronDown className={cn('h-4 w-4 transition-transform', active && 'rotate-180')} />
+    </button>
+  );
+});
+
+// ============ Main component ============
+
+const DB_FIELD_MAP: Record<string, string> = {
+  containerId: 'container_id',
+  weightKg: 'weight_kg',
+  pieces: 'pieces',
+  percentage: 'percentage',
+  notes: 'notes',
+  manualOrder: 'manual_order',
+};
+const NUMERIC_FIELDS = new Set(['weightKg', 'pieces', 'percentage', 'manualOrder']);
+
 const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
   flightNumber,
   flightDate,
@@ -93,22 +561,11 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
   const [arrival, setArrival] = useState<ScanModuleState>(emptyModule());
   const [departure, setDeparture] = useState<ScanModuleState>(emptyModule());
   const [openModule, setOpenModule] = useState<'arrival' | 'departure' | null>('arrival');
-  const [lirDialog, setLirDialog] = useState<{
-    open: boolean;
-    title: string;
-    body: string;
-  }>({ open: false, title: '', body: '' });
-
-  // Camera refs
-  const fwdArrivalCameraRef = useRef<HTMLInputElement>(null);
-  const aftArrivalCameraRef = useRef<HTMLInputElement>(null);
-  const fwdDepartureCameraRef = useRef<HTMLInputElement>(null);
-  const aftDepartureCameraRef = useRef<HTMLInputElement>(null);
-  // Gallery refs
-  const fwdArrivalGalleryRef = useRef<HTMLInputElement>(null);
-  const aftArrivalGalleryRef = useRef<HTMLInputElement>(null);
-  const fwdDepartureGalleryRef = useRef<HTMLInputElement>(null);
-  const aftDepartureGalleryRef = useRef<HTMLInputElement>(null);
+  const [lirDialog, setLirDialog] = useState<{ open: boolean; title: string; body: string }>({
+    open: false,
+    title: '',
+    body: '',
+  });
 
   const debouncedSave = useDebouncedSave();
 
@@ -193,35 +650,29 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
     };
   }, [flightNumber, flightDate]);
 
-  if (!SUPPORTED_TYPES.includes(aircraftType)) return null;
+  const handleScan = useCallback(
+    async (file: File, scanType: 'arrival' | 'departure', expectedSection: 'FWD' | 'AFT') => {
+      const setter = scanType === 'arrival' ? setArrival : setDeparture;
+      const scanningKey = expectedSection === 'FWD' ? 'isScanningFwd' : 'isScanningAft';
 
-  const handleScan = async (
-    file: File,
-    scanType: 'arrival' | 'departure',
-    expectedSection: 'FWD' | 'AFT',
-  ) => {
-    const setter = scanType === 'arrival' ? setArrival : setDeparture;
-    const scanningKey = expectedSection === 'FWD' ? 'isScanningFwd' : 'isScanningAft';
+      setter((prev) => ({ ...prev, [scanningKey]: true, scanError: null }));
 
-    setter((prev) => ({ ...prev, [scanningKey]: true, scanError: null }));
+      try {
+        const compressed = await compressImage(file);
+        const base64: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve((reader.result as string).split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(compressed);
+        });
 
-    try {
-      const compressed = await compressImage(file);
-      const base64: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(compressed);
-      });
+        const { data, error } = await supabase.functions.invoke('scan-load-sheet', {
+          body: { imageBase64: base64, mimeType: compressed.type, expectedSection },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
 
-      const { data, error } = await supabase.functions.invoke('scan-load-sheet', {
-        body: { imageBase64: base64, mimeType: compressed.type, expectedSection },
-      });
-      if (error) throw error;
-      if ((data as any)?.error) throw new Error((data as any).error);
-
-      const mapped: PositionData[] = ((data as any).positions ?? [])
-        .map((p: any) => ({
+        const mapped: PositionData[] = ((data as any).positions ?? []).map((p: any) => ({
           position: p.position,
           section: expectedSection,
           containerId: p.containerId ?? '',
@@ -234,565 +685,166 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           manualOrder: '',
         }));
 
-      // Replace this section in DB
+        await supabase
+          .from('ac_load_sheet_data')
+          .delete()
+          .eq('flight_number', flightNumber)
+          .eq('flight_date', flightDate)
+          .eq('scan_type', scanType)
+          .eq('fwd_section', expectedSection);
+
+        let inserted: any[] = [];
+        if (mapped.length > 0) {
+          const { data: ins } = await supabase
+            .from('ac_load_sheet_data')
+            .insert(
+              mapped.map((p) => ({
+                turnaround_id: turnaroundId ?? null,
+                flight_number: flightNumber,
+                flight_date: flightDate,
+                aircraft_type: aircraftType,
+                scan_type: scanType,
+                fwd_section: expectedSection,
+                position: p.position,
+                container_id: p.containerId || null,
+                weight_kg: parseFloat(p.weightKg) || null,
+                pieces: parseInt(p.pieces) || null,
+                percentage: parseInt(p.percentage) || null,
+                notes: p.notes || null,
+                is_door_position: p.isDoorPosition,
+                manual_order: null,
+              })),
+            )
+            .select();
+          inserted = ins ?? [];
+        }
+
+        const withIds = mapped.map((p, i) => ({ ...p, id: inserted[i]?.id }));
+
+        setter((prev) => ({
+          ...prev,
+          [expectedSection === 'FWD' ? 'fwdPositions' : 'aftPositions']: withIds,
+          [expectedSection === 'FWD' ? 'fwdScanned' : 'aftScanned']: true,
+          [scanningKey]: false,
+        }));
+      } catch (err) {
+        console.error(err);
+        setter((prev) => ({
+          ...prev,
+          [scanningKey]: false,
+          scanError: 'Error al escanear. Verifica la imagen e inténtalo de nuevo.',
+        }));
+      }
+    },
+    [flightNumber, flightDate, aircraftType, turnaroundId],
+  );
+
+  const makeUpdatePosition = useCallback(
+    (scanType: 'arrival' | 'departure'): UpdatePositionFn =>
+      (position, field, value) => {
+        const setter = scanType === 'arrival' ? setArrival : setDeparture;
+        setter((prev) => {
+          const updateList = (list: PositionData[]) =>
+            list.map((p) => {
+              if (p.position !== position) return p;
+              const updated = { ...p, [field]: value };
+              if (updated.id && DB_FIELD_MAP[field as string]) {
+                const dbKey = DB_FIELD_MAP[field as string];
+                const dbValue = NUMERIC_FIELDS.has(field as string)
+                  ? value === ''
+                    ? null
+                    : parseFloat(value)
+                  : value || null;
+                debouncedSave(updated.id, dbKey, dbValue);
+              }
+              return updated;
+            });
+          return {
+            ...prev,
+            fwdPositions: updateList(prev.fwdPositions),
+            aftPositions: updateList(prev.aftPositions),
+          };
+        });
+      },
+    [debouncedSave],
+  );
+
+  const updateArrivalPosition = useMemo(() => makeUpdatePosition('arrival'), [makeUpdatePosition]);
+  const updateDeparturePosition = useMemo(() => makeUpdatePosition('departure'), [makeUpdatePosition]);
+
+  const makeBulkDelta = useCallback(
+    (scanType: 'arrival' | 'departure') => async (field: keyof BulkData, delta: number) => {
+      const setter = scanType === 'arrival' ? setArrival : setDeparture;
+      let newBulk: BulkData | null = null;
+      setter((prev) => {
+        const newVal = Math.max(0, (prev.bulk[field] ?? 0) + delta);
+        newBulk = { ...prev.bulk, [field]: newVal };
+        return { ...prev, bulk: newBulk };
+      });
+      if (!newBulk) return;
+      await supabase.from('ac_bulk_data').upsert(
+        {
+          turnaround_id: turnaroundId ?? null,
+          flight_number: flightNumber,
+          flight_date: flightDate,
+          scan_type: scanType,
+          ...newBulk,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'flight_number,flight_date,scan_type' },
+      );
+    },
+    [flightNumber, flightDate, turnaroundId],
+  );
+
+  const arrivalBulkDelta = useMemo(() => makeBulkDelta('arrival'), [makeBulkDelta]);
+  const departureBulkDelta = useMemo(() => makeBulkDelta('departure'), [makeBulkDelta]);
+
+  const resetModule = useCallback(
+    async (scanType: 'arrival' | 'departure') => {
       await supabase
         .from('ac_load_sheet_data')
         .delete()
         .eq('flight_number', flightNumber)
         .eq('flight_date', flightDate)
-        .eq('scan_type', scanType)
-        .eq('fwd_section', expectedSection);
+        .eq('scan_type', scanType);
+      await supabase
+        .from('ac_bulk_data')
+        .delete()
+        .eq('flight_number', flightNumber)
+        .eq('flight_date', flightDate)
+        .eq('scan_type', scanType);
+      (scanType === 'arrival' ? setArrival : setDeparture)(emptyModule());
+    },
+    [flightNumber, flightDate],
+  );
 
-      let inserted: any[] = [];
-      if (mapped.length > 0) {
-        const { data: ins } = await supabase
-          .from('ac_load_sheet_data')
-          .insert(
-            mapped.map((p) => ({
-              turnaround_id: turnaroundId ?? null,
-              flight_number: flightNumber,
-              flight_date: flightDate,
-              aircraft_type: aircraftType,
-              scan_type: scanType,
-              fwd_section: expectedSection,
-              position: p.position,
-              container_id: p.containerId || null,
-              weight_kg: parseFloat(p.weightKg) || null,
-              pieces: parseInt(p.pieces) || null,
-              percentage: parseInt(p.percentage) || null,
-              notes: p.notes || null,
-              is_door_position: p.isDoorPosition,
-              manual_order: null,
-            })),
-          )
-          .select();
-        inserted = ins ?? [];
-      }
+  const openLir = useCallback(
+    (scanType: 'arrival' | 'departure', section: 'FWD' | 'AFT') => {
+      const state = scanType === 'arrival' ? arrival : departure;
+      const positions = section === 'FWD' ? state.fwdPositions : state.aftPositions;
+      const body = positions
+        .map(
+          (p) =>
+            `${p.position.padEnd(4)} ${(p.containerId || '').padEnd(12)} ${(p.weightKg || '0').padStart(5)}kg  ${(p.pieces || '0').padStart(2)}#  ${(p.percentage || '0').padStart(3)}%  ${p.notes || ''}`,
+        )
+        .join('\n');
+      setLirDialog({
+        open: true,
+        title: `LIR ${section} — ${scanType === 'arrival' ? 'Descarga' : 'Carga'}`,
+        body: body || '(sin datos)',
+      });
+    },
+    [arrival, departure],
+  );
 
-      // Merge ids back
-      const withIds = mapped.map((p, i) => ({ ...p, id: inserted[i]?.id }));
+  const toggleModule = useCallback(
+    (scanType: 'arrival' | 'departure') =>
+      setOpenModule((prev) => (prev === scanType ? null : scanType)),
+    [],
+  );
 
-      setter((prev) => ({
-        ...prev,
-        [expectedSection === 'FWD' ? 'fwdPositions' : 'aftPositions']: withIds,
-        [expectedSection === 'FWD' ? 'fwdScanned' : 'aftScanned']: true,
-        [scanningKey]: false,
-      }));
-    } catch (err) {
-      console.error(err);
-      setter((prev) => ({
-        ...prev,
-        [scanningKey]: false,
-        scanError: 'Error al escanear. Verifica la imagen e inténtalo de nuevo.',
-      }));
-    }
-  };
-
-  const dbFieldMap: Record<string, string> = {
-    containerId: 'container_id',
-    weightKg: 'weight_kg',
-    pieces: 'pieces',
-    percentage: 'percentage',
-    notes: 'notes',
-    manualOrder: 'manual_order',
-  };
-  const numericFields = new Set(['weightKg', 'pieces', 'percentage', 'manualOrder']);
-
-  const updatePosition = (
-    scanType: 'arrival' | 'departure',
-    position: string,
-    field: keyof PositionData,
-    value: string,
-  ) => {
-    const setter = scanType === 'arrival' ? setArrival : setDeparture;
-    setter((prev) => {
-      const updateList = (list: PositionData[]) =>
-        list.map((p) => {
-          if (p.position !== position) return p;
-          const updated = { ...p, [field]: value };
-          if (updated.id && dbFieldMap[field as string]) {
-            const dbKey = dbFieldMap[field as string];
-            const dbValue = numericFields.has(field as string)
-              ? value === ''
-                ? null
-                : parseFloat(value)
-              : value || null;
-            debouncedSave(updated.id, dbKey, dbValue);
-          }
-          return updated;
-        });
-      return {
-        ...prev,
-        fwdPositions: updateList(prev.fwdPositions),
-        aftPositions: updateList(prev.aftPositions),
-      };
-    });
-  };
-
-  const updateBulk = async (
-    scanType: 'arrival' | 'departure',
-    field: keyof BulkData,
-    delta: number,
-  ) => {
-    const setter = scanType === 'arrival' ? setArrival : setDeparture;
-    const current = scanType === 'arrival' ? arrival.bulk : departure.bulk;
-    const newVal = Math.max(0, (current[field] ?? 0) + delta);
-    const newBulk = { ...current, [field]: newVal };
-
-    setter((prev) => ({ ...prev, bulk: newBulk }));
-
-    await supabase.from('ac_bulk_data').upsert(
-      {
-        turnaround_id: turnaroundId ?? null,
-        flight_number: flightNumber,
-        flight_date: flightDate,
-        scan_type: scanType,
-        ...newBulk,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'flight_number,flight_date,scan_type' },
-    );
-  };
-
-  const resetModule = async (scanType: 'arrival' | 'departure') => {
-    await supabase
-      .from('ac_load_sheet_data')
-      .delete()
-      .eq('flight_number', flightNumber)
-      .eq('flight_date', flightDate)
-      .eq('scan_type', scanType);
-    await supabase
-      .from('ac_bulk_data')
-      .delete()
-      .eq('flight_number', flightNumber)
-      .eq('flight_date', flightDate)
-      .eq('scan_type', scanType);
-    (scanType === 'arrival' ? setArrival : setDeparture)(emptyModule());
-  };
-
-  const openLir = (scanType: 'arrival' | 'departure', section: 'FWD' | 'AFT') => {
-    const state = scanType === 'arrival' ? arrival : departure;
-    const positions = section === 'FWD' ? state.fwdPositions : state.aftPositions;
-    const body = positions
-      .map(
-        (p) =>
-          `${p.position.padEnd(4)} ${(p.containerId || '').padEnd(12)} ${(p.weightKg || '0').padStart(5)}kg  ${(p.pieces || '0').padStart(2)}#  ${(p.percentage || '0').padStart(3)}%  ${p.notes || ''}`,
-      )
-      .join('\n');
-    setLirDialog({
-      open: true,
-      title: `LIR ${section} — ${scanType === 'arrival' ? 'Descarga' : 'Carga'}`,
-      body: body || '(sin datos)',
-    });
-  };
-
-  // ------ Rendering pieces ------
-
-  const PositionCell: React.FC<{ posKey: string; scanType: 'arrival' | 'departure' }> = ({
-    posKey,
-    scanType,
-  }) => {
-    const state = scanType === 'arrival' ? arrival : departure;
-    const pos =
-      state.fwdPositions.find((p) => p.position === posKey) ||
-      state.aftPositions.find((p) => p.position === posKey);
-    if (!pos) {
-      return (
-        <div className="flex-1 border border-dashed border-muted rounded-md p-2 text-center text-xs text-muted-foreground">
-          —
-        </div>
-      );
-    }
-    return (
-      <div className={`flex-1 border rounded-md p-2 space-y-1.5 ${pos.isNil ? 'border-dashed border-muted bg-muted/30' : 'border-border bg-card'}`}>
-        <div className="flex items-center gap-1.5">
-          <input
-            type="number"
-            value={pos.manualOrder}
-            onChange={(e) => updatePosition(scanType, pos.position, 'manualOrder', e.target.value)}
-            placeholder="–"
-            disabled={pos.isNil}
-            className="w-8 h-6 text-center text-xs font-bold text-red-500 border border-red-500 rounded bg-transparent focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-40"
-          />
-          <span className="text-xs font-mono font-bold text-foreground">{posKey}</span>
-          {pos.isDoorPosition && (
-            <span className="px-1.5 py-0.5 rounded bg-black text-white text-[9px] font-bold tracking-wider">
-              PUERTA
-            </span>
-          )}
-          {pos.isNil ? (
-            <span className="flex-1 text-center px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-bold tracking-wider">
-              NIL
-            </span>
-          ) : (
-            <input
-              type="text"
-              value={pos.containerId}
-              onChange={(e) =>
-                updatePosition(scanType, pos.position, 'containerId', e.target.value.toUpperCase())
-              }
-              placeholder="ID contenedor"
-              className="flex-1 h-6 font-mono text-xs px-1.5 border border-input rounded bg-background"
-            />
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 text-[11px]">
-          <input
-            type="number"
-            value={pos.weightKg}
-            onChange={(e) => updatePosition(scanType, pos.position, 'weightKg', e.target.value)}
-            placeholder="0"
-            className="w-14 h-6 text-xs border border-input rounded px-1 bg-background text-right"
-          />
-          <span className="text-muted-foreground">kg</span>
-          <input
-            type="number"
-            value={pos.pieces}
-            onChange={(e) => updatePosition(scanType, pos.position, 'pieces', e.target.value)}
-            placeholder="0"
-            className="w-10 h-6 text-xs border border-input rounded px-1 bg-background text-right"
-          />
-          <span className="text-muted-foreground">#</span>
-          <input
-            type="number"
-            value={pos.percentage}
-            onChange={(e) => updatePosition(scanType, pos.position, 'percentage', e.target.value)}
-            placeholder="100"
-            className="w-12 h-6 text-xs border border-input rounded px-1 bg-background text-right"
-          />
-          <span className="text-muted-foreground">%</span>
-        </div>
-
-        <input
-          type="text"
-          value={pos.notes}
-          onChange={(e) => updatePosition(scanType, pos.position, 'notes', e.target.value)}
-          placeholder="Notas..."
-          className="w-full h-6 text-[11px] text-muted-foreground border border-input rounded px-1.5 bg-background"
-        />
-      </div>
-    );
-  };
-
-  const PositionGrid: React.FC<{ scanType: 'arrival' | 'departure' }> = ({ scanType }) => {
-    const state = scanType === 'arrival' ? arrival : departure;
-    const all = [...state.fwdPositions, ...state.aftPositions];
-    if (all.length === 0) return null;
-
-    const displayRows = groupPositionsForDisplay(
-      all.map((p) => ({ section: p.section, position: p.position, isDoorPosition: p.isDoorPosition })),
-    );
-
-    let lastSection = '';
-    return (
-      <div className="space-y-2">
-        {displayRows.map((row) => {
-          const showHeader = row.section !== lastSection;
-          lastSection = row.section;
-          return (
-            <React.Fragment key={`${row.section}-${row.rowKey}`}>
-              {showHeader && (
-                <div className="pt-2 pb-1 flex items-center gap-2">
-                  <span className="text-xs font-bold tracking-wider text-muted-foreground">
-                    {row.section}
-                  </span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-              )}
-              {row.single !== undefined ? (
-                <PositionCell posKey={row.single} scanType={scanType} />
-              ) : (
-                <div className="flex items-stretch gap-2">
-                  {row.left ? (
-                    <PositionCell posKey={row.left} scanType={scanType} />
-                  ) : (
-                    <div className="flex-1" />
-                  )}
-                  <div className="w-px bg-border" />
-                  {row.right ? (
-                    <PositionCell posKey={row.right} scanType={scanType} />
-                  ) : (
-                    <div className="flex-1" />
-                  )}
-                </div>
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const BulkSection: React.FC<{ scanType: 'arrival' | 'departure' }> = ({ scanType }) => {
-    const bulk = scanType === 'arrival' ? arrival.bulk : departure.bulk;
-    const Counter = ({ field, label }: { field: keyof BulkData; label: string }) => (
-      <div className="flex flex-col items-center gap-1 border border-border rounded-md p-2 bg-card">
-        <span className="text-[10px] font-bold tracking-wider text-muted-foreground">{label}</span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => updateBulk(scanType, field, -1)}
-            className="w-6 h-6 rounded bg-muted text-foreground font-bold hover:bg-muted/70"
-          >
-            −
-          </button>
-          <span className="w-8 text-center text-sm font-mono font-bold text-foreground">
-            {bulk[field]}
-          </span>
-          <button
-            type="button"
-            onClick={() => updateBulk(scanType, field, +1)}
-            className="w-6 h-6 rounded bg-primary text-primary-foreground font-bold hover:bg-primary/80"
-          >
-            +
-          </button>
-        </div>
-      </div>
-    );
-    return (
-      <div className="mt-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold tracking-wider text-muted-foreground">BULK</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <Counter field="bf" label="BF" />
-          <Counter field="by_val" label="BY" />
-          <Counter field="dom" label="DOM" />
-          <Counter field="usa" label="USA" />
-          <Counter field="int_val" label="INT" />
-          <Counter field="bg" label="BG" />
-          <div className="col-span-3 flex justify-center">
-            <div className="w-1/3">
-              <Counter field="rush" label="RUSH" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const ScanModule: React.FC<{ scanType: 'arrival' | 'departure' }> = ({ scanType }) => {
-    const state = scanType === 'arrival' ? arrival : departure;
-    const fwdCameraRef = scanType === 'arrival' ? fwdArrivalCameraRef : fwdDepartureCameraRef;
-    const fwdGalleryRef = scanType === 'arrival' ? fwdArrivalGalleryRef : fwdDepartureGalleryRef;
-    const aftCameraRef = scanType === 'arrival' ? aftArrivalCameraRef : aftDepartureCameraRef;
-    const aftGalleryRef = scanType === 'arrival' ? aftArrivalGalleryRef : aftDepartureGalleryRef;
-    const hasAny = state.fwdScanned || state.aftScanned;
-
-    return (
-      <div className="p-3 border border-border rounded-b-md bg-background/40 space-y-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* FWD scan inputs */}
-          <input
-            ref={fwdCameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleScan(f, scanType, 'FWD');
-              e.target.value = '';
-            }}
-          />
-          <input
-            ref={fwdGalleryRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleScan(f, scanType, 'FWD');
-              e.target.value = '';
-            }}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fwdCameraRef.current?.click()}
-            disabled={state.isScanningFwd}
-            className="gap-1.5 text-xs h-7"
-          >
-            {state.isScanningFwd ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Escaneando FWD...
-              </>
-            ) : (
-              <>
-                <Camera className="h-3.5 w-3.5" /> {state.fwdScanned ? '↺ Re-escanear FWD' : 'Escanear FWD'}
-              </>
-            )}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fwdGalleryRef.current?.click()}
-            disabled={state.isScanningFwd}
-            className="gap-1.5 text-xs h-7"
-          >
-            <ImageIcon className="h-3.5 w-3.5" /> Galería FWD
-          </Button>
-          {state.fwdScanned && (
-            <span className="text-[10px] font-bold text-emerald-600">✓ FWD</span>
-          )}
-
-          {/* AFT scan inputs */}
-          <input
-            ref={aftCameraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleScan(f, scanType, 'AFT');
-              e.target.value = '';
-            }}
-          />
-          <input
-            ref={aftGalleryRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleScan(f, scanType, 'AFT');
-              e.target.value = '';
-            }}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => aftCameraRef.current?.click()}
-            disabled={state.isScanningAft}
-            className="gap-1.5 text-xs h-7"
-          >
-            {state.isScanningAft ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Escaneando AFT...
-              </>
-            ) : (
-              <>
-                <Camera className="h-3.5 w-3.5" /> {state.aftScanned ? '↺ Re-escanear AFT' : 'Escanear AFT'}
-              </>
-            )}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => aftGalleryRef.current?.click()}
-            disabled={state.isScanningAft}
-            className="gap-1.5 text-xs h-7"
-          >
-            <ImageIcon className="h-3.5 w-3.5" /> Galería AFT
-          </Button>
-          {state.aftScanned && (
-            <span className="text-[10px] font-bold text-emerald-600">✓ AFT</span>
-          )}
-
-          {state.fwdScanned && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => openLir(scanType, 'FWD')}
-              className="text-xs h-7"
-            >
-              LIR FWD
-            </Button>
-          )}
-          {state.aftScanned && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => openLir(scanType, 'AFT')}
-              className="text-xs h-7"
-            >
-              LIR AFT
-            </Button>
-          )}
-
-          {hasAny && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => resetModule(scanType)}
-              className="gap-1.5 text-xs h-7 text-red-500 hover:text-red-700 ml-auto"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Reset
-            </Button>
-          )}
-        </div>
-
-        {state.scanError && (
-          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
-            <div className="flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              {state.scanError}
-            </div>
-          </div>
-        )}
-
-        {!hasAny && !state.isScanningFwd && !state.isScanningAft && (
-          <div className="rounded-md border border-dashed border-muted p-6 text-center">
-            <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Escanea la hoja FWD y la hoja AFT</p>
-            <p className="text-xs text-muted-foreground/70">Puedes escanear una o las dos</p>
-          </div>
-        )}
-
-        {hasAny && <PositionGrid scanType={scanType} />}
-
-        <BulkSection scanType={scanType} />
-      </div>
-    );
-  };
-
-  const ModuleHeader = ({
-    scanType,
-    label,
-    color,
-  }: {
-    scanType: 'arrival' | 'departure';
-    label: string;
-    color: string;
-  }) => {
-    const state = scanType === 'arrival' ? arrival : departure;
-    const active = openModule === scanType;
-    const scanned = [state.fwdScanned && 'FWD', state.aftScanned && 'AFT']
-      .filter(Boolean)
-      .join(' + ');
-    return (
-      <button
-        type="button"
-        onClick={() => setOpenModule(active ? null : scanType)}
-        className={cn(
-          'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-t-md border border-b-0 border-border transition-colors',
-          active ? color : 'bg-muted/40',
-        )}
-      >
-        <div className="flex items-center gap-2">
-          <Plane className="h-4 w-4" />
-          <span className="text-sm font-bold">{label}</span>
-          {scanned && (
-            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-              {scanned} escaneado
-            </span>
-          )}
-        </div>
-        <ChevronDown className={cn('h-4 w-4 transition-transform', active && 'rotate-180')} />
-      </button>
-    );
-  };
+  if (!SUPPORTED_TYPES.includes(aircraftType)) return null;
 
   return (
     <div className="space-y-3">
@@ -801,8 +853,22 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           scanType="arrival"
           label="✈️ Descarga — Llegada"
           color="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+          active={openModule === 'arrival'}
+          fwdScanned={arrival.fwdScanned}
+          aftScanned={arrival.aftScanned}
+          onToggle={toggleModule}
         />
-        {openModule === 'arrival' && <ScanModule scanType="arrival" />}
+        {openModule === 'arrival' && (
+          <ScanModule
+            scanType="arrival"
+            state={arrival}
+            onScan={handleScan}
+            onUpdatePosition={updateArrivalPosition}
+            onBulkDelta={arrivalBulkDelta}
+            onOpenLir={openLir}
+            onReset={resetModule}
+          />
+        )}
       </div>
 
       <div>
@@ -810,8 +876,22 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           scanType="departure"
           label="✈️ Carga — Salida"
           color="bg-rose-500/15 text-rose-700 dark:text-rose-400"
+          active={openModule === 'departure'}
+          fwdScanned={departure.fwdScanned}
+          aftScanned={departure.aftScanned}
+          onToggle={toggleModule}
         />
-        {openModule === 'departure' && <ScanModule scanType="departure" />}
+        {openModule === 'departure' && (
+          <ScanModule
+            scanType="departure"
+            state={departure}
+            onScan={handleScan}
+            onUpdatePosition={updateDeparturePosition}
+            onBulkDelta={departureBulkDelta}
+            onOpenLir={openLir}
+            onReset={resetModule}
+          />
+        )}
       </div>
 
       <Dialog open={lirDialog.open} onOpenChange={(o) => setLirDialog((p) => ({ ...p, open: o }))}>
