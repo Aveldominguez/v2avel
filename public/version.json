@@ -1,5 +1,5 @@
 {
-  "version": "3.200",
+  "version": "3.201",
   "changelog": [
     "Eliminado fallback FR24 en búsqueda de vuelos: ahora solo se consulta ARION."
   ]
