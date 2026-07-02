@@ -274,7 +274,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       const now = new Date();
       const withTime = rows.map((r) => ({
         ...r,
-        _arrivalDate: parseArionDate(r.sdt),
+        _arrivalDate: parseArionDate(r.edt) ?? parseArionDate(r.sdt),
       }));
 
       const upcoming = withTime
@@ -288,7 +288,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       const past = withTime
         .filter((r) => r._arrivalDate && r._arrivalDate <= now)
-        .sort((a, b) => b._arrivalDate!.getTime() - a._arrivalDate!.getTime());
+        .sort((a, b) => {
+          const timeDiff = b._arrivalDate!.getTime() - a._arrivalDate!.getTime();
+          if (timeDiff !== 0) return timeDiff;
+          return b.flight_date.localeCompare(a.flight_date);
+        });
 
       const data = upcoming[0] ?? past[0] ?? rows[0] ?? null;
       if (!data) return;

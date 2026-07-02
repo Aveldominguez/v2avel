@@ -5,6 +5,7 @@ import { useAllAirlines } from '@/hooks/useCatalog';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
+import { useArionSync } from '@/hooks/useArionSync';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { formatDate } from '@/utils/timeValidation';
 import { Button } from '@/components/ui/button';
@@ -116,8 +117,7 @@ const TurnaroundList: React.FC = () => {
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [lastSync, setLastSync] = useState<Date | null>(null);
+  const { syncToday, syncing, lastSync } = useArionSync();
 
   // List state
   const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
@@ -277,12 +277,7 @@ const TurnaroundList: React.FC = () => {
   };
 
   const handleForceSync = async () => {
-    setSyncing(true);
-    try {
-      await supabase.functions.invoke('sync-arion-flights', { body: { force: true } });
-      setLastSync(new Date());
-    } catch {}
-    setSyncing(false);
+    await syncToday();
   };
 
   const getCompletionStatus = (t: Turnaround) => {
