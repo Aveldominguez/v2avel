@@ -306,6 +306,20 @@ serve(async (req) => {
       const departures: any[] = Array.isArray(flightsJson?.departures) ? flightsJson.departures : [];
       const allFlights = [...arrivals, ...departures];
 
+      // DIAGNÓSTICO TEMPORAL — ver qué vuelos devuelve ARION
+      console.log('ARION total flights received:', allFlights.length,
+        '| arrivals:', arrivals.length,
+        '| departures:', departures.length
+      );
+
+      const a3702Flights = allFlights.filter(f => String(f.fn ?? '').toUpperCase().includes('A3702') || String(f.fn ?? '').replace(/\s/g,'').toUpperCase().includes('A3702'));
+
+      if (a3702Flights.length > 0) {
+        console.log('A3702 rotations found in ARION response:', JSON.stringify(a3702Flights.map(f => ({ fn: f.fn, sdt: f.sdt, movementType: f.movementType, sn: f.sn }))));
+      } else {
+        console.log('A3702 NOT FOUND in ARION response for date:', flight_date_in);
+      }
+
       // Deduplicar por (fn, movementType, sdt) para preservar múltiples rotaciones del mismo número de vuelo.
       // Arrivals tienen prioridad sobre departures cuando la clave coincide exactamente.
       const seen = new Map<string, typeof allFlights[0]>();
