@@ -256,7 +256,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         .eq('movement_type', 'A')
         .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
         .order('flight_date', { ascending: true })
-        .limit(3);
+        .limit(20);
+
 
       if (!rows || rows.length === 0) return;
 
