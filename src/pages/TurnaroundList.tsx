@@ -392,7 +392,9 @@ const TurnaroundList: React.FC = () => {
         {/* ARION manual sync */}
         <div className="flex items-center justify-between px-1">
           <span className="text-xs text-muted-foreground">
-            {lastSync ? `Datos de vuelos actualizados ${formatDistanceToNow(lastSync, { locale: es, addSuffix: true })}` : 'Toca para sincronizar datos de vuelos'}
+            {lastSync
+              ? `Última sincronización: ${format(new Date(lastSync), 'dd/MM/yyyy HH:mm')}`
+              : 'Sin sincronizar aún'}
           </span>
           <Button
             variant="outline"
