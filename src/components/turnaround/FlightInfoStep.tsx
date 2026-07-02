@@ -293,13 +293,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       const filled = new Set<string>();
 
       // 1. Aerolínea
-      const internalAirline = data.airline_code
-        ? IATA_TO_AIRLINE[data.airline_code.toUpperCase()] ?? null
-        : null;
+      const internalAirline = data.airline_code as AirlineCode | null;
 
-      if (internalAirline && !airline) {
-        setAirline(internalAirline as AirlineCode);
-        filled.add('airline');
+      if (data.airline_code && !airline) {
+        setAirline(data.airline_code as AirlineCode);
+        setAutofilledFields(prev => new Set(prev).add('airline'));
       }
 
       // 2. Modelo de avión
