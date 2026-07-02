@@ -20,6 +20,7 @@ import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { supabase } from '@/integrations/supabase/client';
+import { useArionSync } from '@/hooks/useArionSync';
 
 
 interface FlightInfoStepProps {
