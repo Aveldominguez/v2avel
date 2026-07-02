@@ -52,10 +52,15 @@ function getDigitCount(flight: string): number {
   return match ? match[1].length : 0;
 }
 
-export function useFlightLookup(flightIata: string, debounceMs = 400): UseFlightLookupReturn {
+export function useFlightLookup(
+  flightIata: string,
+  _selectedDate?: Date,
+  debounceMs = 400,
+): UseFlightLookupReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<FlightLookupResult | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKeyRef = useRef<string | null>(null);
@@ -64,32 +69,30 @@ export function useFlightLookup(flightIata: string, debounceMs = 400): UseFlight
     setAutofilledFields(new Set());
     setResult(null);
     setError(null);
+    setNotFound(false);
   };
 
   useEffect(() => {
     const clean = flightIata.trim().replace(/\s/g, '').toUpperCase();
     const digits = getDigitCount(clean);
 
-    // Need at least 3 chars and at least 1 digit to query
     if (clean.length < 3 || digits < 1) {
       setError(null);
       setIsLoading(false);
       return;
     }
 
-    // Debounce
     if (timerRef.current) clearTimeout(timerRef.current);
 
     timerRef.current = setTimeout(async () => {
-      // Avoid re-querying the same flight number
       if (lastKeyRef.current === clean) return;
       lastKeyRef.current = clean;
 
       setIsLoading(true);
       setError(null);
+      setNotFound(false);
 
       try {
-        // Query scheduled_flights for today ±1 day
         const today = new Date();
         const toISO = (d: Date) => d.toISOString().split('T')[0];
         const prev = new Date(today); prev.setDate(today.getDate() - 1);
@@ -109,7 +112,7 @@ export function useFlightLookup(flightIata: string, debounceMs = 400): UseFlight
         if (dbError) throw dbError;
 
         if (!data) {
-          setError('Vuelo no encontrado en ARION');
+          setNotFound(true);
           setResult(null);
           setIsLoading(false);
           return;
@@ -117,7 +120,6 @@ export function useFlightLookup(flightIata: string, debounceMs = 400): UseFlight
 
         const filled = new Set<string>();
 
-        // Map IATA airline code → internal code
         const internalCode = data.airline_code
           ? (IATA_AIRLINE_MAP[data.airline_code.toUpperCase()] ?? null)
           : null;
@@ -128,8 +130,12 @@ export function useFlightLookup(flightIata: string, debounceMs = 400): UseFlight
         setResult({
           airlineName: data.airline_code ?? null,
           airlineCode: internalCode,
-          aircraftModel: data.aircraft_type ?? null,  // IATA code e.g. '223', '333'
-          registration: null,  // ARION no devuelve matrícula en scheduled_flights
+          aircraftModel: data.aircraft_type ?? null,
+          registration: null,
+          parkingCode: null,
+          departureFlight: null,
+          edtHHmm: null,
+          ldmRaw: null,
         });
         setAutofilledFields(filled);
       } catch (err) {
@@ -145,5 +151,6 @@ export function useFlightLookup(flightIata: string, debounceMs = 400): UseFlight
     };
   }, [flightIata]);
 
-  return { isLoading, error, result, autofilledFields, clearAutofill };
+  return { isLoading, error, result, notFound, autofilledFields, clearAutofill };
 }
+
