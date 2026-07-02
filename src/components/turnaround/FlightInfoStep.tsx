@@ -232,6 +232,32 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   // Track last applied key to avoid re-applying on every render
   const lastArionKeyRef = React.useRef<string | null>(null);
 
+  const { syncToday, syncing: arionSyncing } = useArionSync();
+
+  const handleArionRefresh = React.useCallback(async () => {
+    await syncToday();
+    lastArionKeyRef.current = null;
+    const clean = flightNumber.trim().replace(/\s/g, '').toUpperCase();
+    if (clean.length >= 3) {
+      const formDateISO = format(date, 'yyyy-MM-dd');
+      const prevDayISO = format(subDays(date, 1), 'yyyy-MM-dd');
+      const nextDayISO = format(addDays(date, 1), 'yyyy-MM-dd');
+      const { data: rows } = await supabase
+        .from('scheduled_flights')
+        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration')
+        .eq('flight_number', clean)
+        .eq('movement_type', 'A')
+        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
+        .order('flight_date', { ascending: true })
+        .limit(20);
+      if (rows && rows.length > 0) {
+        toast('Datos actualizados desde ARION', { duration: 2000 });
+      } else {
+        toast('Vuelo no encontrado en ARION para esta fecha', { duration: 3000 });
+      }
+    }
+  }, [syncToday, flightNumber, date]);
+
   const extractTime = (val: string | null | undefined): string | null => {
     if (!val) return null;
     const m = String(val).match(/(\d{2}:\d{2})/);
