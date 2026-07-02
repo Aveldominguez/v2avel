@@ -270,35 +270,34 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     const arionKey = `${clean}__${formDateISO}`;
     if (lastArionKeyRef.current === arionKey) return;
 
-    const prevISO = format(subDays(date, 1), 'yyyy-MM-dd');
-    const nextISO = format(addDays(date, 1), 'yyyy-MM-dd');
+    const prevDayISO = format(subDays(date, 1), 'yyyy-MM-dd');
+    const nextDayISO = format(addDays(date, 1), 'yyyy-MM-dd');
 
     (async () => {
-      const { data, error } = await supabase
+      const { data: rows } = await supabase
         .from('scheduled_flights')
-        .select('parking_code, departure_fn, sdt, edt, connection_sdt, etd, aircraft_type, airline_code')
+        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date')
         .eq('flight_number', clean)
-        .in('flight_date', [formDateISO, nextISO, prevISO])
         .eq('movement_type', 'A')
+        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
         .order('flight_date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .limit(3);
 
-      if (error || !data) return;
+      const data = rows?.find(r => r.flight_date === formDateISO)
+        ?? rows?.find(r => r.flight_date === nextDayISO)
+        ?? rows?.find(r => r.flight_date === prevDayISO)
+        ?? null;
 
-      // Solo marcar como procesado si encontramos datos
-      lastArionKeyRef.current = arionKey;
+      if (!data) return;
 
       const filled = new Set<string>();
 
       // 1. Aerolínea
-      const internalAirline = data.airline_code
-        ? IATA_TO_AIRLINE[data.airline_code.toUpperCase()] ?? null
-        : null;
+      const internalAirline = data.airline_code as AirlineCode | null;
 
-      if (internalAirline && !airline) {
-        setAirline(internalAirline as AirlineCode);
-        filled.add('airline');
+      if (data.airline_code && !airline) {
+        setAirline(data.airline_code as AirlineCode);
+        setAutofilledFields(prev => new Set(prev).add('airline'));
       }
 
       // 2. Modelo de avión
@@ -355,6 +354,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       if (filled.size > 0) {
         setAutofilledFields((prev) => new Set([...prev, ...filled]));
       }
+
+      lastArionKeyRef.current = arionKey;
     })();
   }, [flightNumber, date]);
 
