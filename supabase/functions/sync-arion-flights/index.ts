@@ -536,29 +536,20 @@ serve(async (req) => {
 
       let synced = 0;
       if (rows.length > 0) {
-        // Manual upsert: delete existing rows for this date/scope, then insert.
-        // Avoids needing a base unique constraint (we use partial indexes).
-        const flightNumbers = rows.map((r) => r.flight_number);
-        let delQuery = admin
+        const { error: upsertErr, count } = await admin
           .from('scheduled_flights')
-          .delete()
-          .eq('flight_date', isoDate)
-          .in('flight_number', flightNumbers);
-        delQuery = isSystemSync ? delQuery.is('user_id', null) : delQuery.eq('user_id', userId!);
-        const { error: delErr } = await delQuery;
-        if (delErr) {
-          console.error('Delete (pre-insert) error', delErr);
-          return json({ error: 'db_error', detail: delErr.message }, 500);
-        }
-        const { error: insErr, count } = await admin
-          .from('scheduled_flights')
-          .insert(rows, { count: 'exact' });
-        if (insErr) {
-          console.error('Insert error', insErr);
-          return json({ error: 'db_error', detail: insErr.message }, 500);
+          .upsert(rows, {
+            onConflict: 'flight_number,flight_date,movement_type,sdt',
+            ignoreDuplicates: false,
+            count: 'exact',
+          });
+        if (upsertErr) {
+          console.error('Upsert error', upsertErr);
+          return json({ error: 'db_error', detail: upsertErr.message }, 500);
         }
         synced = count ?? rows.length;
       }
+
 
       // CPM data: delete stale rows for the flights we re-fetched (using ISO date), then upsert
       if (cpmRowsAll.length > 0) {
