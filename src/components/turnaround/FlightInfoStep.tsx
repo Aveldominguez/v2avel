@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plane, Calendar as CalendarIcon, ArrowRight, X, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plane, Calendar as CalendarIcon, ArrowRight, X, Loader2, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,6 +20,7 @@ import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { supabase } from '@/integrations/supabase/client';
+import { useArionSync } from '@/hooks/useArionSync';
 
 
 interface FlightInfoStepProps {
@@ -230,6 +231,32 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
   // Track last applied key to avoid re-applying on every render
   const lastArionKeyRef = React.useRef<string | null>(null);
+
+  const { syncToday, syncing: arionSyncing } = useArionSync();
+
+  const handleArionRefresh = React.useCallback(async () => {
+    await syncToday();
+    lastArionKeyRef.current = null;
+    const clean = flightNumber.trim().replace(/\s/g, '').toUpperCase();
+    if (clean.length >= 3) {
+      const formDateISO = format(date, 'yyyy-MM-dd');
+      const prevDayISO = format(subDays(date, 1), 'yyyy-MM-dd');
+      const nextDayISO = format(addDays(date, 1), 'yyyy-MM-dd');
+      const { data: rows } = await supabase
+        .from('scheduled_flights')
+        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration')
+        .eq('flight_number', clean)
+        .eq('movement_type', 'A')
+        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
+        .order('flight_date', { ascending: true })
+        .limit(20);
+      if (rows && rows.length > 0) {
+        toast('Datos actualizados desde ARION', { duration: 2000 });
+      } else {
+        toast('Vuelo no encontrado en ARION para esta fecha', { duration: 3000 });
+      }
+    }
+  }, [syncToday, flightNumber, date]);
 
   const extractTime = (val: string | null | undefined): string | null => {
     if (!val) return null;
@@ -492,8 +519,18 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           {/* Vuelo de llegada + Vuelo de salida */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              <Label className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
                 Vuelo de llegada {!soloSalida && <span className="text-destructive">*</span>}
+                <button
+                  type="button"
+                  onClick={handleArionRefresh}
+                  disabled={arionSyncing}
+                  className="ml-auto inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-normal normal-case tracking-normal border border-border bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
+                  title="Sincronizar datos de ARION ahora"
+                >
+                  <RefreshCw className={`h-2.5 w-2.5 ${arionSyncing ? 'animate-spin' : ''}`} />
+                  {arionSyncing ? 'Actualizando…' : 'Actualizar ARION'}
+                </button>
               </Label>
                 <div className="relative flex items-center">
                   {isPrefixedMode && (
