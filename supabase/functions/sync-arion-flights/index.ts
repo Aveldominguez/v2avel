@@ -306,11 +306,15 @@ serve(async (req) => {
       const departures: any[] = Array.isArray(flightsJson?.departures) ? flightsJson.departures : [];
       const allFlights = [...arrivals, ...departures];
 
-      // Deduplicar por flight_number — arrivals tienen prioridad sobre departures
+      // Deduplicar por (fn, movementType, sdt) para preservar múltiples rotaciones del mismo número de vuelo.
+      // Arrivals tienen prioridad sobre departures cuando la clave coincide exactamente.
       const seen = new Map<string, typeof allFlights[0]>();
       for (const flight of allFlights) {
-        if (flight && typeof flight.fn === 'string' && !seen.has(flight.fn)) {
-          seen.set(flight.fn, flight);
+        if (flight && typeof flight.fn === 'string') {
+          const key = `${String(flight.fn).trim().toUpperCase()}__${flight.movementType ?? ''}__${flight.sdt ?? ''}`;
+          if (!seen.has(key)) {
+            seen.set(key, flight);
+          }
         }
       }
       const uniqueFlights = Array.from(seen.values());
