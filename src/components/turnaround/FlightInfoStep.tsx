@@ -519,8 +519,18 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           {/* Vuelo de llegada + Vuelo de salida */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              <Label className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
                 Vuelo de llegada {!soloSalida && <span className="text-destructive">*</span>}
+                <button
+                  type="button"
+                  onClick={handleArionRefresh}
+                  disabled={arionSyncing}
+                  className="ml-auto inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-normal normal-case tracking-normal border border-border bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
+                  title="Sincronizar datos de ARION ahora"
+                >
+                  <RefreshCw className={`h-2.5 w-2.5 ${arionSyncing ? 'animate-spin' : ''}`} />
+                  {arionSyncing ? 'Actualizando…' : 'Actualizar ARION'}
+                </button>
               </Label>
                 <div className="relative flex items-center">
                   {isPrefixedMode && (
