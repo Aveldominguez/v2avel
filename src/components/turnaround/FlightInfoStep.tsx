@@ -21,6 +21,32 @@ import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { supabase } from '@/integrations/supabase/client';
 
+// Mapping IATA airline codes (2 letras de ARION) → AirlineCode interno de la app
+const IATA_TO_AIRLINE: Record<string, AirlineCode> = {
+  'TP': 'TAP',
+  'W6': 'WIZZ',
+  'AZ': 'ITA',
+  'A3': 'AEGEAN',
+  'PC': 'PEGASUS',
+  'TO': 'TRANSAVIA',
+  'HV': 'TRANSAVIA',
+  'GQ': 'SKYEXPRESS',
+  'VZ': 'SKYUP',
+  'PQ': 'SKYUP',
+  'FX': 'FEDEX',
+  'AC': 'AIR_CANADA',
+  'WS': 'WESTJET',
+  'EB': 'ALBASTAR',
+  'FI': 'ICELANDAIR',
+  'AD': 'AZUL',
+  '5Y': 'AMAZON',
+  'VG': 'A_JET',
+  'NP': 'NILE_AIR',
+  'EW': 'EUROWINGS',
+  'OU': 'CROATIA',
+  'E4': 'AIR_EST',
+};
+
 interface FlightInfoStepProps {
   flightNumber: string;
   setFlightNumber: (v: string) => void;
