@@ -258,12 +258,33 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         .order('flight_date', { ascending: true })
         .limit(3);
 
-      const data = rows?.find(r => r.flight_date === formDateISO)
-        ?? rows?.find(r => r.flight_date === nextDayISO)
-        ?? rows?.find(r => r.flight_date === prevDayISO)
-        ?? null;
+      if (!rows || rows.length === 0) return;
 
+      // Parsear "DD/MM/YYYY HH:MM" → Date
+      const parseArionDate = (val: string | null): Date | null => {
+        if (!val) return null;
+        const m = val.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+        if (!m) return null;
+        return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
+      };
+
+      const now = new Date();
+      const withTime = rows.map((r) => ({
+        ...r,
+        _arrivalDate: parseArionDate(r.sdt),
+      }));
+
+      const upcoming = withTime
+        .filter((r) => r._arrivalDate && r._arrivalDate > now)
+        .sort((a, b) => a._arrivalDate!.getTime() - b._arrivalDate!.getTime());
+
+      const past = withTime
+        .filter((r) => r._arrivalDate && r._arrivalDate <= now)
+        .sort((a, b) => b._arrivalDate!.getTime() - a._arrivalDate!.getTime());
+
+      const data = upcoming[0] ?? past[0] ?? rows[0] ?? null;
       if (!data) return;
+
 
       const filled = new Set<string>();
 
