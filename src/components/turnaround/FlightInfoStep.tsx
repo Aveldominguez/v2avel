@@ -328,7 +328,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         const depFlight = String(data.departure_fn).trim().toUpperCase();
         if (depFlight && depFlight !== clean) {
           const numericPart = depFlight.replace(/[^0-9]/g, '');
-          const newPrefix = internalAirline ? getAirlinePrefix(internalAirline) : getAirlinePrefix(airline);
+          const newPrefix = resolvedAirline ? getAirlinePrefix(resolvedAirline as AirlineCode) : getAirlinePrefix(airline);
           setDepartureFlightNumber(newPrefix + numericPart);
           filled.add('departureFlightNumber');
         }
