@@ -279,7 +279,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       const upcoming = withTime
         .filter((r) => r._arrivalDate && r._arrivalDate > now)
-        .sort((a, b) => a._arrivalDate!.getTime() - b._arrivalDate!.getTime());
+        .sort((a, b) => {
+          const timeDiff = a._arrivalDate!.getTime() - b._arrivalDate!.getTime();
+          if (timeDiff !== 0) return timeDiff;
+          // En caso de empate de hora, preferir el registro con flight_date más reciente
+          return b.flight_date.localeCompare(a.flight_date);
+        });
 
       const past = withTime
         .filter((r) => r._arrivalDate && r._arrivalDate <= now)
@@ -338,11 +343,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         filled.add('aircraftModel');
       }
 
-      // 3. Tango (parking_code — extraer solo dígitos)
+      // 3. Tango (parking_code — conservar tal cual viene de ARION, incluido prefijo T)
       if (data.parking_code && !tango) {
-        const digits = String(data.parking_code).replace(/\D/g, '');
-        if (digits) {
-          setTango(digits);
+        const clean = String(data.parking_code).trim();
+        if (clean) {
+          setTango(clean);
           filled.add('tango');
         }
       }
