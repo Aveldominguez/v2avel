@@ -274,20 +274,21 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     const nextDayISO = format(addDays(date, 1), 'yyyy-MM-dd');
 
     (async () => {
-      const { data, error } = await supabase
+      const { data: rows } = await supabase
         .from('scheduled_flights')
-        .select('parking_code, departure_fn, sdt, edt, connection_sdt, etd, aircraft_type, airline_code')
+        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date')
         .eq('flight_number', clean)
-        .in('flight_date', [formDateISO, nextISO, prevISO])
         .eq('movement_type', 'A')
+        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
         .order('flight_date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .limit(3);
 
-      if (error || !data) return;
+      const data = rows?.find(r => r.flight_date === formDateISO)
+        ?? rows?.find(r => r.flight_date === nextDayISO)
+        ?? rows?.find(r => r.flight_date === prevDayISO)
+        ?? null;
 
-      // Solo marcar como procesado si encontramos datos
-      lastArionKeyRef.current = arionKey;
+      if (!data) return;
 
       const filled = new Set<string>();
 
