@@ -21,31 +21,6 @@ import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mapping IATA airline codes (2 letras de ARION) → AirlineCode interno de la app
-const IATA_TO_AIRLINE: Record<string, AirlineCode> = {
-  'TP': 'TAP',
-  'W6': 'WIZZ',
-  'AZ': 'ITA',
-  'A3': 'AEGEAN',
-  'PC': 'PEGASUS',
-  'TO': 'TRANSAVIA',
-  'HV': 'TRANSAVIA',
-  'GQ': 'SKYEXPRESS',
-  'VZ': 'SKYUP',
-  'PQ': 'SKYUP',
-  'FX': 'FEDEX',
-  'AC': 'AIR_CANADA',
-  'WS': 'WESTJET',
-  'EB': 'ALBASTAR',
-  'FI': 'ICELANDAIR',
-  'AD': 'AZUL',
-  '5Y': 'AMAZON',
-  'VG': 'A_JET',
-  'NP': 'NILE_AIR',
-  'EW': 'EUROWINGS',
-  'OU': 'CROATIA',
-  'E4': 'AIR_EST',
-};
 
 interface FlightInfoStepProps {
   flightNumber: string;
@@ -292,16 +267,31 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       const filled = new Set<string>();
 
-      // 1. Aerolínea
-      const internalAirline = data.airline_code as AirlineCode | null;
+      // 1. Aerolínea — buscar en catálogo cargado
+      const arionName = (data.airline_code ?? '').toUpperCase().trim();
 
-      if (data.airline_code && !airline) {
-        setAirline(data.airline_code as AirlineCode);
-        setAutofilledFields(prev => new Set(prev).add('airline'));
+      const matchedAirline = allAirlines.find(a => {
+        const catalogName = a.name.toUpperCase();
+        const catalogShort = (a.shortName ?? '').toUpperCase();
+        const catalogCode = a.code.toUpperCase();
+        return (
+          arionName === catalogCode ||
+          arionName === catalogName ||
+          arionName.includes(catalogName) ||
+          catalogName.includes(arionName) ||
+          (catalogShort && arionName.includes(catalogShort))
+        );
+      });
+
+      const resolvedAirline = matchedAirline?.code ?? null;
+
+      if (resolvedAirline && !airline) {
+        setAirline(resolvedAirline as AirlineCode);
+        filled.add('airline');
       }
 
       // 2. Modelo de avión
-      const targetAirline = (internalAirline ?? airline) as AirlineCode;
+      const targetAirline = (resolvedAirline ?? airline) as AirlineCode;
       const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];
 
       if (data.aircraft_type && currentModels.length > 0) {
@@ -338,7 +328,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         const depFlight = String(data.departure_fn).trim().toUpperCase();
         if (depFlight && depFlight !== clean) {
           const numericPart = depFlight.replace(/[^0-9]/g, '');
-          const newPrefix = internalAirline ? getAirlinePrefix(internalAirline) : getAirlinePrefix(airline);
+          const newPrefix = resolvedAirline ? getAirlinePrefix(resolvedAirline as AirlineCode) : getAirlinePrefix(airline);
           setDepartureFlightNumber(newPrefix + numericPart);
           filled.add('departureFlightNumber');
         }
