@@ -270,8 +270,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     const arionKey = `${clean}__${formDateISO}`;
     if (lastArionKeyRef.current === arionKey) return;
 
-    const prevISO = format(subDays(date, 1), 'yyyy-MM-dd');
-    const nextISO = format(addDays(date, 1), 'yyyy-MM-dd');
+    const prevDayISO = format(subDays(date, 1), 'yyyy-MM-dd');
+    const nextDayISO = format(addDays(date, 1), 'yyyy-MM-dd');
 
     (async () => {
       const { data, error } = await supabase
