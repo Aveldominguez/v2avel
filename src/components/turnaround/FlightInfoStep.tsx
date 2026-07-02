@@ -251,7 +251,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     (async () => {
       const { data: rows } = await supabase
         .from('scheduled_flights')
-        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date')
+        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration')
         .eq('flight_number', clean)
         .eq('movement_type', 'A')
         .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
@@ -339,6 +339,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       if (depTime && !departureTime) {
         setDepartureTime(depTime);
         filled.add('departureTime');
+      }
+
+      // Matrícula
+      if (data.registration && !matricula) {
+        setMatricula(data.registration.toUpperCase());
+        filled.add('matricula');
       }
 
       if (filled.size > 0) {
