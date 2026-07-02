@@ -227,111 +227,108 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   }, [airline, aircraftModel, matricula, tango, isRemote, departureTime, departureFlightNumber, setAirline, setAircraftModel, setMatricula, setTango, setDepartureTime, setDepartureFlightNumber]);
 
 
-  // Track last applied keys to avoid re-applying on every render
-  const lastAppliedArrivalRef = React.useRef<string | null>(null);
-  const lastAppliedDepartureRef = React.useRef<string | null>(null);
+  // Track last applied key to avoid re-applying on every render
   const lastArionKeyRef = React.useRef<string | null>(null);
-
-  React.useEffect(() => {
-    if (arrivalLookup.result && lastAppliedArrivalRef.current !== flightNumber) {
-      lastAppliedArrivalRef.current = flightNumber;
-      applyLookupResult(arrivalLookup.result);
-    }
-  }, [arrivalLookup.result, flightNumber, applyLookupResult]);
-
-  React.useEffect(() => {
-    if (departureLookup.result && lastAppliedDepartureRef.current !== departureFlightNumber) {
-      lastAppliedDepartureRef.current = departureFlightNumber;
-      applyLookupResult(departureLookup.result);
-    }
-  }, [departureLookup.result, departureFlightNumber, applyLookupResult]);
 
   const extractTime = (val: string | null | undefined): string | null => {
     if (!val) return null;
-    const m = String(val).match(/(\d{2}:\d{2})$/);
+    const m = String(val).match(/(\d{2}:\d{2})/);
     return m ? m[1] : null;
   };
 
   React.useEffect(() => {
-    const clean = flightNumber.trim();
-    if (clean.length < 4) return;
+    const clean = flightNumber.trim().replace(/\s/g, '').toUpperCase();
+    if (clean.length < 3) return;
+
+    const formDateISO = format(date, 'yyyy-MM-dd');
+    const arionKey = `${clean}__${formDateISO}`;
+    if (lastArionKeyRef.current === arionKey) return;
+
+    const prevISO = format(subDays(date, 1), 'yyyy-MM-dd');
+    const nextISO = format(addDays(date, 1), 'yyyy-MM-dd');
 
     (async () => {
-      const formDateISO = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-      const arionKey = `${clean}__${formDateISO}`;
-      if (lastArionKeyRef.current === arionKey) return; // already applied for this flight+date
-      const nextDayISO = format(addDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
-      const prevDayISO = format(subDays(new Date(formDateISO), 1), 'yyyy-MM-dd');
-
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('scheduled_flights')
-        .select('flight_date, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code')
+        .select('parking_code, departure_fn, sdt, edt, connection_sdt, etd, aircraft_type, airline_code')
         .eq('flight_number', clean)
+        .in('flight_date', [formDateISO, nextISO, prevISO])
         .eq('movement_type', 'A')
-        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
         .order('flight_date', { ascending: true })
-        .limit(3);
+        .limit(1)
+        .maybeSingle();
 
-      const record = data?.find((r: any) => r.flight_date === formDateISO)
-        ?? data?.find((r: any) => r.flight_date === nextDayISO)
-        ?? data?.find((r: any) => r.flight_date === prevDayISO)
-        ?? null;
+      if (error || !data) return;
 
-      if (!record) return;
+      // Solo marcar como procesado si encontramos datos
+      lastArionKeyRef.current = arionKey;
+
       const filled = new Set<string>();
-      if (record.parking_code && !tango && !isRemote) {
-        setTango(String(record.parking_code).toUpperCase().slice(0, 6));
-        filled.add('tango');
+
+      // 1. Aerolínea
+      const internalAirline = data.airline_code
+        ? IATA_TO_AIRLINE[data.airline_code.toUpperCase()] ?? null
+        : null;
+
+      if (internalAirline && !airline) {
+        setAirline(internalAirline as AirlineCode);
+        filled.add('airline');
       }
-      if (record.departure_fn && !departureFlightNumber.trim()) {
-        setDepartureFlightNumber(String(record.departure_fn).trim().toUpperCase());
-        filled.add('departureFlight');
-      }
-      // STA — scheduled arrival
-      if (record.sdt) {
-        setScheduledArrival(extractTime(record.sdt));
-        filled.add('scheduledArrival');
-      }
-      // ETA — estimated arrival
-      if (record.edt) {
-        setScheduledEta(extractTime(record.edt));
-        filled.add('scheduledEta');
-      }
-      // STD — scheduled departure (display only, separate from countdown departureTime)
-      if (record.connection_sdt) {
-        setScheduledStd(extractTime(record.connection_sdt));
-        filled.add('scheduledStd');
-      }
-      // ETD — estimated departure time
-      if (record.etd) {
-        setScheduledEtd(extractTime(record.etd));
-        filled.add('scheduledEtd');
-      }
-      // Auto-fill departure countdown field from ETD (fallback to STD)
-      if (!departureTime) {
-        const autoDepart = extractTime(record.etd) ?? extractTime(record.connection_sdt);
-        if (autoDepart) {
-          setDepartureTime(autoDepart);
-          filled.add('departureTime');
-        }
-      }
-      // Aircraft type fallback from ARION
-      if (record.aircraft_type && !aircraftModel) {
-        const iataCode = String(record.aircraft_type).toUpperCase();
+
+      // 2. Modelo de avión
+      const targetAirline = (internalAirline ?? airline) as AirlineCode;
+      const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];
+
+      if (data.aircraft_type && currentModels.length > 0) {
+        const iataCode = data.aircraft_type.toUpperCase();
         const mappedModel = IATA_TO_MODEL[iataCode];
-        const currentModels = airline ? getModelsForAirline(airline as AirlineCode) : [];
         const match = currentModels.find(
-          m => m.model === mappedModel || m.model.toLowerCase() === iataCode.toLowerCase()
+          (m) => m.model === mappedModel ||
+                 m.model.toLowerCase() === iataCode.toLowerCase() ||
+                 m.label.toLowerCase() === iataCode.toLowerCase()
         );
-        if (match) {
+        if (match && !aircraftModel) {
           setAircraftModel(match.model);
-          setAutofilledFields(prev => new Set(prev).add('aircraftModel'));
+          filled.add('aircraftModel');
         }
       }
+
+      // Si solo hay un modelo para la aerolínea, seleccionarlo automáticamente
+      if (!filled.has('aircraftModel') && currentModels.length === 1 && !aircraftModel) {
+        setAircraftModel(currentModels[0].model);
+        filled.add('aircraftModel');
+      }
+
+      // 3. Tango (parking_code — extraer solo dígitos)
+      if (data.parking_code && !tango) {
+        const digits = String(data.parking_code).replace(/\D/g, '');
+        if (digits) {
+          setTango(digits);
+          filled.add('tango');
+        }
+      }
+
+      // 4. Vuelo de salida (departure_fn)
+      if (data.departure_fn) {
+        const depFlight = String(data.departure_fn).trim().toUpperCase();
+        if (depFlight && depFlight !== clean) {
+          const numericPart = depFlight.replace(/[^0-9]/g, '');
+          const newPrefix = internalAirline ? getAirlinePrefix(internalAirline) : getAirlinePrefix(airline);
+          setDepartureFlightNumber(newPrefix + numericPart);
+          filled.add('departureFlightNumber');
+        }
+      }
+
+      // 5. Hora de salida (ETD preferido, si no STD)
+      const depTime = extractTime(data.etd) ?? extractTime(data.connection_sdt);
+      if (depTime && !departureTime) {
+        setDepartureTime(depTime);
+        filled.add('departureTime');
+      }
+
       if (filled.size > 0) {
         setAutofilledFields((prev) => new Set([...prev, ...filled]));
       }
-      lastArionKeyRef.current = arionKey;
     })();
   }, [flightNumber, date]);
 
