@@ -345,22 +345,26 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 <title>Escala ${data.flightNumber} — ${format(data.date, 'dd/MM/yyyy', { locale: es })}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; padding: 16px; }
+  html, body { background: #fff; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; }
+  #pdf-root { width: 760px; margin: 0 auto; padding: 16px; background: #fff; }
   h1 { font-size: 18px; margin-bottom: 4px; }
-  h2 { font-size: 14px; margin: 14px 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
-  h3 { font-size: 12px; margin: 10px 0 4px; color: #444; }
+  h2 { font-size: 14px; margin: 0 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
+  h3 { font-size: 12px; margin: 8px 0 4px; color: #444; }
+  section.pdf-section { margin-bottom: 12px; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 8px; }
   .header-left { flex: 1; }
   .meta { font-size: 11px; color: #555; margin-top: 2px; }
   .meta span { margin-right: 12px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-  .data-table td { border: 1px solid #ccc; padding: 4px 8px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .data-table td { border: 1px solid #ccc; padding: 4px 8px; vertical-align: top; word-break: break-word; }
   .data-table td:first-child { font-weight: bold; width: 30%; background: #f5f5f5; }
   .ita-table td { background: #fff !important; font-weight: normal; width: auto !important; }
   .ita-table tr:first-child td { background: #e5e5e5 !important; font-weight: bold; }
   .data-table td.code { width: 50px; text-align: center; font-family: monospace; }
   .obs { white-space: pre-wrap; border: 1px solid #ccc; padding: 8px; min-height: 40px; background: #fafafa; }
-  .pdf-toolbar { position: sticky; top: 0; z-index: 9999; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; background: #1a1a2e; border-bottom: 2px solid #000; margin: -16px -16px 12px -16px; }
+  .pdf-photo { display: block; width: 100%; max-height: 520px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px; }
+  .pdf-toolbar { position: sticky; top: 0; z-index: 9999; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; background: #1a1a2e; border-bottom: 2px solid #000; }
   .pdf-toolbar button { font-family: inherit; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
   .pdf-toolbar .btn-download { background: #2563eb; }
   .pdf-toolbar .btn-share { background: #16a34a; }
@@ -403,35 +407,57 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
       throw new Error('PDF libraries not loaded');
     }
     toolbar.style.display = 'none';
-    // Wait one frame so layout reflects toolbar hidden
     await new Promise(function(r){ requestAnimationFrame(function(){ r(null); }); });
     try {
-      var target = document.body;
-      var canvas = await window.html2canvas(target, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        logging: false,
-        windowWidth: target.scrollWidth,
-      });
       var jsPDF = window.jspdf.jsPDF;
-      var pdf = new jsPDF('p','mm','a4');
-      var pageW = pdf.internal.pageSize.getWidth();
-      var pageH = pdf.internal.pageSize.getHeight();
-      var imgW = pageW;
-      var imgH = canvas.height * imgW / canvas.width;
-      var imgData = canvas.toDataURL('image/jpeg', 0.92);
-      var heightLeft = imgH;
-      var position = 0;
-      pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-      heightLeft -= pageH;
-      while(heightLeft > 0){
-        position = heightLeft - imgH;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
-        heightLeft -= pageH;
+      var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var PAGE_W = pdf.internal.pageSize.getWidth();
+      var PAGE_H = pdf.internal.pageSize.getHeight();
+      var MARGIN = 10;
+      var CONTENT_W = PAGE_W - MARGIN * 2;
+      var CONTENT_H = PAGE_H - MARGIN * 2;
+      var GAP = 3;
+
+      var sections = Array.prototype.slice.call(document.querySelectorAll('[data-pdf-section]'));
+      var currentY = MARGIN;
+      var first = true;
+
+      for (var i = 0; i < sections.length; i++) {
+        var el = sections[i];
+        if (!el || !el.offsetHeight) continue;
+        var canvas = await window.html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: '#ffffff',
+          logging: false,
+        });
+        var pxW = canvas.width;
+        var pxH = canvas.height;
+        var scale = CONTENT_W / (pxW / 2); // undo scale:2 for mm mapping
+        var wMM = CONTENT_W;
+        var hMM = (pxH / 2) * scale;
+
+        // If a single section is taller than a page, scale it down to fit one page.
+        if (hMM > CONTENT_H) {
+          var shrink = CONTENT_H / hMM;
+          hMM = CONTENT_H;
+          wMM = wMM * shrink;
+        }
+
+        var remaining = PAGE_H - MARGIN - currentY;
+        if (!first && hMM > remaining) {
+          pdf.addPage();
+          currentY = MARGIN;
+        }
+
+        var xMM = MARGIN + (CONTENT_W - wMM) / 2;
+        var imgData = canvas.toDataURL('image/jpeg', 0.92);
+        pdf.addImage(imgData, 'JPEG', xMM, currentY, wMM, hMM);
+        currentY += hMM + GAP;
+        first = false;
       }
+
       return pdf.output('blob');
     } finally {
       toolbar.style.display = '';
@@ -453,8 +479,6 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     try {
       var blob = await buildPdfBlob();
       var file = new File([blob], fileName, { type: 'application/pdf' });
-      // On iOS Safari / standalone PWA, anchor download often does nothing.
-      // Prefer Web Share API when available; fall back to anchor download; then new-tab.
       if(navigator.canShare && navigator.canShare({ files: [file] })){
         try { await navigator.share({ title: title, files: [file] }); resetBtns(); return; }
         catch(e){ if(e && e.name === 'AbortError'){ resetBtns(); return; } }
@@ -491,6 +515,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   });
 })();
 </script>
+<div id="pdf-root">
+  <section class="pdf-section" data-pdf-section>
   <div class="header">
     <div class="header-left">
       <h1>✈️ Escala</h1>
@@ -511,61 +537,74 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     </div>
     ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}
   </div>
-
+  </section>
 
   ${(data.times.scheduledArrival || data.times.scheduledEta || data.times.scheduledStd || data.times.scheduledEtd) ? `
+  <section class="pdf-section" data-pdf-section>
   <h2>Horarios Programados</h2>
   <table class="data-table">
     ${data.times.scheduledArrival ? `<tr><td>STA (Programada Llegada)</td><td>${data.times.scheduledArrival}</td></tr>` : ''}
     ${data.times.scheduledEta ? `<tr><td>ETA (Estimada Llegada)</td><td>${data.times.scheduledEta}</td></tr>` : ''}
     ${data.times.scheduledStd ? `<tr><td>STD (Programada Salida)</td><td>${data.times.scheduledStd}</td></tr>` : ''}
     ${data.times.scheduledEtd ? `<tr><td>ETD (Estimada Salida)</td><td>${data.times.scheduledEtd}</td></tr>` : ''}
-  </table>` : ''}
+  </table>
+  </section>` : ''}
 
   ${data.times.ldmRaw ? `
+  <section class="pdf-section" data-pdf-section>
   <h2>LDM</h2>
-  <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.ldmRaw.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>` : ''}
+  <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.ldmRaw.replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>
+  </section>` : ''}
 
   ${(data.times.cpmRawLines && data.times.cpmRawLines.length > 0) ? `
+  <section class="pdf-section" data-pdf-section>
   <h2>CPM</h2>
-  <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.cpmRawLines.join('\n').replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>` : ''}
+  <pre class="obs" style="font-family:monospace;font-size:10px;">${data.times.cpmRawLines.join('\n').replace(/[<>&]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;' }[c] as string))}</pre>
+  </section>` : ''}
 
+  <section class="pdf-section" data-pdf-section>
   <h2>Control de Horas</h2>
   <table class="data-table">
     ${timesRows}
   </table>
+  </section>
 
+  ${compartmentsHtml && data.airline !== 'AIR_CANADA' && data.airline !== 'AIR_CANADA_CARGO' ? `
+  <section class="pdf-section" data-pdf-section>
+    <h2>Carga de Salida — Compartimentos</h2>
+  </section>
+  ${compartmentsHtml.replace(/<h3>/g, '<section class="pdf-section" data-pdf-section><h3>').replace(/<\/table>/g, '</table></section>')}` : ''}
 
-  ${compartmentsHtml && data.airline !== 'AIR_CANADA' && data.airline !== 'AIR_CANADA_CARGO' ? `<h2>Carga de Salida — Compartimentos</h2>${compartmentsHtml}` : ''}
+  ${acScannerHtml ? (() => {
+    const wrapped = acScannerHtml
+      .replace(/<h2>/g, '</section><section class="pdf-section" data-pdf-section><h2>')
+      .replace(/<h3>/g, '</section><section class="pdf-section" data-pdf-section><h3>');
+    return wrapped.replace(/^\s*<\/section>/, '') + '</section>';
+  })() : ''}
 
-  ${acScannerHtml}
-
-
-  ${equipmentHtml}
+  ${equipmentHtml ? `<section class="pdf-section" data-pdf-section>${equipmentHtml}</section>` : ''}
 
   ${data.observations ? `
+  <section class="pdf-section" data-pdf-section>
   <h2>Observaciones</h2>
-  <div class="obs">${data.observations}</div>` : ''}
+  <div class="obs">${data.observations}</div>
+  </section>` : ''}
 
   ${loadingSheetSignedUrls.filter(Boolean).length > 0 ? `
-  <h2>Hoja de Carga</h2>
-  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
-    ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Hoja de carga ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
-  </div>` : ''}
+  <section class="pdf-section" data-pdf-section><h2>Hoja de Carga</h2></section>
+  ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<section class="pdf-section" data-pdf-section><img class="pdf-photo" src="${url}" alt="Hoja de carga ${i + 1}" /></section>`).join('\n  ')}` : ''}
 
   ${fileSignedUrls.filter(Boolean).length > 0 ? `
-  <h2>Adjuntar File</h2>
-  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
-    ${fileSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="File ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
-  </div>` : ''}
+  <section class="pdf-section" data-pdf-section><h2>Adjuntar File</h2></section>
+  ${fileSignedUrls.filter(Boolean).map((url, i) => `<section class="pdf-section" data-pdf-section><img class="pdf-photo" src="${url}" alt="File ${i + 1}" /></section>`).join('\n  ')}` : ''}
 
   ${obsPhotoSignedUrls.filter(Boolean).length > 0 ? `
-  <h2>Fotos de Observaciones</h2>
-  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
-    ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
-  </div>` : ''}
+  <section class="pdf-section" data-pdf-section><h2>Fotos de Observaciones</h2></section>
+  ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<section class="pdf-section" data-pdf-section><img class="pdf-photo" src="${url}" alt="Observación ${i + 1}" /></section>`).join('\n  ')}` : ''}
+</div>
 </body>
 </html>`;
+
 
   // Detect standalone mode (PWA / home screen web app on iOS)
   const isStandalone = (window.navigator as any).standalone === true ||
