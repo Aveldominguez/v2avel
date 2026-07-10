@@ -575,7 +575,12 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   </section>
   ${compartmentsHtml.replace(/<h3>/g, '<section class="pdf-section" data-pdf-section><h3>').replace(/<\/table>/g, '</table></section>')}` : ''}
 
-  ${acScannerHtml ? `${acScannerHtml.replace(/<h2>/g, '<section class="pdf-section" data-pdf-section><h2>').replace(/<h3>/g, '</section><section class="pdf-section" data-pdf-section><h3>').replace(/<\/table>\s*(?=<h[23]|$)/g, '</table></section>') + '</section>'}` : ''}
+  ${acScannerHtml ? (() => {
+    const wrapped = acScannerHtml
+      .replace(/<h2>/g, '</section><section class="pdf-section" data-pdf-section><h2>')
+      .replace(/<h3>/g, '</section><section class="pdf-section" data-pdf-section><h3>');
+    return wrapped.replace(/^\s*<\/section>/, '') + '</section>';
+  })() : ''}
 
   ${equipmentHtml ? `<section class="pdf-section" data-pdf-section>${equipmentHtml}</section>` : ''}
 
