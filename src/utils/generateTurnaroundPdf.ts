@@ -370,12 +370,127 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     .pdf-toolbar { display: none !important; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <div class="pdf-toolbar">
-    <button class="btn-share" type="button" onclick="(async()=>{try{const title=document.title;const text='Escala '+title;if(navigator.share){try{const html='<!DOCTYPE html>'+document.documentElement.outerHTML;const file=new File([html],(title||'escala')+'.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:title,text:text,files:[file]});return;}}catch(e){}try{await navigator.share({title:title,text:text,url:location.href});return;}catch(e){if(e&&e.name==='AbortError')return;}}window.print();}catch(e){if(e&&e.name!=='AbortError'){window.print();}}})()">📤 Compartir</button>
-    <button class="btn-download" type="button" onclick="window.print()">⬇️ Descargar PDF</button>
+  <div class="pdf-toolbar" id="pdf-toolbar">
+    <button class="btn-share" id="btn-share" type="button">📤 Compartir</button>
+    <button class="btn-download" id="btn-download" type="button">⬇️ Descargar PDF</button>
   </div>
+<script>
+(function(){
+  var toolbar = document.getElementById('pdf-toolbar');
+  var btnDownload = document.getElementById('btn-download');
+  var btnShare = document.getElementById('btn-share');
+  var title = document.title || 'escala';
+  var fileName = title.replace(/[^a-zA-Z0-9-_]+/g,'-').replace(/^-+|-+$/g,'') + '.pdf';
+
+  function setBusy(text){
+    btnDownload.disabled = true; btnShare.disabled = true;
+    btnDownload.style.opacity = '0.6'; btnShare.style.opacity = '0.6';
+    if(text){ btnDownload.textContent = text; }
+  }
+  function resetBtns(){
+    btnDownload.disabled = false; btnShare.disabled = false;
+    btnDownload.style.opacity = ''; btnShare.style.opacity = '';
+    btnDownload.textContent = '⬇️ Descargar PDF';
+    btnShare.textContent = '📤 Compartir';
+  }
+
+  async function buildPdfBlob(){
+    if(!window.jspdf || !window.html2canvas){
+      throw new Error('PDF libraries not loaded');
+    }
+    toolbar.style.display = 'none';
+    // Wait one frame so layout reflects toolbar hidden
+    await new Promise(function(r){ requestAnimationFrame(function(){ r(null); }); });
+    try {
+      var target = document.body;
+      var canvas = await window.html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: target.scrollWidth,
+      });
+      var jsPDF = window.jspdf.jsPDF;
+      var pdf = new jsPDF('p','mm','a4');
+      var pageW = pdf.internal.pageSize.getWidth();
+      var pageH = pdf.internal.pageSize.getHeight();
+      var imgW = pageW;
+      var imgH = canvas.height * imgW / canvas.width;
+      var imgData = canvas.toDataURL('image/jpeg', 0.92);
+      var heightLeft = imgH;
+      var position = 0;
+      pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+      heightLeft -= pageH;
+      while(heightLeft > 0){
+        position = heightLeft - imgH;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+        heightLeft -= pageH;
+      }
+      return pdf.output('blob');
+    } finally {
+      toolbar.style.display = '';
+    }
+  }
+
+  function downloadBlob(blob){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 15000);
+  }
+
+  btnDownload.addEventListener('click', async function(){
+    setBusy('Generando…');
+    try {
+      var blob = await buildPdfBlob();
+      var file = new File([blob], fileName, { type: 'application/pdf' });
+      // On iOS Safari / standalone PWA, anchor download often does nothing.
+      // Prefer Web Share API when available; fall back to anchor download; then new-tab.
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        try { await navigator.share({ title: title, files: [file] }); resetBtns(); return; }
+        catch(e){ if(e && e.name === 'AbortError'){ resetBtns(); return; } }
+      }
+      try {
+        downloadBlob(blob);
+      } catch(e){
+        var url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      }
+    } catch(e){
+      alert('No se pudo generar el PDF: ' + (e && e.message ? e.message : e));
+    } finally {
+      resetBtns();
+    }
+  });
+
+  btnShare.addEventListener('click', async function(){
+    setBusy('Preparando…');
+    try {
+      var blob = await buildPdfBlob();
+      var file = new File([blob], fileName, { type: 'application/pdf' });
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        try { await navigator.share({ title: title, files: [file] }); }
+        catch(e){ if(!e || e.name !== 'AbortError'){ downloadBlob(blob); } }
+      } else {
+        downloadBlob(blob);
+      }
+    } catch(e){
+      alert('No se pudo compartir el PDF: ' + (e && e.message ? e.message : e));
+    } finally {
+      resetBtns();
+    }
+  });
+})();
+</script>
   <div class="header">
     <div class="header-left">
       <h1>✈️ Escala</h1>
