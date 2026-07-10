@@ -345,22 +345,26 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 <title>Escala ${data.flightNumber} — ${format(data.date, 'dd/MM/yyyy', { locale: es })}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; padding: 16px; }
+  html, body { background: #fff; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #111; }
+  #pdf-root { width: 760px; margin: 0 auto; padding: 16px; background: #fff; }
   h1 { font-size: 18px; margin-bottom: 4px; }
-  h2 { font-size: 14px; margin: 14px 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
-  h3 { font-size: 12px; margin: 10px 0 4px; color: #444; }
+  h2 { font-size: 14px; margin: 0 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
+  h3 { font-size: 12px; margin: 8px 0 4px; color: #444; }
+  section.pdf-section { margin-bottom: 12px; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 8px; }
   .header-left { flex: 1; }
   .meta { font-size: 11px; color: #555; margin-top: 2px; }
   .meta span { margin-right: 12px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-  .data-table td { border: 1px solid #ccc; padding: 4px 8px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .data-table td { border: 1px solid #ccc; padding: 4px 8px; vertical-align: top; word-break: break-word; }
   .data-table td:first-child { font-weight: bold; width: 30%; background: #f5f5f5; }
   .ita-table td { background: #fff !important; font-weight: normal; width: auto !important; }
   .ita-table tr:first-child td { background: #e5e5e5 !important; font-weight: bold; }
   .data-table td.code { width: 50px; text-align: center; font-family: monospace; }
   .obs { white-space: pre-wrap; border: 1px solid #ccc; padding: 8px; min-height: 40px; background: #fafafa; }
-  .pdf-toolbar { position: sticky; top: 0; z-index: 9999; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; background: #1a1a2e; border-bottom: 2px solid #000; margin: -16px -16px 12px -16px; }
+  .pdf-photo { display: block; width: 100%; max-height: 520px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px; }
+  .pdf-toolbar { position: sticky; top: 0; z-index: 9999; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; background: #1a1a2e; border-bottom: 2px solid #000; }
   .pdf-toolbar button { font-family: inherit; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
   .pdf-toolbar .btn-download { background: #2563eb; }
   .pdf-toolbar .btn-share { background: #16a34a; }
