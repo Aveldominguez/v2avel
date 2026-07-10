@@ -300,14 +300,37 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   // Códigos de carga eliminados de la exportación PDF a petición del usuario
 
-  // Resolve signed URLs for images
+  // Resolve signed URLs for images and inline as data URLs so they always render
+  // in the exported/printed PDF (avoids CORS, expiry and load-timing issues).
+  const toDataUrl = async (url: string | null): Promise<string | null> => {
+    if (!url) return null;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return url;
+      const blob = await res.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.warn('Failed to inline image, falling back to signed URL:', e);
+      return url;
+    }
+  };
+  const resolveImages = async (values: string[]): Promise<string[]> => {
+    if (!values.length) return [];
+    const signed = await getSignedUrls(values);
+    const data = await Promise.all(signed.map(toDataUrl));
+    return data.filter((v): v is string => Boolean(v));
+  };
+
   const loadingSheetUrlsList = data.times.loadingSheetUrls?.length ? data.times.loadingSheetUrls : (data.times.loadingSheetUrl ? [data.times.loadingSheetUrl] : []);
-  const loadingSheetSignedUrls = loadingSheetUrlsList.length ? await getSignedUrls(loadingSheetUrlsList) : [];
+  const loadingSheetSignedUrls = await resolveImages(loadingSheetUrlsList);
   const fileUrls = data.times.fileUrls?.length ? data.times.fileUrls : (data.times.fileUrl ? [data.times.fileUrl] : []);
-  const fileSignedUrls = fileUrls.length ? await getSignedUrls(fileUrls) : [];
-  const obsPhotoSignedUrls = data.times.observationPhotos?.length
-    ? await getSignedUrls(data.times.observationPhotos)
-    : [];
+  const fileSignedUrls = await resolveImages(fileUrls);
+  const obsPhotoSignedUrls = await resolveImages(data.times.observationPhotos ?? []);
 
 
   const acScannerHtml = (data.airline === 'AIR_CANADA' || data.airline === 'AIR_CANADA_CARGO')
@@ -411,20 +434,20 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   ${loadingSheetSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Hoja de Carga</h2>
-  <div style="text-align:center; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
-    ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Hoja de carga ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+    ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Hoja de carga ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
   </div>` : ''}
 
   ${fileSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Adjuntar File</h2>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-    ${fileSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="File ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+    ${fileSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="File ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
   </div>` : ''}
 
   ${obsPhotoSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Fotos de Observaciones</h2>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-    ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+    ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
   </div>` : ''}
 </body>
 </html>`;
