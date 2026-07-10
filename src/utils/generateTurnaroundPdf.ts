@@ -434,20 +434,20 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   ${loadingSheetSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Hoja de Carga</h2>
-  <div style="text-align:center; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
-    ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Hoja de carga ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+    ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Hoja de carga ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
   </div>` : ''}
 
   ${fileSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Adjuntar File</h2>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-    ${fileSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="File ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+    ${fileSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="File ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
   </div>` : ''}
 
   ${obsPhotoSignedUrls.filter(Boolean).length > 0 ? `
   <h2>Fotos de Observaciones</h2>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-    ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="max-width:48%;max-height:400px;border:1px solid #ccc;border-radius:4px;" />`).join('\n    ')}
+  <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+    ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<img src="${url}" alt="Observación ${i + 1}" style="width:100%;max-width:100%;max-height:90vh;object-fit:contain;border:1px solid #ccc;border-radius:4px;page-break-inside:avoid;" />`).join('\n    ')}
   </div>` : ''}
 </body>
 </html>`;
