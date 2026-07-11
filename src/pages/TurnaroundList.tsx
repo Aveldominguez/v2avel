@@ -5,7 +5,7 @@ import { useAllAirlines } from '@/hooks/useCatalog';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
-import { useArionSync } from '@/hooks/useArionSync';
+
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { formatDate } from '@/utils/timeValidation';
 import { Button } from '@/components/ui/button';
@@ -117,19 +117,6 @@ const TurnaroundList: React.FC = () => {
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const { lastSync, syncing, syncToday, reloadStatus } = useArionSync();
-
-  // Refresh ARION status (which contains arion_last_sync from DB) when the tab regains focus,
-  // so background/scheduled syncs from other tabs/devices are reflected here.
-  useEffect(() => {
-    const onFocus = () => { reloadStatus(); };
-    window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onFocus);
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onFocus);
-    };
-  }, [reloadStatus]);
 
   // List state
   const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
@@ -288,15 +275,6 @@ const TurnaroundList: React.FC = () => {
     setSearchQuery('');
   };
 
-  const handleForceSync = async () => {
-    const result = await syncToday();
-    if (result) {
-      toast({ title: 'Sincronización completada', description: `${result.synced ?? 0} vuelos actualizados.` });
-    } else {
-      toast({ title: 'Error de sincronización', description: 'Revisa las credenciales ARION.', variant: 'destructive' });
-    }
-  };
-
   const getCompletionStatus = (t: Turnaround) => {
     const times = t.times;
     const hasArrival = times.chocksOnArrival;
@@ -400,25 +378,6 @@ const TurnaroundList: React.FC = () => {
       <main className="w-full py-4 space-y-4">
         {/* METAR Weather */}
         <WeatherWidget />
-
-        {/* ARION manual sync */}
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground">
-            {lastSync
-              ? `Última sincronización: ${format(new Date(lastSync), 'dd/MM/yyyy HH:mm')}`
-              : 'Sin sincronizar aún'}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleForceSync}
-            disabled={syncing}
-            className="gap-1.5 text-xs"
-          >
-            {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-            {syncing ? 'Sincronizando...' : 'ACTUALIZAR BASE DE VUELOS'}
-          </Button>
-        </div>
 
         {/* Search toggle + filters unified block */}
         <Card className="border-0 shadow-none bg-card rounded-none overflow-hidden p-0">
