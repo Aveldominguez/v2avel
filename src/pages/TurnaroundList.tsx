@@ -117,7 +117,8 @@ const TurnaroundList: React.FC = () => {
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const { syncToday, syncing, lastSync } = useArionSync();
+  const { lastSync } = useArionSync();
+  const [syncing, setSyncing] = useState(false);
 
   // List state
   const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
@@ -277,7 +278,19 @@ const TurnaroundList: React.FC = () => {
   };
 
   const handleForceSync = async () => {
-    await syncToday();
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-arion-flights', {
+        body: { force: true },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any)?.message ?? (data as any).error);
+      toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
+    } catch (err: any) {
+      toast({ title: 'Error de sincronización', description: err.message ?? 'Revisa las credenciales ARION.', variant: 'destructive' });
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const getCompletionStatus = (t: Turnaround) => {
