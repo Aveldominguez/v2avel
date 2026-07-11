@@ -117,7 +117,8 @@ const TurnaroundList: React.FC = () => {
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const { syncToday, syncing, lastSync } = useArionSync();
+  const { lastSync } = useArionSync();
+  const [syncing, setSyncing] = useState(false);
 
   // List state
   const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
