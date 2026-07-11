@@ -478,13 +478,12 @@ const AdminPanel: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={handleArionSync}
-                  disabled={arionSyncing || arionSyncingHook || !arionConfigured}
-                  className="gap-1.5 text-xs"
+                  disabled={arionSyncing || !arionConfigured}
+                  className="gap-1.5"
                 >
-                  {(arionSyncing || arionSyncingHook) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                  {(arionSyncing || arionSyncingHook) ? 'Sincronizando...' : 'ACTUALIZAR BASE DE VUELOS'}
+                  {arionSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  Sincronizar ahora
                 </Button>
               </div>
             </div>
