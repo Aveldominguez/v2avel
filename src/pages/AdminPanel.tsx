@@ -129,16 +129,15 @@ const AdminPanel: React.FC = () => {
   };
 
 
+  const { syncToday: arionSyncToday, syncing: arionSyncingHook } = useArionSync();
+
   const handleArionSync = async () => {
     setArionSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-arion-flights', {
-        body: { force: true },
-      });
-      if (error) throw new Error(error.message);
-      if ((data as any)?.error) throw new Error((data as any)?.message ?? (data as any).error);
+      const result = await arionSyncToday();
+      if (!result) throw new Error('Revisa las credenciales ARION.');
       setLastArionSync(new Date().toISOString());
-      toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
+      toast({ title: 'Sincronización completada', description: `${result.synced ?? 0} vuelos actualizados.` });
     } catch (err: any) {
       toast({ title: 'Error de sincronización', description: err.message ?? 'Revisa las credenciales ARION.', variant: 'destructive' });
     } finally {
