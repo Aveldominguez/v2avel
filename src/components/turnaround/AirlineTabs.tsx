@@ -1,13 +1,14 @@
 import React from 'react';
 import { AirlineCode, AIRLINES, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
-import { getCompartmentsByAirline } from '@/data/compartmentDefinitions';
+import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { AirlineFieldsTable } from './AirlineFieldsTable';
 import { CompartmentsTable } from './CompartmentsTable';
 import { ComoditysDialog } from './ComoditysDialog';
 import { AirEstWeightBalance } from './AirEstWeightBalance';
 import { Card, CardContent } from '@/components/ui/card';
 import { Luggage } from 'lucide-react';
+import { sumNumericTokens } from '@/utils/sumCargoUnits';
 
 interface AirlineTabsProps {
   airline: AirlineCode;
