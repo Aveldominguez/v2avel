@@ -1,6 +1,6 @@
 {
-  "version": "4.64",
+  "version": "4.68",
   "changelog": [
-    "Versión 4.0 — hito mayor de la aplicación."
+    "Panel de Administración → Sincronización ARION: botón unificado \"ACTUALIZAR BASE DE VUELOS\" (misma función que en la home)."
   ]
 }

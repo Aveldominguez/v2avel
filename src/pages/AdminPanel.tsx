@@ -34,6 +34,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getImpersonatedUser, setImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
+import { useArionSync } from '@/hooks/useArionSync';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
@@ -128,16 +129,15 @@ const AdminPanel: React.FC = () => {
   };
 
 
+  const { syncToday: arionSyncToday, syncing: arionSyncingHook } = useArionSync();
+
   const handleArionSync = async () => {
     setArionSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-arion-flights', {
-        body: { force: true },
-      });
-      if (error) throw new Error(error.message);
-      if ((data as any)?.error) throw new Error((data as any)?.message ?? (data as any).error);
+      const result = await arionSyncToday();
+      if (!result) throw new Error('Revisa las credenciales ARION.');
       setLastArionSync(new Date().toISOString());
-      toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
+      toast({ title: 'Sincronización completada', description: `${result.synced ?? 0} vuelos actualizados.` });
     } catch (err: any) {
       toast({ title: 'Error de sincronización', description: err.message ?? 'Revisa las credenciales ARION.', variant: 'destructive' });
     } finally {
@@ -477,12 +477,13 @@ const AdminPanel: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleArionSync}
-                  disabled={arionSyncing || !arionConfigured}
-                  className="gap-1.5"
+                  disabled={arionSyncing || arionSyncingHook || !arionConfigured}
+                  className="gap-1.5 text-xs"
                 >
-                  {arionSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  Sincronizar ahora
+                  {(arionSyncing || arionSyncingHook) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {(arionSyncing || arionSyncingHook) ? 'Sincronizando...' : 'ACTUALIZAR BASE DE VUELOS'}
                 </Button>
               </div>
             </div>
