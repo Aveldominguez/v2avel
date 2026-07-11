@@ -117,8 +117,19 @@ const TurnaroundList: React.FC = () => {
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const { lastSync } = useArionSync();
-  const [syncing, setSyncing] = useState(false);
+  const { lastSync, syncing, syncToday, reloadStatus } = useArionSync();
+
+  // Refresh ARION status (which contains arion_last_sync from DB) when the tab regains focus,
+  // so background/scheduled syncs from other tabs/devices are reflected here.
+  useEffect(() => {
+    const onFocus = () => { reloadStatus(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, [reloadStatus]);
 
   // List state
   const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
@@ -278,18 +289,11 @@ const TurnaroundList: React.FC = () => {
   };
 
   const handleForceSync = async () => {
-    setSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-arion-flights', {
-        body: { force: true },
-      });
-      if (error) throw new Error(error.message);
-      if ((data as any)?.error) throw new Error((data as any)?.message ?? (data as any).error);
-      toast({ title: 'Sincronización completada', description: `${(data as any)?.synced ?? 0} vuelos actualizados.` });
-    } catch (err: any) {
-      toast({ title: 'Error de sincronización', description: err.message ?? 'Revisa las credenciales ARION.', variant: 'destructive' });
-    } finally {
-      setSyncing(false);
+    const result = await syncToday();
+    if (result) {
+      toast({ title: 'Sincronización completada', description: `${result.synced ?? 0} vuelos actualizados.` });
+    } else {
+      toast({ title: 'Error de sincronización', description: 'Revisa las credenciales ARION.', variant: 'destructive' });
     }
   };
 
