@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Wrench, Plus, X, Zap } from 'lucide-react';
 import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { AirlineCode } from '@/types/turnaround';
-import { useEquipment, updateParking, updateBattery } from '@/hooks/useEquipment';
+import { useEquipment, updateParking, updateBattery, toggleCharging } from '@/hooks/useEquipment';
 import type { EquipmentUnitFull } from '@/types/equipment';
 
 interface EquipmentSectionProps {
