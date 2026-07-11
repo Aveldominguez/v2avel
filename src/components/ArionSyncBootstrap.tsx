@@ -24,18 +24,26 @@ export const ArionSyncBootstrap: React.FC = () => {
   const { hasCredentials, syncToday } = useArionSync();
   const ranOnceRef = useRef(false);
 
-  // Initial sync if stale
+  // Initial sync if stale + recurring every 5 minutes
   useEffect(() => {
-    if (!user || !hasCredentials || ranOnceRef.current) return;
-    ranOnceRef.current = true;
+    if (!user || !hasCredentials) return;
 
-    const last = localStorage.getItem(`arion_last_sync_${user.id}`);
-    const stale = !last || Date.now() - new Date(last).getTime() > SYNC_INTERVAL_MS;
-    if (!stale) return;
+    const tick = () => {
+      const last = localStorage.getItem(`arion_last_sync_${user.id}`);
+      const stale = !last || Date.now() - new Date(last).getTime() > SYNC_INTERVAL_MS;
+      if (!stale) return;
+      const idle = (cb: () => void) =>
+        (window as any).requestIdleCallback?.(cb) ?? setTimeout(cb, 1500);
+      idle(() => { syncToday().catch(() => {}); });
+    };
 
-    const idle = (cb: () => void) =>
-      (window as any).requestIdleCallback?.(cb) ?? setTimeout(cb, 1500);
-    idle(() => { syncToday().catch(() => {}); });
+    if (!ranOnceRef.current) {
+      ranOnceRef.current = true;
+      tick();
+    }
+
+    const interval = setInterval(tick, SYNC_INTERVAL_MS);
+    return () => clearInterval(interval);
   }, [user, hasCredentials, syncToday]);
 
   // Midnight (00:05) re-sync
