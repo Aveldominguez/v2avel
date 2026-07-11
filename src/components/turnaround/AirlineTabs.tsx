@@ -1,13 +1,14 @@
 import React from 'react';
 import { AirlineCode, AIRLINES, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
-import { getCompartmentsByAirline } from '@/data/compartmentDefinitions';
+import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { AirlineFieldsTable } from './AirlineFieldsTable';
 import { CompartmentsTable } from './CompartmentsTable';
 import { ComoditysDialog } from './ComoditysDialog';
 import { AirEstWeightBalance } from './AirEstWeightBalance';
 import { Card, CardContent } from '@/components/ui/card';
 import { Luggage } from 'lucide-react';
+import { sumNumericTokens } from '@/utils/sumCargoUnits';
 
 interface AirlineTabsProps {
   airline: AirlineCode;
@@ -58,17 +59,51 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
     onChange(updated);
   };
 
+  // Total across all non-ITA compartments; excludes numbers followed by "kg" (peso, no unidades)
+  const totalBodegas = React.useMemo(() => {
+    if (!compartments.length) return 0;
+    const ids = new Set<string>();
+    const extraPrefixes: string[] = [];
+    compartments.forEach((comp) => {
+      if (comp.holdStyle === 'ita') return;
+      comp.holds.forEach((h) => {
+        if (isPairedHold(h)) {
+          ids.add(h.left.id);
+          ids.add(h.right.id);
+        } else {
+          ids.add(h.id);
+        }
+      });
+      if (comp.expandable) extraPrefixes.push(`${comp.id}-extra-`);
+    });
+    let total = 0;
+    fieldValues.forEach((fv) => {
+      if (ids.has(fv.fieldDefinitionId) || extraPrefixes.some((p) => fv.fieldDefinitionId.startsWith(p))) {
+        total += sumNumericTokens(fv.value || '');
+      }
+    });
+    return total;
+  }, [compartments, fieldValues]);
+
   return (
     <Card className="card-operational">
       <div className="border-b-2 border-border px-4 pt-4 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-accent/20">
-            <Luggage className="h-5 w-5 text-accent" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-lg bg-accent/20 shrink-0">
+              <Luggage className="h-5 w-5 text-accent" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold truncate">Carga de SALIDA ✈️</h2>
+              <p className="text-sm text-muted-foreground truncate">{airlineInfo?.name}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">Carga de SALIDA ✈️</h2>
-            <p className="text-sm text-muted-foreground">{airlineInfo?.name}</p>
-          </div>
+          {totalBodegas > 0 && (
+            <div className="flex flex-col items-end shrink-0">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total en bodegas</span>
+              <span className="font-mono font-bold text-xl text-primary leading-tight">{totalBodegas}</span>
+            </div>
+          )}
         </div>
       </div>
 

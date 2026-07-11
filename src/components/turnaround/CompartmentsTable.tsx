@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
 import { AirlineCode } from '@/types/turnaround';
+import { sumNumericTokens } from '@/utils/sumCargoUnits';
 import {
   Select,
   SelectContent,
@@ -218,13 +219,8 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     );
   };
 
-  // Sum all numeric tokens in a string, ignoring alpha chars (e.g. "23BY" → 23, "10+5=15" → 30)
-  const sumNumericTokens = (text: string): number => {
-    if (!text) return 0;
-    const matches = text.match(/\d+/g);
-    if (!matches) return 0;
-    return matches.reduce((acc, n) => acc + parseInt(n, 10), 0);
-  };
+  // Sum numeric tokens ignoring alpha chars; skips numbers followed by "kg" (peso, no unidades)
+  // Shared helper — see src/utils/sumCargoUnits.ts
 
   // Wizz A321 compartment 3 alert logic: any field > 90, or sum of 31+32+33 > 90
   const WIZZ_A321_COMP3_IDS = ['wizz-hold-a32131', 'wizz-hold-a32132', 'wizz-hold-a32133'];
