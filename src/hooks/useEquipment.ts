@@ -31,6 +31,34 @@ export const useEquipment = () => {
 
   useEffect(() => { reload(); }, [reload]);
 
+  // Merge a single state row into the local cache (used both by realtime and by
+  // the optimistic-update event dispatched from mutations below — needed on iOS
+  // PWA where the realtime WebSocket is frozen when the app goes to background).
+  const mergeStateRow = useCallback((row: EquipmentStateRow) => {
+    setStates(prev => ({ ...prev, [row.unit_id]: row }));
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const row = (e as CustomEvent<EquipmentStateRow>).detail;
+      if (row?.unit_id) mergeStateRow(row);
+    };
+    window.addEventListener('equipment-state-changed', handler as EventListener);
+    return () => window.removeEventListener('equipment-state-changed', handler as EventListener);
+  }, [mergeStateRow]);
+
+  // Refresh whenever the tab/PWA is brought back to the foreground: realtime
+  // events that fired while backgrounded on iOS are otherwise lost.
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === 'visible') reload(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('focus', onVis);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('focus', onVis);
+    };
+  }, [reload]);
+
   useEffect(() => {
     const channel = supabase
       .channel('equipment-rt')
@@ -48,6 +76,7 @@ export const useEquipment = () => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [reload]);
+
 
   const fullCategories: EquipmentCategoryFull[] = categories
     .filter(c => c.active)
