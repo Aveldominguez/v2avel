@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Wrench, Plus, X, Zap } from 'lucide-react';
 import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { AirlineCode } from '@/types/turnaround';
-import { useEquipment, updateParking, updateBattery } from '@/hooks/useEquipment';
+import { useEquipment, updateParking, updateBattery, toggleCharging } from '@/hooks/useEquipment';
 import type { EquipmentUnitFull } from '@/types/equipment';
 
 interface EquipmentSectionProps {
@@ -136,9 +136,20 @@ const EquipmentStateEditor = ({
       {isBroken ? (
         <span className="flex-1 text-center text-xs font-semibold italic text-destructive">EN TALLER</span>
       ) : isCharging ? (
-        <span className="flex flex-1 items-center justify-center gap-1 text-xs font-semibold italic text-success">
-          <Zap className="h-3 w-3" /> Cargando
-        </span>
+        <div className="flex flex-1 items-center justify-between gap-2">
+          <span className="flex items-center gap-1 text-xs font-semibold italic text-success">
+            <Zap className="h-3 w-3" /> Cargando
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => toggleCharging(unit.id, unit.code, unit.category_id, true, 'rampa')}
+            className="h-7 px-2 text-[10px] font-bold uppercase tracking-wider"
+          >
+            Activar
+          </Button>
+        </div>
       ) : (
         <Input
           value={isAutonomy && batteryInput ? `KM ${batteryInput}` : batteryInput}
