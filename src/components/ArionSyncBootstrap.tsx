@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useArionSync } from '@/hooks/useArionSync';
 
-const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const SYNC_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 function msUntilNext0005(): number {
   const now = new Date();
