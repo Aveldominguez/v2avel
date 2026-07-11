@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
 import { AirlineCode } from '@/types/turnaround';
+import { sumNumericTokens } from '@/utils/sumCargoUnits';
 import {
   Select,
   SelectContent,
