@@ -1,73 +1,38 @@
-# Welcome to your Lovable project
+# v2avel
 
-## Project info
+Aplicación PWA de gestión de escalas (turnarounds) y equipos de rampa para operaciones de handling aeroportuario. Optimizada para móvil, con modo offline, sincronización de vuelos desde ARION (Aviapartner) y escáner de hojas de carga.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Stack
 
-## How can I edit this code?
+- **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui (PWA con vite-plugin-pwa)
+- **Backend:** Supabase (PostgreSQL + Auth + Storage + Edge Functions + pg_cron)
+- **Hosting:** Cloudflare Pages
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Desarrollo local
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm install
+cp .env.example .env   # rellena con las claves de tu proyecto Supabase
+npm run dev            # http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+## Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción (genera `dist/`) |
+| `npm run lint` | ESLint |
+| `npm test` | Tests (Vitest) |
 
-**Use GitHub Codespaces**
+## Estructura
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- `src/pages/` — rutas principales (Rampa, Equipos, Admin)
+- `src/components/` — componentes por módulo + `ui/` (shadcn)
+- `src/hooks/` — lógica de datos (auth, offline sync, ARION, catálogos)
+- `supabase/functions/` — edge functions (sync ARION, escáner de hojas de carga, gestión de usuarios)
+- `supabase/migrations/` — migraciones SQL
 
-## What technologies are used for this project?
+## Despliegue
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Cloudflare Pages construye automáticamente desde `main` (`npm run build`, directorio `dist`). Las variables `VITE_*` se configuran en el panel de Pages.
