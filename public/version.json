@@ -1,5 +1,5 @@
 {
-  "version": "4.76",
+  "version": "4.77",
   "changelog": [
     "Sincronización ARION automática ajustada a cada 10 minutos para reducir carga mientras se mantiene la frescura de los datos."
   ]
