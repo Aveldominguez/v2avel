@@ -1,10 +1,24 @@
-// Sum all numeric tokens in a string, ignoring:
-// - alpha chars (e.g. "23BY" -> 23)
-// - any number immediately followed by "kg" (case-insensitive, optional whitespace)
-//   e.g. "130kg" -> 0, "10 KG" -> 0, "12+130kg=142" -> 12+142 = 154 (the "130" preceding "kg" is skipped)
+// Sum all numeric tokens in a string, ignoring numbers that represent
+// weights (kg) or pieces (pc) instead of luggage units.
+//
+// Rules:
+// - Match every full run of digits.
+// - Skip a number if the characters immediately after it (optionally with
+//   whitespace) start with "kg" or "pc" (case-insensitive), regardless of
+//   how many digits the number has. Examples ignored: "130kg", "1500 KG",
+//   "45PC", "1pc".
+// - Alpha suffixes that are NOT kg/pc keep the number (e.g. "23BY" -> 23).
 export const sumNumericTokens = (text: string): number => {
   if (!text) return 0;
-  const matches = text.match(/\d+(?!\s*kg)/gi);
-  if (!matches) return 0;
-  return matches.reduce((acc, n) => acc + parseInt(n, 10), 0);
+  const regex = /\d+/g;
+  let total = 0;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(text)) !== null) {
+    const after = text.slice(m.index + m[0].length);
+    if (/^\s*(kg|pc)\b/i.test(after) || /^\s*(kg|pc)/i.test(after)) {
+      continue;
+    }
+    total += parseInt(m[0], 10);
+  }
+  return total;
 };
