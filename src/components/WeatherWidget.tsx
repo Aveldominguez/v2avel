@@ -11,29 +11,39 @@ import { cn } from '@/lib/utils'
 const ALERT_CONFIG = {
   PRECAUCION: {
     label: 'PRECAUCIÓN — Vientos fuertes (25–39 kt)',
+    short: 'PRECAUCIÓN',
     detail: 'Reducir operaciones no esenciales. Asegurar todo el GSE. Incrementar vigilancia en plataforma. Evitar movimientos innecesarios alrededor del avión.',
     bar: 'bg-yellow-500',
     border: 'border-yellow-500',
     bg: 'bg-yellow-500/10',
     text: 'text-yellow-700 dark:text-yellow-400',
+    // Colapsado: fondo sólido del nivel + texto de contraste
+    solid: 'bg-yellow-500 text-black',
+    solidIcon: 'text-black',
     icon: AlertTriangle,
   },
   RESTRICCION: {
     label: 'RESTRICCIÓN OPERATIVA — Vientos muy fuertes (40–59 kt)',
+    short: 'RESTRICCIÓN',
     detail: 'Suspender actividades en rampa no seguras. Mantener despejada el área del avión. Reforzar anclajes GSE. Priorizar protección del personal.',
     bar: 'bg-orange-500',
     border: 'border-orange-500',
     bg: 'bg-orange-500/10',
     text: 'text-orange-700 dark:text-orange-400',
+    solid: 'bg-orange-500 text-black',
+    solidIcon: 'text-black',
     icon: Ban,
   },
   SUSPENSION: {
     label: 'SUSPENSIÓN TOTAL — Detener toda actividad (≥ 60 kt)',
+    short: 'SUSPENSIÓN',
     detail: 'Detener INMEDIATAMENTE toda actividad en plataforma. Personal a refugio seguro. Sin movimiento de aeronave ni GSE hasta mejora de condiciones.',
     bar: 'bg-red-600',
     border: 'border-red-600',
     bg: 'bg-red-600/10',
     text: 'text-red-700 dark:text-red-400',
+    solid: 'bg-red-600 text-white',
+    solidIcon: 'text-white',
     icon: AlertOctagon,
   },
 } as const
@@ -42,9 +52,10 @@ export function WeatherWidget() {
   const { weather, loading, error, refresh, windAlert } = useAirportWeather()
   const [showRaw, setShowRaw] = useState(false)
   // Colapsado por defecto: la lista de escalas es lo prioritario en pantalla.
-  // Con alerta de viento activa se expande solo.
+  // Con alerta activa, la línea colapsada toma el color del nivel de alerta,
+  // así se identifica de un vistazo sin desplegar.
   const [expanded, setExpanded] = useState(false)
-  const isOpen = expanded || !!windAlert
+  const isOpen = expanded
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -55,7 +66,7 @@ export function WeatherWidget() {
 
   return (
     <div className="space-y-3">
-      {alert && weather && AlertIcon && (
+      {alert && weather && AlertIcon && isOpen && (
         <div className={cn('rounded-lg border-2 p-3', alert.border, alert.bg)}>
           <div className="flex items-start gap-2">
             <AlertIcon className={cn('h-5 w-5 shrink-0 mt-0.5', alert.text)} />
@@ -75,7 +86,10 @@ export function WeatherWidget() {
         </div>
       )}
 
-      <Card className="border-0 shadow-none bg-card rounded-none">
+      <Card className={cn(
+        'border-0 shadow-none rounded-none transition-colors',
+        !isOpen && alert ? alert.solid : 'bg-card'
+      )}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <button
@@ -83,17 +97,32 @@ export function WeatherWidget() {
               onClick={() => setExpanded(v => !v)}
               aria-expanded={isOpen}
             >
+              {!isOpen && alert && AlertIcon && (
+                <AlertIcon className={cn('h-4 w-4 shrink-0', alert.solidIcon)} />
+              )}
               <span className="font-bold text-sm shrink-0">METAR · LEMD</span>
               {weather && !isOpen && (
-                <span className="text-xs font-mono text-muted-foreground truncate">
-                  {weather.windDir !== null ? `${String(weather.windDir).padStart(3, '0')}°` : 'VRB'} {weather.windSpeed} kt
-                  {weather.temp !== null ? ` · ${weather.temp}°C` : ''}
-                  {weather.qnh !== null ? ` · ${weather.qnh} hPa` : ''}
+                <span className={cn(
+                  'text-xs font-mono truncate',
+                  alert ? 'font-bold' : 'text-muted-foreground'
+                )}>
+                  {alert ? `${alert.short} · ` : ''}
+                  {weather.windDir !== null ? `${String(weather.windDir).padStart(3, '0')}°` : 'VRB'} {Math.max(weather.windSpeed, weather.windGusts ?? 0)} kt
+                  {!alert && weather.temp !== null ? ` · ${weather.temp}°C` : ''}
+                  {!alert && weather.qnh !== null ? ` · ${weather.qnh} hPa` : ''}
                 </span>
               )}
-              {isOpen ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+              {isOpen
+                ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                : <ChevronDown className={cn('h-4 w-4 shrink-0', alert ? alert.solidIcon : 'text-muted-foreground')} />}
             </button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={refresh} disabled={loading}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn('h-8 w-8 shrink-0', !isOpen && alert && cn(alert.solidIcon, 'hover:bg-black/10'))}
+              onClick={refresh}
+              disabled={loading}
+            >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
           </div>
