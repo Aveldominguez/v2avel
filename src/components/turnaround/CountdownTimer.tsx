@@ -239,12 +239,22 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     if (e.key === 'Escape') setEditing(false);
   };
 
-  // Format seconds to MM:SS
+  // Format seconds to MM:SS (or "Xh MMm" when supera los 100 minutos, más legible)
   const formatTime = (secs: number): string => {
     const mins = Math.floor(secs / 60);
+    if (mins >= 100) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${h}h ${String(m).padStart(2, '0')}m`;
+    }
     const s = secs % 60;
     return `${String(mins).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
+
+  // Hora objetivo del countdown (hacia qué hora cuenta), para mostrar contexto
+  const targetLabel = endDateRef.current
+    ? endDateRef.current.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   const showDelay = (frozenDelay !== null ? frozenDelay : delaySeconds);
   const showDelayCounter = showDelay !== null && showDelay > 0;
@@ -312,9 +322,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           onDepartureTimeChange && 'cursor-pointer hover:opacity-80 active:scale-95 transition-transform'
         )}
         onClick={handleTimerClick}
+        title={targetLabel ? `Tiempo restante hasta las ${targetLabel}` : 'Tiempo restante'}
       >
         <Timer className={cn('h-4 w-4', isPaused && 'animate-pulse')} />
         <span>{formatTime(remainingSeconds)}</span>
+        {targetLabel && !hasChocksOff && (
+          <span className="font-normal opacity-70 text-xs">→ {targetLabel}</span>
+        )}
       </div>
 
       {/* Pause / Resume button */}

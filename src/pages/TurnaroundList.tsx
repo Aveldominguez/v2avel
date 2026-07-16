@@ -354,13 +354,15 @@ const TurnaroundList: React.FC = () => {
             {/* FILA 2 — Módulos de navegación */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 w-full">
               {isAdmin && (
-                <Button size="icon" className="h-9 w-9 shrink-0 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
+                <Button size="sm" className="h-9 shrink-0 gap-1.5 px-3 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
                   <LayoutDashboard className="h-4 w-4" />
+                  Admin
                 </Button>
               )}
               {hasEquipos && (
-                <Button size="icon" className="h-9 w-9 shrink-0 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
+                <Button size="sm" className="h-9 shrink-0 gap-1.5 px-3 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
                   <Wrench className="h-4 w-4" />
+                  Equipos
                 </Button>
               )}
               <div className="flex-1" />
@@ -376,22 +378,19 @@ const TurnaroundList: React.FC = () => {
       </header>
 
       <main className="w-full py-4 space-y-4">
-        {/* METAR Weather */}
-        <WeatherWidget />
-
         {/* Search toggle + filters unified block */}
         <Card className="border-0 shadow-none bg-card rounded-none overflow-hidden p-0">
           {/* Toggle button as card header */}
           <button
             className={cn(
-              'w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white transition-colors',
-              showFilters ? 'bg-amber-500 hover:bg-amber-600' : 'bg-amber-500 hover:bg-amber-600'
+              'w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-y border-border',
+              'bg-secondary/50 hover:bg-secondary text-foreground'
             )}
             onClick={() => setShowFilters(v => !v)}
           >
             <Search className="h-4 w-4" />
             Buscar Escala
-            {hasFilters && <span className="h-2 w-2 rounded-full bg-white inline-block" />}
+            {hasFilters && <span className="h-2 w-2 rounded-full bg-primary inline-block" />}
             {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
 
@@ -572,6 +571,9 @@ const TurnaroundList: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* METAR Weather — colapsado por defecto; se expande solo con alerta de viento */}
+        <WeatherWidget />
       </main>
 
       {/* Delete confirmation dialog */}

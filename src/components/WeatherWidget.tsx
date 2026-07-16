@@ -41,6 +41,10 @@ const ALERT_CONFIG = {
 export function WeatherWidget() {
   const { weather, loading, error, refresh, windAlert } = useAirportWeather()
   const [showRaw, setShowRaw] = useState(false)
+  // Colapsado por defecto: la lista de escalas es lo prioritario en pantalla.
+  // Con alerta de viento activa se expande solo.
+  const [expanded, setExpanded] = useState(false)
+  const isOpen = expanded || !!windAlert
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -73,28 +77,40 @@ export function WeatherWidget() {
 
       <Card className="border-0 shadow-none bg-card rounded-none">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm">METAR · LEMD (MAD)</span>
-              {weather && (
-                <span className="text-xs text-muted-foreground font-mono">
-                  ULTIMA ACTUALIZACION {weather.obsTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} UTC
+          <div className="flex items-center justify-between">
+            <button
+              className="flex items-center gap-2 flex-1 min-w-0 text-left"
+              onClick={() => setExpanded(v => !v)}
+              aria-expanded={isOpen}
+            >
+              <span className="font-bold text-sm shrink-0">METAR · LEMD</span>
+              {weather && !isOpen && (
+                <span className="text-xs font-mono text-muted-foreground truncate">
+                  {weather.windDir !== null ? `${String(weather.windDir).padStart(3, '0')}°` : 'VRB'} {weather.windSpeed} kt
+                  {weather.temp !== null ? ` · ${weather.temp}°C` : ''}
+                  {weather.qnh !== null ? ` · ${weather.qnh} hPa` : ''}
                 </span>
               )}
-            </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={refresh} disabled={loading}>
+              {isOpen ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+            </button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={refresh} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-sm text-destructive mt-2">{error}</p>}
 
           {!weather && !error && !loading && (
-            <p className="text-sm text-muted-foreground">Pulsa ↻ para cargar el METAR</p>
+            <p className="text-sm text-muted-foreground mt-2">Pulsa ↻ para cargar el METAR</p>
           )}
 
-          {weather && (
+          {weather && isOpen && (
             <>
+              {weather.obsTime && (
+                <p className="text-xs text-muted-foreground font-mono mt-1 mb-3">
+                  ULTIMA ACTUALIZACION {weather.obsTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} UTC
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2 col-span-full sm:col-span-2 p-2 rounded-md bg-secondary/40">
                   <Wind className="h-5 w-5 shrink-0 mt-0.5 text-primary" />
