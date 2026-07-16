@@ -12,5 +12,3 @@ verify_jwt = false
 [functions.sync-arion-flights]
 verify_jwt = false
 
-[functions.export-storage-urls]
-verify_jwt = false
