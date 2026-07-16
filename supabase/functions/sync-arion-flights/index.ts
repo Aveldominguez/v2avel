@@ -66,14 +66,6 @@ async function arionLogin(login: string, password: string): Promise<string | nul
 
   for (const attempt of attempts) {
     const url = `${ARION_BASE}${attempt.path}`;
-    console.log('Attempting ARION login:', {
-      url,
-      bodyFields: Object.keys(attempt.body),
-      headerFields: Object.keys(ARION_LOGIN_HEADERS),
-      username: login,
-      passwordLength: password?.length ?? 0,
-    });
-
     const loginResp = await fetch(url, {
       method: 'POST',
       headers: ARION_LOGIN_HEADERS,
@@ -81,10 +73,8 @@ async function arionLogin(login: string, password: string): Promise<string | nul
     });
 
     const loginText = await loginResp.text();
-    console.log(`ARION login ${attempt.path} → ${loginResp.status}:`, loginText.substring(0, 300));
-
     if (!loginResp.ok) {
-      console.error(`ARION login ${attempt.path} failed ${loginResp.status}:`, loginText.substring(0, 300));
+      console.error(`ARION login ${attempt.path} failed ${loginResp.status}`);
       continue;
     }
 
@@ -142,13 +132,7 @@ serve(async (req) => {
           .limit(1)
           .maybeSingle();
 
-        console.log('arion_config read:', {
-          hasData: !!cfg,
-          cfgErr: cfgErr?.message ?? null,
-          username: cfg?.username ?? 'MISSING',
-          passwordLength: cfg?.password?.length ?? 0,
-          station: cfg?.station_code ?? 'MISSING'
-        });
+        if (cfgErr) console.error('arion_config read error:', cfgErr.message);
 
         if (cfg?.username && cfg?.password) {
           arionLoginName = cfg.username;
@@ -306,19 +290,10 @@ serve(async (req) => {
       const departures: any[] = Array.isArray(flightsJson?.departures) ? flightsJson.departures : [];
       const allFlights = [...arrivals, ...departures];
 
-      // DIAGNÓSTICO TEMPORAL — ver qué vuelos devuelve ARION
-      console.log('ARION total flights received:', allFlights.length,
+      console.log('ARION flights received:', allFlights.length,
         '| arrivals:', arrivals.length,
         '| departures:', departures.length
       );
-
-      const a3702Flights = allFlights.filter(f => String(f.fn ?? '').toUpperCase().includes('A3702') || String(f.fn ?? '').replace(/\s/g,'').toUpperCase().includes('A3702'));
-
-      if (a3702Flights.length > 0) {
-        console.log('A3702 rotations found in ARION response:', JSON.stringify(a3702Flights.map(f => ({ fn: f.fn, sdt: f.sdt, movementType: f.movementType, sn: f.sn }))));
-      } else {
-        console.log('A3702 NOT FOUND in ARION response for date:', flight_date_in);
-      }
 
       // Deduplicar por (fn, movementType, sdt) para preservar múltiples rotaciones del mismo número de vuelo.
       // Arrivals tienen prioridad sobre departures cuando la clave coincide exactamente.
@@ -418,37 +393,6 @@ serve(async (req) => {
                 depObj?.estimated_departure ??
                 null;
 
-
-              // TEMP DEBUG — remove after confirming field names
-              console.log('ARION flight fields:', JSON.stringify({
-                sn: f.sn,
-                movementType: f.movementType,
-                allListFields: Object.keys(f),
-                allDetailFields: f.movementType === 'A'
-                  ? Object.keys(detail?.arrival ?? {})
-                  : Object.keys(detail?.departure ?? {}),
-                candidates: {
-                  listLevel: {
-                    sta: f.sta,
-                    std: f.std,
-                    scheduledTime: f.scheduledTime,
-                    scheduledArrivalTime: f.scheduledArrivalTime,
-                    scheduledDepartureTime: f.scheduledDepartureTime,
-                  },
-                  detailArrival: {
-                    sta: detail?.arrival?.sta,
-                    std: detail?.arrival?.std,
-                    scheduledTime: detail?.arrival?.scheduledTime,
-                    scheduledArrivalTime: detail?.arrival?.scheduledArrivalTime,
-                  },
-                  detailDeparture: {
-                    sta: detail?.departure?.sta,
-                    std: detail?.departure?.std,
-                    scheduledTime: detail?.departure?.scheduledTime,
-                    scheduledDepartureTime: detail?.departure?.scheduledDepartureTime,
-                  }
-                }
-              }));
 
               if (isArrival) {
 
