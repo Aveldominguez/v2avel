@@ -55,7 +55,7 @@ const EquiposCategory = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto px-2 py-2">
+      <div className="flex-1 overflow-auto px-2 py-2 pb-24">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b-2 border-border text-left text-xs font-bold uppercase text-muted-foreground">
