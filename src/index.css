@@ -121,6 +121,45 @@
     --chart-4: 0 72% 48%;
     --chart-5: 280 65% 55%;
   }
+
+  /* Modo EXTERIOR: alto contraste para sol directo en rampa.
+     Se aplica junto a .light (blanco puro, negro puro, bordes marcados). */
+  .exterior {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 210 100% 32%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 22%;
+
+    --accent: 32 100% 34%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 32%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 100% 20%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 100% 30%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 100% 32%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 0 0% 30%;
+    --input: 0 0% 96%;
+    --ring: 210 100% 32%;
+  }
 }
 
 @layer base {
