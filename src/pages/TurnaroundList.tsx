@@ -322,27 +322,26 @@ const TurnaroundList: React.FC = () => {
 
       {/* Header */}
       <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
-        <div className="w-full px-3 py-4">
-          <div className="flex flex-col items-center gap-3">
-            {/* FILA 1 — Identidad */}
+        <div className="w-full px-3 py-3">
+          <div className="flex flex-col items-center gap-2.5">
+            {/* FILA 1 — Identidad compacta */}
             <div className="flex items-center justify-between w-full">
               <ThemeToggle />
-              <div className="text-center flex-1">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Registros de Escalas Rampa</h1>
-                <p className="text-sm text-muted-foreground">
-                  Usuario: {user?.email}
-                </p>
-                <div className="flex items-center justify-center gap-2 mt-1">
-                  <span className="text-xs text-muted-foreground font-mono">v{APP_VERSION}</span>
+              <div className="text-center flex-1 min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold tracking-tight leading-tight">Registros de Escalas Rampa</h1>
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground min-w-0">
+                  <span className="truncate">{user?.email}</span>
+                  <span className="shrink-0">·</span>
+                  <span className="font-mono shrink-0">v{APP_VERSION}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 shrink-0"
                     onClick={checkForUpdate}
                     disabled={updating}
                     title="Actualizar app"
                   >
-                    <RefreshCw className={cn("h-3.5 w-3.5", updating && "animate-spin")} />
+                    <RefreshCw className={cn("h-3 w-3", updating && "animate-spin")} />
                   </Button>
                 </div>
               </div>
@@ -351,28 +350,25 @@ const TurnaroundList: React.FC = () => {
               </Button>
             </div>
 
-            {/* FILA 2 — Módulos de navegación */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 w-full">
+            {/* FILA 2 — Acción principal + módulos en una sola línea */}
+            <div className="flex items-center gap-1.5 w-full">
               {isAdmin && (
-                <Button size="sm" className="h-9 shrink-0 gap-1.5 px-3 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
+                <Button size="sm" className="h-11 shrink-0 gap-1.5 px-3 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
                   <LayoutDashboard className="h-4 w-4" />
                   Admin
                 </Button>
               )}
               {hasEquipos && (
-                <Button size="sm" className="h-9 shrink-0 gap-1.5 px-3 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
+                <Button size="sm" className="h-11 shrink-0 gap-1.5 px-3 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
                   <Wrench className="h-4 w-4" />
                   Equipos
                 </Button>
               )}
-              <div className="flex-1" />
+              <Button onClick={() => navigate('/turnaround/new')} className="h-11 flex-1 gap-2">
+                <Plus className="h-4 w-4" />
+                Nueva Escala
+              </Button>
             </div>
-
-            {/* FILA 3 — Acción principal */}
-            <Button onClick={() => navigate('/turnaround/new')} size="lg" className="w-full gap-2">
-              <Plus className="h-4 w-4" />
-              Nueva Escala
-            </Button>
           </div>
         </div>
       </header>
