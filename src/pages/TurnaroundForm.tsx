@@ -743,10 +743,31 @@ const TurnaroundForm: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* Navegación por secciones — el formulario es largo; esto evita scroll a ciegas */}
+          <nav className="flex gap-1.5 overflow-x-auto -mx-1 px-1" aria-label="Secciones del formulario">
+            {[
+              { id: 'sec-tiempos', label: 'Tiempos' },
+              { id: 'sec-campos', label: 'Campos' },
+              { id: 'sec-equipos', label: 'Equipos' },
+              { id: 'sec-fotos', label: 'Fotos' },
+              { id: 'sec-obs', label: 'Observaciones' },
+            ].map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/70 active:scale-95 transition-transform"
+              >
+                {s.label}
+              </button>
+            ))}
+          </nav>
         </div>
       </header>
 
       <main className="w-full px-2 sm:px-4 py-6 space-y-6 pb-28">
+        <div id="sec-tiempos" className="scroll-mt-48">
         <AirlineTimesBlock
           airline={selectedAirline}
           aircraftModel={aircraftModel}
@@ -772,7 +793,9 @@ const TurnaroundForm: React.FC = () => {
           scheduledEtd={scheduledEtd}
           flightDate={date}
         />
+        </div>
 
+        <div id="sec-campos" className="scroll-mt-48 space-y-6">
         {(selectedAirline === 'AIR_CANADA' || selectedAirline === 'AIR_CANADA_CARGO') && (
           <AirCanadaCargoScanner
             flightNumber={flightNumber}
@@ -800,7 +823,9 @@ const TurnaroundForm: React.FC = () => {
             onChange={setFieldValues}
           />
         )}
+        </div>
 
+        <div id="sec-equipos" className="scroll-mt-48">
         <EquipmentSection
           airline={selectedAirline}
           aircraftModel={aircraftModel || null}
@@ -809,6 +834,7 @@ const TurnaroundForm: React.FC = () => {
           equipment={equipmentSelections}
           onChange={setEquipmentSelections}
         />
+        </div>
 
         <Button
           type="button"
@@ -840,6 +866,7 @@ const TurnaroundForm: React.FC = () => {
           </div>
         )}
 
+        <div id="sec-fotos" className="scroll-mt-48 space-y-6">
         {selectedAirline !== 'FEDEX' && !soloLlegada && (
           <LoadingSheetField
             turnaroundId={id}
@@ -853,8 +880,9 @@ const TurnaroundForm: React.FC = () => {
           fileUrls={fileUrls}
           onChange={setFileUrls}
         />
+        </div>
 
-        <Card className="card-operational">
+        <Card id="sec-obs" className="card-operational scroll-mt-48">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between text-lg">
               <div className="flex items-center gap-3">
