@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main, fase-0-migracion]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # El lint aún no bloquea: hay ~150 errores heredados (no-explicit-any)
+      # que se limpiarán en la Fase 2. Se muestra el resultado sin cortar el CI.
+      - name: Lint (informativo)
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Tests
+        run: npm test
+
+      - name: Build de producción
+        run: npm run build
