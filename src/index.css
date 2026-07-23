@@ -282,13 +282,20 @@
     border-radius: 9999px;
   }
 
-  /* Inputs blancos limpios con foco azul cielo */
+  /* Inputs blancos limpios con foco azul cielo.
+     background-color explícito: el .bg-background que trae el <Input> de
+     shadcn (capa utilities) gana por orden de cascada al bg-input de
+     .input-operational (capa components) aunque ambos tengan la misma
+     especificidad de una clase — aquí la ganamos con selector .sky de dos
+     clases, que sí tiene más especificidad y no depende del orden. */
   .sky .input-operational,
   .sky textarea,
   .sky input[type="text"],
   .sky input[type="time"],
   .sky input[type="date"],
-  .sky input[type="number"] {
+  .sky input[type="number"],
+  .sky [role="combobox"] {
+    background-color: hsl(var(--input));
     border-width: 1px;
     box-shadow: inset 0 1px 2px hsl(217 40% 60% / 0.08);
   }
