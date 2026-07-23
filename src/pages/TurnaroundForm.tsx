@@ -729,16 +729,18 @@ const TurnaroundForm: React.FC = () => {
           {(homeStation && (originStation || destStation)) && (
             <div className="flex items-center justify-center gap-3 text-xs font-semibold">
               {homeStation && originStation && (
-                <span className="text-emerald-600 dark:text-emerald-400">
-                  ✈ {originStation} → {homeStation}
+                <span className="route-segment text-emerald-600 dark:text-emerald-400">
+                  <Plane className="route-plane h-3 w-3" />
+                  <span className="route-emoji">✈</span> {originStation} → {homeStation}
                 </span>
               )}
               {homeStation && originStation && homeStation && destStation && (
                 <span className="text-muted-foreground">|</span>
               )}
               {homeStation && destStation && (
-                <span className="text-rose-600 dark:text-rose-400">
-                  ✈ {homeStation} → {destStation}
+                <span className="route-segment text-rose-600 dark:text-rose-400">
+                  <Plane className="route-plane h-3 w-3" />
+                  <span className="route-emoji">✈</span> {homeStation} → {destStation}
                 </span>
               )}
             </div>
@@ -757,7 +759,7 @@ const TurnaroundForm: React.FC = () => {
                 key={s.id}
                 type="button"
                 onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/70 active:scale-95 transition-transform"
+                className="nav-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/70 active:scale-95 transition-transform"
               >
                 {s.label}
               </button>
