@@ -8,7 +8,7 @@ import { ComoditysDialog } from './ComoditysDialog';
 import { AirEstWeightBalance } from './AirEstWeightBalance';
 import { Card, CardContent } from '@/components/ui/card';
 import { Luggage } from 'lucide-react';
-import { sumNumericTokens } from '@/utils/sumCargoUnits';
+import { sumNumericTokens, firstNumericToken } from '@/utils/sumCargoUnits';
 
 interface AirlineTabsProps {
   airline: AirlineCode;
@@ -59,27 +59,33 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
     onChange(updated);
   };
 
-  // Total across all non-ITA compartments; excludes numbers followed by "kg" (peso, no unidades)
+  // Total across all compartments; excludes numbers followed by "kg" (peso, no unidades).
+  // En compartimentos paletizados (holdStyle 'ita': ITA/TAP con AKE-AKH) solo
+  // cuenta el primer número del campo de contenido de cada posición.
   const totalBodegas = React.useMemo(() => {
     if (!compartments.length) return 0;
     const ids = new Set<string>();
+    const contentIds = new Set<string>();
     const extraPrefixes: string[] = [];
     compartments.forEach((comp) => {
-      if (comp.holdStyle === 'ita') return;
       comp.holds.forEach((h) => {
-        if (isPairedHold(h)) {
+        if (comp.holdStyle === 'ita') {
+          if (!isPairedHold(h)) contentIds.add(`${h.id}-content`);
+        } else if (isPairedHold(h)) {
           ids.add(h.left.id);
           ids.add(h.right.id);
         } else {
           ids.add(h.id);
         }
       });
-      if (comp.expandable) extraPrefixes.push(`${comp.id}-extra-`);
+      if (comp.holdStyle !== 'ita' && comp.expandable) extraPrefixes.push(`${comp.id}-extra-`);
     });
     let total = 0;
     fieldValues.forEach((fv) => {
       if (ids.has(fv.fieldDefinitionId) || extraPrefixes.some((p) => fv.fieldDefinitionId.startsWith(p))) {
         total += sumNumericTokens(fv.value || '');
+      } else if (contentIds.has(fv.fieldDefinitionId)) {
+        total += firstNumericToken(fv.value || '');
       }
     });
     return total;

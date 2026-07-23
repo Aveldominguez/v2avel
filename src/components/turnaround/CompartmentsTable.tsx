@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
 import { AirlineCode } from '@/types/turnaround';
-import { sumNumericTokens } from '@/utils/sumCargoUnits';
+import { sumNumericTokens, firstNumericToken } from '@/utils/sumCargoUnits';
 import {
   Select,
   SelectContent,
@@ -404,20 +404,28 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                     : renderHoldInput(hold);
               })}
               {comp.expandable && renderExpandableFields(comp)}
-              {!isItaStyle(comp) && (() => {
-                const ids: string[] = [];
-                comp.holds.forEach((h) => {
-                  if (isPairedHold(h)) {
-                    ids.push(h.left.id, h.right.id);
-                  } else {
-                    ids.push(h.id);
+              {(() => {
+                let total = 0;
+                if (isItaStyle(comp)) {
+                  // Paletizado (AKE/AKH): solo cuenta el primer número del contenido de cada posición
+                  comp.holds.forEach((h) => {
+                    if (!isPairedHold(h)) total += firstNumericToken(getValue(`${h.id}-content`));
+                  });
+                } else {
+                  const ids: string[] = [];
+                  comp.holds.forEach((h) => {
+                    if (isPairedHold(h)) {
+                      ids.push(h.left.id, h.right.id);
+                    } else {
+                      ids.push(h.id);
+                    }
+                  });
+                  if (comp.expandable) {
+                    const count = extraFieldCounts[comp.id] ?? comp.expandableDefault ?? DEFAULT_EXTRA_FIELDS;
+                    for (let i = 0; i < count; i++) ids.push(`${comp.id}-extra-${i}`);
                   }
-                });
-                if (comp.expandable) {
-                  const count = extraFieldCounts[comp.id] ?? comp.expandableDefault ?? DEFAULT_EXTRA_FIELDS;
-                  for (let i = 0; i < count; i++) ids.push(`${comp.id}-extra-${i}`);
+                  total = ids.reduce((acc, id) => acc + sumNumericTokens(getValue(id)), 0);
                 }
-                const total = ids.reduce((acc, id) => acc + sumNumericTokens(getValue(id)), 0);
                 if (total <= 0) return null;
                 return (
                   <div className="flex items-center justify-end gap-2 pt-1 mt-1 border-t border-border">

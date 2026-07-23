@@ -22,3 +22,20 @@ export const sumNumericTokens = (text: string): number => {
   }
   return total;
 };
+
+// First numeric token in a string, with the same kg/pc exclusion as
+// sumNumericTokens. Used for palletized (AKE/AKH) content fields, where
+// only the leading count is luggage units ("9BP 3AVI 150KG" -> 9).
+export const firstNumericToken = (text: string): number => {
+  if (!text) return 0;
+  const regex = /\d+/g;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(text)) !== null) {
+    const after = text.slice(m.index + m[0].length);
+    if (/^\s*(kg|pc)/i.test(after)) {
+      continue;
+    }
+    return parseInt(m[0], 10);
+  }
+  return 0;
+};
