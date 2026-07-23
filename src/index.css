@@ -317,6 +317,68 @@
     animation: sky-dash 1s linear infinite;
   }
 
+  /* Tarjeta de ruta ancha (cabecera del formulario): LIS/MAD grandes con
+     línea discontinua y avión naranja recorriéndola de un lado a otro.
+     Solo Sky — en los demás temas se mantiene la fila de texto compacta. */
+  .route-sky-bar { display: none; }
+  .sky .route-sky-bar {
+    display: block;
+    margin-top: 0.75rem;
+    background-image: linear-gradient(120deg, hsl(212 100% 96%), hsl(250 60% 97%));
+    border: 1px solid hsl(212 60% 88%);
+    border-radius: 1.1rem;
+    padding: 0.7rem 1.1rem 0.6rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .sky .route-sky-bar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sky .route-sky-bar-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .sky .route-sky-bar-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: hsl(216 14% 46%);
+    margin-top: 3px;
+    letter-spacing: 0.04em;
+  }
+  .sky .route-sky-bar-track {
+    flex: 1;
+    position: relative;
+    height: 28px;
+    margin: 0 12px;
+  }
+  .sky .route-sky-bar-line {
+    stroke: hsl(212 60% 62%);
+    stroke-dasharray: 2 7;
+    stroke-linecap: round;
+    animation: sky-dash-shift 1s linear infinite;
+  }
+  @keyframes sky-dash-shift {
+    to { stroke-dashoffset: -14; }
+  }
+  @keyframes sky-fly-across {
+    0%   { left: 4%; transform: translateY(-50%) translateY(3px) rotate(2deg); }
+    50%  { transform: translateY(-50%) translateY(-4px) rotate(-1deg); }
+    100% { left: calc(96% - 18px); transform: translateY(-50%) translateY(3px) rotate(2deg); }
+  }
+  .sky .route-sky-bar-plane {
+    position: absolute;
+    top: 50%;
+    left: 4%;
+    transform: translateY(-50%);
+    color: hsl(var(--accent));
+    animation: sky-fly-across 5.5s ease-in-out infinite alternate;
+    filter: drop-shadow(0 3px 4px hsl(34 100% 40% / 0.4));
+  }
+
   /* CTA principal con degradado azul cielo (#47A5FF → azul profundo) */
   .sky button.bg-primary,
   .sky a.bg-primary {
@@ -331,6 +393,50 @@
   /* Botón "poner hora actual" y pills de estado, redondeados del todo */
   .sky .btn-now {
     border-radius: 9999px;
+  }
+
+  /* Home: acciones (Admin/Equipos/Nueva Escala/Cerrar sesión) en pill con
+     sombra de color a juego, como en la referencia. */
+  .sky .pill-action {
+    border-radius: 9999px;
+    box-shadow: 0 8px 16px -8px hsl(217 30% 20% / 0.45);
+  }
+  .sky .search-toggle {
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(0 0% 100% / 0.78);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 20px -14px hsl(217 60% 35% / 0.3);
+  }
+
+  /* Home: filas de la lista con separación y esquinas redondeadas, imitando
+     las "cards" de la referencia sin abandonar la semántica de tabla. */
+  .sky .table-operational {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+  }
+  .sky .table-operational tbody tr {
+    background: hsl(216 40% 98%);
+  }
+  .sky .table-operational tbody tr td:first-child {
+    border-top-left-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+  }
+  .sky .table-operational tbody tr td:last-child {
+    border-top-right-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+  }
+  .sky .table-operational tbody tr td {
+    border-bottom: none;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+  }
+  .sky .status-dot-completed {
+    filter: drop-shadow(0 0 3px hsl(152 60% 40% / 0.7));
+  }
+  .sky .status-dot-progress {
+    filter: drop-shadow(0 0 3px hsl(34 100% 46% / 0.7));
   }
 
   /* Inputs blancos limpios con foco azul cielo.

@@ -725,9 +725,9 @@ const TurnaroundForm: React.FC = () => {
             )}
           </div>
 
-          {/* Flight route row: centered arrival/departure */}
+          {/* Flight route row: centered arrival/departure (temas dark/light/exterior) */}
           {(homeStation && (originStation || destStation)) && (
-            <div className="flex items-center justify-center gap-3 text-xs font-semibold">
+            <div className="route-compact flex items-center justify-center gap-3 text-xs font-semibold">
               {homeStation && originStation && (
                 <span className="route-segment text-emerald-600 dark:text-emerald-400">
                   <Plane className="route-plane h-3 w-3" />
@@ -743,6 +743,48 @@ const TurnaroundForm: React.FC = () => {
                   <span className="route-emoji">✈</span> {homeStation} → {destStation}
                 </span>
               )}
+            </div>
+          )}
+
+          {/* Flight route bar: tarjeta ancha LIS/MAD con avión animado (solo tema Sky) */}
+          {homeStation && originStation && (
+            <div className="route-sky-bar">
+              <div className="route-sky-bar-row">
+                <div>
+                  <div className="route-sky-bar-code text-emerald-600 dark:text-emerald-400">{originStation}</div>
+                  <div className="route-sky-bar-label">ORIGEN</div>
+                </div>
+                <div className="route-sky-bar-track">
+                  <svg viewBox="0 0 200 28" preserveAspectRatio="none" className="w-full h-full absolute inset-0">
+                    <line x1="4" y1="14" x2="196" y2="14" strokeWidth="2.5" className="route-sky-bar-line" />
+                  </svg>
+                  <Plane className="route-sky-bar-plane h-4 w-4 rotate-45" />
+                </div>
+                <div className="text-right">
+                  <div className="route-sky-bar-code text-foreground">{homeStation}</div>
+                  <div className="route-sky-bar-label">DESTINO</div>
+                </div>
+              </div>
+            </div>
+          )}
+          {homeStation && destStation && (
+            <div className="route-sky-bar">
+              <div className="route-sky-bar-row">
+                <div>
+                  <div className="route-sky-bar-code text-foreground">{homeStation}</div>
+                  <div className="route-sky-bar-label">ORIGEN</div>
+                </div>
+                <div className="route-sky-bar-track">
+                  <svg viewBox="0 0 200 28" preserveAspectRatio="none" className="w-full h-full absolute inset-0">
+                    <line x1="4" y1="14" x2="196" y2="14" strokeWidth="2.5" className="route-sky-bar-line" />
+                  </svg>
+                  <Plane className="route-sky-bar-plane h-4 w-4 rotate-45" />
+                </div>
+                <div className="text-right">
+                  <div className="route-sky-bar-code text-rose-600 dark:text-rose-400">{destStation}</div>
+                  <div className="route-sky-bar-label">DESTINO</div>
+                </div>
+              </div>
             </div>
           )}
 

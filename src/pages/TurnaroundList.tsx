@@ -345,7 +345,7 @@ const TurnaroundList: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              <Button size="icon" className="h-9 w-9 bg-destructive hover:bg-destructive/80 active:bg-destructive/60 text-white border-0" onClick={handleSignOut} title="Cerrar sesión">
+              <Button size="icon" className="pill-action h-9 w-9 bg-destructive hover:bg-destructive/80 active:bg-destructive/60 text-white border-0" onClick={handleSignOut} title="Cerrar sesión">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -353,18 +353,18 @@ const TurnaroundList: React.FC = () => {
             {/* FILA 2 — Acción principal + módulos en una sola línea */}
             <div className="flex items-center gap-1.5 w-full">
               {isAdmin && (
-                <Button size="sm" className="h-11 shrink-0 gap-1.5 px-3 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
+                <Button size="sm" className="pill-action h-11 shrink-0 gap-1.5 px-3 bg-[hsl(265,65%,55%)] hover:bg-[hsl(265,65%,45%)] text-white border-0" onClick={() => navigate('/admin')} title="Panel de administración">
                   <LayoutDashboard className="h-4 w-4" />
                   Admin
                 </Button>
               )}
               {hasEquipos && (
-                <Button size="sm" className="h-11 shrink-0 gap-1.5 px-3 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
+                <Button size="sm" className="pill-action h-11 shrink-0 gap-1.5 px-3 bg-[hsl(185,80%,38%)] hover:bg-[hsl(185,80%,30%)] text-white border-0" onClick={() => navigate('/equipos')} title="Control de equipos">
                   <Wrench className="h-4 w-4" />
                   Equipos
                 </Button>
               )}
-              <Button onClick={() => navigate('/turnaround/new')} className="h-11 flex-1 gap-2">
+              <Button onClick={() => navigate('/turnaround/new')} className="pill-action h-11 flex-1 gap-2">
                 <Plus className="h-4 w-4" />
                 Nueva Escala
               </Button>
@@ -379,7 +379,7 @@ const TurnaroundList: React.FC = () => {
           {/* Toggle button as card header */}
           <button
             className={cn(
-              'w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-y border-border',
+              'search-toggle w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-y border-border',
               'bg-secondary/50 hover:bg-secondary text-foreground'
             )}
             onClick={() => setShowFilters(v => !v)}
@@ -503,9 +503,9 @@ const TurnaroundList: React.FC = () => {
                             <TableCell className="w-8 px-2">
                               <Circle
                                 className={cn(
-                                  'h-3.5 w-3.5',
-                                  status === 'completed' && 'fill-success text-success',
-                                  status === 'in-progress' && 'fill-warning text-warning',
+                                  'status-dot h-3.5 w-3.5',
+                                  status === 'completed' && 'fill-success text-success status-dot-completed',
+                                  status === 'in-progress' && 'fill-warning text-warning status-dot-progress',
                                   status === 'pending' && 'fill-muted text-muted-foreground'
                                 )}
                               />
