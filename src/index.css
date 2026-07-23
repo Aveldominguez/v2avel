@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -160,6 +160,66 @@
     --input: 0 0% 96%;
     --ring: 210 100% 32%;
   }
+
+  /* Modo SKY: premium aéreo — azul cielo, naranja, pills y cristal esmerilado.
+     Inspirado en referencia de travel apps (Urbanist + #47A5FF + #FF8F00). */
+  .sky {
+    --background: 220 40% 96%;
+    --foreground: 217 18% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 217 18% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 18% 18%;
+
+    /* Azul cielo profundo para acción (AA con texto blanco);
+       el #47A5FF vivo de la referencia va en los degradados decorativos */
+    --primary: 212 100% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 216 32% 92%;
+    --secondary-foreground: 217 18% 22%;
+
+    --muted: 217 30% 94%;
+    --muted-foreground: 216 12% 40%;
+
+    /* Naranja de la referencia (#FF8F00 rebajado para contraste) */
+    --accent: 34 100% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 65% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 34 100% 42%;
+    --warning-foreground: 0 0% 100%;
+    --info: 212 100% 45%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 217 25% 87%;
+    --input: 0 0% 100%;
+    --ring: 209 100% 60%;
+
+    /* Pills en toda la app: los radios de shadcn cuelgan de esta variable */
+    --radius: 1.1rem;
+
+    --sidebar-background: 220 40% 97%;
+    --sidebar-foreground: 217 18% 20%;
+    --sidebar-primary: 212 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 216 32% 92%;
+    --sidebar-accent-foreground: 217 18% 20%;
+    --sidebar-border: 217 25% 88%;
+    --sidebar-ring: 209 100% 60%;
+
+    --chart-1: 209 100% 55%;
+    --chart-2: 152 65% 34%;
+    --chart-3: 34 100% 48%;
+    --chart-4: 0 72% 48%;
+    --chart-5: 256 70% 62%;
+  }
 }
 
 @layer base {
@@ -175,6 +235,62 @@
   /* Monospace for codes and times */
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ============ Modo SKY: capa de estilo premium ============ */
+
+  .sky body {
+    font-family: 'Urbanist', 'Inter', system-ui, sans-serif;
+    /* Cielo suave: luz azul arriba-derecha, lavanda a la izquierda */
+    background:
+      radial-gradient(1200px 600px at 85% -10%, hsl(206 100% 85% / 0.55), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, hsl(250 80% 88% / 0.45), transparent 55%),
+      linear-gradient(160deg, hsl(218 45% 96%), hsl(228 40% 94%));
+    background-attachment: fixed;
+  }
+
+  .sky h1, .sky h2, .sky h3 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  /* Tarjetas "ventanilla de avión": cristal esmerilado y sombra difusa */
+  .sky .card-operational {
+    border-width: 1px;
+    border-color: hsl(0 0% 100% / 0.75);
+    background: hsl(0 0% 100% / 0.78);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 32px -16px hsl(217 60% 35% / 0.22);
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+
+  /* CTA principal con degradado azul cielo (#47A5FF → azul profundo) */
+  .sky button.bg-primary,
+  .sky a.bg-primary {
+    background-image: linear-gradient(135deg, hsl(206 100% 62%), hsl(217 95% 47%));
+    box-shadow: 0 8px 20px -8px hsl(212 100% 45% / 0.5);
+  }
+  .sky button.bg-primary:hover,
+  .sky a.bg-primary:hover {
+    background-image: linear-gradient(135deg, hsl(206 100% 58%), hsl(217 95% 43%));
+  }
+
+  /* Botón "poner hora actual" y pills de estado, redondeados del todo */
+  .sky .btn-now {
+    border-radius: 9999px;
+  }
+
+  /* Inputs blancos limpios con foco azul cielo */
+  .sky .input-operational,
+  .sky textarea,
+  .sky input[type="text"],
+  .sky input[type="time"],
+  .sky input[type="date"],
+  .sky input[type="number"] {
+    border-width: 1px;
+    box-shadow: inset 0 1px 2px hsl(217 40% 60% / 0.08);
   }
 }
 
