@@ -61,17 +61,34 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
         : '—'
     const effectiveWind = weather ? Math.max(weather.windSpeed, weather.windGusts ?? 0) : 0
     const compactTone = windAlert === 'SUSPENSION'
-      ? 'bg-[#d98289] text-[#35171b]'
+      ? 'aero-weather-suspension'
       : windAlert === 'RESTRICCION'
-        ? 'bg-[#e3b177] text-[#382514]'
+        ? 'aero-weather-restriccion'
         : windAlert === 'PRECAUCION'
-          ? 'bg-[#e8d58b] text-[#302b17]'
-          : 'bg-[#d7e6f3] text-[#284e73]'
+          ? 'aero-weather-precaucion'
+          : 'aero-weather-normal'
+    const compactAlertLabel = windAlert === 'SUSPENSION'
+      ? 'SUSPENSIÓN'
+      : windAlert === 'RESTRICCION'
+        ? 'RESTRICCIÓN'
+        : windAlert === 'PRECAUCION'
+          ? 'PRECAUCIÓN'
+          : 'NORMAL'
+    const windText = weather
+      ? `${weather.windSpeed}${weather.windGusts ? `G${weather.windGusts}` : ''} kt`
+      : `${effectiveWind} kt`
+    const detailParts = weather
+      ? [
+          `${direction} · ${windText}`,
+          weather.temp !== null ? `${weather.temp}°C` : null,
+          weather.qnh !== null ? `Q${weather.qnh}` : null,
+        ].filter(Boolean).join(' · ')
+      : `${direction} · ${effectiveWind} kt`
 
     return (
-      <div className="fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div className="aero-weather-dock fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
         {showRaw && weather && (
-          <div className="mx-auto mb-2 max-w-2xl rounded-xl border border-border bg-popover p-3 shadow-2xl">
+          <div className="aero-weather-details mx-auto mb-2 max-w-2xl rounded-xl border border-border bg-popover p-3 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-bold">{alert?.label ?? 'Condiciones normales'}</p>
@@ -88,7 +105,7 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
         )}
         <div
           className={cn(
-            'mx-auto flex min-h-12 w-full max-w-2xl items-center gap-2 rounded-xl border border-black/10 px-3 py-2 text-left shadow-lg transition active:scale-[0.99]',
+            'aero-weather-compact mx-auto flex min-h-12 w-full max-w-2xl items-center gap-2 rounded-xl border px-3 py-2 text-left transition active:scale-[0.99]',
             compactTone
           )}
         >
@@ -101,17 +118,17 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
             {AlertIcon ? <AlertIcon className="h-4 w-4 shrink-0" /> : <Wind className="h-4 w-4 shrink-0" />}
             <span className="min-w-0 flex-1">
               <span className="block text-[10px] font-bold tracking-wide">
-                METAR · LEMD {alert ? '· PRECAUCIÓN' : '· NORMAL'}
+                METAR · LEMD · {compactAlertLabel}
               </span>
               <span className="block truncate font-mono text-xs">
-                {loading ? 'Actualizando…' : error ? 'METAR no disponible' : `${direction} · ${effectiveWind} kt`}
+                {loading ? 'Actualizando…' : error ? 'METAR no disponible' : detailParts}
               </span>
             </span>
             {showRaw ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronUp className="h-4 w-4 shrink-0" />}
           </button>
           <button
             type="button"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg hover:bg-black/5"
+            className="aero-weather-refresh flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
             onClick={refresh}
             aria-label="Actualizar METAR"
           >
