@@ -461,8 +461,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="card-operational w-full max-w-lg">
+    <div className="aero-flight-info-page min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="aero-flight-info-card card-operational w-full max-w-lg">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-3 text-xl">
@@ -487,10 +487,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               )}
             </Label>
             <Select value={airline || undefined} onValueChange={(v) => { clearAutofillFor('airline'); handleAirlineChange(v as AirlineCode); }}>
-              <SelectTrigger className={cn("input-operational", autofilledFields.has('airline') && "ring-1 ring-primary/40 bg-primary/5")}>
+              <SelectTrigger className={cn("aero-flight-select input-operational", autofilledFields.has('airline') && "ring-1 ring-primary/40 bg-primary/5")}>
                 <SelectValue placeholder="Seleccionar Aerolínea" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="aero-flight-select-menu">
                 {allAirlines.map((a) => (
                   <SelectItem key={a.code} value={a.code}>
                     {a.name}
@@ -621,7 +621,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <Switch
                   checked={isRemote}
                   onCheckedChange={setIsRemote}
-                  className="data-[state=checked]:bg-warning"
+                  className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
                 />
                 <span className={cn(
                   'text-sm font-semibold',
@@ -670,14 +670,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
                       <SelectTrigger
                         className={cn(
-                          "input-operational",
+                          "aero-flight-select input-operational",
                           autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
                           showModelError && !aircraftModel && "blink-required"
                         )}
                       >
                         <SelectValue placeholder="Modelo" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="aero-flight-select-menu">
                         {models.map((m) => (
                           <SelectItem key={m.model} value={m.model}>
                             {m.label} — {m.turnaroundMinutes} min
@@ -697,7 +697,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     <Switch
                       checked={pushBack}
                       onCheckedChange={setPushBack}
-                      className="data-[state=checked]:bg-warning"
+                      className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
                     />
                     <span className={cn(
                       'text-sm font-semibold',
@@ -744,14 +744,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
                     <SelectTrigger
                       className={cn(
-                        "input-operational",
+                        "aero-flight-select input-operational",
                         autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
                         showModelError && !aircraftModel && "blink-required"
                       )}
                     >
                       <SelectValue placeholder="Modelo" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="aero-flight-select-menu">
                       {models.map((m) => (
                         <SelectItem key={m.model} value={m.model}>
                           {m.label} — {m.turnaroundMinutes} min
@@ -785,7 +785,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                       setSoloLlegada(v);
                       if (v) setSoloSalida(false);
                     }}
-                    className="data-[state=checked]:bg-primary"
+                    className="aero-flight-toggle data-[state=checked]:bg-primary"
                   />
                   <span className={cn(
                     'text-sm font-semibold',
@@ -807,7 +807,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                       setSoloSalida(v);
                       if (v) setSoloLlegada(false);
                     }}
-                    className="data-[state=checked]:bg-primary"
+                    className="aero-flight-toggle data-[state=checked]:bg-primary"
                   />
                   <span className={cn(
                     'text-sm font-semibold',
@@ -831,7 +831,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      'input-operational w-full justify-start text-left font-normal',
+                      'aero-flight-date input-operational w-full justify-start text-left font-normal',
                       !date && 'text-muted-foreground'
                     )}
                   >
@@ -839,7 +839,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     {date ? format(date, 'PPP', { locale: es }) : 'Seleccionar fecha'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="aero-flight-calendar w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={date}
@@ -860,8 +860,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           {/* Airline and Aircraft Model already rendered above */}
 
           {/* Matrícula + Hora Salida side by side */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
+          <div className="aero-flight-meta-row grid grid-cols-2 items-start gap-3">
+            <div className="aero-flight-meta-field flex flex-col gap-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">
                 Matrícula
                 {autofilledFields.has('matricula') && (
@@ -890,6 +890,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               })()}
             </div>
             <TimeInput
+              className="aero-flight-meta-field"
               label="Hora Salida"
               value={departureTime}
               onChange={setDepartureTime}

@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { WindAlertBadge } from '@/components/WindAlertBadge';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
@@ -631,7 +632,7 @@ const TurnaroundForm: React.FC = () => {
         </div>
       )}
       <header
-        className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border")}
+        className={cn("aero-flight-header sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border")}
         style={{ top: headerTopOffset + impersonationBarHeight }}
       >
         <div className="container mx-auto px-4 py-3 space-y-2">
@@ -641,7 +642,7 @@ const TurnaroundForm: React.FC = () => {
               {!isEditing && (
                 <button
                   onClick={() => setStep(1)}
-                  className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                   aria-label="Volver atrás"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -650,7 +651,7 @@ const TurnaroundForm: React.FC = () => {
               {isEditing && (
                 <button
                   onClick={() => navigate(-1)}
-                  className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                   aria-label="Volver atrás"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -660,7 +661,7 @@ const TurnaroundForm: React.FC = () => {
                 <img
                   src={airlineLogo}
                   alt={airlineInfo?.name ?? 'Airline logo'}
-                  className="h-8 w-auto max-w-[80px] object-contain"
+                  className="aero-airline-logo h-8 w-auto max-w-[80px] object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               )}
@@ -669,12 +670,13 @@ const TurnaroundForm: React.FC = () => {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setStep(1)}
-                className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                 title="Editar datos del vuelo"
                 aria-label="Editar datos del vuelo"
               >
                 <Pencil className="h-4 w-4" />
               </button>
+              <WindAlertBadge />
               <ThemeToggle />
               <ConnectionStatus
                 isOnline={isOnline}
@@ -725,9 +727,11 @@ const TurnaroundForm: React.FC = () => {
             )}
           </div>
 
+          <div id="aero-flight-documents" className="aero-only" />
+
           {/* Flight route row: centered arrival/departure (temas dark/light/exterior) */}
           {(homeStation && (originStation || destStation)) && (
-            <div className="route-compact flex items-center justify-center gap-3 text-xs font-semibold">
+            <div className="classic-only flex items-center justify-center gap-3 text-xs font-semibold">
               {homeStation && originStation && (
                 <span className="route-segment text-emerald-600 dark:text-emerald-400">
                   <Plane className="route-plane h-3 w-3" />
@@ -836,6 +840,9 @@ const TurnaroundForm: React.FC = () => {
           scheduledStd={scheduledStd}
           scheduledEtd={scheduledEtd}
           flightDate={date}
+          originStation={originStation}
+          destStation={destStation}
+          homeStation={homeStation}
         />
         </div>
 
@@ -883,7 +890,7 @@ const TurnaroundForm: React.FC = () => {
         <Button
           type="button"
           variant="secondary"
-          className="w-full gap-2 font-semibold"
+          className="aero-export-pdf w-full gap-2 font-semibold"
           onClick={async () => {
             const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
             await generateTurnaroundPdf({
@@ -961,12 +968,27 @@ const TurnaroundForm: React.FC = () => {
       </main>
 
       {showSaveFab && step === 2 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
+        <>
+          <div className="classic-only fixed bottom-0 left-0 right-0 z-50 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              aria-label="Guardar"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-[0.99] transition-transform"
+            >
+              {saving ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Save className="h-5 w-5" />
+              )}
+              <span>Guardar</span>
+            </button>
+          </div>
           <button
             onClick={handleSave}
             disabled={saving}
             aria-label="Guardar"
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-[0.99] transition-transform"
+            className="aero-save-fab fixed bottom-20 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-95 transition-transform"
           >
             {saving ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -975,7 +997,7 @@ const TurnaroundForm: React.FC = () => {
             )}
             <span>Guardar</span>
           </button>
-        </div>
+        </>
       )}
     </div>
   );

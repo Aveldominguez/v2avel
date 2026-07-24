@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Moon, Sun, Contrast, Plane } from 'lucide-react';
+import { Moon, Sun, Contrast, Plane, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Theme = 'dark' | 'light' | 'exterior' | 'sky';
+type Theme = 'dark' | 'light' | 'exterior' | 'sky' | 'aero';
 
-const CYCLE: Record<Theme, Theme> = { dark: 'light', light: 'exterior', exterior: 'sky', sky: 'dark' };
+const CYCLE: Record<Theme, Theme> = {
+  dark: 'light',
+  light: 'exterior',
+  exterior: 'sky',
+  sky: 'aero',
+  aero: 'dark',
+};
 
 const LABEL: Record<Theme, string> = {
   dark: 'Tema oscuro (toca para claro)',
   light: 'Tema claro (toca para exterior)',
   exterior: 'Modo exterior alto contraste (toca para Sky)',
-  sky: 'Modo Sky premium (toca para oscuro)',
+  sky: 'Modo Sky premium (toca para Estilo v4)',
+  aero: 'Estilo v4 (toca para oscuro)',
 };
 
 export const applyTheme = (theme: string | null) => {
@@ -19,13 +26,14 @@ export const applyTheme = (theme: string | null) => {
   root.classList.toggle('light', theme === 'light' || theme === 'exterior');
   root.classList.toggle('exterior', theme === 'exterior');
   root.classList.toggle('sky', theme === 'sky');
+  root.classList.toggle('aero', theme === 'aero');
 };
 
 export const ThemeToggle: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
-      if (saved === 'light' || saved === 'exterior' || saved === 'dark' || saved === 'sky') return saved;
+      if (saved === 'light' || saved === 'exterior' || saved === 'dark' || saved === 'sky' || saved === 'aero') return saved;
     }
     return 'dark';
   });
@@ -34,7 +42,7 @@ export const ThemeToggle: React.FC = () => {
     applyTheme(theme);
     localStorage.setItem('theme', theme);
 
-    const themeColor = theme === 'dark' ? '#18202e' : theme === 'sky' ? '#eef2f9' : '#ffffff';
+    const themeColor = theme === 'dark' ? '#18202e' : theme === 'sky' ? '#eef2f9' : theme === 'aero' ? '#17243a' : '#ffffff';
     document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
       (el as HTMLMetaElement).content = themeColor;
     });
@@ -48,7 +56,8 @@ export const ThemeToggle: React.FC = () => {
         theme === 'dark' && 'bg-secondary border-muted-foreground/40 text-warning hover:bg-secondary/80',
         theme === 'light' && 'bg-muted border-border text-foreground hover:bg-muted/80',
         theme === 'exterior' && 'bg-foreground text-background border-foreground',
-        theme === 'sky' && 'bg-gradient-to-br from-sky-400 to-blue-600 text-white border-white/60 shadow-md'
+        theme === 'sky' && 'bg-gradient-to-br from-sky-400 to-blue-600 text-white border-white/60 shadow-md',
+        theme === 'aero' && 'bg-secondary border-primary/40 text-primary hover:bg-secondary/80'
       )}
       aria-label={LABEL[theme]}
       title={LABEL[theme]}
@@ -57,6 +66,7 @@ export const ThemeToggle: React.FC = () => {
       {theme === 'light' && <Contrast className="h-5 w-5" />}
       {theme === 'exterior' && <Plane className="h-5 w-5" />}
       {theme === 'sky' && <Moon className="h-5 w-5" />}
+      {theme === 'aero' && <Palette className="h-5 w-5" />}
     </button>
   );
 };

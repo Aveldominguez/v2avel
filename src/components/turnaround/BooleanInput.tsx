@@ -32,7 +32,7 @@ export const BooleanInput: React.FC<BooleanInputProps> = ({
           checked={value}
           onCheckedChange={onChange}
           disabled={disabled}
-          className="data-[state=checked]:bg-success"
+          className="aero-hours-toggle data-[state=checked]:bg-success"
         />
         <span className={cn(
           'text-lg font-semibold uppercase tracking-wide',

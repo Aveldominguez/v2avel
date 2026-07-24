@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCatalog } from '@/hooks/useCatalog';
 import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, getAirlinePrefix, getCargoMailDestination } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
@@ -8,7 +9,7 @@ import { CountdownTimer } from './CountdownTimer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Plane } from 'lucide-react';
+import { Plus, PlaneLanding, PlaneTakeoff, ChevronDown, ChevronUp, Plane, Clock3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
@@ -36,7 +37,9 @@ interface AirlineTimesBlockProps {
   scheduledStd?: string | null;
   scheduledEtd?: string | null;
   flightDate?: Date;
-
+  originStation?: string | null;
+  destStation?: string | null;
+  homeStation?: string | null;
 }
 
 // Shared field renderer
@@ -317,6 +320,31 @@ const FieldRenderer: React.FC<{
   );
 };
 
+const IntegratedFlightRoute: React.FC<{
+  kind: 'arrival' | 'departure';
+  origin: string;
+  destination: string;
+}> = ({ kind, origin, destination }) => {
+  const isArrival = kind === 'arrival';
+
+  return (
+    <div className={`aero-only aero-block-route aero-block-route-${kind}`}>
+      <div className="aero-route-station text-left">
+        <strong>{isArrival ? destination : origin}</strong>
+        <span>{isArrival ? 'DESTINO' : 'ORIGEN'}</span>
+      </div>
+      <div className={`aero-route-track aero-route-track-${kind}`}>
+        <span className="aero-route-dashes" />
+        <Plane className={`aero-route-plane aero-route-plane-${kind}`} />
+      </div>
+      <div className="aero-route-station text-right">
+        <strong>{isArrival ? origin : destination}</strong>
+        <span>{isArrival ? 'ORIGEN' : 'DESTINO'}</span>
+      </div>
+    </div>
+  );
+};
+
 export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   airline,
   aircraftModel,
@@ -336,7 +364,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   scheduledStd,
   scheduledEtd,
   flightDate,
-
+  originStation,
+  destStation,
+  homeStation,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
@@ -364,6 +394,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   // CPM dialog state
   const [showCpm, setShowCpm] = useState(false);
+  const [documentActionsTarget, setDocumentActionsTarget] = useState<HTMLElement | null>(null);
   const storedCpm = (times as any).cpmRawLines as string[] | null | undefined;
   const [cpmLines, setCpmLines] = useState<string[] | null>(storedCpm && storedCpm.length > 0 ? storedCpm : null);
   const [cpmLoading, setCpmLoading] = useState(false);
@@ -372,6 +403,10 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const flightDateIso = flightDate ? format(flightDate, 'yyyy-MM-dd') : null;
   const cpmFetchable = !!cleanFlightNumber && !!flightDateIso;
   const cpmAvailable = cpmFetchable || (storedCpm && storedCpm.length > 0);
+
+  useEffect(() => {
+    setDocumentActionsTarget(document.getElementById('aero-flight-documents'));
+  }, []);
 
   const openCpm = async () => {
     setShowCpm(true);
@@ -391,6 +426,29 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       onChange({ ...times, cpmRawLines: lines } as TurnaroundTimes);
     }
   };
+
+  const documentButtons = (
+    <div className="grid grid-cols-2 gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        className="aero-document-button h-9 rounded-xl font-bold tracking-wide"
+        disabled={!ldmRaw}
+        onClick={() => setShowLdm(true)}
+      >
+        VER LDM
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="aero-document-button h-9 rounded-xl font-bold tracking-wide"
+        disabled={!cpmAvailable}
+        onClick={openCpm}
+      >
+        VER CPM
+      </Button>
+    </div>
+  );
 
 
 
@@ -440,13 +498,17 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
     return (
       <div className="space-y-4">
+        {documentActionsTarget && createPortal(documentButtons, documentActionsTarget)}
         {/* Header with countdown */}
-        <Card className="card-operational">
-          <CardHeader className="pb-2 px-3 sm:px-6">
-            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
+        <Card className="aero-control-hours card-operational">
+          <CardHeader className="aero-control-hours-header px-3 sm:px-6">
+            <CardTitle className="aero-control-hours-title flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
               <div className="flex items-center justify-between gap-3 w-full">
-                <span className="shrink-0">Control de Horas ⏰</span>
-                <div className="flex flex-col items-end gap-1">
+                <span className="flex shrink-0 items-center justify-center gap-2">
+                  <Clock3 className="h-5 w-5" />
+                  Control de horas
+                </span>
+                <div className="aero-document-actions-local flex flex-col items-end gap-1">
                   {ldmRaw && (
                     <Button
                       type="button"
@@ -515,7 +577,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
         {/* Arrival block */}
         {filteredArrival.length > 0 && (
-          <Card className="border-2 border-emerald-500/30 bg-emerald-50/5">
+          <Card className="aero-soft-arrival border-2 border-emerald-500/30 bg-emerald-50/5">
             <CardHeader className="pb-3 pt-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <PlaneLanding className="h-5 w-5 text-emerald-500" />
@@ -534,6 +596,13 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 </Button>
               </CardTitle>
             </CardHeader>
+            {homeStation && originStation && (
+              <IntegratedFlightRoute
+                kind="arrival"
+                origin={originStation}
+                destination={homeStation}
+              />
+            )}
             {arrivalOpen && (
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -548,7 +617,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
         {/* Departure block */}
         {departureWithPushBack.length > 0 && (
-          <Card className="border-2 border-rose-500/30 bg-rose-50/5">
+          <Card className="aero-soft-departure border-2 border-rose-500/30 bg-rose-50/5">
             <CardHeader className="pb-3 pt-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <PlaneTakeoff className="h-5 w-5 text-rose-500" />
@@ -581,6 +650,13 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 </Button>
               </CardTitle>
             </CardHeader>
+            {homeStation && destStation && (
+              <IntegratedFlightRoute
+                kind="departure"
+                origin={homeStation}
+                destination={destStation}
+              />
+            )}
             {departureOpen && (
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -596,7 +672,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         {/* LDM dialog */}
         {showLdm && ldmRaw && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
-            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold font-mono">LDM</h2>
                 <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
@@ -611,7 +687,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         {/* CPM dialog */}
         {showCpm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
-            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold font-mono">CPM</h2>
                 <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>
@@ -636,11 +712,15 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   return (
     <Card className="card-operational">
+      {documentActionsTarget && createPortal(documentButtons, documentActionsTarget)}
       <CardHeader className="pb-4">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
           <div className="flex items-center justify-between gap-3 w-full">
-            <span className="shrink-0">Control de Horas ⏰</span>
-            <div className="flex flex-col items-end gap-1">
+            <span className="flex shrink-0 items-center gap-2">
+              <Clock3 className="h-5 w-5" />
+              Control de horas
+            </span>
+            <div className="aero-document-actions-local flex flex-col items-end gap-1">
               {ldmRaw && (
                 <Button
                   type="button"
@@ -711,7 +791,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       {/* LDM dialog */}
       {showLdm && ldmRaw && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
-          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+          <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold font-mono">LDM</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
@@ -726,7 +806,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       {/* CPM dialog */}
       {showCpm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
-          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+          <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold font-mono">CPM</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>

@@ -96,7 +96,7 @@ const Auth: React.FC = () => {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <Card className="w-full max-w-md">
+      <Card className="aero-auth-card w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-full bg-primary/10">
@@ -113,6 +113,7 @@ const Auth: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="signin-email">Email</Label>
               <Input
+                className="aero-auth-input"
                 id="signin-email"
                 ref={emailRef}
                 type="email"
@@ -126,6 +127,7 @@ const Auth: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="signin-password">Contraseña</Label>
               <Input
+                className="aero-auth-input"
                 id="signin-password"
                 ref={passwordRef}
                 type="password"

@@ -107,7 +107,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         variant="outline"
         size="icon"
         onClick={() => nilActive ? handleUndo(holdId) : handleNil(holdId)}
-        className={`h-9 w-9 shrink-0 font-bold ${nilActive ? 'text-destructive hover:text-destructive/80 border-destructive/50' : 'text-muted-foreground hover:text-foreground'}`}
+        className={`aero-bodega-action h-9 w-9 shrink-0 rounded-xl font-bold ${nilActive ? 'aero-bodega-action-active text-destructive hover:text-destructive/80 border-destructive/50' : 'text-muted-foreground hover:text-foreground'}`}
         title={nilActive ? 'Deshacer NIL' : 'Escribir NIL'}
       >
         {nilActive ? <Undo2 className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
@@ -152,7 +152,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         variant="outline"
         size="icon"
         onClick={() => nilActive ? handleItaUndo(hold) : handleItaNil(hold)}
-        className={`h-9 w-9 shrink-0 font-bold ${nilActive ? 'text-destructive hover:text-destructive/80 border-destructive/50' : 'text-muted-foreground hover:text-foreground'}`}
+        className={`aero-bodega-action h-9 w-9 shrink-0 rounded-xl font-bold ${nilActive ? 'aero-bodega-action-active text-destructive hover:text-destructive/80 border-destructive/50' : 'text-muted-foreground hover:text-foreground'}`}
         title={nilActive ? 'Deshacer NIL' : 'Escribir NIL'}
       >
         {nilActive ? <Undo2 className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
@@ -373,7 +373,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   const isItaStyle = (comp: CompartmentDefinition) => comp.holdStyle === 'ita';
 
   return (
-    <div className="space-y-5">
+    <div className="aero-compartments space-y-5">
       {compartments.map((comp) => {
         const showWizzA321Alert =
           airline === 'WIZZ' &&

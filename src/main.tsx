@@ -10,6 +10,7 @@ const savedTheme = localStorage.getItem('theme');
 document.documentElement.classList.toggle('light', savedTheme === 'light' || savedTheme === 'exterior');
 document.documentElement.classList.toggle('exterior', savedTheme === 'exterior');
 document.documentElement.classList.toggle('sky', savedTheme === 'sky');
+document.documentElement.classList.toggle('aero', savedTheme === 'aero');
 
 installPwaResumeRecovery();
 registerAppServiceWorker();
