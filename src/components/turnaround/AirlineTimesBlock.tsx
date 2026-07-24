@@ -37,7 +37,9 @@ interface AirlineTimesBlockProps {
   scheduledStd?: string | null;
   scheduledEtd?: string | null;
   flightDate?: Date;
-
+  originStation?: string | null;
+  destStation?: string | null;
+  homeStation?: string | null;
 }
 
 // Shared field renderer
@@ -318,6 +320,31 @@ const FieldRenderer: React.FC<{
   );
 };
 
+const IntegratedFlightRoute: React.FC<{
+  kind: 'arrival' | 'departure';
+  origin: string;
+  destination: string;
+}> = ({ kind, origin, destination }) => {
+  const isArrival = kind === 'arrival';
+
+  return (
+    <div className={`aero-only aero-block-route aero-block-route-${kind}`}>
+      <div className="aero-route-station text-left">
+        <strong>{isArrival ? destination : origin}</strong>
+        <span>{isArrival ? 'DESTINO' : 'ORIGEN'}</span>
+      </div>
+      <div className={`aero-route-track aero-route-track-${kind}`}>
+        <span className="aero-route-dashes" />
+        <Plane className={`aero-route-plane aero-route-plane-${kind}`} />
+      </div>
+      <div className="aero-route-station text-right">
+        <strong>{isArrival ? origin : destination}</strong>
+        <span>{isArrival ? 'ORIGEN' : 'DESTINO'}</span>
+      </div>
+    </div>
+  );
+};
+
 export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   airline,
   aircraftModel,
@@ -337,7 +364,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   scheduledStd,
   scheduledEtd,
   flightDate,
-
+  originStation,
+  destStation,
+  homeStation,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
@@ -567,6 +596,13 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 </Button>
               </CardTitle>
             </CardHeader>
+            {homeStation && originStation && (
+              <IntegratedFlightRoute
+                kind="arrival"
+                origin={originStation}
+                destination={homeStation}
+              />
+            )}
             {arrivalOpen && (
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -614,6 +650,13 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 </Button>
               </CardTitle>
             </CardHeader>
+            {homeStation && destStation && (
+              <IntegratedFlightRoute
+                kind="departure"
+                origin={homeStation}
+                destination={destStation}
+              />
+            )}
             {departureOpen && (
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
