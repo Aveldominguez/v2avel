@@ -82,12 +82,12 @@ export const ParkingRefreshButton: React.FC<ParkingRefreshButtonProps> = ({
       type="button"
       variant="outline"
       size="icon"
-      className="h-6 w-6 rounded-full"
+      className="aero-parking-refresh h-7 w-7 rounded-full"
       onClick={handleClick}
       disabled={isBusy}
       title="Actualizar parking desde ARION"
     >
-      {isBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+      {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
     </Button>
   );
 };
