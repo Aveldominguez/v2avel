@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown } from 'lucide-react';
+import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Pencil, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -731,59 +731,21 @@ const TurnaroundForm: React.FC = () => {
 
           {/* Flight route row: centered arrival/departure */}
           {(homeStation && (originStation || destStation)) && (
-            <>
-              <div className="classic-only flex items-center justify-center gap-3 text-xs font-semibold">
-                {homeStation && originStation && (
-                  <span className="text-emerald-600 dark:text-emerald-400">
-                    ✈ {originStation} → {homeStation}
-                  </span>
-                )}
-                {homeStation && originStation && homeStation && destStation && (
-                  <span className="text-muted-foreground">|</span>
-                )}
-                {homeStation && destStation && (
-                  <span className="text-rose-600 dark:text-rose-400">
-                    ✈ {homeStation} → {destStation}
-                  </span>
-                )}
-              </div>
-
-              <div className="aero-only space-y-2">
-                {homeStation && originStation && (
-                  <div className="aero-route-card">
-                    <div className="aero-route-station text-left">
-                      <strong>{homeStation}</strong>
-                      <span>DESTINO</span>
-                    </div>
-                    <div className="aero-route-track aero-route-track-arrival">
-                      <span className="aero-route-dashes" />
-                      <Plane className="aero-route-plane aero-route-plane-arrival" />
-                    </div>
-                    <div className="aero-route-station text-right">
-                      <strong>{originStation}</strong>
-                      <span>ORIGEN</span>
-                    </div>
-                  </div>
-                )}
-
-                {homeStation && destStation && (
-                  <div className="aero-route-card">
-                    <div className="aero-route-station text-left">
-                      <strong>{homeStation}</strong>
-                      <span>ORIGEN</span>
-                    </div>
-                    <div className="aero-route-track aero-route-track-departure">
-                      <span className="aero-route-dashes" />
-                      <Plane className="aero-route-plane aero-route-plane-departure" />
-                    </div>
-                    <div className="aero-route-station text-right">
-                      <strong>{destStation}</strong>
-                      <span>DESTINO</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="classic-only flex items-center justify-center gap-3 text-xs font-semibold">
+              {homeStation && originStation && (
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  ✈ {originStation} → {homeStation}
+                </span>
+              )}
+              {homeStation && originStation && homeStation && destStation && (
+                <span className="text-muted-foreground">|</span>
+              )}
+              {homeStation && destStation && (
+                <span className="text-rose-600 dark:text-rose-400">
+                  ✈ {homeStation} → {destStation}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </header>
@@ -813,6 +775,9 @@ const TurnaroundForm: React.FC = () => {
           scheduledStd={scheduledStd}
           scheduledEtd={scheduledEtd}
           flightDate={date}
+          originStation={originStation}
+          destStation={destStation}
+          homeStation={homeStation}
         />
 
         {(selectedAirline === 'AIR_CANADA' || selectedAirline === 'AIR_CANADA_CARGO') && (
