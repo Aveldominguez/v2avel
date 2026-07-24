@@ -121,6 +121,60 @@
     --chart-4: 0 72% 48%;
     --chart-5: 280 65% 55%;
   }
+
+  /* Optional low-saturation operations theme */
+  .aero {
+    --background: 218 31% 16%;
+    --foreground: 215 30% 96%;
+
+    --card: 217 29% 20%;
+    --card-foreground: 215 30% 96%;
+
+    --popover: 217 27% 22%;
+    --popover-foreground: 215 30% 96%;
+
+    --primary: 211 57% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 216 23% 27%;
+    --secondary-foreground: 215 24% 94%;
+
+    --muted: 217 22% 24%;
+    --muted-foreground: 215 16% 73%;
+
+    --accent: 43 66% 66%;
+    --accent-foreground: 218 35% 15%;
+
+    --destructive: 354 61% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 161 41% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 66% 66%;
+    --warning-foreground: 218 35% 15%;
+    --info: 211 57% 50%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 215 20% 35%;
+    --input: 217 25% 23%;
+    --ring: 211 57% 55%;
+    --radius: 0.75rem;
+
+    --sidebar-background: 218 34% 14%;
+    --sidebar-foreground: 215 24% 94%;
+    --sidebar-primary: 211 57% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 216 23% 25%;
+    --sidebar-accent-foreground: 215 24% 94%;
+    --sidebar-border: 215 20% 31%;
+    --sidebar-ring: 211 57% 55%;
+
+    --chart-1: 211 57% 50%;
+    --chart-2: 161 41% 42%;
+    --chart-3: 43 66% 66%;
+    --chart-4: 354 61% 60%;
+    --chart-5: 190 39% 44%;
+  }
 }
 
 @layer base {
@@ -131,6 +185,11 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .aero body {
+    background-image: radial-gradient(circle at 50% -20%, hsl(211 57% 50% / 0.12), transparent 34rem);
+    background-attachment: fixed;
   }
 
   /* Monospace for codes and times */
@@ -168,6 +227,11 @@
   /* Card operational styling */
   .card-operational {
     @apply bg-card border-2 border-border shadow-lg;
+  }
+
+  .aero .card-operational {
+    @apply border shadow-sm;
+    box-shadow: 0 18px 40px -28px rgb(4 12 24 / 0.8);
   }
 
   /* Tab styling for airlines */
@@ -209,6 +273,98 @@
   .blink-required {
     animation: blink-border 0.8s ease-in-out infinite;
     border-color: hsl(var(--destructive)) !important;
+  }
+}
+
+@layer utilities {
+  .aero-only {
+    display: none;
+  }
+
+  .aero .aero-only {
+    display: block;
+  }
+
+  .aero .classic-only {
+    display: none;
+  }
+
+  .aero .aero-soft-arrival {
+    border-color: #4c9b87 !important;
+  }
+
+  .aero .aero-soft-departure {
+    border-color: #d85c67 !important;
+  }
+
+  .aero .aero-search-toggle {
+    background: #3478c9 !important;
+  }
+
+  .aero .aero-search-toggle:hover {
+    background: #2f6eb9 !important;
+  }
+
+  .aero .aero-control-hours-title {
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center;
+  }
+
+  .aero .aero-control-hours-title > div:first-child {
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .aero .aero-control-hours-title > div:first-child > div {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .aero .aero-export-pdf {
+    border-color: #3b8d92 !important;
+    background: #3b8d92 !important;
+    color: white !important;
+  }
+
+  .aero .aero-export-pdf:hover {
+    background: #347e83 !important;
+  }
+
+  .aero .wind-alert-normal {
+    background: #3478c9 !important;
+    color: white !important;
+  }
+
+  .aero .wind-alert-precaucion {
+    background: #e8c768 !important;
+    color: #302b17 !important;
+  }
+
+  .aero .wind-alert-restriccion {
+    background: #d89a5b !important;
+    color: #302216 !important;
+  }
+
+  .aero .wind-alert-suspension {
+    background: #d85c67 !important;
+    color: white !important;
+  }
+
+  .aero .aero-save-fab {
+    right: auto !important;
+    bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+    left: 50% !important;
+    width: min(72vw, 22rem);
+    justify-content: center;
+    border-radius: 0.85rem;
+    transform: translateX(-50%);
+  }
+
+  .aero .aero-save-fab:active {
+    transform: translateX(-50%) scale(0.97);
   }
 }
 
