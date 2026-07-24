@@ -820,7 +820,7 @@ const TurnaroundForm: React.FC = () => {
         <Button
           type="button"
           variant="outline"
-          className="aero-export-pdf w-full gap-2 font-semibold bg-accent text-accent-foreground hover:bg-black hover:text-white active:bg-black active:text-white border-accent hover:border-black"
+          className="aero-export-pdf w-full gap-2 font-semibold"
           onClick={async () => {
             const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
             await generateTurnaroundPdf({
