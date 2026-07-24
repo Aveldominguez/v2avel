@@ -632,7 +632,7 @@ const TurnaroundForm: React.FC = () => {
         </div>
       )}
       <header
-        className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border")}
+        className={cn("aero-flight-header sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border")}
         style={{ top: headerTopOffset + impersonationBarHeight }}
       >
         <div className="container mx-auto px-4 py-3 space-y-2">
@@ -727,23 +727,63 @@ const TurnaroundForm: React.FC = () => {
             )}
           </div>
 
+          <div id="aero-flight-documents" className="aero-only" />
+
           {/* Flight route row: centered arrival/departure */}
           {(homeStation && (originStation || destStation)) && (
-            <div className="flex items-center justify-center gap-3 text-xs font-semibold">
-              {homeStation && originStation && (
-                <span className="text-emerald-600 dark:text-emerald-400">
-                  ✈ {originStation} → {homeStation}
-                </span>
-              )}
-              {homeStation && originStation && homeStation && destStation && (
-                <span className="text-muted-foreground">|</span>
-              )}
-              {homeStation && destStation && (
-                <span className="text-rose-600 dark:text-rose-400">
-                  ✈ {homeStation} → {destStation}
-                </span>
-              )}
-            </div>
+            <>
+              <div className="classic-only flex items-center justify-center gap-3 text-xs font-semibold">
+                {homeStation && originStation && (
+                  <span className="text-emerald-600 dark:text-emerald-400">
+                    ✈ {originStation} → {homeStation}
+                  </span>
+                )}
+                {homeStation && originStation && homeStation && destStation && (
+                  <span className="text-muted-foreground">|</span>
+                )}
+                {homeStation && destStation && (
+                  <span className="text-rose-600 dark:text-rose-400">
+                    ✈ {homeStation} → {destStation}
+                  </span>
+                )}
+              </div>
+
+              <div className="aero-only space-y-2">
+                {homeStation && originStation && (
+                  <div className="aero-route-card">
+                    <div className="aero-route-station text-left">
+                      <strong>{homeStation}</strong>
+                      <span>DESTINO</span>
+                    </div>
+                    <div className="aero-route-track aero-route-track-arrival">
+                      <span className="aero-route-dashes" />
+                      <Plane className="aero-route-plane aero-route-plane-arrival" />
+                    </div>
+                    <div className="aero-route-station text-right">
+                      <strong>{originStation}</strong>
+                      <span>ORIGEN</span>
+                    </div>
+                  </div>
+                )}
+
+                {homeStation && destStation && (
+                  <div className="aero-route-card">
+                    <div className="aero-route-station text-left">
+                      <strong>{homeStation}</strong>
+                      <span>ORIGEN</span>
+                    </div>
+                    <div className="aero-route-track aero-route-track-departure">
+                      <span className="aero-route-dashes" />
+                      <Plane className="aero-route-plane aero-route-plane-departure" />
+                    </div>
+                    <div className="aero-route-station text-right">
+                      <strong>{destStation}</strong>
+                      <span>DESTINO</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </header>
