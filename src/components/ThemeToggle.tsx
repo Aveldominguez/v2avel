@@ -27,7 +27,8 @@ export const ThemeToggle: React.FC = () => {
   }, [theme]);
 
   const nextTheme: Theme = theme === 'dark' ? 'light' : theme === 'light' ? 'aero' : 'dark';
-  const nextLabel = nextTheme === 'aero' ? 'Activar tema Aero' : nextTheme === 'light' ? 'Activar tema claro' : 'Activar tema oscuro clásico';
+  const currentLabel = theme === 'aero' ? 'Estilo v4' : theme === 'light' ? 'Tema claro' : 'Tema oscuro clásico';
+  const nextLabel = nextTheme === 'aero' ? 'Activar Estilo v4' : nextTheme === 'light' ? 'Activar tema claro' : 'Activar tema oscuro clásico';
 
   return (
     <button
@@ -41,7 +42,7 @@ export const ThemeToggle: React.FC = () => {
           : 'bg-muted border-border text-foreground hover:bg-muted/80'
       )}
       aria-label={nextLabel}
-      title={nextLabel}
+      title={`${currentLabel} · ${nextLabel}`}
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5" />
