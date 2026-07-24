@@ -831,7 +831,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      'input-operational w-full justify-start text-left font-normal',
+                      'aero-flight-date input-operational w-full justify-start text-left font-normal',
                       !date && 'text-muted-foreground'
                     )}
                   >
@@ -839,7 +839,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     {date ? format(date, 'PPP', { locale: es }) : 'Seleccionar fecha'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="aero-flight-calendar w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={date}
