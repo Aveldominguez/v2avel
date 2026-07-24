@@ -482,7 +482,7 @@ const TurnaroundList: React.FC = () => {
             </Popover>
           </div>
 
-          <Button onClick={() => navigate('/turnaround/new')} size="lg" className="mt-3 w-full gap-2 rounded-xl">
+          <Button onClick={() => navigate('/turnaround/new')} size="lg" className="aero-new-scale-button mt-3 w-full gap-2 rounded-xl font-extrabold">
             <Plus className="h-4 w-4" />
             Nueva escala
           </Button>
