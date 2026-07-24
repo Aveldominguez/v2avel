@@ -352,15 +352,36 @@
   }
 
   .aero .aero-home-action {
-    border-color: #6f8dac !important;
-    background: rgb(255 255 255 / 0.08) !important;
-    color: #ffffff !important;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+    border-color: #c9d7e7 !important;
+    background: #f3f7fc !important;
+    color: #23415f !important;
+    box-shadow: 0 5px 14px -12px rgb(0 28 60 / 0.8);
   }
 
   .aero .aero-home-action:hover {
     border-color: #42a5ff !important;
-    background: #087df1 !important;
+    background: #e8f3ff !important;
+    color: #0870d8 !important;
+  }
+
+  .aero .aero-home-page {
+    background: #eef3f9 !important;
+    color: #17243a !important;
+  }
+
+  .aero .aero-home-header {
+    border-color: #d4deeb !important;
+    background: rgb(255 255 255 / 0.96) !important;
+    color: #17243a !important;
+    box-shadow: 0 10px 28px -24px rgb(0 21 50 / 0.7);
+  }
+
+  .aero .aero-home-header h1 {
+    color: #17243a !important;
+  }
+
+  .aero .aero-home-header p {
+    color: #65748a !important;
   }
 
   .aero .aero-home-sheet {
@@ -607,6 +628,63 @@
   .aero .aero-load-more:hover {
     background: #eaf4ff !important;
     color: #005fb9 !important;
+  }
+
+  .aero .aero-weather-dock {
+    background: transparent !important;
+    pointer-events: none;
+  }
+
+  .aero .aero-weather-dock > * {
+    pointer-events: auto;
+  }
+
+  .aero .aero-weather-compact {
+    border-color: #cbd8e7 !important;
+    border-left-width: 0.32rem !important;
+    background: #ffffff !important;
+    color: #1b334d !important;
+    box-shadow: 0 12px 28px -18px rgb(0 25 58 / 0.55);
+  }
+
+  .aero .aero-weather-normal {
+    border-left-color: #087df1 !important;
+  }
+
+  .aero .aero-weather-precaucion {
+    border-left-color: #f2b419 !important;
+    background: #fffdf6 !important;
+    color: #5c4307 !important;
+  }
+
+  .aero .aero-weather-restriccion {
+    border-left-color: #ed8217 !important;
+    background: #fff9f2 !important;
+    color: #5b3008 !important;
+  }
+
+  .aero .aero-weather-suspension {
+    border-left-color: #e52b4b !important;
+    background: #fff6f7 !important;
+    color: #651326 !important;
+  }
+
+  .aero .aero-weather-refresh {
+    border: 1px solid #d2deeb;
+    background: #f2f6fb;
+    color: #31516f;
+  }
+
+  .aero .aero-weather-refresh:hover {
+    border-color: #8fc2f2;
+    background: #e8f3ff;
+    color: #0870d8;
+  }
+
+  .aero .aero-weather-details {
+    border-color: #cedae8 !important;
+    background: #ffffff !important;
+    color: #17243a !important;
   }
 
   .aero .aero-recent-list {
