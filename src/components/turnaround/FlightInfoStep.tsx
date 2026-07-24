@@ -621,7 +621,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                 <Switch
                   checked={isRemote}
                   onCheckedChange={setIsRemote}
-                  className="data-[state=checked]:bg-warning"
+                  className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
                 />
                 <span className={cn(
                   'text-sm font-semibold',
@@ -697,7 +697,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                     <Switch
                       checked={pushBack}
                       onCheckedChange={setPushBack}
-                      className="data-[state=checked]:bg-warning"
+                      className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
                     />
                     <span className={cn(
                       'text-sm font-semibold',
@@ -785,7 +785,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                       setSoloLlegada(v);
                       if (v) setSoloSalida(false);
                     }}
-                    className="data-[state=checked]:bg-primary"
+                    className="aero-flight-toggle data-[state=checked]:bg-primary"
                   />
                   <span className={cn(
                     'text-sm font-semibold',
@@ -807,7 +807,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
                       setSoloSalida(v);
                       if (v) setSoloLlegada(false);
                     }}
-                    className="data-[state=checked]:bg-primary"
+                    className="aero-flight-toggle data-[state=checked]:bg-primary"
                   />
                   <span className={cn(
                     'text-sm font-semibold',
