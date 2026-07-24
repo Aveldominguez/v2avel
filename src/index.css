@@ -1067,6 +1067,45 @@
     color: #68778b !important;
   }
 
+  .aero .aero-flight-date {
+    border-color: #c8d5e5 !important;
+    background: #ffffff !important;
+    color: #17243a !important;
+    box-shadow: 0 5px 14px -12px rgb(0 21 50 / 0.75);
+  }
+
+  .aero .aero-flight-date:hover,
+  .aero .aero-flight-date:focus-visible {
+    border-color: #087df1 !important;
+    background: #eef7ff !important;
+    color: #075eaf !important;
+  }
+
+  .aero .aero-flight-date svg {
+    color: #087df1 !important;
+  }
+
+  .aero .aero-flight-calendar {
+    border-color: #c8d5e5 !important;
+    background: #ffffff !important;
+    color: #17243a !important;
+  }
+
+  .aero .aero-flight-calendar button:not([aria-selected='true']) {
+    background: transparent !important;
+    color: #17243a !important;
+  }
+
+  .aero .aero-flight-calendar button:not([aria-selected='true']):hover {
+    background: #e9f3ff !important;
+    color: #075eaf !important;
+  }
+
+  .aero .aero-flight-calendar button[aria-selected='true'] {
+    background: #087df1 !important;
+    color: #ffffff !important;
+  }
+
   .aero .aero-flight-toggle[data-state='unchecked'] {
     border-color: #b8c7d9 !important;
     background: #dce5ef !important;
