@@ -589,11 +589,33 @@
   }
 
   .aero .aero-search-toggle {
-    background: #3478c9 !important;
+    border: 1px solid #9ed8d3 !important;
+    background: #e7f5f4 !important;
+    color: #176d70 !important;
+    box-shadow: 0 7px 16px -14px rgb(23 109 112 / 0.75);
   }
 
   .aero .aero-search-toggle:hover {
-    background: #2f6eb9 !important;
+    border-color: #70c2ba !important;
+    background: #d8efed !important;
+    color: #0e5f62 !important;
+  }
+
+  .aero .aero-new-scale-button {
+    border: 1px solid #76bdff !important;
+    background: linear-gradient(135deg, #1594ff 0%, #076ee8 100%) !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.01em;
+    box-shadow:
+      0 10px 22px -13px rgb(7 110 232 / 0.9),
+      inset 0 0 0 1px rgb(255 255 255 / 0.2);
+    animation: aero-primary-expand 2.8s ease-in-out infinite;
+  }
+
+  .aero .aero-new-scale-button:hover {
+    border-color: #a8d6ff !important;
+    background: linear-gradient(135deg, #087df1 0%, #045fc9 100%) !important;
   }
 
   .aero .aero-home-filter,
@@ -922,11 +944,64 @@
   }
 
   .aero .aero-time-now {
-    height: 3rem !important;
-    width: 3rem !important;
-    min-width: 3rem;
+    height: 2.5rem !important;
+    width: 2.5rem !important;
+    min-width: 2.5rem;
     border-radius: 9999px !important;
-    box-shadow: 0 7px 15px -10px rgb(0 21 50 / 0.82);
+    align-self: center;
+    box-shadow: 0 5px 12px -9px rgb(0 21 50 / 0.72);
+  }
+
+  .aero .aero-flight-info-page {
+    background: #eef3f9 !important;
+    color: #17243a !important;
+  }
+
+  .aero .aero-flight-info-card {
+    border-color: #cfdbe9 !important;
+    background: #ffffff !important;
+    color: #17243a !important;
+    box-shadow: 0 22px 48px -30px rgb(0 18 45 / 0.7);
+  }
+
+  .aero .aero-flight-info-card input,
+  .aero .aero-flight-info-card .aero-flight-select {
+    border-color: #c8d5e5 !important;
+    background: #ffffff !important;
+    color: #17243a !important;
+    caret-color: #087df1;
+  }
+
+  .aero .aero-flight-info-card input::placeholder {
+    color: #7a8799 !important;
+    opacity: 1;
+  }
+
+  .aero .aero-flight-info-card input:disabled {
+    background: #edf2f7 !important;
+    color: #68778b !important;
+  }
+
+  .aero .aero-flight-select-menu {
+    border-color: #c8d5e5 !important;
+    background: #ffffff !important;
+    color: #17243a !important;
+  }
+
+  .aero .aero-flight-select-menu [role='option'] {
+    color: #17243a !important;
+  }
+
+  .aero .aero-flight-select-menu [role='option']:focus {
+    background: #e7f5f4 !important;
+    color: #176d70 !important;
+  }
+
+  .aero .aero-flight-meta-field > label {
+    display: flex;
+    height: 1rem;
+    align-items: center;
+    line-height: 1rem;
   }
 
   .aero .aero-equipment-select,
@@ -1020,9 +1095,23 @@
   }
 }
 
+@keyframes aero-primary-expand {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.018);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aero .aero-route-plane {
     animation-duration: 8s;
+  }
+
+  .aero .aero-new-scale-button {
+    animation: none;
   }
 }
 
