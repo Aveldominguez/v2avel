@@ -939,13 +939,61 @@
   }
 
   .aero .aero-export-pdf {
-    border-color: #3b8d92 !important;
-    background: #3b8d92 !important;
-    color: white !important;
+    border: 1px solid #76bdff !important;
+    background: linear-gradient(135deg, #1594ff 0%, #076ee8 100%) !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.01em;
+    box-shadow:
+      0 10px 22px -13px rgb(7 110 232 / 0.9),
+      inset 0 0 0 1px rgb(255 255 255 / 0.2);
   }
 
   .aero .aero-export-pdf:hover {
-    background: #347e83 !important;
+    border-color: #a8d6ff !important;
+    background: linear-gradient(135deg, #087df1 0%, #045fc9 100%) !important;
+    color: #ffffff !important;
+  }
+
+  .aero .aero-parking-refresh {
+    border: 1px solid #8bc8ff !important;
+    background: #e9f4ff !important;
+    color: #087df1 !important;
+    box-shadow: 0 5px 12px -9px rgb(8 78 148 / 0.85);
+  }
+
+  .aero .aero-parking-refresh:hover {
+    border-color: #087df1 !important;
+    background: #087df1 !important;
+    color: #ffffff !important;
+  }
+
+  .aero .aero-parking-refresh:disabled {
+    border-color: #b9c8d9 !important;
+    background: #edf2f7 !important;
+    color: #6f8095 !important;
+    opacity: 0.8;
+  }
+
+  .aero .aero-hours-toggle[data-state='unchecked'] {
+    border-color: #b8c7d9 !important;
+    background: #dce5ef !important;
+    box-shadow: inset 0 1px 2px rgb(20 43 70 / 0.12);
+  }
+
+  .aero .aero-hours-toggle[data-state='checked'] {
+    border-color: #00a978 !important;
+    background: #00a978 !important;
+  }
+
+  .aero .aero-hours-toggle > span {
+    background: #ffffff !important;
+    box-shadow: 0 2px 5px rgb(24 48 76 / 0.28);
+  }
+
+  .aero .aero-equipment-header {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
   }
 
   .aero .aero-compartments textarea,
