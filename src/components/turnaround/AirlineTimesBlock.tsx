@@ -441,9 +441,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
     return (
       <div className="space-y-4">
         {/* Header with countdown */}
-        <Card className="card-operational">
+        <Card className="aero-control-hours card-operational">
           <CardHeader className="pb-2 px-3 sm:px-6">
-            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
+            <CardTitle className="aero-control-hours-title flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xl">
               <div className="flex items-center justify-between gap-3 w-full">
                 <span className="shrink-0">Control de Horas ⏰</span>
                 <div className="flex flex-col items-end gap-1">
@@ -515,7 +515,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
         {/* Arrival block */}
         {filteredArrival.length > 0 && (
-          <Card className="border-2 border-emerald-500/30 bg-emerald-50/5">
+          <Card className="aero-soft-arrival border-2 border-emerald-500/30 bg-emerald-50/5">
             <CardHeader className="pb-3 pt-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <PlaneLanding className="h-5 w-5 text-emerald-500" />
@@ -548,7 +548,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
         {/* Departure block */}
         {departureWithPushBack.length > 0 && (
-          <Card className="border-2 border-rose-500/30 bg-rose-50/5">
+          <Card className="aero-soft-departure border-2 border-rose-500/30 bg-rose-50/5">
             <CardHeader className="pb-3 pt-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <PlaneTakeoff className="h-5 w-5 text-rose-500" />
