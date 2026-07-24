@@ -629,7 +629,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         {/* LDM dialog */}
         {showLdm && ldmRaw && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
-            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold font-mono">LDM</h2>
                 <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
@@ -644,7 +644,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
         {/* CPM dialog */}
         {showCpm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
-            <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+            <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold font-mono">CPM</h2>
                 <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>
@@ -748,7 +748,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       {/* LDM dialog */}
       {showLdm && ldmRaw && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowLdm(false)}>
-          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+          <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold font-mono">LDM</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowLdm(false)}>✕</Button>
@@ -763,7 +763,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
       {/* CPM dialog */}
       {showCpm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCpm(false)}>
-          <div className="bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
+          <div className="aero-dialog-surface bg-background rounded-lg shadow-xl max-w-lg w-full mx-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold font-mono">CPM</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowCpm(false)}>✕</Button>
