@@ -322,7 +322,7 @@ const TurnaroundList: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="aero-home-page min-h-screen bg-background overflow-x-hidden">
       {/* Auto-emergent update dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={(open) => { if (!open) dismissUpdateDialog(); }}>
         <DialogContent className="max-w-md">
@@ -411,7 +411,7 @@ const TurnaroundList: React.FC = () => {
         </div>
       </header>
 
-      <header className={cn("aero-only sticky z-50 border-b border-border bg-background/95 backdrop-blur-xl", updateAvailable ? "top-[40px]" : "top-0")}>
+      <header className={cn("aero-home-header aero-only sticky z-50 border-b border-border bg-background/95 backdrop-blur-xl", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="mx-auto max-w-3xl px-3 py-3">
           <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2">
             <Sheet>
