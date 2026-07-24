@@ -642,7 +642,7 @@ const TurnaroundForm: React.FC = () => {
               {!isEditing && (
                 <button
                   onClick={() => setStep(1)}
-                  className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                   aria-label="Volver atrás"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -651,7 +651,7 @@ const TurnaroundForm: React.FC = () => {
               {isEditing && (
                 <button
                   onClick={() => navigate(-1)}
-                  className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                   aria-label="Volver atrás"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -670,7 +670,7 @@ const TurnaroundForm: React.FC = () => {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setStep(1)}
-                className="shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                 title="Editar datos del vuelo"
                 aria-label="Editar datos del vuelo"
               >
