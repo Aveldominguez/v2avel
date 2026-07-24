@@ -102,7 +102,7 @@ export const TimeInput: React.FC<TimeInputProps> = ({
           onClick={handleNowClick}
           disabled={disabled}
           className={cn(
-            'h-12 w-12 shrink-0',
+            'aero-time-now h-12 w-12 shrink-0 rounded-full',
             clockColor === 'green' && 'bg-emerald-600 hover:bg-emerald-700 text-white',
             clockColor === 'red' && 'bg-red-600 hover:bg-red-700 text-white',
             clockColor === 'default' && 'bg-accent hover:bg-accent/90 text-accent-foreground'
