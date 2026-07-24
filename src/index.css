@@ -336,6 +336,21 @@
     box-shadow: 0 5px 14px rgb(0 0 0 / 0.28);
   }
 
+  .aero .aero-header-action,
+  .aero .aero-theme-toggle {
+    border-color: #6f8dac !important;
+    background: rgb(255 255 255 / 0.08) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  .aero .aero-header-action:hover,
+  .aero .aero-theme-toggle:hover {
+    border-color: #42a5ff !important;
+    background: #087df1 !important;
+    color: #ffffff !important;
+  }
+
   .aero .aero-auth-card {
     border-color: #d3deed !important;
     background: #ffffff !important;
@@ -419,19 +434,22 @@
   }
 
   .aero .aero-document-button {
-    border-color: rgb(255 255 255 / 0.78) !important;
-    background: rgb(255 255 255 / 0.08) !important;
+    border-color: #42a5ff !important;
+    background: #087df1 !important;
     color: white !important;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+    box-shadow: 0 7px 16px -10px rgb(8 125 241 / 0.95);
   }
 
   .aero .aero-document-button:hover {
-    border-color: #42a5ff !important;
-    background: #087df1 !important;
+    border-color: #75bdff !important;
+    background: #006dd8 !important;
   }
 
   .aero .aero-document-button:disabled {
-    opacity: 0.38;
+    border-color: #66809f !important;
+    background: #34516f !important;
+    color: #b9c9da !important;
+    opacity: 0.55;
   }
 
   .aero .aero-route-card {
@@ -566,6 +584,11 @@
     color: #13213a !important;
   }
 
+  .aero .aero-compartments label,
+  .aero .aero-compartments .text-foreground\/80 {
+    color: #33445d !important;
+  }
+
   .aero .aero-bodega-action {
     border-color: #bdd3ed !important;
     background: #eef5ff !important;
@@ -583,6 +606,39 @@
     border-color: #f12f50 !important;
     background: #fff0f3 !important;
     color: #e31f43 !important;
+  }
+
+  .aero .aero-time-now {
+    height: 3rem !important;
+    width: 3rem !important;
+    min-width: 3rem;
+    border-radius: 9999px !important;
+    box-shadow: 0 7px 15px -10px rgb(0 21 50 / 0.82);
+  }
+
+  .aero .aero-equipment-select,
+  .aero .aero-equipment-select-menu {
+    border-color: #c9d6e6 !important;
+    background: #ffffff !important;
+    color: #13213a !important;
+  }
+
+  .aero .aero-equipment-select {
+    box-shadow: 0 5px 14px -12px rgb(0 21 50 / 0.8);
+  }
+
+  .aero .aero-equipment-select:focus {
+    border-color: #087df1 !important;
+    box-shadow: 0 0 0 3px rgb(8 125 241 / 0.15);
+  }
+
+  .aero .aero-equipment-select-menu [role='option'] {
+    color: #13213a !important;
+  }
+
+  .aero .aero-equipment-select-menu [role='option']:focus {
+    background: #e9f3ff !important;
+    color: #075eaf !important;
   }
 
   .aero .wind-alert-normal {
