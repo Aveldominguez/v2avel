@@ -661,7 +661,7 @@ const TurnaroundForm: React.FC = () => {
                 <img
                   src={airlineLogo}
                   alt={airlineInfo?.name ?? 'Airline logo'}
-                  className="h-8 w-auto max-w-[80px] object-contain"
+                  className="aero-airline-logo h-8 w-auto max-w-[80px] object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               )}
