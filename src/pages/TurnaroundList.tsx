@@ -41,6 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import {
   Plus,
@@ -57,6 +58,10 @@ import {
   Wrench,
   ChevronUp,
   ChevronDown,
+  Menu,
+  UserCircle2,
+  KeyRound,
+  BarChart3,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -81,6 +86,10 @@ const TurnaroundList: React.FC = () => {
   const allAirlines = useAllAirlines();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [totalRecords, setTotalRecords] = useState<number | null>(null);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   // Auto-open update dialog once per remote version
   useEffect(() => {
@@ -95,6 +104,32 @@ const TurnaroundList: React.FC = () => {
   const dismissUpdateDialog = () => {
     if (remoteVersion) localStorage.setItem('app-update-dialog-seen', remoteVersion);
     setShowUpdateDialog(false);
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('turnarounds')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => setTotalRecords(count ?? 0));
+  }, [user]);
+
+  const handlePasswordChange = async () => {
+    if (newPassword.length < 8) {
+      toast({ title: 'Contraseña demasiado corta', description: 'Utiliza al menos 8 caracteres.', variant: 'destructive' });
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) {
+      toast({ title: 'No se pudo cambiar la contraseña', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setNewPassword('');
+    setShowPasswordDialog(false);
+    toast({ title: 'Contraseña actualizada' });
   };
 
   // Filters (persisted in sessionStorage)
@@ -321,7 +356,7 @@ const TurnaroundList: React.FC = () => {
       </Dialog>
 
       {/* Header */}
-      <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
+      <header className={cn("classic-only sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="w-full px-3 py-4">
           <div className="flex flex-col items-center gap-3">
             {/* FILA 1 — Identidad */}
@@ -375,16 +410,99 @@ const TurnaroundList: React.FC = () => {
         </div>
       </header>
 
-      <main className="w-full py-4 space-y-4">
+      <header className={cn("aero-only sticky z-50 border-b border-border bg-background/95 backdrop-blur-xl", updateAvailable ? "top-[40px]" : "top-0")}>
+        <div className="mx-auto max-w-3xl px-3 py-3">
+          <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card" aria-label="Abrir menú">
+                  <Menu className="h-5 w-5" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="flex w-[82vw] max-w-xs flex-col bg-sidebar text-sidebar-foreground">
+                <SheetHeader>
+                  <SheetTitle className="text-sidebar-foreground">Ramp Control</SheetTitle>
+                </SheetHeader>
+                <nav className="mt-8 space-y-2">
+                  {isAdmin && (
+                    <SheetClose asChild>
+                      <button onClick={() => navigate('/admin')} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-sidebar-accent">
+                        <LayoutDashboard className="h-5 w-5 text-sidebar-primary" />
+                        Panel de control
+                      </button>
+                    </SheetClose>
+                  )}
+                  {hasEquipos && (
+                    <SheetClose asChild>
+                      <button onClick={() => navigate('/equipos')} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-sidebar-accent">
+                        <Wrench className="h-5 w-5 text-sidebar-primary" />
+                        Control de equipos
+                      </button>
+                    </SheetClose>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+
+            <div className="text-center">
+              <h1 className="text-lg font-bold leading-tight">Ramp Control</h1>
+              <p className="text-xs text-muted-foreground">Operaciones de rampa</p>
+            </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card" aria-label="Abrir mi cuenta">
+                  <UserCircle2 className="h-6 w-6" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 rounded-xl">
+                <div className="flex items-center gap-3 border-b border-border pb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <UserCircle2 className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold">Mi cuenta</p>
+                    <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 py-3 text-sm">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  Escalas registradas: <strong>{totalRecords ?? '—'}</strong>
+                </div>
+                <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => setShowPasswordDialog(true)}>
+                  <KeyRound className="h-4 w-4" />
+                  Cambiar contraseña
+                </Button>
+                <Button variant="ghost" className="w-full justify-start gap-2 text-destructive hover:text-destructive" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Button onClick={() => navigate('/turnaround/new')} size="lg" className="mt-3 w-full gap-2 rounded-xl">
+            <Plus className="h-4 w-4" />
+            Nueva escala
+          </Button>
+        </div>
+      </header>
+
+      <main className="w-full py-4 pb-20 space-y-4">
         {/* METAR Weather */}
-        <WeatherWidget />
+        <div className="classic-only">
+          <WeatherWidget />
+        </div>
+        <div className="aero-only">
+          <WeatherWidget compact />
+        </div>
 
         {/* Search toggle + filters unified block */}
         <Card className="border-0 shadow-none bg-card rounded-none overflow-hidden p-0">
           {/* Toggle button as card header */}
           <button
             className={cn(
-              'w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white transition-colors',
+              'aero-search-toggle w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white transition-colors',
               showFilters ? 'bg-amber-500 hover:bg-amber-600' : 'bg-amber-500 hover:bg-amber-600'
             )}
             onClick={() => setShowFilters(v => !v)}
@@ -573,6 +691,29 @@ const TurnaroundList: React.FC = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Cambiar contraseña</DialogTitle>
+            <DialogDescription>Introduce una nueva contraseña de al menos 8 caracteres.</DialogDescription>
+          </DialogHeader>
+          <Input
+            type="password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            placeholder="Nueva contraseña"
+            autoComplete="new-password"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>Cancelar</Button>
+            <Button onClick={handlePasswordChange} disabled={changingPassword}>
+              {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Actualizar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

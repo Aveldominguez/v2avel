@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { WindAlertBadge } from '@/components/WindAlertBadge';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
@@ -675,6 +676,7 @@ const TurnaroundForm: React.FC = () => {
               >
                 <Pencil className="h-4 w-4" />
               </button>
+              <WindAlertBadge />
               <ThemeToggle />
               <ConnectionStatus
                 isOnline={isOnline}
@@ -813,7 +815,7 @@ const TurnaroundForm: React.FC = () => {
         <Button
           type="button"
           variant="outline"
-          className="w-full gap-2 font-semibold bg-accent text-accent-foreground hover:bg-black hover:text-white active:bg-black active:text-white border-accent hover:border-black"
+          className="aero-export-pdf w-full gap-2 font-semibold bg-accent text-accent-foreground hover:bg-black hover:text-white active:bg-black active:text-white border-accent hover:border-black"
           onClick={async () => {
             const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
             await generateTurnaroundPdf({
@@ -893,7 +895,7 @@ const TurnaroundForm: React.FC = () => {
           onClick={handleSave}
           disabled={saving}
           aria-label="Guardar"
-          className="fixed bottom-20 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-95 transition-transform"
+          className="aero-save-fab fixed bottom-20 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-95 transition-transform"
         >
           {saving ? (
             <Loader2 className="h-5 w-5 animate-spin" />

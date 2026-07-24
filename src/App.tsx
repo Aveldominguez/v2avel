@@ -15,7 +15,6 @@ import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { ChunkErrorBoundary } from "@/components/ChunkErrorBoundary";
 import { OfflineSyncRunner } from "@/components/OfflineSyncRunner";
 import { ArionSyncBootstrap } from "@/components/ArionSyncBootstrap";
-import { WindAlertBadge } from "@/components/WindAlertBadge";
 
 // Eager imports for critical work routes — avoids "Failed to fetch
 // dynamically imported module" blank screens on iOS PWA resume when the
@@ -116,7 +115,6 @@ const App = () => (
           <ArionSyncBootstrap />
           <OfflineSyncRunner />
           <UpdateBanner />
-          <WindAlertBadge />
           <ChunkErrorBoundary>
             <AppRoutes />
           </ChunkErrorBoundary>
