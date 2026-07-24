@@ -115,7 +115,7 @@ const Auth: React.FC = () => {
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <Card className="w-full max-w-md">
+      <Card className="aero-auth-card w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-full bg-primary/10">
@@ -129,9 +129,9 @@ const Auth: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="signup">Registrarse</TabsTrigger>
+            <TabsList className="aero-auth-tabs grid w-full grid-cols-2">
+              <TabsTrigger className="aero-auth-tab" value="signin">Iniciar Sesión</TabsTrigger>
+              <TabsTrigger className="aero-auth-tab" value="signup">Registrarse</TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
@@ -139,6 +139,7 @@ const Auth: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
+                    className="aero-auth-input"
                     id="signin-email"
                     type="email"
                     placeholder="tu@email.com"
@@ -150,6 +151,7 @@ const Auth: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Contraseña</Label>
                   <Input
+                    className="aero-auth-input"
                     id="signin-password"
                     type="password"
                     placeholder="••••••••"
@@ -176,6 +178,7 @@ const Auth: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
+                    className="aero-auth-input"
                     id="signup-email"
                     type="email"
                     placeholder="tu@email.com"
@@ -187,6 +190,7 @@ const Auth: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Contraseña</Label>
                   <Input
+                    className="aero-auth-input"
                     id="signup-password"
                     type="password"
                     placeholder="••••••••"

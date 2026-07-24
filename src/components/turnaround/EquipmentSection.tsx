@@ -259,7 +259,7 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
     <Card className="card-operational">
       <Accordion type="single" collapsible>
         <AccordionItem value="equipment" className="border-none">
-          <CardHeader className="pb-3">
+          <CardHeader className="aero-equipment-header py-3">
             <AccordionTrigger className="py-0 hover:no-underline">
               <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="p-2 rounded-lg bg-muted">
@@ -303,8 +303,8 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                             if (val !== '__none__') onChange([...equipment, { categoryId: category.id, equipmentId: val, percentage: '' }]);
                           }}
                         >
-                          <SelectTrigger className="flex-1 h-10"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                          <SelectContent>
+                          <SelectTrigger className="aero-equipment-select flex-1 h-10"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                          <SelectContent className="aero-equipment-select-menu">
                             <SelectItem value="__none__">—</SelectItem>
                             {availableForNew.map(item => renderSelectItem(item, category.id))}
                           </SelectContent>
@@ -318,8 +318,8 @@ const EquipmentSection: React.FC<EquipmentSectionProps> = ({ airline, aircraftMo
                         <div key={`${category.id}-${idx}`} className="space-y-1">
                           <div className="flex items-center gap-2">
                             <Select value={sel.equipmentId || '__none__'} onValueChange={(val) => handleEquipmentChange(category.id, idx, val)}>
-                              <SelectTrigger className="flex-1 h-10"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                              <SelectContent>
+                              <SelectTrigger className="aero-equipment-select flex-1 h-10"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                              <SelectContent className="aero-equipment-select-menu">
                                 <SelectItem value="__none__">—</SelectItem>
                                 {available.map(item => renderSelectItem(item, category.id))}
                               </SelectContent>

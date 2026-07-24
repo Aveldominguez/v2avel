@@ -38,7 +38,11 @@ const ALERT_CONFIG = {
   },
 } as const
 
-export function WeatherWidget() {
+interface WeatherWidgetProps {
+  compact?: boolean
+}
+
+export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
   const { weather, loading, error, refresh, windAlert } = useAirportWeather()
   const [showRaw, setShowRaw] = useState(false)
 
@@ -48,6 +52,92 @@ export function WeatherWidget() {
   const AlertIcon = alert?.icon
   const maxWind = weather ? Math.max(weather.windSpeed, weather.windGusts ?? 0) : 0
   const barPct = Math.min(100, (maxWind / 70) * 100)
+
+  if (compact) {
+    const direction = weather?.windVariable
+      ? 'VRB'
+      : weather?.windDir !== null && weather?.windDir !== undefined
+        ? `${String(weather.windDir).padStart(3, '0')}°`
+        : '—'
+    const effectiveWind = weather ? Math.max(weather.windSpeed, weather.windGusts ?? 0) : 0
+    const compactTone = windAlert === 'SUSPENSION'
+      ? 'aero-weather-suspension'
+      : windAlert === 'RESTRICCION'
+        ? 'aero-weather-restriccion'
+        : windAlert === 'PRECAUCION'
+          ? 'aero-weather-precaucion'
+          : 'aero-weather-normal'
+    const compactAlertLabel = windAlert === 'SUSPENSION'
+      ? 'SUSPENSIÓN'
+      : windAlert === 'RESTRICCION'
+        ? 'RESTRICCIÓN'
+        : windAlert === 'PRECAUCION'
+          ? 'PRECAUCIÓN'
+          : 'NORMAL'
+    const windText = weather
+      ? `${weather.windSpeed}${weather.windGusts ? `G${weather.windGusts}` : ''} kt`
+      : `${effectiveWind} kt`
+    const detailParts = weather
+      ? [
+          `${direction} · ${windText}`,
+          weather.temp !== null ? `${weather.temp}°C` : null,
+          weather.qnh !== null ? `Q${weather.qnh}` : null,
+        ].filter(Boolean).join(' · ')
+      : `${direction} · ${effectiveWind} kt`
+
+    return (
+      <div className="aero-weather-dock fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+        {showRaw && weather && (
+          <div className="aero-weather-details mx-auto mb-2 max-w-2xl rounded-xl border border-border bg-popover p-3 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold">{alert?.label ?? 'Condiciones normales'}</p>
+                <p className="mt-1 text-xs text-popover-foreground/80">
+                  {alert?.detail ?? 'Sin restricciones operativas por viento.'}
+                </p>
+              </div>
+              <button className="text-xs text-muted-foreground" onClick={() => setShowRaw(false)}>Cerrar</button>
+            </div>
+            <pre className="mt-2 border-t border-border pt-2 text-[10px] font-mono whitespace-pre-wrap">
+              {weather.rawMetar}
+            </pre>
+          </div>
+        )}
+        <div
+          className={cn(
+            'aero-weather-compact mx-auto flex min-h-12 w-full max-w-2xl items-center gap-2 rounded-xl border px-3 py-2 text-left transition active:scale-[0.99]',
+            compactTone
+          )}
+        >
+          <button
+            type="button"
+            onClick={() => setShowRaw(v => !v)}
+            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            aria-expanded={showRaw}
+          >
+            {AlertIcon ? <AlertIcon className="h-4 w-4 shrink-0" /> : <Wind className="h-4 w-4 shrink-0" />}
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] font-bold tracking-wide">
+                METAR · LEMD · {compactAlertLabel}
+              </span>
+              <span className="block truncate font-mono text-xs">
+                {loading ? 'Actualizando…' : error ? 'METAR no disponible' : detailParts}
+              </span>
+            </span>
+            {showRaw ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronUp className="h-4 w-4 shrink-0" />}
+          </button>
+          <button
+            type="button"
+            className="aero-weather-refresh flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+            onClick={refresh}
+            aria-label="Actualizar METAR"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-3">
