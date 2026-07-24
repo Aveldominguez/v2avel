@@ -588,6 +588,43 @@
     animation: aero-flight-departure 3.4s ease-in-out infinite;
   }
 
+  .aero .aero-block-route {
+    display: grid;
+    grid-template-columns: 3.9rem minmax(0, 1fr) 3.9rem;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.35rem;
+    margin: 0 0.75rem 0.65rem;
+    border: 1px solid #bfe9d9;
+    border-radius: 0.78rem;
+    background: #effbf6;
+    padding: 0.38rem 0.65rem;
+    color: #13213a;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  }
+
+  .aero .aero-block-route-departure {
+    border-color: #f3c5cf;
+    background: #fff3f6;
+  }
+
+  .aero .aero-block-route .aero-route-station strong {
+    font-size: 1rem;
+  }
+
+  .aero .aero-block-route .aero-route-station span {
+    margin-top: 0.22rem;
+    font-size: 0.54rem;
+  }
+
+  .aero .aero-block-route .aero-route-track {
+    height: 1.7rem;
+  }
+
+  .aero .aero-block-route .aero-route-plane {
+    top: 0.12rem;
+  }
+
   .aero .aero-search-toggle {
     border: 1px solid #9ed8d3 !important;
     background: #e7f5f4 !important;
@@ -980,6 +1017,27 @@
   .aero .aero-flight-info-card input:disabled {
     background: #edf2f7 !important;
     color: #68778b !important;
+  }
+
+  .aero .aero-flight-toggle[data-state='unchecked'] {
+    border-color: #b8c7d9 !important;
+    background: #dce5ef !important;
+    box-shadow: inset 0 1px 2px rgb(20 43 70 / 0.12);
+  }
+
+  .aero .aero-flight-toggle[data-state='checked'] {
+    border-color: #087df1 !important;
+    background: #087df1 !important;
+  }
+
+  .aero .aero-flight-toggle-warning[data-state='checked'] {
+    border-color: #f2b419 !important;
+    background: #f2b419 !important;
+  }
+
+  .aero .aero-flight-toggle > span {
+    background: #ffffff !important;
+    box-shadow: 0 2px 5px rgb(24 48 76 / 0.28);
   }
 
   .aero .aero-flight-select-menu {
