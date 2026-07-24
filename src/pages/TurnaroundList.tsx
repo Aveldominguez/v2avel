@@ -58,6 +58,7 @@ import {
   Wrench,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   Menu,
   UserCircle2,
   KeyRound,
@@ -415,18 +416,18 @@ const TurnaroundList: React.FC = () => {
           <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2">
             <Sheet>
               <SheetTrigger asChild>
-                <button className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card" aria-label="Abrir menú">
+                <button className="aero-home-action flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card" aria-label="Abrir menú">
                   <Menu className="h-5 w-5" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="flex w-[82vw] max-w-xs flex-col bg-sidebar text-sidebar-foreground">
+              <SheetContent side="left" className="aero-home-sheet flex w-[82vw] max-w-xs flex-col bg-sidebar text-sidebar-foreground">
                 <SheetHeader>
-                  <SheetTitle className="text-sidebar-foreground">Ramp Control</SheetTitle>
+                  <SheetTitle className="aero-home-sheet-title">Control de Rampa</SheetTitle>
                 </SheetHeader>
                 <nav className="mt-8 space-y-2">
                   {isAdmin && (
                     <SheetClose asChild>
-                      <button onClick={() => navigate('/admin')} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-sidebar-accent">
+                      <button onClick={() => navigate('/admin')} className="aero-home-menu-link flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                         <LayoutDashboard className="h-5 w-5 text-sidebar-primary" />
                         Panel de control
                       </button>
@@ -434,7 +435,7 @@ const TurnaroundList: React.FC = () => {
                   )}
                   {hasEquipos && (
                     <SheetClose asChild>
-                      <button onClick={() => navigate('/equipos')} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-sidebar-accent">
+                      <button onClick={() => navigate('/equipos')} className="aero-home-menu-link flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                         <Wrench className="h-5 w-5 text-sidebar-primary" />
                         Control de equipos
                       </button>
@@ -451,7 +452,7 @@ const TurnaroundList: React.FC = () => {
 
             <Popover>
               <PopoverTrigger asChild>
-                <button className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card" aria-label="Abrir mi cuenta">
+                <button className="aero-home-action flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card" aria-label="Abrir mi cuenta">
                   <UserCircle2 className="h-6 w-6" />
                 </button>
               </PopoverTrigger>
@@ -541,7 +542,7 @@ const TurnaroundList: React.FC = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn('h-11 w-full justify-start text-left font-normal', !dateFilter && 'text-muted-foreground')}
+                      className={cn('aero-home-filter h-11 w-full justify-start text-left font-normal', !dateFilter && 'text-muted-foreground')}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dateFilter ? format(dateFilter, 'PPP', { locale: es }) : 'Filtrar por fecha'}
@@ -560,10 +561,10 @@ const TurnaroundList: React.FC = () => {
 
                 {/* Airline filter */}
                 <Select value={airlineFilter} onValueChange={(v) => setAirlineFilter(v as AirlineCode | 'ALL')}>
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger className="aero-home-filter h-11">
                     <SelectValue placeholder="Todas las aerolíneas" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="aero-home-filter-menu">
                     <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
                     {allAirlines.map((a) => (
                       <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>
@@ -607,7 +608,68 @@ const TurnaroundList: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
+                <div className="aero-only aero-recent-list px-3 pb-1">
+                  {rows.map((t) => {
+                    const status = getCompletionStatus(t);
+                    const flight = (t.times?.soloSalida && t.times?.departureFlightNumber)
+                      ? t.times.departureFlightNumber
+                      : t.flightNumber;
+                    const routeOrigin = t.times?.homeStation || t.times?.originStation || '—';
+                    const routeDestination = t.times?.destStation || t.times?.homeStation || '—';
+                    const statusLabel = status === 'completed'
+                      ? 'Completada'
+                      : status === 'in-progress'
+                        ? 'En proceso'
+                        : 'Pendiente';
+
+                    return (
+                      <article
+                        key={`aero-${t.id}`}
+                        className={cn('aero-recent-card', `aero-recent-${status}`)}
+                      >
+                        <div className="aero-recent-accent" />
+                        <button
+                          onClick={() => navigate(`/turnaround/${t.id}`)}
+                          className="aero-recent-main"
+                          aria-label={`Abrir escala ${flight}`}
+                        >
+                          <span className="aero-recent-plane">
+                            <Plane className="h-7 w-7" />
+                          </span>
+                          <span className="aero-recent-flight">
+                            <strong>
+                              {flight}
+                              {t.observations && t.observations.replace(/[\s\u200B\uFEFF\u00A0]/g, '').length > 0 && (
+                                <span className="ml-1 text-destructive">*</span>
+                              )}
+                            </strong>
+                            <span className="aero-recent-route">{routeOrigin} <span>→</span> {routeDestination}</span>
+                            <small>{t.times?.aircraftModel || '—'} · {t.times?.matricula || '—'}</small>
+                          </span>
+                          <span className="aero-recent-meta">
+                            <span className="aero-recent-status">{statusLabel}</span>
+                            <span className="aero-recent-date">
+                              <CalendarIcon className="h-4 w-4" />
+                              {formatDate(t.date)}
+                            </span>
+                          </span>
+                          <ChevronRight className="aero-recent-chevron h-5 w-5" />
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteId(t.id)}
+                          className="aero-recent-delete h-8 w-8 text-destructive hover:text-destructive"
+                          aria-label={`Eliminar escala ${flight}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                <div className="classic-only overflow-x-auto">
                   <Table className="table-operational w-full table-fixed">
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
@@ -675,14 +737,14 @@ const TurnaroundList: React.FC = () => {
                       size="sm"
                       onClick={loadMore}
                       disabled={loadingMore}
-                      className="gap-2"
+                      className="aero-load-more gap-2"
                     >
                       {loadingMore ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <ChevronDown className="h-4 w-4" />
                       )}
-                      {loadingMore ? 'Cargando...' : 'Ver más'}
+                      {loadingMore ? 'Cargando...' : 'Ver más escalas'}
                     </Button>
                   </div>
                 )}
