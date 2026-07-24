@@ -122,58 +122,58 @@
     --chart-5: 280 65% 55%;
   }
 
-  /* Optional low-saturation operations theme */
+  /* Optional high-contrast aviation theme */
   .aero {
-    --background: 218 31% 16%;
+    --background: 216 54% 12%;
     --foreground: 215 30% 96%;
 
-    --card: 217 29% 20%;
-    --card-foreground: 215 30% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 42% 15%;
 
-    --popover: 217 27% 22%;
-    --popover-foreground: 215 30% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 42% 15%;
 
-    --primary: 211 57% 50%;
+    --primary: 211 92% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 216 23% 27%;
-    --secondary-foreground: 215 24% 94%;
+    --secondary: 215 32% 94%;
+    --secondary-foreground: 220 42% 18%;
 
-    --muted: 217 22% 24%;
-    --muted-foreground: 215 16% 73%;
+    --muted: 216 30% 95%;
+    --muted-foreground: 216 18% 42%;
 
-    --accent: 43 66% 66%;
-    --accent-foreground: 218 35% 15%;
+    --accent: 40 96% 54%;
+    --accent-foreground: 220 42% 12%;
 
-    --destructive: 354 61% 60%;
+    --destructive: 355 82% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 161 41% 42%;
+    --success: 158 83% 36%;
     --success-foreground: 0 0% 100%;
-    --warning: 43 66% 66%;
-    --warning-foreground: 218 35% 15%;
-    --info: 211 57% 50%;
+    --warning: 40 96% 54%;
+    --warning-foreground: 220 42% 12%;
+    --info: 211 92% 54%;
     --info-foreground: 0 0% 100%;
 
-    --border: 215 20% 35%;
-    --input: 217 25% 23%;
-    --ring: 211 57% 55%;
+    --border: 216 24% 82%;
+    --input: 216 30% 97%;
+    --ring: 211 92% 54%;
     --radius: 0.75rem;
 
     --sidebar-background: 218 34% 14%;
     --sidebar-foreground: 215 24% 94%;
-    --sidebar-primary: 211 57% 50%;
+    --sidebar-primary: 211 92% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 216 23% 25%;
     --sidebar-accent-foreground: 215 24% 94%;
     --sidebar-border: 215 20% 31%;
-    --sidebar-ring: 211 57% 55%;
+    --sidebar-ring: 211 92% 54%;
 
-    --chart-1: 211 57% 50%;
-    --chart-2: 161 41% 42%;
-    --chart-3: 43 66% 66%;
-    --chart-4: 354 61% 60%;
-    --chart-5: 190 39% 44%;
+    --chart-1: 211 92% 54%;
+    --chart-2: 158 83% 36%;
+    --chart-3: 40 96% 54%;
+    --chart-4: 355 82% 55%;
+    --chart-5: 190 72% 42%;
   }
 }
 
@@ -188,7 +188,9 @@
   }
 
   .aero body {
-    background-image: radial-gradient(circle at 50% -20%, hsl(211 57% 50% / 0.12), transparent 34rem);
+    background-image:
+      radial-gradient(circle at 50% -10%, hsl(211 92% 54% / 0.2), transparent 28rem),
+      linear-gradient(180deg, #071b36 0%, #0a2446 100%);
     background-attachment: fixed;
   }
 
@@ -231,7 +233,7 @@
 
   .aero .card-operational {
     @apply border shadow-sm;
-    box-shadow: 0 18px 40px -28px rgb(4 12 24 / 0.8);
+    box-shadow: 0 16px 34px -20px rgb(0 10 28 / 0.72);
   }
 
   /* Tab styling for airlines */
@@ -290,11 +292,133 @@
   }
 
   .aero .aero-soft-arrival {
-    border-color: #4c9b87 !important;
+    border-color: #08a77a !important;
+    background: #ffffff !important;
+    color: #13213a;
+    box-shadow: 0 18px 40px -25px rgb(0 16 42 / 0.72);
   }
 
   .aero .aero-soft-departure {
-    border-color: #d85c67 !important;
+    border-color: #ef3152 !important;
+    background: #ffffff !important;
+    color: #13213a;
+    box-shadow: 0 18px 40px -25px rgb(0 16 42 / 0.72);
+  }
+
+  .aero .aero-soft-arrival .text-foreground,
+  .aero .aero-soft-departure .text-foreground {
+    color: #13213a !important;
+  }
+
+  .aero .aero-soft-arrival .input-operational,
+  .aero .aero-soft-departure .input-operational,
+  .aero .aero-soft-arrival .bg-input,
+  .aero .aero-soft-departure .bg-input {
+    background: #ffffff !important;
+    color: #13213a !important;
+    border-color: #d5ddea !important;
+  }
+
+  .aero .aero-flight-header {
+    background: rgb(7 27 54 / 0.96) !important;
+    color: white;
+    border-color: #375779 !important;
+    box-shadow: 0 12px 30px -22px rgb(0 0 0 / 0.9);
+  }
+
+  .aero .aero-document-button {
+    border-color: rgb(255 255 255 / 0.78) !important;
+    background: rgb(255 255 255 / 0.08) !important;
+    color: white !important;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  .aero .aero-document-button:hover {
+    border-color: #42a5ff !important;
+    background: #087df1 !important;
+  }
+
+  .aero .aero-document-button:disabled {
+    opacity: 0.38;
+  }
+
+  .aero .aero-route-card {
+    display: grid;
+    grid-template-columns: 4.25rem minmax(0, 1fr) 4.25rem;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 4.4rem;
+    border: 1px solid #d4ddea;
+    border-radius: 0.9rem;
+    background: #ffffff;
+    padding: 0.55rem 0.75rem;
+    color: #13213a;
+    box-shadow: 0 12px 28px -22px rgb(0 8 24 / 0.95);
+  }
+
+  .aero .aero-route-station {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .aero .aero-route-station strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    white-space: nowrap;
+  }
+
+  .aero .aero-route-station span {
+    margin-top: 0.32rem;
+    color: #60708a;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .aero .aero-route-track {
+    position: relative;
+    height: 2rem;
+    min-width: 0;
+  }
+
+  .aero .aero-route-dashes {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    border-top: 3px dashed currentColor;
+    opacity: 0.86;
+    transform: translateY(-50%);
+  }
+
+  .aero .aero-route-track-arrival {
+    color: #00a978;
+  }
+
+  .aero .aero-route-track-departure {
+    color: #f12f50;
+  }
+
+  .aero .aero-route-plane {
+    position: absolute;
+    top: 0.28rem;
+    z-index: 1;
+    height: 1.45rem;
+    width: 1.45rem;
+    fill: white;
+    filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.22));
+  }
+
+  .aero .aero-route-plane-arrival {
+    animation: aero-flight-arrival 3.4s ease-in-out infinite;
+  }
+
+  .aero .aero-route-plane-departure {
+    animation: aero-flight-departure 3.4s ease-in-out infinite;
   }
 
   .aero .aero-search-toggle {
@@ -308,7 +432,18 @@
   .aero .aero-control-hours-title {
     align-items: center !important;
     justify-content: center !important;
+    gap: 0.5rem !important;
     text-align: center;
+  }
+
+  .aero .aero-control-hours {
+    background: #ffffff !important;
+    color: #13213a;
+  }
+
+  .aero .aero-control-hours-header {
+    padding-top: 0.7rem !important;
+    padding-bottom: 0.65rem !important;
   }
 
   .aero .aero-control-hours-title > div:first-child {
@@ -317,10 +452,8 @@
     justify-content: center;
   }
 
-  .aero .aero-control-hours-title > div:first-child > div {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+  .aero .aero-document-actions-local {
+    display: none !important;
   }
 
   .aero .aero-export-pdf {
@@ -365,6 +498,40 @@
 
   .aero .aero-save-fab:active {
     transform: translateX(-50%) scale(0.97);
+  }
+}
+
+@keyframes aero-flight-arrival {
+  0% {
+    left: calc(100% - 1.45rem);
+    transform: rotate(-90deg) scale(0.92);
+  }
+  48% {
+    transform: rotate(-90deg) scale(1.08);
+  }
+  100% {
+    left: 0;
+    transform: rotate(-90deg) scale(0.92);
+  }
+}
+
+@keyframes aero-flight-departure {
+  0% {
+    left: 0;
+    transform: rotate(90deg) scale(0.92);
+  }
+  48% {
+    transform: rotate(90deg) scale(1.08);
+  }
+  100% {
+    left: calc(100% - 1.45rem);
+    transform: rotate(90deg) scale(0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aero .aero-route-plane {
+    animation-duration: 8s;
   }
 }
 
