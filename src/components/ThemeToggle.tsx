@@ -33,7 +33,7 @@ export const ThemeToggle: React.FC = () => {
     <button
       onClick={() => setTheme(nextTheme)}
       className={cn(
-        'shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 transition-colors',
+        'aero-theme-toggle shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 transition-colors',
         theme === 'dark'
           ? 'bg-secondary border-muted-foreground/40 text-warning hover:bg-secondary/80'
           : theme === 'aero'
