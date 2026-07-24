@@ -326,6 +326,59 @@
     box-shadow: 0 12px 30px -22px rgb(0 0 0 / 0.9);
   }
 
+  .aero .aero-airline-logo {
+    box-sizing: content-box;
+    max-height: 2rem;
+    border: 1px solid rgb(255 255 255 / 0.7);
+    border-radius: 0.65rem;
+    background: white;
+    padding: 0.35rem 0.5rem;
+    box-shadow: 0 5px 14px rgb(0 0 0 / 0.28);
+  }
+
+  .aero main input:not([type='checkbox']):not([type='radio']),
+  .aero main textarea,
+  .aero main select,
+  .aero [role='dialog'] input:not([type='checkbox']):not([type='radio']),
+  .aero [role='dialog'] textarea,
+  .aero [role='dialog'] select {
+    border-color: #cfd9e7 !important;
+    background: #ffffff !important;
+    color: #13213a !important;
+    caret-color: #087df1;
+  }
+
+  .aero main input::placeholder,
+  .aero main textarea::placeholder,
+  .aero [role='dialog'] input::placeholder,
+  .aero [role='dialog'] textarea::placeholder {
+    color: #76849a !important;
+    opacity: 1;
+  }
+
+  .aero main input:disabled,
+  .aero main textarea:disabled,
+  .aero main select:disabled {
+    background: #edf1f7 !important;
+    color: #67758a !important;
+  }
+
+  .aero [role='dialog'],
+  .aero .aero-dialog-surface {
+    background: #ffffff !important;
+    color: #13213a !important;
+  }
+
+  .aero .bg-card .text-foreground,
+  .aero .card-operational .text-foreground {
+    color: #13213a !important;
+  }
+
+  .aero .bg-card .text-muted-foreground,
+  .aero .card-operational .text-muted-foreground {
+    color: #647187 !important;
+  }
+
   .aero .aero-document-button {
     border-color: rgb(255 255 255 / 0.78) !important;
     background: rgb(255 255 255 / 0.08) !important;
@@ -504,28 +557,28 @@
 @keyframes aero-flight-arrival {
   0% {
     left: calc(100% - 1.45rem);
-    transform: rotate(-90deg) scale(0.92);
+    transform: scaleX(-1) scale(0.92);
   }
   48% {
-    transform: rotate(-90deg) scale(1.08);
+    transform: scaleX(-1) scale(1.08);
   }
   100% {
     left: 0;
-    transform: rotate(-90deg) scale(0.92);
+    transform: scaleX(-1) scale(0.92);
   }
 }
 
 @keyframes aero-flight-departure {
   0% {
     left: 0;
-    transform: rotate(90deg) scale(0.92);
+    transform: rotate(0deg) scale(0.92);
   }
   48% {
-    transform: rotate(90deg) scale(1.08);
+    transform: rotate(0deg) scale(1.08);
   }
   100% {
     left: calc(100% - 1.45rem);
-    transform: rotate(90deg) scale(0.92);
+    transform: rotate(0deg) scale(0.92);
   }
 }
 
