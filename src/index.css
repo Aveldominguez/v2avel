@@ -336,6 +336,45 @@
     box-shadow: 0 5px 14px rgb(0 0 0 / 0.28);
   }
 
+  .aero .aero-auth-card {
+    border-color: #d3deed !important;
+    background: #ffffff !important;
+    color: #13213a !important;
+    box-shadow: 0 24px 60px -34px rgb(0 9 28 / 0.88);
+  }
+
+  .aero .aero-auth-tabs {
+    background: #edf2f8 !important;
+    color: #647187 !important;
+  }
+
+  .aero .aero-auth-tab {
+    color: #526178 !important;
+  }
+
+  .aero .aero-auth-tab[data-state='active'] {
+    background: #087df1 !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px -10px rgb(8 125 241 / 0.9);
+  }
+
+  .aero .aero-auth-input {
+    border-color: #c7d3e3 !important;
+    background: #ffffff !important;
+    color: #13213a !important;
+    caret-color: #087df1 !important;
+  }
+
+  .aero .aero-auth-input::placeholder {
+    color: #76849a !important;
+    opacity: 1;
+  }
+
+  .aero .aero-auth-input:focus-visible {
+    border-color: #087df1 !important;
+    box-shadow: 0 0 0 3px rgb(8 125 241 / 0.16);
+  }
+
   .aero main input:not([type='checkbox']):not([type='radio']),
   .aero main textarea,
   .aero main select,
@@ -519,6 +558,33 @@
     background: #347e83 !important;
   }
 
+  .aero .aero-compartments textarea,
+  .aero .aero-compartments input,
+  .aero .aero-compartments [role='combobox'] {
+    border-color: #ced9e8 !important;
+    background: #ffffff !important;
+    color: #13213a !important;
+  }
+
+  .aero .aero-bodega-action {
+    border-color: #bdd3ed !important;
+    background: #eef5ff !important;
+    color: #087df1 !important;
+    box-shadow: 0 6px 14px -10px rgb(8 78 148 / 0.75);
+  }
+
+  .aero .aero-bodega-action:hover {
+    border-color: #087df1 !important;
+    background: #087df1 !important;
+    color: #ffffff !important;
+  }
+
+  .aero .aero-bodega-action-active {
+    border-color: #f12f50 !important;
+    background: #fff0f3 !important;
+    color: #e31f43 !important;
+  }
+
   .aero .wind-alert-normal {
     background: #3478c9 !important;
     color: white !important;
@@ -540,17 +606,20 @@
   }
 
   .aero .aero-save-fab {
+    position: static !important;
     right: auto !important;
-    bottom: max(1rem, env(safe-area-inset-bottom)) !important;
-    left: 50% !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: auto !important;
     width: min(72vw, 22rem);
     justify-content: center;
+    margin: 0 auto max(1rem, env(safe-area-inset-bottom));
     border-radius: 0.85rem;
-    transform: translateX(-50%);
+    transform: none;
   }
 
   .aero .aero-save-fab:active {
-    transform: translateX(-50%) scale(0.97);
+    transform: scale(0.97);
   }
 }
 
