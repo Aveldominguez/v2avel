@@ -968,27 +968,12 @@ const TurnaroundForm: React.FC = () => {
       </main>
 
       {showSaveFab && step === 2 && (
-        <>
-          <div className="classic-only fixed bottom-0 left-0 right-0 z-50 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              aria-label="Guardar"
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-[0.99] transition-transform"
-            >
-              {saving ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Save className="h-5 w-5" />
-              )}
-              <span>Guardar</span>
-            </button>
-          </div>
+        <div className="classic-save-bar fixed bottom-0 left-0 right-0 z-50 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
           <button
             onClick={handleSave}
             disabled={saving}
             aria-label="Guardar"
-            className="aero-save-fab fixed bottom-20 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-95 transition-transform"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-[0.99] transition-transform"
           >
             {saving ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -997,7 +982,7 @@ const TurnaroundForm: React.FC = () => {
             )}
             <span>Guardar</span>
           </button>
-        </>
+        </div>
       )}
     </div>
   );
