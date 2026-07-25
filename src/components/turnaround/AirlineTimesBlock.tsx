@@ -6,6 +6,7 @@ import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { CountdownTimer } from './CountdownTimer';
+import { WindForecastFlag } from '@/components/WindForecastFlag';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -571,6 +572,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
               </div>
             )}
 
+            <div className="flex justify-center w-full">
+              <WindForecastFlag />
+            </div>
           </CardHeader>
         </Card>
 
@@ -778,6 +782,9 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
           </div>
         )}
 
+        <div className="mt-2">
+          <WindForecastFlag />
+        </div>
       </CardHeader>
 
       <CardContent>

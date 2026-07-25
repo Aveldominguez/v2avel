@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAirportWeather, degToCompass } from '@/hooks/useAirportWeather'
+import { WindForecastFlag } from '@/components/WindForecastFlag'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -118,6 +119,9 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
             </pre>
           </div>
         )}
+        <div className="mx-auto flex max-w-2xl justify-end">
+          <WindForecastFlag className="mb-1.5" />
+        </div>
         <div
           className={cn(
             'aero-weather-compact mx-auto flex min-h-12 w-full max-w-2xl items-center gap-2 rounded-xl border px-3 py-2 text-left transition active:scale-[0.99]',
@@ -206,6 +210,7 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
                 ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
                 : <ChevronDown className={cn('h-4 w-4 shrink-0', alert ? alert.solidIcon : 'text-muted-foreground')} />}
             </button>
+            <WindForecastFlag className="mr-1.5" />
             <Button
               variant="ghost"
               size="icon"
