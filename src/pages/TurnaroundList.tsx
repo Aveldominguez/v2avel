@@ -73,6 +73,7 @@ import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 
 import { WeatherWidget } from '@/components/WeatherWidget';
+import { ListRenderBoundary } from '@/components/turnaround/ListRenderBoundary';
 
 const PAGE_SIZE = 4;
 const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
@@ -412,7 +413,7 @@ const TurnaroundList: React.FC = () => {
       {/* Header (Estilo v4 / Aero) */}
       <header className={cn("aero-home-header aero-only sticky z-50 border-b border-border bg-background/95 backdrop-blur-xl", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="mx-auto max-w-3xl px-3 py-3">
-          <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2">
+          <div className="grid grid-cols-[40px_1fr_40px_40px] items-center gap-2">
             <Sheet>
               <SheetTrigger asChild>
                 <button className="aero-home-action flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card" aria-label="Abrir menú">
@@ -444,10 +445,12 @@ const TurnaroundList: React.FC = () => {
               </SheetContent>
             </Sheet>
 
-            <div className="text-center">
-              <h1 className="text-lg font-bold leading-tight">Ramp Control</h1>
-              <p className="text-xs text-muted-foreground">Operaciones de rampa</p>
+            <div className="text-center min-w-0">
+              <h1 className="text-lg font-bold leading-tight truncate">Ramp Control</h1>
+              <p className="text-xs text-muted-foreground truncate">Operaciones de rampa</p>
             </div>
+
+            <ThemeToggle />
 
             <Popover>
               <PopoverTrigger asChild>
@@ -587,6 +590,7 @@ const TurnaroundList: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
+           <ListRenderBoundary>
             {loading && rows.length === 0 ? (
               <div className="p-4 space-y-3">
                 {Array.from({ length: PAGE_SIZE }).map((_, i) => (
@@ -752,6 +756,7 @@ const TurnaroundList: React.FC = () => {
                 )}
               </>
             )}
+           </ListRenderBoundary>
           </CardContent>
         </Card>
       </main>

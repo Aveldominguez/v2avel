@@ -27,6 +27,14 @@ export const applyTheme = (theme: string | null) => {
   root.classList.toggle('exterior', theme === 'exterior');
   root.classList.toggle('sky', theme === 'sky');
   root.classList.toggle('aero', theme === 'aero');
+
+  // Fuerza un reflow tras el cambio de clase: Safari/iOS a veces no repinta
+  // bien contenido que pasa de display:none a grid/block cuando hay elementos
+  // con backdrop-filter cerca (cabeceras con blur) — la lista puede quedar
+  // invisible hasta el siguiente scroll o resize. Leer offsetHeight obliga
+  // al motor a recalcular el layout ya mismo.
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  root.offsetHeight;
 };
 
 export const ThemeToggle: React.FC = () => {

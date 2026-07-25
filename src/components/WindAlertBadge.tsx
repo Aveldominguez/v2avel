@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Wind, X } from 'lucide-react';
+import { Wind, X, CalendarClock } from 'lucide-react';
 import { useMetar, ALERT_CONFIG, type WindAlertLevel } from '@/hooks/useMetar';
+import { useWindForecast } from '@/hooks/useWindForecast';
+
+const FORECAST_TONE: Record<'PRECAUCION' | 'RESTRICCION' | 'SUSPENSION', string> = {
+  PRECAUCION: 'bg-yellow-500 text-yellow-950',
+  RESTRICCION: 'bg-orange-500 text-white',
+  SUSPENSION: 'bg-red-600 text-white',
+};
+
+const fmtHour = (d: Date) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
 export const WindAlertBadge: React.FC = () => {
   const { windData, alertLevel, loading } = useMetar();
+  const { forecast, refresh: refreshForecast } = useWindForecast();
   const [open, setOpen] = useState(false);
   const [dismissedLevel, setDismissedLevel] = useState<WindAlertLevel>(null);
+
+  useEffect(() => {
+    refreshForecast();
+    const id = setInterval(refreshForecast, 30 * 60 * 1000); // TAF se actualiza cada ~6h; 30 min es de sobra
+    return () => clearInterval(id);
+  }, [refreshForecast]);
 
   // Re-show if level worsens
   useEffect(() => {
@@ -20,6 +36,9 @@ export const WindAlertBadge: React.FC = () => {
   const isDismissed = Boolean(alertLevel && alertLevel === dismissedLevel);
   const tone = cfg && !isDismissed ? `${cfg.color} ${cfg.textColor}` : 'bg-primary text-primary-foreground';
 
+  const worstForecast = forecast?.worstToday ?? null;
+  const forecastTone = worstForecast ? FORECAST_TONE[worstForecast.level!] : null;
+
   return (
     <>
       {open && (
@@ -32,11 +51,18 @@ export const WindAlertBadge: React.FC = () => {
       <div className="relative z-[70]">
         <button
           onClick={() => setOpen((o) => !o)}
-          className={`wind-alert-flag wind-alert-${alertLevel ?? 'normal'} flex h-10 min-w-10 items-center justify-center gap-1 rounded-lg border-2 border-current/30 px-2 shadow-sm font-semibold text-xs ${tone} transition-all`}
+          className={`wind-alert-flag wind-alert-${alertLevel ?? 'normal'} relative flex h-10 min-w-10 items-center justify-center gap-1 rounded-lg border-2 border-current/30 px-2 shadow-sm font-semibold text-xs ${tone} transition-all`}
           aria-label={cfg && !isDismissed ? `Alerta de viento: ${cfg.label}` : 'Estado del viento: normal'}
         >
           <Wind className="h-3.5 w-3.5" />
           {effective !== null && <span className="hidden sm:inline">{effective}kt</span>}
+          {/* Punto de aviso: hay previsión de viento fuerte más tarde hoy */}
+          {worstForecast && (
+            <span
+              className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${forecastTone}`}
+              aria-hidden="true"
+            />
+          )}
         </button>
 
         {open && (
@@ -94,6 +120,31 @@ export const WindAlertBadge: React.FC = () => {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}
+              </div>
+            )}
+
+            {/* Previsión (TAF): separado del METAR en vivo a propósito — no es
+                el estado actual, es lo que se espera más tarde hoy. */}
+            {forecast && forecast.periodsToday.length > 0 && (
+              <div className="mt-3 pt-3 border-t">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-bold text-muted-foreground">PREVISIÓN DE HOY (TAF)</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {forecast.periodsToday.map((p, i) => {
+                    const t = FORECAST_TONE[p.level!];
+                    return (
+                      <li key={i} className={`flex items-center justify-between gap-2 rounded-md border border-current/20 px-2 py-1 text-xs ${t}`}>
+                        <span className="font-mono">{fmtHour(p.from)}–{fmtHour(p.to)}</span>
+                        <span className="font-bold">{p.speed}{p.gust ? `G${p.gust}` : ''} kt</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="text-[10px] text-muted-foreground mt-2">
+                  Previsión oficial, no el estado actual — puede cambiar.
+                </p>
               </div>
             )}
           </div>
