@@ -162,8 +162,8 @@ const EquiposTab: React.FC = () => {
                   </div>
 
                   {/* Units table */}
-                  <div className="space-y-1">
-                    <div className="grid grid-cols-[1fr_1fr_110px_90px_36px] items-center gap-2 px-1 text-[10px] font-bold uppercase text-muted-foreground">
+                  <div className="space-y-1 overflow-x-auto">
+                    <div className="min-w-[460px] grid grid-cols-[80px_110px_110px_90px_36px] items-center gap-2 px-1 text-[10px] font-bold uppercase text-muted-foreground">
                       <span>Código</span>
                       <span>Etiqueta</span>
                       <span>Tipo</span>
@@ -171,7 +171,7 @@ const EquiposTab: React.FC = () => {
                       <span />
                     </div>
                     {catUnits.map(unit => (
-                      <div key={unit.id} className="grid grid-cols-[1fr_1fr_110px_90px_36px] items-center gap-2 rounded border border-border/60 bg-muted/20 p-1">
+                      <div key={unit.id} className="min-w-[460px] grid grid-cols-[80px_110px_110px_90px_36px] items-center gap-2 rounded border border-border/60 bg-muted/20 p-1">
                         <Input
                           value={unit.code}
                           onChange={e => handleUpdateUnit(unit.id, { code: e.target.value })}
