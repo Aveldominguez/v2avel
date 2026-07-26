@@ -44,7 +44,7 @@ const EquiposCategory = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-3">
+      <header className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-card px-3 shadow-sm">
         <button onClick={() => navigate('/equipos')} className="flex h-10 w-10 items-center justify-center" aria-label="Volver">
           <ArrowLeft size={22} />
         </button>
@@ -55,7 +55,8 @@ const EquiposCategory = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto px-2 py-2 pb-24">
+      <div className="flex-1 overflow-auto p-2 pb-24">
+       <div className="card-operational overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b-2 border-border text-left text-xs font-bold uppercase text-muted-foreground">
@@ -89,6 +90,7 @@ const EquiposCategory = () => {
             )}
           </tbody>
         </table>
+       </div>
       </div>
 
       <button

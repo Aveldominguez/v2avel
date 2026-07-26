@@ -3,8 +3,6 @@ export const APP_VERSION = '4.100';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Estilo v4: corregido el contraste en Admin y Control de Equipos (cabeceras, botón Sincronizar ARION y tarjetas ilegibles sobre fondo blanco).',
-  'Estilo v4: arreglados los toggles de rol/módulo sin colorear (bug de un selector CSS que corrompía otras reglas al minificar).',
-  'Admin: botones de cabecera (Crear Usuario, Catálogos, Mis Escalas, Salir) ahora se ajustan bien en pantallas estrechas.',
-  'Corrección más a fondo del fallo que a veces dejaba la lista de escalas en blanco al volver al estilo v4.',
+  'Estilo v4: extendido el arreglo de contraste a bg-muted y bg-secondary (chips, pills y separadores) en toda la app, incluidos Catálogos y sus pestañas.',
+  'Control de Equipos: el detalle de cada categoría ahora usa el mismo estilo de tarjeta blanca sobre fondo navy que el resto de la app en Estilo v4, en vez de verse todo oscuro sin jerarquía visual.',
 ];

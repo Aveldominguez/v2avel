@@ -623,6 +623,15 @@
   .aero [class*="bg-background"] {
     color: hsl(var(--foreground));
   }
+  /* Mismo patrón para chips/badges/pills en bg-muted o bg-secondary sin
+     su color de texto emparejado explícitamente (p. ej. Badge variant
+     "outline", o divs sueltos con bg-muted como separador de categoría). */
+  .aero [class*="bg-muted"] {
+    color: hsl(var(--muted-foreground));
+  }
+  .aero [class*="bg-secondary"] {
+    color: hsl(var(--secondary-foreground));
+  }
 
   .aero-only {
     display: none;
