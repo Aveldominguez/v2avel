@@ -49,6 +49,9 @@ export const ThemeToggle: React.FC = () => {
   useEffect(() => {
     applyTheme(theme);
     localStorage.setItem('theme', theme);
+    // Avisa a componentes que prefieren renderizado condicional de React
+    // en vez de alternar display por CSS (ver useTheme.ts).
+    window.dispatchEvent(new Event('themechange'));
 
     const themeColor = theme === 'dark' ? '#18202e' : theme === 'sky' ? '#eef2f9' : theme === 'aero' ? '#17243a' : '#ffffff';
     document.querySelectorAll('meta[name="theme-color"]').forEach(el => {

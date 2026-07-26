@@ -441,14 +441,17 @@
     filter: drop-shadow(0 3px 4px hsl(34 100% 40% / 0.4));
   }
 
-  /* CTA principal con degradado azul cielo (#47A5FF → azul profundo) */
-  .sky button.bg-primary,
-  .sky a.bg-primary {
+  /* CTA principal con degradado azul cielo (#47A5FF → azul profundo).
+     Selector de solo clase (sin "button"/"a" delante): un selector tipo
+     "button.bg-primary" confundía al minificador de esbuild, que lo
+     fusionaba por error con otras reglas de Tailwind que comparten la
+     misma declaración (p. ej. data-[state=checked]:bg-primary de los
+     Switch), produciendo CSS inválido y toggles sin colorear. */
+  .sky .bg-primary {
     background-image: linear-gradient(135deg, hsl(206 100% 62%), hsl(217 95% 47%));
     box-shadow: 0 8px 20px -8px hsl(212 100% 45% / 0.5);
   }
-  .sky button.bg-primary:hover,
-  .sky a.bg-primary:hover {
+  .sky .bg-primary:hover {
     background-image: linear-gradient(135deg, hsl(206 100% 58%), hsl(217 95% 43%));
   }
 
@@ -554,6 +557,12 @@
   .aero .card-operational {
     @apply border shadow-sm;
     box-shadow: 0 16px 34px -20px rgb(0 10 28 / 0.72);
+    /* Fix de contraste: en Aero --foreground está pensado para el fondo
+       navy del body, pero .card-operational tiene fondo blanco (--card).
+       Sin esto, el texto de páginas que no forman parte del diseño Aero
+       original (Admin, Equipos, Catálogos…) hereda el --foreground casi
+       blanco y se vuelve ilegible sobre fondo blanco. */
+    color: hsl(var(--card-foreground));
   }
 
   /* Tab styling for airlines */
@@ -599,6 +608,22 @@
 }
 
 @layer utilities {
+  /* Fix de contraste sistémico en Aero: --foreground está pensado para el
+     fondo navy del body, --card-foreground para las tarjetas blancas. Las
+     páginas que no forman parte del diseño Aero original (Admin, Equipos,
+     Catálogos…) usan bg-card/bg-popover sueltos sin emparejar el color de
+     texto, y heredan el que no toca. [class*=] cubre también variantes de
+     opacidad (bg-card/95, bg-card/80…) sin enumerarlas una a una. */
+  .aero [class*="bg-card"],
+  .aero [class*="bg-popover"] {
+    color: hsl(var(--card-foreground));
+  }
+  /* Y a la inversa: un botón bg-background (fondo navy) dentro de una
+     tarjeta blanca heredaría el texto oscuro de arriba — se resetea. */
+  .aero [class*="bg-background"] {
+    color: hsl(var(--foreground));
+  }
+
   .aero-only {
     display: none;
   }

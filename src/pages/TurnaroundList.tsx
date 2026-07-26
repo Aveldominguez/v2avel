@@ -69,6 +69,7 @@ import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from '@/hooks/useTheme';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 
@@ -80,6 +81,7 @@ const LIST_CACHE_KEY = 'turnaround-list-cache-v1';
 
 const TurnaroundList: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { user, signOut } = useAuth();
   const { fetchPage, deleteTurnaround, syncAllToLocal } = useTurnarounds();
   const { isAdmin } = useAdmin();
@@ -614,7 +616,13 @@ const TurnaroundList: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="aero-only aero-recent-list px-3 pb-1">
+                {/* Renderizado condicional (no CSS display toggle): esta lista
+                    puede ser larga y algunos navegadores no repintan bien
+                    contenido que pasa de display:none a grid al reentrar en
+                    un tema ya visitado — con mount/unmount real de React no
+                    hay ese riesgo. */}
+                {theme === 'aero' && (
+                <div className="aero-recent-list px-3 pb-1">
                   {rows.map((t) => {
                     const status = getCompletionStatus(t);
                     const flight = (t.times?.soloSalida && t.times?.departureFlightNumber)
@@ -674,8 +682,10 @@ const TurnaroundList: React.FC = () => {
                     );
                   })}
                 </div>
+                )}
 
-                <div className="classic-only overflow-x-auto">
+                {theme !== 'aero' && (
+                <div className="overflow-x-auto">
                   <Table className="table-operational w-full table-fixed">
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
@@ -734,6 +744,7 @@ const TurnaroundList: React.FC = () => {
                     </TableBody>
                   </Table>
                 </div>
+                )}
 
                 {/* Load more button */}
                 {hasMore && (

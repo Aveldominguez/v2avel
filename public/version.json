@@ -1,8 +1,9 @@
 {
-  "version": "4.89",
+  "version": "4.100",
   "changelog": [
-    "Previsión de viento (TAF) integrada en el botón de METAR del formulario: ahora avisa también de rachas fuertes previstas para más tarde, no solo del estado actual.",
-    "Botón de cambio de tema añadido a la Home en el estilo Aero (antes solo estaba en el formulario).",
-    "Corrección de un fallo intermitente que a veces dejaba la lista de escalas en blanco al cambiar de tema."
+    "Estilo v4: corregido el contraste en Admin y Control de Equipos (cabeceras, botón Sincronizar ARION y tarjetas ilegibles sobre fondo blanco).",
+    "Estilo v4: arreglados los toggles de rol/módulo sin colorear (bug de un selector CSS que corrompía otras reglas al minificar).",
+    "Admin: botones de cabecera (Crear Usuario, Catálogos, Mis Escalas, Salir) ahora se ajustan bien en pantallas estrechas.",
+    "Corrección más a fondo del fallo que a veces dejaba la lista de escalas en blanco al volver al estilo v4."
   ]
 }

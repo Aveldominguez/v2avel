@@ -329,22 +329,21 @@ const AdminPanel: React.FC = () => {
             <p className="text-sm text-muted-foreground">
               Administrador: {user?.email}
             </p>
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <Button onClick={() => setCreateDialog(true)} className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Crear Usuario
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/admin/catalogs')} className="gap-2">
-                  <Plane className="h-4 w-4" />
-                  Catálogos
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/')}>
-                  Mis Escalas
-                </Button>
-              </div>
-              <Button variant="destructive" size="icon" onClick={() => { signOut(); navigate('/auth'); }}>
-                <LogOut className="h-5 w-5" />
+            <div className="flex flex-wrap items-center justify-center gap-2 w-full">
+              <Button onClick={() => setCreateDialog(true)} className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                Crear Usuario
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/admin/catalogs')} className="gap-2">
+                <Plane className="h-4 w-4" />
+                Catálogos
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/')}>
+                Mis Escalas
+              </Button>
+              <Button variant="destructive" className="gap-2" onClick={() => { signOut(); navigate('/auth'); }}>
+                <LogOut className="h-4 w-4" />
+                Salir
               </Button>
             </div>
           </div>
