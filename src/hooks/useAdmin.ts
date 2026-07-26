@@ -298,9 +298,11 @@ export const useAdmin = () => {
       // Extract the real error message from the edge function response body
       let realMessage = error.message || 'Error al crear usuario';
       try {
+        // supabase-js's FunctionsHttpError puts the raw Response directly on
+        // `.context` (not `.context.response`) — see @supabase/functions-js.
         const ctx: any = (error as any).context;
-        if (ctx?.response && typeof ctx.response.json === 'function') {
-          const body = await ctx.response.clone().json();
+        if (ctx && typeof ctx.json === 'function') {
+          const body = await ctx.clone().json();
           if (body?.error) realMessage = body.error;
         }
       } catch {
@@ -333,9 +335,11 @@ export const useAdmin = () => {
       // Extract the real error message from the edge function response body
       let realMessage = error.message || 'Error al cambiar contraseña';
       try {
+        // supabase-js's FunctionsHttpError puts the raw Response directly on
+        // `.context` (not `.context.response`) — see @supabase/functions-js.
         const ctx: any = (error as any).context;
-        if (ctx?.response && typeof ctx.response.json === 'function') {
-          const body = await ctx.response.clone().json();
+        if (ctx && typeof ctx.json === 'function') {
+          const body = await ctx.clone().json();
           if (body?.error) realMessage = body.error;
         }
       } catch {
