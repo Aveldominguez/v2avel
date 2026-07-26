@@ -281,6 +281,10 @@ const AdminPanel: React.FC = () => {
 
   const handleCreateUser = async () => {
     if (!newEmail || !newPassword) return;
+    if (newPassword.length < 8) {
+      toast({ title: 'La contraseña debe tener al menos 8 caracteres', variant: 'destructive' });
+      return;
+    }
     const modules: ('rampa' | 'equipos')[] = [];
     if (newModules.rampa) modules.push('rampa');
     if (newModules.equipos) modules.push('equipos');
@@ -854,7 +858,7 @@ const AdminPanel: React.FC = () => {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
               />
             </div>
             <div className="space-y-2">
