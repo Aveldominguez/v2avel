@@ -41,27 +41,27 @@ const CatalogManager: React.FC = () => {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto space-y-4">
-        <div className="flex items-center justify-between gap-3 sticky top-0 z-20 bg-background py-2 border-b">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
+        <div className="flex flex-wrap items-center justify-between gap-2 sticky top-0 z-20 bg-background py-2 border-b">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="shrink-0">
               <ArrowLeft className="h-4 w-4 mr-2" /> Volver
             </Button>
-            <h1 className="text-xl font-bold">Gestión de Catálogos</h1>
+            <h1 className="text-lg sm:text-xl font-bold truncate">Gestión de Catálogos</h1>
           </div>
-          <Button onClick={handleGlobalSave} disabled={refreshing} variant="default" size="sm">
+          <Button onClick={handleGlobalSave} disabled={refreshing} variant="default" size="sm" className="shrink-0">
             {refreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
             Guardar y recargar
           </Button>
         </div>
 
         <Tabs defaultValue="airlines">
-          <TabsList className="grid grid-cols-6 w-full">
-            <TabsTrigger value="airlines">Aerolíneas</TabsTrigger>
-            <TabsTrigger value="models">Modelos</TabsTrigger>
-            <TabsTrigger value="loadcodes">Comoditys</TabsTrigger>
-            <TabsTrigger value="compartments">Bodegas</TabsTrigger>
-            <TabsTrigger value="timefields">Horas</TabsTrigger>
-            <TabsTrigger value="equipos">Equipos</TabsTrigger>
+          <TabsList className="flex w-full overflow-x-auto justify-start sm:grid sm:grid-cols-6">
+            <TabsTrigger value="airlines" className="shrink-0">Aerolíneas</TabsTrigger>
+            <TabsTrigger value="models" className="shrink-0">Modelos</TabsTrigger>
+            <TabsTrigger value="loadcodes" className="shrink-0">Comoditys</TabsTrigger>
+            <TabsTrigger value="compartments" className="shrink-0">Bodegas</TabsTrigger>
+            <TabsTrigger value="timefields" className="shrink-0">Horas</TabsTrigger>
+            <TabsTrigger value="equipos" className="shrink-0">Equipos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="airlines"><AirlinesTab /></TabsContent>

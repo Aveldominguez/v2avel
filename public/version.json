@@ -1,7 +1,7 @@
 {
   "version": "4.100",
   "changelog": [
-    "Estilo v4: extendido el arreglo de contraste a bg-muted y bg-secondary (chips, pills y separadores) en toda la app, incluidos Catálogos y sus pestañas.",
-    "Control de Equipos: el detalle de cada categoría ahora usa el mismo estilo de tarjeta blanca sobre fondo navy que el resto de la app en Estilo v4, en vez de verse todo oscuro sin jerarquía visual."
+    "Catálogos: la fila de pestañas (Aerolíneas, Modelos, Comoditys…) ya no se solapa en pantallas estrechas — pasa a desplazamiento horizontal en vez de una rejilla fija de 6 columnas.",
+    "Verificado con usuario real: contraste de Admin, Equipos, Catálogos y toggles, y el fallo de la lista en blanco al cambiar de tema, ya no reproducen."
   ]
 }
