@@ -350,7 +350,7 @@ const ModelsTab: React.FC = () => {
 
         <div className="border-t pt-4">
           <h3 className="font-semibold mb-2">Añadir nuevo modelo</h3>
-          <div className="grid grid-cols-5 gap-2 items-end">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end">
             <div><Label>Código</Label><Input placeholder="A350" value={newModel.modelCode} onChange={e => setNewModel(p => ({ ...p, modelCode: e.target.value }))} /></div>
             <div><Label>Etiqueta</Label><Input placeholder="A350-900" value={newModel.label} onChange={e => setNewModel(p => ({ ...p, label: e.target.value }))} /></div>
             <div><Label>Turnaround</Label><Input type="number" value={newModel.turnaroundMinutes} onChange={e => setNewModel(p => ({ ...p, turnaroundMinutes: Number(e.target.value) }))} /></div>
