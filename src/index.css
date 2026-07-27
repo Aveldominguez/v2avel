@@ -645,6 +645,14 @@
     display: none;
   }
 
+  /* Algunos .classic-only ya tienen reemplazo propio en Sky (ej. la barra
+     de ruta .route-sky-bar) y deben seguir ocultos ahí; se marcan aparte
+     con .sky-replaced en vez de ocultar TODOS los .classic-only en Sky
+     (eso rompía la cabecera de Home, que en Sky reutiliza la clásica). */
+  .sky .sky-replaced {
+    display: none;
+  }
+
   /* Barra de Guardar: fija abajo, ancho completo, visible en los 5 temas
      (Aero incluido — el botón flotante .aero-save-fab quedaba fuera del
      scroll y era ilocalizable; se unifica con el mismo patrón que Sky). */

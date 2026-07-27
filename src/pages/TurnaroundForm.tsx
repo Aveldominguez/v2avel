@@ -731,7 +731,7 @@ const TurnaroundForm: React.FC = () => {
 
           {/* Flight route row: centered arrival/departure (temas dark/light/exterior) */}
           {(homeStation && (originStation || destStation)) && (
-            <div className="classic-only flex items-center justify-center gap-3 text-xs font-semibold">
+            <div className="classic-only sky-replaced flex items-center justify-center gap-3 text-xs font-semibold">
               {homeStation && originStation && (
                 <span className="route-segment text-emerald-600 dark:text-emerald-400">
                   <Plane className="route-plane h-3 w-3" />
