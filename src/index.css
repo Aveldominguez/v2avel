@@ -645,10 +645,6 @@
     display: none;
   }
 
-  .sky .classic-only {
-    display: none;
-  }
-
   /* Barra de Guardar: fija abajo, ancho completo, visible en los 5 temas
      (Aero incluido — el botón flotante .aero-save-fab quedaba fuera del
      scroll y era ilocalizable; se unifica con el mismo patrón que Sky). */
