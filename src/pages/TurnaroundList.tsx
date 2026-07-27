@@ -443,12 +443,18 @@ const TurnaroundList: React.FC = () => {
                       </button>
                     </SheetClose>
                   )}
+                  <SheetClose asChild>
+                    <button onClick={checkForUpdate} disabled={updating} className="aero-home-menu-link flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
+                      <RefreshCw className={cn("h-5 w-5 text-sidebar-primary", updating && "animate-spin")} />
+                      Actualizar app
+                    </button>
+                  </SheetClose>
                 </nav>
               </SheetContent>
             </Sheet>
 
             <div className="text-center min-w-0">
-              <h1 className="text-lg font-bold leading-tight truncate">Ramp Control</h1>
+              <h1 className="text-lg font-bold leading-tight truncate">Control Rampa v{parseFloat(APP_VERSION)}</h1>
               <p className="text-xs text-muted-foreground truncate">Operaciones de rampa</p>
             </div>
 

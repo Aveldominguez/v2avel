@@ -3,6 +3,7 @@ export const APP_VERSION = '4.100';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
+  'Estilo v4 (Aero): añadido "Actualizar app" al menú hamburguesa de Home — era el único de los 5 temas sin forma de forzar la actualización. El título de la cabecera pasa de "Ramp Control" a "Control Rampa v4.1" (versión dinámica).',
   'Estilo Sky: se corrige el bug que dejaba la Home sin cabecera (sin menú, sin botón de cambiar tema) al entrar en Sky — una regla de CSS de la fusión de Estilo v4 ocultaba la única cabecera que existe para ese tema, dejando la app aparentemente bloqueada al no poder tocar nada arriba.',
   'Crear Usuario / Cambiar contraseña: corregido el parseo del error del servidor — buscaba el cuerpo de la respuesta en error.context.response, pero la librería de Supabase la pone directamente en error.context. Por eso nunca se veía el motivo real (ej. "Este email ya está registrado") y siempre salía el mensaje genérico.',
   'Catálogos → Equipos: la tabla de unidades (Código/Etiqueta) tenía columnas tan estrechas en móvil que el texto quedaba invisible — ahora la fila se desplaza horizontalmente en vez de comprimirse.',
