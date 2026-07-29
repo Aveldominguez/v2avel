@@ -71,6 +71,37 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     });
   };
 
+  // Transforming the value on every keystroke (toUpperCase) resets the caret
+  // to the end of the field on some mobile keyboards, since the browser sees
+  // it as a brand-new value rather than the same text with a case change.
+  // Editing a middle line then feels like the cursor "jumps down a line"
+  // after each letter. Restore the caret position explicitly to fix it.
+  const handleHoldTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>, holdId: string) => {
+    const el = e.target;
+    const cursorPos = el.selectionStart;
+    const raw = el.value.toUpperCase();
+    const transformed = evaluateMath(raw);
+    const lengthDelta = transformed.length - raw.length;
+    onChange(holdId, transformed);
+    const restorePos = cursorPos + (lengthDelta > 0 ? lengthDelta : 0);
+    requestAnimationFrame(() => {
+      el.setSelectionRange(restorePos, restorePos);
+    });
+  };
+
+  const handleHoldInputChange = (e: React.ChangeEvent<HTMLInputElement>, holdId: string) => {
+    const el = e.target;
+    const cursorPos = el.selectionStart;
+    const raw = el.value.toUpperCase();
+    const transformed = evaluateMath(raw);
+    const lengthDelta = transformed.length - raw.length;
+    onChange(holdId, transformed);
+    const restorePos = (cursorPos ?? transformed.length) + (lengthDelta > 0 ? lengthDelta : 0);
+    requestAnimationFrame(() => {
+      el.setSelectionRange(restorePos, restorePos);
+    });
+  };
+
   const getValue = (holdId: string): string =>
     values.find(v => v.fieldDefinitionId === holdId)?.value || '';
 
@@ -210,7 +241,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         <Input
           type="text"
            value={nilActive ? 'NIL' : getValue(contentFieldId)}
-          onChange={(e) => onChange(contentFieldId, evaluateMath(e.target.value.toUpperCase()))}
+          onChange={(e) => handleHoldInputChange(e, contentFieldId)}
           disabled={disabled || nilActive}
           placeholder="Contenido bodega"
           className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
@@ -270,7 +301,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
         </label>
         <textarea
           value={val}
-          onChange={(e) => onChange(hold.id, evaluateMath(e.target.value.toUpperCase()))}
+          onChange={(e) => handleHoldTextChange(e, hold.id)}
           disabled={disabled}
           placeholder="—"
           rows={lineCount}
@@ -296,7 +327,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="flex gap-1">
             <textarea
               value={leftVal}
-              onChange={(e) => onChange(entry.left.id, evaluateMath(e.target.value.toUpperCase()))}
+              onChange={(e) => handleHoldTextChange(e, entry.left.id)}
               disabled={disabled}
               placeholder="—"
               rows={leftLines}
@@ -312,7 +343,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
           <div className="flex gap-1">
             <textarea
               value={rightVal}
-              onChange={(e) => onChange(entry.right.id, evaluateMath(e.target.value.toUpperCase()))}
+              onChange={(e) => handleHoldTextChange(e, entry.right.id)}
               disabled={disabled}
               placeholder="—"
               rows={rightLines}
@@ -346,7 +377,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               <Input
                 type="text"
                 value={getValue(fieldId)}
-                onChange={(e) => onChange(fieldId, evaluateMath(e.target.value.toUpperCase()))}
+                onChange={(e) => handleHoldInputChange(e, fieldId)}
                 disabled={disabled}
                 placeholder="—"
                 className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
