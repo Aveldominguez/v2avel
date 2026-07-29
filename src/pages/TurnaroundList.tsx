@@ -319,6 +319,17 @@ const TurnaroundList: React.FC = () => {
     const hasArrival = times.chocksOnArrival;
     const hasDeparture = times.chocksOff;
 
+    // "Sólo llegada" / "Sólo salida" escalas never have data for the other
+    // side, so completion can't require both — only the side that applies.
+    if (times.soloLlegada) {
+      if (hasArrival) return 'completed';
+      return times.unloadingStart ? 'in-progress' : 'pending';
+    }
+    if (times.soloSalida) {
+      if (hasDeparture) return 'completed';
+      return times.loadingStart ? 'in-progress' : 'pending';
+    }
+
     if (hasArrival && hasDeparture) return 'completed';
     if (hasArrival || times.unloadingStart || times.loadingStart) return 'in-progress';
     return 'pending';
