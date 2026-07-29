@@ -484,8 +484,8 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   // Split layout for non-FedEx/Amazon
   if (usesSplitLayout(airline)) {
-    const arrivalFields = getArrivalFields(airline, isRemote);
-    const departureFields = getDepartureFields(airline, isRemote);
+    const arrivalFields = getArrivalFields(airline, isRemote, soloLlegada);
+    const departureFields = getDepartureFields(airline, isRemote, soloLlegada);
 
     // Filter for solo modes
     const filteredArrival = soloSalida ? [] : arrivalFields;

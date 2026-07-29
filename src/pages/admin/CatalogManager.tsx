@@ -731,7 +731,7 @@ const TIME_FIELD_DEFAULT_LABELS: Record<string, string> = {
   bagSearchEnd: 'Fin Búsqueda Maleta',
   gpuOn: 'Puesta de GPU',
   gpuOff: 'Retirada de GPU',
-  busArrival: '1ª Jardinera',
+  busArrival: 'Última Jardinera',
   parkingArrival: 'Llegada a Parking',
   fedexSuperArrival: 'Llegada FedEx Súper',
 };

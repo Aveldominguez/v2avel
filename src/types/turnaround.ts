@@ -369,7 +369,7 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   bagSearchEnd: 'Fin Búsqueda Maleta',
   gpuOn: 'Puesta de GPU',
   gpuOff: 'Retirada de GPU',
-  busArrival: '1ª Jardinera',
+  busArrival: 'Última Jardinera',
   parkingArrival: 'Llegada a Parking',
   fedexSuperArrival: 'Llegada FedEx Súper',
   pushBackTime: 'Fin Push Back',
@@ -430,13 +430,18 @@ const applyTimeFieldOverrides = (
 };
 
 // Get arrival fields for split layout
-export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeFieldConfig[] => {
+export const getArrivalFields = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
   const hasStairs = AIRLINES_WITH_STAIRS.includes(airline);
   let fields = hasStairs ? [...ARRIVAL_FIELDS_WITH_STAIRS] : [...ARRIVAL_FIELDS_NO_STAIRS];
 
   if (isRemote) {
     fields.push({ key: 'gpuOn', label: 'Puesta de GPU', type: 'time' });
-    fields.push({ key: 'busArrival', label: '1ª Jardinera', type: 'time' });
+    // "Última Jardinera" vive en Vuelo de salida (justo antes de la búsqueda
+    // de maleta): solo aparece aquí en llegada si no habrá sección de salida
+    // (Sólo llegada), que es el único caso donde salida no se va a mostrar.
+    if (soloLlegada) {
+      fields.push({ key: 'busArrival', label: 'Última Jardinera', type: 'time' });
+    }
 
     if (!hasStairs) {
       const stairsField: TimeFieldConfig = { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' };
@@ -454,12 +459,24 @@ export const getArrivalFields = (airline: AirlineCode, isRemote: boolean): TimeF
 };
 
 // Get departure fields for split layout
-export const getDepartureFields = (airline: AirlineCode, isRemote: boolean): TimeFieldConfig[] => {
+export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
   const hasStairs = AIRLINES_WITH_STAIRS.includes(airline) || isRemote;
   let fields = hasStairs ? [...DEPARTURE_FIELDS_WITH_STAIRS] : [...DEPARTURE_FIELDS_NO_STAIRS];
 
   if (isRemote) {
     fields.splice(fields.length - 1, 0, { key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
+
+    // "Última Jardinera": justo encima de "Inicio Búsqueda Maleta". No aparece
+    // aquí en modo Sólo llegada, donde se muestra en Vuelo de llegada en su lugar.
+    if (!soloLlegada) {
+      const bagSearchIdx = fields.findIndex(f => f.key === 'bagSearchStart');
+      const jardineraField: TimeFieldConfig = { key: 'busArrival', label: 'Última Jardinera', type: 'time' };
+      if (bagSearchIdx >= 0) {
+        fields.splice(bagSearchIdx, 0, jardineraField);
+      } else {
+        fields.push(jardineraField);
+      }
+    }
   }
 
   // Air Canada exclusive: Llegada Tripulación + Aviso/Recibo LIR
