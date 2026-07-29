@@ -200,7 +200,7 @@ const FieldRenderer: React.FC<{
         {busKeys.slice(0, visibleBusCount).map((bKey, bIdx) => (
           <div key={bKey} className="relative">
             <TimeInput
-              label={`${bIdx + 1}ª Jardinera`}
+              label={bIdx === 0 ? 'Última Jardinera' : `${bIdx + 1}ª Jardinera`}
               value={times[bKey] as string | null}
               onChange={(v) => updateTime(bKey, v)}
               error={getError(String(bKey))}
