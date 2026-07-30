@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Turnaround, AirlineCode, AIRLINES, findAirline } from '@/types/turnaround';
 import { useAllAirlines } from '@/hooks/useCatalog';
+import { getAllAircraftModels, getModelsForAirline } from '@/data/aircraftModels';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
@@ -142,7 +143,7 @@ const TurnaroundList: React.FC = () => {
     try {
       const raw = sessionStorage.getItem(FILTERS_KEY);
       if (!raw) return null;
-      return JSON.parse(raw) as { dateFilter?: string; airlineFilter?: string; searchQuery?: string };
+      return JSON.parse(raw) as { dateFilter?: string; airlineFilter?: string; searchQuery?: string; modelFilter?: string };
     } catch {
       return null;
     }
@@ -155,10 +156,26 @@ const TurnaroundList: React.FC = () => {
     (initialFilters?.airlineFilter as AirlineCode | 'ALL') || 'ALL'
   );
   const [searchQuery, setSearchQuery] = useState(initialFilters?.searchQuery || '');
+  const [modelFilter, setModelFilter] = useState<string>(initialFilters?.modelFilter || 'ALL');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  // Modelos del desplegable: los de la aerolínea filtrada, o todos si no hay
+  // ninguna seleccionada (así se puede buscar un modelo raro sin saber de quién es).
+  const modelOptions = React.useMemo(
+    () => (airlineFilter !== 'ALL' ? getModelsForAirline(airlineFilter) : getAllAircraftModels()),
+    [airlineFilter]
+  );
+
+  // Si al cambiar de aerolínea el modelo filtrado ya no existe, se limpia
+  // para no dejar la lista vacía sin explicación.
+  useEffect(() => {
+    if (modelFilter !== 'ALL' && !modelOptions.some(m => m.model === modelFilter)) {
+      setModelFilter('ALL');
+    }
+  }, [modelOptions, modelFilter]);
+
   // List state
-  const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || searchQuery.trim() !== '';
+  const hasFilters = !!dateFilter || airlineFilter !== 'ALL' || modelFilter !== 'ALL' || searchQuery.trim() !== '';
 
   // Hydrate from local cache for instant first paint when no filters
   const cached = (() => {
@@ -192,11 +209,12 @@ const TurnaroundList: React.FC = () => {
         dateFilter: dateFilter ? dateFilter.toISOString() : undefined,
         airlineFilter,
         searchQuery,
+        modelFilter,
       }));
     } catch {
       // ignore
     }
-  }, [dateFilter, airlineFilter, searchQuery]);
+  }, [dateFilter, airlineFilter, searchQuery, modelFilter]);
 
   // Debounce search query for server fetch
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
@@ -220,6 +238,7 @@ const TurnaroundList: React.FC = () => {
       limit: PAGE_SIZE,
       dateISO: dateFilter ? format(dateFilter, 'yyyy-MM-dd') : undefined,
       airline: airlineFilter !== 'ALL' ? airlineFilter : undefined,
+      aircraftModel: modelFilter !== 'ALL' ? modelFilter : undefined,
       searchFlight: debouncedSearch || undefined,
     })
       .then((data) => {
@@ -240,7 +259,7 @@ const TurnaroundList: React.FC = () => {
         setLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, dateFilter, airlineFilter, debouncedSearch]);
+  }, [user, dateFilter, airlineFilter, modelFilter, debouncedSearch]);
 
   // Prefetch the form route so "Nueva Escala" opens instantly
   useEffect(() => {
@@ -271,6 +290,7 @@ const TurnaroundList: React.FC = () => {
         limit: PAGE_SIZE,
         dateISO: dateFilter ? format(dateFilter, 'yyyy-MM-dd') : undefined,
         airline: airlineFilter !== 'ALL' ? airlineFilter : undefined,
+        aircraftModel: modelFilter !== 'ALL' ? modelFilter : undefined,
         searchFlight: debouncedSearch || undefined,
       });
       setRows(prev => [...prev, ...next]);
@@ -280,7 +300,7 @@ const TurnaroundList: React.FC = () => {
     } finally {
       setLoadingMore(false);
     }
-  }, [rows.length, loadingMore, hasMore, fetchPage, dateFilter, airlineFilter, debouncedSearch]);
+  }, [rows.length, loadingMore, hasMore, fetchPage, dateFilter, airlineFilter, modelFilter, debouncedSearch]);
 
   // Delete dialog
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -311,6 +331,7 @@ const TurnaroundList: React.FC = () => {
   const clearFilters = () => {
     setDateFilter(undefined);
     setAirlineFilter('ALL');
+    setModelFilter('ALL');
     setSearchQuery('');
   };
 
@@ -549,7 +570,7 @@ const TurnaroundList: React.FC = () => {
                   </Button>
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -592,6 +613,19 @@ const TurnaroundList: React.FC = () => {
                     <SelectItem value="ALL">Todas las aerolíneas</SelectItem>
                     {allAirlines.map((a) => (
                       <SelectItem key={a.code} value={a.code}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Aircraft model filter */}
+                <Select value={modelFilter} onValueChange={setModelFilter}>
+                  <SelectTrigger className="aero-home-filter h-11">
+                    <SelectValue placeholder="Todos los modelos" />
+                  </SelectTrigger>
+                  <SelectContent className="aero-home-filter-menu">
+                    <SelectItem value="ALL">Todos los modelos</SelectItem>
+                    {modelOptions.map((m) => (
+                      <SelectItem key={m.model} value={m.model}>{m.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

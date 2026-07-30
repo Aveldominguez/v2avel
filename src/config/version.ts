@@ -3,6 +3,8 @@ export const APP_VERSION = '4.100';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
+  'Buscar Escala: nuevo filtro por modelo de avión, para localizar trabajos anteriores con aviones poco habituales o modificados. Lista los modelos de la aerolínea filtrada, o todos si no hay ninguna seleccionada.',
+  'Air Est: las escalas ya existentes se renumeran de "AE####" a "AEG####" (llegada y salida), para que el buscador las encuentre al filtrar por esa aerolínea.',
   'Air Est: el prefijo de vuelo pasa de "AE" a "AEG" (siglas correctas de la compañía) al crear una escala nueva.',
   'Pegasus: la categoría "Escaleras" ya aparece siempre en Equipos utilizados, no solo en escalas remotas.',
   'Estilo v4 (Aero): en los diálogos (p. ej. "Comoditys" de Control de Horas) el texto descriptivo se veía gris casi blanco sobre fondo blanco — ahora se lee correctamente en todas las aerolíneas.',

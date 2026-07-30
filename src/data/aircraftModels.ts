@@ -154,6 +154,38 @@ export const getModelsForAirline = (airline: AirlineCode): AircraftModelConfig[]
   return applyModelOverlay(airline);
 };
 
+/**
+ * Todos los modelos de todas las aerolíneas, deduplicados por código de modelo
+ * y ordenados alfabéticamente. Se usa en el filtro de búsqueda de la Home,
+ * donde puede no haber una aerolínea seleccionada.
+ */
+export const getAllAircraftModels = (): AircraftModelConfig[] => {
+  const map = new Map<string, AircraftModelConfig>();
+
+  const add = (m: AircraftModelConfig) => {
+    if (!map.has(m.model)) map.set(m.model, m);
+  };
+
+  Object.keys(AIRCRAFT_MODELS).forEach(airline => {
+    applyModelOverlay(airline).forEach(add);
+  });
+
+  // Modelos añadidos desde el catálogo para aerolíneas que no están en el
+  // mapa base (aerolíneas creadas por el admin).
+  try {
+    getCatalogSnapshot().aircraftModels
+      .filter(o => o.active)
+      .forEach(o => add({
+        model: o.modelCode,
+        label: o.label,
+        turnaroundMinutes: o.turnaroundMinutes,
+        cleaningMinutes: o.cleaningMinutes ?? undefined,
+      }));
+  } catch { /* catálogo no disponible */ }
+
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+};
+
 export const getTurnaroundDuration = (airline: AirlineCode, model: string): number => {
   const models = applyModelOverlay(airline);
   const found = models.find(m => m.model === model);

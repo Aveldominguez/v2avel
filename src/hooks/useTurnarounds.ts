@@ -68,6 +68,7 @@ export interface FetchPageOptions {
   dateISO?: string;
   airline?: AirlineCode;
   searchFlight?: string;
+  aircraftModel?: string;
 }
 
 const LIST_COLUMNS = 'id,user_id,flight_number,date,airline,times,observations,created_at,updated_at';
@@ -77,6 +78,7 @@ const filterLocal = (list: LocalTurnaround[], opts: FetchPageOptions): LocalTurn
   return list.filter(t => {
     if (opts.dateISO && t.date !== opts.dateISO) return false;
     if (opts.airline && t.airline !== opts.airline) return false;
+    if (opts.aircraftModel && (t.times?.aircraftModel as string) !== opts.aircraftModel) return false;
     if (s) {
       const f = (t.flightNumber || '').toUpperCase();
       const d = ((t.times?.departureFlightNumber as string) || '').toUpperCase();
@@ -97,6 +99,7 @@ export const useTurnarounds = () => {
       let query = supabase.from('turnarounds').select(LIST_COLUMNS).eq('user_id', user.id);
       if (opts.dateISO) query = query.eq('date', opts.dateISO);
       if (opts.airline) query = query.eq('airline', opts.airline);
+      if (opts.aircraftModel) query = query.eq('times->>aircraftModel', opts.aircraftModel);
       if (opts.searchFlight && opts.searchFlight.trim() !== '') {
         const s = opts.searchFlight.trim().replace(/[%,]/g, '');
         query = query.or(`flight_number.ilike.%${s}%,times->>departureFlightNumber.ilike.%${s}%`);
