@@ -1,6 +1,9 @@
 {
   "version": "4.100",
   "changelog": [
+    "Air Est: el prefijo de vuelo pasa de \"AE\" a \"AEG\" (siglas correctas de la compañía) al crear una escala nueva.",
+    "Pegasus: la categoría \"Escaleras\" ya aparece siempre en Equipos utilizados, no solo en escalas remotas.",
+    "Estilo v4 (Aero): en los diálogos (p. ej. \"Comoditys\" de Control de Horas) el texto descriptivo se veía gris casi blanco sobre fondo blanco — ahora se lee correctamente en todas las aerolíneas.",
     "Bodegas / AKH: los text areas y campos de contenido ya no saltan el cursor al final al escribir sobre una línea intermedia (bug conocido de teclados móviles con inputs controlados que transforman a mayúsculas en cada tecla).",
     "Escalas \"En remoto\": el campo \"1ª Jardinera\" pasa a llamarse \"Última Jardinera\" y se mueve a Vuelo de salida, justo encima de Inicio Búsqueda Maleta — salvo en \"Sólo llegada\", donde no hay salida y se mantiene en Vuelo de llegada.",
     "Escalas \"Sólo llegada\" / \"Sólo salida\": ya no se quedan marcadas como pendientes al completarse — el estado ahora solo exige los datos del lado que aplica, no ambos.",

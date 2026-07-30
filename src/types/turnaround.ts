@@ -620,7 +620,7 @@ export const AIRLINE_PREFIXES: Record<string, string> = {
   AZUL: 'AD',
   EUROWINGS: 'EW',
   CROATIA: 'OU',
-  AIR_EST: 'AE',
+  AIR_EST: 'AEG',
   SIN_MARCA: 'SM',
   WESTJET: 'WS',
 };

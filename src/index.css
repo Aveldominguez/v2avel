@@ -846,6 +846,21 @@
     color: #13213a !important;
   }
 
+  /* El diálogo se fuerza a fondo blanco (arriba), pero los textos que llevan
+     su propia clase de color siguen resolviendo --foreground, que en Aero es
+     casi blanco (pensado para el navy del body) → texto ilegible sobre
+     blanco. Se cubren también las variantes con opacidad (text-foreground/80,
+     /90…) con selector de subcadena, como en el resto de fixes de contraste. */
+  .aero [role='dialog'] [class*='text-foreground'],
+  .aero .aero-dialog-surface [class*='text-foreground'] {
+    color: #13213a !important;
+  }
+
+  .aero [role='dialog'] [class*='text-muted-foreground'],
+  .aero .aero-dialog-surface [class*='text-muted-foreground'] {
+    color: #647187 !important;
+  }
+
   .aero .bg-card .text-foreground,
   .aero .card-operational .text-foreground {
     color: #13213a !important;

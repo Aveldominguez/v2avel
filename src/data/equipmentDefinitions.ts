@@ -213,6 +213,14 @@ const STANDARD_RULES: AirlineEquipmentRules = {
   JARDINERAS: 'remote',
 };
 
+// Como STANDARD pero con escaleras siempre disponibles: aerolíneas que operan
+// con escalera también en puerta, no solo en remoto (coincide con que ya están
+// en AIRLINES_WITH_STAIRS y sí tienen los campos de hora de escalera).
+const STANDARD_WITH_STAIRS_RULES: AirlineEquipmentRules = {
+  ...STANDARD_RULES,
+  ESCALERAS: 'always',
+};
+
 // Group 2: widebody / long-haul
 const WIDEBODY_RULES: AirlineEquipmentRules = {
   TRACTORES: 'always',
@@ -260,7 +268,7 @@ const AIRLINE_RULES: Record<string, AirlineEquipmentRules> = {
   WIZZ: STANDARD_RULES,
   NILE_AIR: STANDARD_RULES,
   AEGEAN: STANDARD_RULES,
-  PEGASUS: STANDARD_RULES,
+  PEGASUS: STANDARD_WITH_STAIRS_RULES,
   SKYEXPRESS: STANDARD_RULES,
   A_JET: STANDARD_RULES,
   ALBASTAR: STANDARD_RULES,
