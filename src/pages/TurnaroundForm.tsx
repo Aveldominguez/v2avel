@@ -638,7 +638,7 @@ const TurnaroundForm: React.FC = () => {
         <div className="container mx-auto px-4 py-3 space-y-2">
           {/* Top row: back button + save */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               {!isEditing && (
                 <button
                   onClick={() => setStep(1)}
@@ -667,7 +667,10 @@ const TurnaroundForm: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            {/* min-w-0 (y no shrink-0) para que este grupo pueda ceder ancho:
+                con shrink-0 el contenido empujaba el botón Guardar fuera del
+                padding del contenedor en pantallas de ~412px. */}
+            <div className="flex min-w-0 items-center gap-2">
               <button
                 onClick={() => setStep(1)}
                 className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
@@ -684,9 +687,19 @@ const TurnaroundForm: React.FC = () => {
                 pendingCount={pendingCount}
                 lastSaved={lastSaved}
               />
-              <Button ref={saveButtonRef} onClick={handleSave} size="sm" className="gap-1.5" disabled={saving}>
+              <Button
+                ref={saveButtonRef}
+                onClick={handleSave}
+                size="sm"
+                className="gap-1.5 shrink-0 px-2.5 min-[360px]:px-3"
+                disabled={saving}
+                aria-label="Guardar"
+              >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                <span>Guardar</span>
+                {/* Por debajo de 360px queda sólo el icono: el texto no cabe sin
+                    empujar el botón fuera del marco. No se pierde acceso, la
+                    barra fija inferior sigue mostrando "Guardar" a todo el ancho. */}
+                <span className="hidden min-[360px]:inline">Guardar</span>
               </Button>
             </div>
           </div>
