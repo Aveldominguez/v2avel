@@ -119,8 +119,8 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
             </pre>
           </div>
         )}
-        <div className="mx-auto flex max-w-2xl justify-end">
-          <WindForecastFlag className="mb-1.5" />
+        <div className="mx-auto w-full max-w-2xl">
+          <WindForecastFlag variant="banner" className="mb-1.5" />
         </div>
         <div
           className={cn(
@@ -160,6 +160,10 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
 
   return (
     <div className="space-y-3">
+      {/* La previsión del día va arriba del todo y a todo el ancho: es lo
+          primero que conviene ver al abrir la app. */}
+      <WindForecastFlag variant="banner" />
+
       {alert && weather && AlertIcon && isOpen && (
         <div className={cn('rounded-lg border-2 p-3', alert.border, alert.bg)}>
           <div className="flex items-start gap-2">
@@ -210,7 +214,6 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
                 ? <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
                 : <ChevronDown className={cn('h-4 w-4 shrink-0', alert ? alert.solidIcon : 'text-muted-foreground')} />}
             </button>
-            <WindForecastFlag className="mr-1.5" />
             <Button
               variant="ghost"
               size="icon"

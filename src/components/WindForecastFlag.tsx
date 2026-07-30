@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CalendarClock, X } from 'lucide-react';
+import { CalendarClock, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useWindForecast, type WindAlertLevel } from '@/hooks/useWindForecast';
 import { cn } from '@/lib/utils';
 
@@ -19,9 +19,17 @@ const fmtHour = (d: Date) => d.toLocaleTimeString('es-ES', { hour: '2-digit', mi
  */
 interface WindForecastFlagProps {
   className?: string;
+  /**
+   * 'pill'   — banderín compacto, para meterlo en una fila junto a otros controles.
+   * 'banner' — franja a todo el ancho con la misma estructura de dos líneas que
+   *            la barra del METAR. Es el formato de la Home: la previsión del día
+   *            es información operativa importante y en formato pastilla pasaba
+   *            desapercibida al lado del widget de METAR.
+   */
+  variant?: 'pill' | 'banner';
 }
 
-export const WindForecastFlag: React.FC<WindForecastFlagProps> = ({ className }) => {
+export const WindForecastFlag: React.FC<WindForecastFlagProps> = ({ className, variant = 'pill' }) => {
   const { forecast, refresh } = useWindForecast();
   const [open, setOpen] = useState(false);
 
@@ -41,16 +49,39 @@ export const WindForecastFlag: React.FC<WindForecastFlagProps> = ({ className })
       {open && (
         <div className="fixed inset-0 bg-black/40 z-[60]" onClick={() => setOpen(false)} />
       )}
-      <div className={cn('relative z-[70] inline-flex', className)}>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className={`flex h-10 items-center gap-1.5 rounded-lg border-2 border-current/30 px-2.5 shadow-sm font-semibold text-xs ${style.tone} transition-all`}
-          aria-label={`Previsión de viento: ${style.label} entre ${fmtHour(worstToday.from)} y ${fmtHour(worstToday.to)}`}
-        >
-          <CalendarClock className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">PREVISIÓN</span>
-          <span>{fmtHour(worstToday.from)}–{fmtHour(worstToday.to)}</span>
-        </button>
+      <div className={cn('relative z-[70]', variant === 'banner' ? 'block' : 'inline-flex', className)}>
+        {variant === 'banner' ? (
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className={`flex min-h-12 w-full items-center gap-2 rounded-xl border-2 border-current/30 px-3 py-2 text-left shadow-sm font-semibold ${style.tone} transition-all active:scale-[0.99]`}
+            aria-expanded={open}
+            aria-label={`Previsión de viento: ${style.label} entre ${fmtHour(worstToday.from)} y ${fmtHour(worstToday.to)}`}
+          >
+            <CalendarClock className="h-5 w-5 shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] font-bold tracking-wide">
+                PREVISIÓN TAF · LEMD · {style.label}
+              </span>
+              <span className="block truncate font-mono text-xs">
+                {fmtHour(worstToday.from)}–{fmtHour(worstToday.to)} · {worstToday.speed}
+                {worstToday.gust ? `G${worstToday.gust}` : ''} kt
+              </span>
+            </span>
+            {open
+              ? <ChevronDown className="h-4 w-4 shrink-0" />
+              : <ChevronUp className="h-4 w-4 shrink-0" />}
+          </button>
+        ) : (
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className={`flex h-10 items-center gap-1.5 rounded-lg border-2 border-current/30 px-2.5 shadow-sm font-semibold text-xs ${style.tone} transition-all`}
+            aria-label={`Previsión de viento: ${style.label} entre ${fmtHour(worstToday.from)} y ${fmtHour(worstToday.to)}`}
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">PREVISIÓN</span>
+            <span>{fmtHour(worstToday.from)}–{fmtHour(worstToday.to)}</span>
+          </button>
+        )}
 
         {open && (
           <div className="fixed left-1/2 top-24 z-[80] w-[min(90vw,380px)] -translate-x-1/2 rounded-xl border bg-popover p-4 text-popover-foreground shadow-2xl">
