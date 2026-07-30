@@ -39,6 +39,21 @@ export const WindAlertBadge: React.FC = () => {
   const worstForecast = forecast?.worstToday ?? null;
   const forecastTone = worstForecast ? FORECAST_TONE[worstForecast.level!] : null;
 
+  // El botón pinta el METAR en vivo si hay alerta actual; si no, pinta la
+  // previsión TAF. Antes la previsión sólo se veía como un punto diminuto en
+  // la esquina, pese a ser información operativa importante.
+  const liveActive = Boolean(cfg && !isDismissed);
+  const badgeTone = liveActive ? tone : (forecastTone ?? 'bg-primary text-primary-foreground');
+  const effectiveLevel: WindAlertLevel = liveActive
+    ? alertLevel
+    : (worstForecast ? (worstForecast.level!.toLowerCase() as WindAlertLevel) : null);
+
+  const badgeLabel = liveActive
+    ? `Alerta de viento: ${cfg!.label}`
+    : worstForecast
+      ? `Previsión de viento: ${worstForecast.level} entre ${fmtHour(worstForecast.from)} y ${fmtHour(worstForecast.to)}`
+      : 'Estado del viento: normal';
+
   return (
     <>
       {open && (
@@ -51,13 +66,16 @@ export const WindAlertBadge: React.FC = () => {
       <div className="relative z-[70]">
         <button
           onClick={() => setOpen((o) => !o)}
-          className={`wind-alert-flag wind-alert-${alertLevel ?? 'normal'} relative flex h-10 min-w-10 items-center justify-center gap-1 rounded-lg border-2 border-current/30 px-2 shadow-sm font-semibold text-xs ${tone} transition-all`}
-          aria-label={cfg && !isDismissed ? `Alerta de viento: ${cfg.label}` : 'Estado del viento: normal'}
+          className={`wind-alert-flag wind-alert-${effectiveLevel ?? 'normal'} ${effectiveLevel ? 'wind-alert-pulse' : ''} relative flex h-10 min-w-10 items-center justify-center gap-1 rounded-lg border-2 border-current/30 px-2 shadow-sm font-semibold text-xs ${badgeTone} transition-all`}
+          aria-label={badgeLabel}
         >
           <Wind className="h-3.5 w-3.5" />
           {effective !== null && <span className="hidden sm:inline">{effective}kt</span>}
-          {/* Punto de aviso: hay previsión de viento fuerte más tarde hoy */}
-          {worstForecast && (
+          {/* Punto de aviso: sólo cuando el fondo ya está mostrando la alerta
+              del METAR en vivo, para no perder el dato de que además hay
+              previsión. Si no hay alerta en vivo, la previsión se ve en el
+              propio fondo del botón y el punto sobra. */}
+          {worstForecast && liveActive && (
             <span
               className={`absolute -top-1 -right-1 h-3 w-3 rounded-full border-2 border-background ${forecastTone}`}
               aria-hidden="true"

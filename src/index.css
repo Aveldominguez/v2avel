@@ -1644,3 +1644,62 @@
     overscroll-behavior-x: none;
   }
 }
+
+/* ── Alerta de viento: latido del fondo ──────────────────────────────────────
+   Cuando hay alerta (METAR en vivo o previsión TAF) el botón se pinta con el
+   color del nivel y "late" entre ese tono y otro más claro.
+
+   El latido se hace con una capa superpuesta cuya opacidad se anima, en vez de
+   animar background-color: los temas (Aero) fijan el fondo del botón con
+   !important, y una declaración !important gana a los valores de una animación,
+   así que animar el fondo directamente no tendría efecto ahí. Con la capa el
+   efecto funciona igual en los 5 temas y sin duplicar la paleta de cada uno.
+
+   isolation:isolate + z-index:-1 dejan la capa por encima del fondo del botón
+   pero por debajo del icono y del texto, que quedan siempre legibles. */
+.wind-alert-pulse {
+  position: relative;
+  isolation: isolate;
+}
+
+.wind-alert-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  animation: wind-alert-heartbeat 1.3s ease-in-out infinite;
+}
+
+/* La suspensión (rojo) es el nivel más grave: late algo más rápido y marcado. */
+.wind-alert-pulse.wind-alert-suspension::after {
+  animation-duration: 0.95s;
+}
+
+@keyframes wind-alert-heartbeat {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    /* Tope contenido a propósito: por encima de ~0.35 el naranja y el rojo se
+       lavan tanto que el icono y los "kt" en blanco pierden legibilidad justo
+       en el pico del latido. */
+    opacity: 0.32;
+  }
+}
+
+/* Accesibilidad: sin parpadeo si el sistema pide movimiento reducido. El color
+   de fondo del nivel se mantiene, que es lo que comunica la alerta. */
+@media (prefers-reduced-motion: reduce) {
+  .wind-alert-pulse,
+  .wind-alert-pulse::after {
+    animation: none;
+  }
+  .wind-alert-pulse::after {
+    opacity: 0;
+  }
+}

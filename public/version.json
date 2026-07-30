@@ -1,6 +1,7 @@
 {
   "version": "4.100",
   "changelog": [
+    "Alerta de viento: cuando hay aviso (METAR en vivo o previsión TAF) el botón se pinta entero con el color del nivel — amarillo, naranja o rojo — y late entre ese tono y otro más claro. Antes la previsión sólo se señalaba con un punto diminuto en la esquina, fácil de pasar por alto.",
     "Buscar Escala: nuevo filtro por modelo de avión, para localizar trabajos anteriores con aviones poco habituales o modificados. Lista los modelos de la aerolínea filtrada, o todos si no hay ninguna seleccionada.",
     "Air Est: las escalas ya existentes se renumeran de \"AE####\" a \"AEG####\" (llegada y salida), para que el buscador las encuentre al filtrar por esa aerolínea.",
     "Air Est: el prefijo de vuelo pasa de \"AE\" a \"AEG\" (siglas correctas de la compañía) al crear una escala nueva.",
