@@ -37,7 +37,7 @@ export const applyTheme = (theme: string | null) => {
   root.offsetHeight;
 };
 
-export const ThemeToggle: React.FC = () => {
+export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -68,7 +68,8 @@ export const ThemeToggle: React.FC = () => {
         theme === 'light' && 'bg-muted border-border text-foreground hover:bg-muted/80',
         theme === 'exterior' && 'bg-foreground text-background border-foreground',
         theme === 'sky' && 'bg-gradient-to-br from-sky-400 to-blue-600 text-white border-white/60 shadow-md',
-        theme === 'aero' && 'bg-secondary border-primary/40 text-primary hover:bg-secondary/80'
+        theme === 'aero' && 'bg-secondary border-primary/40 text-primary hover:bg-secondary/80',
+        className
       )}
       aria-label={LABEL[theme]}
       title={LABEL[theme]}

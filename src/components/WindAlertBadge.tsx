@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Wind, X, CalendarClock } from 'lucide-react';
 import { useMetar, ALERT_CONFIG, type WindAlertLevel } from '@/hooks/useMetar';
 import { useWindForecast } from '@/hooks/useWindForecast';
+import { cn } from '@/lib/utils';
 
 const FORECAST_TONE: Record<'PRECAUCION' | 'RESTRICCION' | 'SUSPENSION', string> = {
   PRECAUCION: 'bg-yellow-500 text-yellow-950',
@@ -11,7 +12,7 @@ const FORECAST_TONE: Record<'PRECAUCION' | 'RESTRICCION' | 'SUSPENSION', string>
 
 const fmtHour = (d: Date) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-export const WindAlertBadge: React.FC = () => {
+export const WindAlertBadge: React.FC<{ className?: string }> = ({ className }) => {
   const { windData, alertLevel, loading } = useMetar();
   const { forecast, refresh: refreshForecast } = useWindForecast();
   const [open, setOpen] = useState(false);
@@ -66,7 +67,10 @@ export const WindAlertBadge: React.FC = () => {
       <div className="relative z-[70]">
         <button
           onClick={() => setOpen((o) => !o)}
-          className={`wind-alert-flag wind-alert-${effectiveLevel ?? 'normal'} ${effectiveLevel ? 'wind-alert-pulse' : ''} relative flex h-10 min-w-10 items-center justify-center gap-1 rounded-lg border-2 border-current/30 px-2 shadow-sm font-semibold text-xs ${badgeTone} transition-all`}
+          className={cn(
+            `wind-alert-flag wind-alert-${effectiveLevel ?? 'normal'} ${effectiveLevel ? 'wind-alert-pulse' : ''} relative flex h-10 min-w-10 items-center justify-center gap-1 rounded-lg border-2 border-current/30 px-2 shadow-sm font-semibold text-xs ${badgeTone} transition-all`,
+            className
+          )}
           aria-label={badgeLabel}
         >
           <Wind className="h-3.5 w-3.5" />

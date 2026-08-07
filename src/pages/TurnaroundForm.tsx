@@ -679,11 +679,11 @@ const TurnaroundForm: React.FC = () => {
         <div className="container mx-auto px-4 py-3 space-y-2">
           {/* Top row: back button + save */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
               {!isEditing && (
                 <button
                   onClick={() => setStep(1)}
-                  className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  className="aero-header-action shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                   aria-label="Volver atrás"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -692,7 +692,7 @@ const TurnaroundForm: React.FC = () => {
               {isEditing && (
                 <button
                   onClick={() => navigate(-1)}
-                  className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                  className="aero-header-action shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                   aria-label="Volver atrás"
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -702,7 +702,7 @@ const TurnaroundForm: React.FC = () => {
                 <img
                   src={airlineLogo}
                   alt={airlineInfo?.name ?? 'Airline logo'}
-                  className="aero-airline-logo h-8 w-auto max-w-[80px] object-contain"
+                  className="aero-airline-logo h-7 w-auto max-w-[64px] object-contain"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               )}
@@ -711,10 +711,10 @@ const TurnaroundForm: React.FC = () => {
             {/* min-w-0 (y no shrink-0) para que este grupo pueda ceder ancho:
                 con shrink-0 el contenido empujaba el botón Guardar fuera del
                 padding del contenedor en pantallas de ~412px. */}
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
               <button
                 onClick={() => setStep(1)}
-                className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
+                className="aero-header-action shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border-2 bg-muted border-border text-foreground hover:bg-muted/80 transition-colors"
                 title="Editar datos del vuelo"
                 aria-label="Editar datos del vuelo"
               >
@@ -732,8 +732,8 @@ const TurnaroundForm: React.FC = () => {
                 remoteLocation={remoteLocation}
                 departureTime={departureTime}
               />
-              <WindAlertBadge />
-              <ThemeToggle />
+              <WindAlertBadge className="h-9 min-w-9" />
+              <ThemeToggle className="h-9 w-9" />
               <ConnectionStatus
                 isOnline={isOnline}
                 syncing={syncing}
@@ -744,15 +744,15 @@ const TurnaroundForm: React.FC = () => {
                 ref={saveButtonRef}
                 onClick={handleSave}
                 size="sm"
-                className="gap-1.5 shrink-0 px-2.5 min-[360px]:px-3"
+                className="gap-1 shrink-0 h-9 px-2 text-xs"
                 disabled={saving}
                 aria-label="Guardar"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {/* Por debajo de 360px queda sólo el icono: el texto no cabe sin
+                {/* Por debajo de 420px queda sólo el icono: el texto no cabe sin
                     empujar el botón fuera del marco. No se pierde acceso, la
                     barra fija inferior sigue mostrando "Guardar" a todo el ancho. */}
-                <span className="hidden min-[360px]:inline">Guardar</span>
+                <span className="hidden min-[420px]:inline">Guardar</span>
               </Button>
             </div>
           </div>
@@ -858,25 +858,6 @@ const TurnaroundForm: React.FC = () => {
             </div>
           )}
 
-          {/* Navegación por secciones — el formulario es largo; esto evita scroll a ciegas */}
-          <nav className="flex gap-1.5 overflow-x-auto -mx-1 px-1" aria-label="Secciones del formulario">
-            {[
-              { id: 'sec-tiempos', label: 'Tiempos' },
-              { id: 'sec-campos', label: 'Campos' },
-              { id: 'sec-equipos', label: 'Equipos' },
-              { id: 'sec-fotos', label: 'Fotos' },
-              { id: 'sec-obs', label: 'Observaciones' },
-            ].map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                className="nav-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-secondary text-secondary-foreground hover:bg-secondary/70 active:scale-95 transition-transform"
-              >
-                {s.label}
-              </button>
-            ))}
-          </nav>
         </div>
       </header>
 

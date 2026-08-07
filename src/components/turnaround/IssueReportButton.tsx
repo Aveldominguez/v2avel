@@ -146,7 +146,7 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="aero-header-action shrink-0 flex items-center justify-center h-10 w-10 rounded-lg border-2 bg-muted border-border text-warning hover:bg-muted/80 transition-colors"
+        className="aero-header-action shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border-2 bg-muted border-border text-warning hover:bg-muted/80 transition-colors"
         title="Reportar fallo de la app en esta escala"
         aria-label="Reportar fallo de la app"
       >
