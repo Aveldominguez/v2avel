@@ -56,6 +56,21 @@ export const WIZZ_FIELDS: FieldDefinition[] = [
   createField('WIZZ', 'WDB', 'Wheelchair – Dry Battery', 11),
 ];
 
+// Dan Air - Salida (misma estructura que Wizz Air)
+export const DAN_AIR_FIELDS: FieldDefinition[] = [
+  createField('DAN_AIR', 'BT', 'Tránsito', 1),
+  createField('DAN_AIR', 'BY', 'Local', 2),
+  createField('DAN_AIR', 'BG', 'Gate / Mano / Puerta', 3),
+  createField('DAN_AIR', 'BP', 'Priority', 4),
+  createField('DAN_AIR', 'DAA', 'Delivery at Aircraft (Carrito)', 5),
+  createField('DAN_AIR', 'D', 'Crew', 6),
+  createField('DAN_AIR', 'E', 'Equipment', 7),
+  createField('DAN_AIR', 'BH', 'Grupo (Varios tránsitos mismo destino)', 8),
+  createField('DAN_AIR', 'WLB', 'Wheelchair – Lithium Battery (Manual Power)', 9),
+  createField('DAN_AIR', 'WCH', 'Wheelchair', 10),
+  createField('DAN_AIR', 'WDB', 'Wheelchair – Dry Battery', 11),
+];
+
 // ITA Airways - Salida
 export const ITA_FIELDS: FieldDefinition[] = [
   createField('ITA', 'BT', 'Tránsito', 1),
@@ -207,6 +222,7 @@ export const ALL_FIELD_DEFINITIONS: FieldDefinition[] = [
   ...A_JET_FIELDS,
   ...TAP_FIELDS,
   ...WIZZ_FIELDS,
+  ...DAN_AIR_FIELDS,
   ...ITA_FIELDS,
   ...AEGEAN_FIELDS,
   ...PEGASUS_FIELDS,

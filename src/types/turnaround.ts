@@ -4,7 +4,7 @@ import { getCatalogSnapshot } from '@/lib/catalogStore';
 // Airline code is a free-form string so admins can register new airlines from the
 // catalog admin panel without code changes. Known built-in codes are listed in AIRLINES.
 export type AirlineCode = string;
-export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'SKYUP' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET';
+export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'SKYUP' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET' | 'DAN_AIR';
 
 export interface TurnaroundTimes {
   lirReception: string | null;           // Recepción de LIR
@@ -171,6 +171,7 @@ export const AIRLINES: AirlineInfo[] = [
   { code: 'TRANSAVIA', name: 'Transavia', shortName: 'TRANSAVIA', color: 'hsl(145, 70%, 40%)' },
   { code: 'WESTJET', name: 'WestJet', shortName: 'WESTJET', color: 'hsl(200, 85%, 45%)' },
   { code: 'WIZZ', name: 'Wizz Air', shortName: 'WIZZ', color: 'hsl(316, 73%, 52%)' },
+  { code: 'DAN_AIR', name: 'Dan Air', shortName: 'DAN AIR', color: 'hsl(200, 85%, 45%)' },
 ];
 
 /**
@@ -606,6 +607,7 @@ export const AIRLINE_PREFIXES: Record<string, string> = {
   AIR_CANADA_CARGO: 'AC',
   TRANSAVIA: 'TO',
   WIZZ: 'W',
+  DAN_AIR: 'DN',
   TAP: 'TP',
   ITA: 'AZ0',
   NILE_AIR: 'NP',

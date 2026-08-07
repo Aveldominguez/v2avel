@@ -320,6 +320,29 @@ export const WIZZ_A320_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Dan Air A320/A321 — misma distribución en ambos modelos:
+// delantero Bodega 1; trasero Bodegas 3, 4 y 5.
+export const DAN_AIR_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'dan_air-comp-fwd',
+    airline: 'DAN_AIR',
+    compartmentName: 'COMPARTIMIENTO DELANTERO FWD',
+    holds: [
+      { id: createHoldId('DAN_AIR', 'b1'), label: 'Bodega 1 🚪' },
+    ],
+  },
+  {
+    id: 'dan_air-comp-aft',
+    airline: 'DAN_AIR',
+    compartmentName: 'COMPARTIMIENTO TRASERO AFT',
+    holds: [
+      { id: createHoldId('DAN_AIR', 'b3'), label: 'Bodega 3' },
+      { id: createHoldId('DAN_AIR', 'b4'), label: 'Bodega 4 🚪' },
+      { id: createHoldId('DAN_AIR', 'b5'), label: 'Bodega 5 🚪' },
+    ],
+  },
+];
+
 // Aegean A320
 export const AEGEAN_A320_COMPARTMENTS: CompartmentDefinition[] = [
   {
@@ -1323,6 +1346,10 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
     if (aircraftModel === 'A321') return WIZZ_A321_COMPARTMENTS;
     if (aircraftModel === 'A321_XLR') return WIZZ_A321_XLR_COMPARTMENTS;
     if (aircraftModel === 'A320') return WIZZ_A320_COMPARTMENTS;
+    return [];
+  }
+  if (airline === 'DAN_AIR') {
+    if (aircraftModel === 'A320' || aircraftModel === 'A321') return DAN_AIR_COMPARTMENTS;
     return [];
   }
   if (airline === 'AIR_CANADA' || airline === 'AIR_CANADA_CARGO') {

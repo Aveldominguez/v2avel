@@ -61,6 +61,10 @@ export const AIRCRAFT_MODELS: Record<string, AircraftModelConfig[]> = {
     { model: 'A321_XLR', label: 'A321 XLR', turnaroundMinutes: 45 },
     { model: 'B737', label: 'B737', turnaroundMinutes: 40 },
   ],
+  DAN_AIR: [
+    { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
+    { model: 'A321', label: 'A321', turnaroundMinutes: 45 },
+  ],
   EUROWINGS: [
     { model: 'A319', label: 'A319', turnaroundMinutes: 40 },
     { model: 'A320', label: 'A320', turnaroundMinutes: 40 },
