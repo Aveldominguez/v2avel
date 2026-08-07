@@ -64,11 +64,13 @@ import {
   UserCircle2,
   KeyRound,
   BarChart3,
+  CheckCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from '@/hooks/useTheme';
 import { APP_VERSION } from '@/config/version';
@@ -339,6 +341,29 @@ const TurnaroundList: React.FC = () => {
     }
   }, [rows.length, loadingMore, hasMore, fetchPage, dateFilter, airlineFilter, modelFilter, debouncedSearch]);
 
+  // Marcar escala como completada a mano (relevos: no siempre se puede tomar
+  // la hora de calzos de salida y la escala quedaría incompleta para siempre).
+  const [completingId, setCompletingId] = useState<string | null>(null);
+  const markCompleted = async (t: Turnaround) => {
+    if (completingId) return;
+    setCompletingId(t.id);
+    const newTimes = { ...t.times, manualCompleted: true };
+    try {
+      const { error } = await supabase
+        .from('turnarounds')
+        .update({ times: newTimes as unknown as Json })
+        .eq('id', t.id);
+      if (error) throw error;
+      setRows(prev => prev.map(r => (r.id === t.id ? { ...r, times: newTimes } : r)));
+      toast({ title: 'Escala marcada como completada' });
+    } catch (err) {
+      console.error('Error marking completed:', err);
+      toast({ title: 'Error', description: 'No se pudo marcar la escala como completada', variant: 'destructive' });
+    } finally {
+      setCompletingId(null);
+    }
+  };
+
   // Delete dialog
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -374,6 +399,8 @@ const TurnaroundList: React.FC = () => {
 
   const getCompletionStatus = (t: Turnaround) => {
     const times = t.times;
+    // Cierre manual desde el historial (p. ej. relevo sin hora de calzos de salida)
+    if (times.manualCompleted) return 'completed';
     const hasArrival = times.chocksOnArrival;
     const hasDeparture = times.chocksOff;
 
@@ -757,6 +784,19 @@ const TurnaroundList: React.FC = () => {
                           </span>
                           <ChevronRight className="aero-recent-chevron h-5 w-5" />
                         </button>
+                        {status !== 'completed' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => markCompleted(t)}
+                            disabled={completingId === t.id}
+                            className="aero-recent-complete h-8 w-8 text-success hover:text-success"
+                            title="Marcar escala como completada"
+                            aria-label={`Marcar escala ${flight} como completada`}
+                          >
+                            {completingId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -780,7 +820,7 @@ const TurnaroundList: React.FC = () => {
                         <TableHead className="w-8 px-2"></TableHead>
                         <TableHead className="px-2">Vuelo</TableHead>
                         <TableHead className="px-2">Fecha</TableHead>
-                        <TableHead className="w-12 px-2"></TableHead>
+                        <TableHead className="w-20 px-2"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -816,15 +856,30 @@ const TurnaroundList: React.FC = () => {
                                 <span className="whitespace-nowrap">{formatDate(t.date)}</span>
                               </div>
                             </TableCell>
-                            <TableCell className="w-12 px-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setDeleteId(t.id)}
-                                className="text-destructive hover:text-destructive h-8 w-8"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                            <TableCell className="w-20 px-2">
+                              <div className="flex items-center">
+                                {status !== 'completed' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => markCompleted(t)}
+                                    disabled={completingId === t.id}
+                                    className="text-success hover:text-success h-8 w-8"
+                                    title="Marcar escala como completada"
+                                    aria-label="Marcar escala como completada"
+                                  >
+                                    {completingId === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeleteId(t.id)}
+                                  className="text-destructive hover:text-destructive h-8 w-8"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );

@@ -7,6 +7,7 @@ export type AirlineCode = string;
 export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | 'TRANSAVIA' | 'SKYEXPRESS' | 'SKYUP' | 'FEDEX' | 'AIR_CANADA' | 'AIR_CANADA_CARGO' | 'ALBASTAR' | 'ICELANDAIR' | 'AZUL' | 'AMAZON' | 'A_JET' | 'NILE_AIR' | 'EUROWINGS' | 'CROATIA' | 'AIR_EST' | 'SIN_MARCA' | 'WESTJET' | 'DAN_AIR';
 
 export interface TurnaroundTimes {
+  manualCompleted?: boolean;             // Marcada como completada a mano desde el historial
   lirReception: string | null;           // Recepción de LIR
   chocksOnArrival: string | null;        // Calzos Llegada
   stairsTime: string | null;             // Puesta de Escalera (Llegada)
