@@ -75,6 +75,7 @@ import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 
 import { WeatherWidget } from '@/components/WeatherWidget';
+import { useIssueReportNotifications } from '@/hooks/useIssueReportNotifications';
 import { ListRenderBoundary } from '@/components/turnaround/ListRenderBoundary';
 
 const PAGE_SIZE = 4;
@@ -89,6 +90,7 @@ const TurnaroundList: React.FC = () => {
   const { equipos: hasEquipos } = useModuleAccess();
   const { updating, updateAvailable, remoteVersion, remoteChangelog, checkForUpdate, applyUpdate } = useAppUpdate();
   const allAirlines = useAllAirlines();
+  useIssueReportNotifications();
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [totalRecords, setTotalRecords] = useState<number | null>(null);
@@ -139,6 +141,9 @@ const TurnaroundList: React.FC = () => {
 
   // Filters (persisted in sessionStorage)
   const FILTERS_KEY = 'turnaround-list-filters';
+  // Scroll/pagination restore: saved when navigating into an escala so the
+  // list comes back exactly where the user left it (same rows loaded + scroll).
+  const SCROLL_KEY = 'turnaround-list-scroll';
   const initialFilters = (() => {
     try {
       const raw = sessionStorage.getItem(FILTERS_KEY);
@@ -202,6 +207,27 @@ const TurnaroundList: React.FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const fetchSeq = useRef(0);
 
+  // Pending scroll restore (read once on mount, consumed after the first fetch)
+  const scrollRestoreRef = useRef<{ y: number; count: number } | null>((() => {
+    try {
+      const raw = sessionStorage.getItem(SCROLL_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.y === 'number' && typeof parsed?.count === 'number') return parsed;
+      return null;
+    } catch {
+      return null;
+    }
+  })());
+
+  const openTurnaround = useCallback((id: string) => {
+    try {
+      sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ y: window.scrollY, count: rows.length }));
+    } catch { /* ignore */ }
+    navigate(`/turnaround/${id}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows.length, navigate]);
+
   // Persist filters
   useEffect(() => {
     try {
@@ -233,9 +259,13 @@ const TurnaroundList: React.FC = () => {
     }
     const seq = ++fetchSeq.current;
     if (!cached || hasFilters) setLoading(true);
+    // If returning from an escala, fetch as many rows as were loaded before
+    // so the list can be restored to the same position.
+    const restore = scrollRestoreRef.current;
+    const firstLimit = restore ? Math.max(PAGE_SIZE, restore.count) : PAGE_SIZE;
     fetchPage({
       offset: 0,
-      limit: PAGE_SIZE,
+      limit: firstLimit,
       dateISO: dateFilter ? format(dateFilter, 'yyyy-MM-dd') : undefined,
       airline: airlineFilter !== 'ALL' ? airlineFilter : undefined,
       aircraftModel: modelFilter !== 'ALL' ? modelFilter : undefined,
@@ -244,8 +274,15 @@ const TurnaroundList: React.FC = () => {
       .then((data) => {
         if (seq !== fetchSeq.current) return;
         setRows(data);
-        setHasMore(data.length === PAGE_SIZE);
+        setHasMore(data.length === firstLimit);
         setLoading(false);
+        if (restore) {
+          scrollRestoreRef.current = null;
+          try { sessionStorage.removeItem(SCROLL_KEY); } catch { /* ignore */ }
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => window.scrollTo(0, restore.y));
+          });
+        }
         // Cache only the unfiltered first page
         if (!hasFilters) {
           try {
@@ -694,7 +731,7 @@ const TurnaroundList: React.FC = () => {
                       >
                         <div className="aero-recent-accent" />
                         <button
-                          onClick={() => navigate(`/turnaround/${t.id}`)}
+                          onClick={() => openTurnaround(t.id)}
                           className="aero-recent-main"
                           aria-label={`Abrir escala ${flight}`}
                         >
@@ -764,7 +801,7 @@ const TurnaroundList: React.FC = () => {
                             </TableCell>
                             <TableCell className="px-2">
                               <button
-                                onClick={() => navigate(`/turnaround/${t.id}`)}
+                                onClick={() => openTurnaround(t.id)}
                                 className="font-mono font-bold text-base text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
                               >
                                 {(t.times?.soloSalida && t.times?.departureFlightNumber) ? t.times.departureFlightNumber : t.flightNumber}

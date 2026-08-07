@@ -32,6 +32,7 @@ import { WindAlertBadge } from '@/components/WindAlertBadge';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
+import { IssueReportButton } from '@/components/turnaround/IssueReportButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
@@ -110,19 +111,59 @@ const TurnaroundForm: React.FC = () => {
       }
       try {
         const { supabase } = await import('@/integrations/supabase/client');
-        const mm = String(date.getMonth() + 1).padStart(2, '0');
-        const dd = String(date.getDate()).padStart(2, '0');
-        const dateStr = `${date.getFullYear()}-${mm}-${dd}`;
+        const toIso = (d: Date) => {
+          const mm2 = String(d.getMonth() + 1).padStart(2, '0');
+          const dd2 = String(d.getDate()).padStart(2, '0');
+          return `${d.getFullYear()}-${mm2}-${dd2}`;
+        };
+        const dateStr = toIso(date);
+        const nextDay = new Date(date); nextDay.setDate(nextDay.getDate() + 1);
+        const nextDayStr = toIso(nextDay);
         const numbers = [flightNumber.trim(), departureFlightNumber.trim()].filter(Boolean);
         if (numbers.length === 0) return;
+
+        // Normaliza un número de vuelo para comparar con ARION: quita espacios,
+        // mayúsculas y elimina ceros a la izquierda de la parte numérica
+        // ("AZ 059", "AZ059" y "AZ59" son el mismo vuelo).
+        const normFn = (fn: string): string => {
+          const clean = fn.replace(/\s+/g, '').toUpperCase();
+          const m = clean.match(/^([A-Z]+)0*(\d+)$/);
+          return m ? `${m[1]}${m[2]}` : clean;
+        };
+
+        // Variantes por número para el filtro del servidor (el matching fino se hace en cliente)
+        const variants = new Set<string>();
+        for (const n of numbers) {
+          const clean = n.replace(/\s+/g, '').toUpperCase();
+          variants.add(n);
+          variants.add(clean);
+          const m = clean.match(/^([A-Z]+)0*(\d+)$/);
+          if (m) {
+            variants.add(`${m[1]}${m[2]}`);
+            variants.add(`${m[1]}0${m[2]}`);
+            variants.add(`${m[1]}${m[2].padStart(3, '0')}`);
+            variants.add(`${m[1]}${m[2].padStart(4, '0')}`);
+          }
+        }
+
         const { data } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt')
-          .in('flight_number', numbers)
-          .eq('flight_date', dateStr);
+          .select('flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date')
+          .in('flight_number', Array.from(variants))
+          .in('flight_date', [dateStr, nextDayStr]);
         if (cancelled || !data) return;
-        const arrival = data.find((r: any) => r.flight_number === flightNumber.trim() && r.movement_type === 'A');
-        const departure = data.find((r: any) => r.flight_number === departureFlightNumber.trim() && r.movement_type === 'D');
+
+        // Preferir la fila del día del formulario; usar el día siguiente solo como fallback
+        // (salidas que cruzan la medianoche).
+        const findRow = (fn: string, movement: 'A' | 'D') => {
+          const target = normFn(fn);
+          const matches = data.filter((r: any) =>
+            r.movement_type === movement && normFn(String(r.flight_number ?? '')) === target
+          );
+          return matches.find((r: any) => r.flight_date === dateStr) ?? matches[0] ?? null;
+        };
+        const arrival = findRow(flightNumber.trim(), 'A');
+        const departure = findRow(departureFlightNumber.trim(), 'D');
         const arrOrigin = (arrival as any)?.source_station ?? null;
         const depDest = (departure as any)?.source_station ?? null;
         const home = ((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null;
@@ -679,6 +720,18 @@ const TurnaroundForm: React.FC = () => {
               >
                 <Pencil className="h-4 w-4" />
               </button>
+              <IssueReportButton
+                turnaroundId={id}
+                flightNumber={flightNumber}
+                airlineName={airlineInfo?.name ?? String(airline || '')}
+                aircraftModel={aircraftModel}
+                date={date}
+                matricula={matricula}
+                tango={tango}
+                isRemote={isRemote}
+                remoteLocation={remoteLocation}
+                departureTime={departureTime}
+              />
               <WindAlertBadge />
               <ThemeToggle />
               <ConnectionStatus

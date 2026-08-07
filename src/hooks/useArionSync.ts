@@ -109,9 +109,10 @@ export function useArionSync() {
           const msg = (error as any)?.message || '';
           let code: ArionSyncError = 'unknown';
           try {
-            const ctx = (error as any)?.context;
-            const body = ctx?.body ? await ctx.body : null;
-            const parsed = typeof body === 'string' ? JSON.parse(body) : body;
+            // supabase-js's FunctionsHttpError puts the raw Response directly on
+            // `.context` (not `.context.response`) — see @supabase/functions-js.
+            const ctx: any = (error as any)?.context;
+            const parsed = ctx && typeof ctx.json === 'function' ? await ctx.clone().json() : null;
             const e = parsed?.error;
             if (e === 'arion_auth_failed') code = 'arion_auth_failed';
             else if (e === 'arion_flights_failed') code = 'arion_flights_failed';
