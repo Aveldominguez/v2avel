@@ -1,5 +1,5 @@
 import React from 'react';
-import { AirlineCode, AIRLINES, getAirlinePrefix } from '@/types/turnaround';
+import { AirlineCode, AIRLINES, getAirlinePrefix, isRemoteParking } from '@/types/turnaround';
 import { useAllAirlines } from '@/hooks/useCatalog';
 import { getModelsForAirline } from '@/data/aircraftModels';
 import { Input } from '@/components/ui/input';
@@ -148,6 +148,18 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     setRemoteFlash(true);
     setTimeout(() => setRemoteFlash(false), 2000);
   }, []);
+
+  // "En Remoto" se deduce del código de parking (sin "T" = remoto, salvo 70-74).
+  // Se aplica sólo cuando el parking cambia — al autocompletar desde ARION, al
+  // refrescarlo o al escribirlo — nunca al abrir una escala guardada, para no
+  // pisar una decisión que el usuario ya tomó y guardó.
+  const [remoteAuto, setRemoteAuto] = React.useState(false);
+  const applyParkingRule = React.useCallback((code: string) => {
+    const remote = isRemoteParking(code);
+    if (remote === null) return;
+    setIsRemote(remote);
+    setRemoteAuto(true);
+  }, [setIsRemote]);
 
   // IATA aircraft type codes to our internal model names
   const IATA_TO_MODEL: Record<string, string> = {
@@ -347,11 +359,13 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         filled.add('aircraftModel');
       }
 
-      // 3. Tango (parking_code — conservar tal cual viene de ARION, incluido prefijo T)
+      // 3. Parking (parking_code — tal cual viene de ARION, con o sin prefijo T:
+      //    la "T" es justo lo que distingue terminal de remoto)
       if (data.parking_code && !tango) {
-        const clean = String(data.parking_code).trim();
+        const clean = String(data.parking_code).replace(/\s+/g, '').toUpperCase();
         if (clean) {
           setTango(clean);
+          applyParkingRule(clean);
           filled.add('tango');
         }
       }
@@ -617,16 +631,21 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
             </div>
           </div>
 
-          {/* Tango / Remote toggle */}
+          {/* Parking + En Remoto */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              <Label className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
                 En Remoto
+                {remoteAuto && (
+                  <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded normal-case tracking-normal">
+                    AUTO · {isRemote ? 'parking sin T' : 'parking en terminal'}
+                  </span>
+                )}
               </Label>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={isRemote}
-                  onCheckedChange={setIsRemote}
+                  onCheckedChange={(v) => { setIsRemote(v); setRemoteAuto(false); }}
                   className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
                 />
                 <span className={cn(
@@ -638,133 +657,88 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
               </div>
             </div>
 
-            {isRemote ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Ubicación Remoto
-                      </Label>
-                      <ParkingRefreshButton
-                        flightNumber={flightNumber}
-                        currentValue={remoteLocation}
-                        onUpdate={setRemoteLocation}
-                        onFlash={flashRemote}
-                      />
-                    </div>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={remoteLocation}
-                      onChange={(e) => setRemoteLocation(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      placeholder="Ej: 1"
-                      className={cn(
-                        "input-operational font-mono transition-all",
-                        remoteFlash && "ring-2 ring-green-500"
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Modelo de Avión <span className="text-destructive">*</span>
-                      {autofilledFields.has('aircraftModel') && (
-                        <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
-                      )}
-                    </Label>
-                    <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
-                      <SelectTrigger
-                        className={cn(
-                          "aero-flight-select input-operational",
-                          autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
-                          showModelError && !aircraftModel && "blink-required"
-                        )}
-                      >
-                        <SelectValue placeholder="Modelo" />
-                      </SelectTrigger>
-                      <SelectContent className="aero-flight-select-menu">
-                        {models.map((m) => (
-                          <SelectItem key={m.model} value={m.model}>
-                            {m.label} — {m.turnaroundMinutes} min
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Push Back toggle — only when remote */}
-                <div className="flex items-center justify-between">
+            {/* Parking + Modelo — el parking se muestra siempre, sea remoto o no,
+                para no perder el valor autocompletado al marcar "En Remoto". */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Push Back
+                    Parking
                   </Label>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={pushBack}
-                      onCheckedChange={setPushBack}
-                      className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
-                    />
-                    <span className={cn(
-                      'text-sm font-semibold',
-                      pushBack ? 'text-warning' : 'text-muted-foreground'
-                    )}>
-                      {pushBack ? 'Sí' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Tango
-                    </Label>
-                    <ParkingRefreshButton
-                      flightNumber={flightNumber}
-                      currentValue={tango}
-                      onUpdate={setTango}
-                      onFlash={flashParking}
-                    />
-                  </div>
-                  <Input
-                    type="text"
-                    maxLength={6}
-                    value={tango}
-                    onChange={(e) => setTango(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6))}
-                    placeholder="Tango"
-                    className={cn(
-                      "input-operational font-mono transition-all",
-                      parkingFlash && "ring-2 ring-green-500"
-                    )}
+                  {autofilledFields.has('tango') && (
+                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                  )}
+                  <ParkingRefreshButton
+                    flightNumber={flightNumber}
+                    currentValue={tango}
+                    onUpdate={(v) => { setTango(v); applyParkingRule(v); }}
+                    onFlash={flashParking}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Modelo de Avión <span className="text-destructive">*</span>
-                    {autofilledFields.has('aircraftModel') && (
-                      <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                <Input
+                  type="text"
+                  maxLength={6}
+                  value={tango}
+                  onChange={(e) => {
+                    clearAutofillFor('tango');
+                    const v = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6);
+                    setTango(v);
+                    applyParkingRule(v);
+                  }}
+                  placeholder="Ej: T14 o 14"
+                  className={cn(
+                    "input-operational font-mono transition-all",
+                    (parkingFlash || remoteFlash) && "ring-2 ring-green-500",
+                    autofilledFields.has('tango') && "ring-1 ring-primary/40 bg-primary/5"
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Modelo de Avión <span className="text-destructive">*</span>
+                  {autofilledFields.has('aircraftModel') && (
+                    <span className="ml-2 text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">AUTO</span>
+                  )}
+                </Label>
+                <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
+                  <SelectTrigger
+                    className={cn(
+                      "aero-flight-select input-operational",
+                      autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
+                      showModelError && !aircraftModel && "blink-required"
                     )}
-                  </Label>
-                  <Select value={aircraftModel} onValueChange={(v) => { clearAutofillFor('aircraftModel'); setAircraftModel(v); }}>
-                    <SelectTrigger
-                      className={cn(
-                        "aero-flight-select input-operational",
-                        autofilledFields.has('aircraftModel') && "ring-1 ring-primary/40 bg-primary/5",
-                        showModelError && !aircraftModel && "blink-required"
-                      )}
-                    >
-                      <SelectValue placeholder="Modelo" />
-                    </SelectTrigger>
-                    <SelectContent className="aero-flight-select-menu">
-                      {models.map((m) => (
-                        <SelectItem key={m.model} value={m.model}>
-                          {m.label} — {m.turnaroundMinutes} min
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  >
+                    <SelectValue placeholder="Modelo" />
+                  </SelectTrigger>
+                  <SelectContent className="aero-flight-select-menu">
+                    {models.map((m) => (
+                      <SelectItem key={m.model} value={m.model}>
+                        {m.label} — {m.turnaroundMinutes} min
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Push Back — sólo tiene sentido en remoto */}
+            {isRemote && (
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Push Back
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={pushBack}
+                    onCheckedChange={setPushBack}
+                    className="aero-flight-toggle aero-flight-toggle-warning data-[state=checked]:bg-warning"
+                  />
+                  <span className={cn(
+                    'text-sm font-semibold',
+                    pushBack ? 'text-warning' : 'text-muted-foreground'
+                  )}>
+                    {pushBack ? 'Sí' : 'No'}
+                  </span>
                 </div>
               </div>
             )}

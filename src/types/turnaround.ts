@@ -630,6 +630,29 @@ export const AIRLINE_PREFIXES: Record<string, string> = {
 
 // Resolves the active prefix for an airline, preferring the admin override
 // stored in catalog_airlines.prefix and falling back to the built-in map.
+// Parkings de terminal con finger que ARION publica SIN la "T" delante.
+// Son la excepción a la regla de "sin T = remoto".
+export const FINGER_PARKINGS_WITHOUT_T = ['70', '71', '72', '73', '74'];
+
+/**
+ * Decide si un parking es remoto a partir del código tal cual lo publica ARION.
+ *
+ * Regla operativa en LEMD: los puestos de terminal llegan con "T" delante
+ * (T1, T17, T18…) y los que llegan sólo con número son remotos. La única
+ * excepción es el grupo 70-74, que son de terminal con finger pese a no
+ * llevar la T.
+ *
+ * Devuelve null cuando no hay código, para poder distinguir "no se sabe"
+ * de "no es remoto" y no tocar el interruptor sin motivo.
+ */
+export const isRemoteParking = (parkingCode: string | null | undefined): boolean | null => {
+  const clean = (parkingCode ?? '').replace(/\s+/g, '').toUpperCase();
+  if (!clean) return null;
+  if (clean.startsWith('T')) return false;
+  if (FINGER_PARKINGS_WITHOUT_T.includes(clean)) return false;
+  return true;
+};
+
 export const getAirlinePrefix = (airline: string | null | undefined): string => {
   if (!airline) return '';
   try {

@@ -531,8 +531,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
         <span><b>Fecha:</b> ${format(data.date, "dd 'de' MMMM yyyy", { locale: es })}</span>
       </div>
       <div class="meta">
-        ${!data.isRemote && data.tango ? `<span><b>Tango:</b> ${data.tango}</span>` : ''}
-        ${data.isRemote ? `<span><b>🟠 Remoto:</b> ${data.remoteLocation || '—'}</span>` : ''}
+        ${(data.tango || data.remoteLocation) ? `<span><b>Parking:</b> ${data.tango || data.remoteLocation}</span>` : ''}
+        ${data.isRemote ? `<span><b>🟠 Remoto</b></span>` : ''}
       </div>
     </div>
     ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}

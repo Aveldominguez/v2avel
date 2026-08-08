@@ -178,7 +178,7 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
             <div className="flex flex-wrap gap-x-3 gap-y-0.5">
               <span><strong>Fecha:</strong> {format(date, 'dd/MM/yyyy', { locale: es })}</span>
               {departureTime && <span><strong>Salida:</strong> {departureTime}</span>}
-              <span><strong>{isRemote ? 'Remoto' : 'Tango'}:</strong> {isRemote ? (remoteLocation || 'Sí') : (tango || '—')}</span>
+              <span><strong>Parking:</strong> {tango || remoteLocation || '—'}{isRemote ? ' · Remoto' : ''}</span>
             </div>
           </div>
 

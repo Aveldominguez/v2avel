@@ -1,8 +1,10 @@
 {
-  "version": "4.160",
+  "version": "4.170",
   "changelog": [
-    "ITA Airways: el número del vuelo de salida se componía mal (AZ063 se guardaba como \"AZ0063\") porque el prefijo de la compañía termina en cero y se le volvía a añadir el cero del número. Afectaba a cualquier aerolínea con prefijo acabado en dígito.",
-    "Vuelo de salida: como ese número no existía en ARION, la escala se quedaba sin estación de destino y por eso no aparecía la animación del avión rojo en las escalas de ITA. Corregido de raíz.",
-    "Vuelo de salida: si el número de salida no cuadra con ARION, la escala ahora localiza el vuelo por la conexión que indica la propia llegada. La ruta y la animación aparecen aunque el número esté escrito de otra forma — también en las escalas ya guardadas."
+    "Nueva Escala: el campo \"Tango\" pasa a llamarse \"Parking\" en el formulario, en la cabecera de la escala, en el reporte de fallos y en el PDF.",
+    "Nueva Escala: el Parking se muestra tal cual lo publica ARION — \"T14\" si es de terminal y \"14\" si es remoto — así se identifica de un vistazo y sale igual en el PDF.",
+    "Nueva Escala: \"En Remoto\" se marca solo. Regla: parking sin \"T\" delante = remoto; los parkings 70, 71, 72, 73 y 74 quedan exentos porque son de terminal con finger. Se aplica al autocompletar desde ARION, al refrescar el parking y al escribirlo a mano, y activa los campos y equipos de remoto sin tocar nada.",
+    "Nueva Escala: el Parking ya no se borra al marcar \"En Remoto\" — antes desaparecía la casilla y había que volver a teclear el número. Ahora es una sola casilla que se mantiene, y el interruptor se puede seguir cambiando a mano cuando haga falta.",
+    "Botón de refrescar parking: no encontraba nunca el vuelo porque filtraba por usuario y los vuelos de ARION se guardan como datos compartidos. Corregido."
   ]
 }

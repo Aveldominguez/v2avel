@@ -53,18 +53,22 @@ export const ParkingRefreshButton: React.FC<ParkingRefreshButtonProps> = ({
         toast.error('No se pudo actualizar el parking — comprueba la conexión');
         return;
       }
+      // Sin filtro por user_id: la sincronización del sistema guarda las filas
+      // con user_id NULL para que las vean todos los usuarios aprobados, así que
+      // filtrar por usuario dejaba este botón sin resultados nunca.
       const { data, error } = await supabase
         .from('scheduled_flights')
-        .select('parking_code')
-        .eq('user_id', user.id)
+        .select('parking_code, synced_at')
         .eq('flight_date', todayIso())
         .eq('flight_number', fn)
-        .maybeSingle();
+        .eq('movement_type', 'A')
+        .order('synced_at', { ascending: false })
+        .limit(1);
       if (error) {
         toast.error('No se pudo actualizar el parking — comprueba la conexión');
         return;
       }
-      const newParking = (data?.parking_code || '').toString().trim().toUpperCase().slice(0, 4);
+      const newParking = (data?.[0]?.parking_code || '').toString().replace(/\s+/g, '').toUpperCase().slice(0, 6);
       if (newParking && newParking !== (currentValue || '').toUpperCase()) {
         onUpdate(newParking);
         onFlash();

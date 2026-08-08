@@ -243,7 +243,9 @@ const TurnaroundForm: React.FC = () => {
             setDate(existing.date);
             setAirline(existing.airline);
             setTimes(existing.times);
-            setTango(existing.times.tango || '');
+            // Escalas antiguas guardaban el parking en remoteLocation cuando
+            // estaban marcadas como remotas (tango quedaba a null).
+            setTango(existing.times.tango || existing.times.remoteLocation || '');
             setIsRemote(existing.times.isRemote || false);
             setRemoteLocation(existing.times.remoteLocation || '');
             setAircraftModel(existing.times.aircraftModel || '');
@@ -344,9 +346,11 @@ const TurnaroundForm: React.FC = () => {
 
   const getTimesWithFlightInfo = useCallback((): TurnaroundTimes => ({
     ...times,
-    tango: isRemote ? null : (tango || null),
+    // El parking se guarda siempre, sea remoto o de terminal: es el mismo dato
+    // de ARION (T14 / 14) y antes se perdía al marcar "En Remoto".
+    tango: tango || null,
     isRemote,
-    remoteLocation: isRemote ? (remoteLocation || null) : null,
+    remoteLocation: isRemote ? (tango || remoteLocation || null) : null,
     aircraftModel: aircraftModel || null,
     matricula: matricula || null,
     soloLlegada,
@@ -783,16 +787,12 @@ const TurnaroundForm: React.FC = () => {
             <span>{aircraftModel}</span>
             <span>|</span>
             <span>{format(date, 'dd/MM/yyyy', { locale: es })}</span>
-            {isRemote && remoteLocation && (
+            {(tango || remoteLocation) && (
               <>
                 <span>|</span>
-                <span className="text-warning">{remoteLocation}</span>
-              </>
-            )}
-            {!isRemote && tango && (
-              <>
-                <span>|</span>
-                <span>{tango}</span>
+                <span className={cn(isRemote && 'text-warning')}>
+                  {tango || remoteLocation}{isRemote ? ' · Remoto' : ''}
+                </span>
               </>
             )}
             {matricula && (

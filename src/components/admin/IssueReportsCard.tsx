@@ -168,7 +168,7 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
               {report.matricula && <span>{report.matricula}</span>}
               {report.flight_date && <span>{format(new Date(report.flight_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: es })}</span>}
               {report.departure_time && <span>STD {report.departure_time}</span>}
-              <span>{report.is_remote ? `Remoto${report.remote_location ? ` ${report.remote_location}` : ''}` : `Tango ${report.tango || '—'}`}</span>
+              <span>{`Parking ${report.tango || report.remote_location || '—'}${report.is_remote ? ' · Remoto' : ''}`}</span>
             </div>
 
             <p className="text-xs text-muted-foreground">
