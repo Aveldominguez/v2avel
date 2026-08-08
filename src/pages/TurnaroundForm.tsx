@@ -610,63 +610,6 @@ const TurnaroundForm: React.FC = () => {
     }
   }, [flightNumber, date, airline, fieldValues, observations, isEditing, id, navigate, createTurnaround, updateTurnaround, getTimesWithFlightInfo, isOnline, enqueue]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Step 1: Flight info
-  if (step === 1) {
-    return (
-      <FlightInfoStep
-        flightNumber={flightNumber}
-        setFlightNumber={setFlightNumber}
-        departureFlightNumber={departureFlightNumber}
-        setDepartureFlightNumber={setDepartureFlightNumber}
-        tango={tango}
-        setTango={setTango}
-        isRemote={isRemote}
-        setIsRemote={setIsRemote}
-        remoteLocation={remoteLocation}
-        setRemoteLocation={setRemoteLocation}
-        pushBack={pushBack}
-        setPushBack={setPushBack}
-        date={date}
-        setDate={setDate}
-        airline={airline}
-        setAirline={setAirline}
-        aircraftModel={aircraftModel}
-        setAircraftModel={setAircraftModel}
-        matricula={matricula}
-        setMatricula={setMatricula}
-        soloLlegada={soloLlegada}
-        setSoloLlegada={setSoloLlegada}
-        soloSalida={soloSalida}
-        setSoloSalida={setSoloSalida}
-        departureTime={departureTime}
-        setDepartureTime={setDepartureTime}
-        scheduledArrival={scheduledArrival}
-        setScheduledArrival={setScheduledArrival}
-        scheduledEta={scheduledEta}
-        setScheduledEta={setScheduledEta}
-        scheduledStd={scheduledStd}
-        setScheduledStd={setScheduledStd}
-        scheduledEtd={scheduledEtd}
-        setScheduledEtd={setScheduledEtd}
-        
-        isEditing={isEditing}
-        onContinue={handleContinue}
-        onCancel={() => { clearDraft(); navigate('/'); }}
-      />
-    );
-  }
-
-  // Step 2: Operational
-  const airlineInfo = AIRLINES.find(a => a.code === airline);
-
   // ---- Parking en vivo -------------------------------------------------
   // En LEMD el parking se asigna ~1 h antes del vuelo y puede cambiar hasta
   // minutos antes si el puesto está ocupado. Por eso la escala relee el
@@ -757,6 +700,64 @@ const TurnaroundForm: React.FC = () => {
     const interval = setInterval(check, 5 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
   }, [isToday, flightNumber, dateISO, tango, times.chocksOff, applyParkingUpdate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Step 1: Flight info
+  if (step === 1) {
+    return (
+      <FlightInfoStep
+        flightNumber={flightNumber}
+        setFlightNumber={setFlightNumber}
+        departureFlightNumber={departureFlightNumber}
+        setDepartureFlightNumber={setDepartureFlightNumber}
+        tango={tango}
+        setTango={setTango}
+        isRemote={isRemote}
+        setIsRemote={setIsRemote}
+        remoteLocation={remoteLocation}
+        setRemoteLocation={setRemoteLocation}
+        pushBack={pushBack}
+        setPushBack={setPushBack}
+        date={date}
+        setDate={setDate}
+        airline={airline}
+        setAirline={setAirline}
+        aircraftModel={aircraftModel}
+        setAircraftModel={setAircraftModel}
+        matricula={matricula}
+        setMatricula={setMatricula}
+        soloLlegada={soloLlegada}
+        setSoloLlegada={setSoloLlegada}
+        soloSalida={soloSalida}
+        setSoloSalida={setSoloSalida}
+        departureTime={departureTime}
+        setDepartureTime={setDepartureTime}
+        scheduledArrival={scheduledArrival}
+        setScheduledArrival={setScheduledArrival}
+        scheduledEta={scheduledEta}
+        setScheduledEta={setScheduledEta}
+        scheduledStd={scheduledStd}
+        setScheduledStd={setScheduledStd}
+        scheduledEtd={scheduledEtd}
+        setScheduledEtd={setScheduledEtd}
+        
+        isEditing={isEditing}
+        onContinue={handleContinue}
+        onCancel={() => { clearDraft(); navigate('/'); }}
+      />
+    );
+  }
+
+  // Step 2: Operational
+  const airlineInfo = AIRLINES.find(a => a.code === airline);
+
 
   const impersonated = getImpersonatedUser();
   const headerTopOffset = updateAvailable ? 40 : 0;
