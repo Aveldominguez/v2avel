@@ -561,7 +561,7 @@ serve(async (req) => {
       return json({ error: 'internal_error' }, 500);
     }
   } catch (err) {
-    console.error('FATAL sync-arion-flights error:', String(err), err?.stack);
+    console.error('FATAL sync-arion-flights error:', String(err), (err as Error)?.stack);
     return new Response(JSON.stringify({ error: 'fatal', detail: String(err) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

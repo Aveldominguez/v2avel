@@ -1,4 +1,7 @@
-project_id = "dpabjyxornxutdfdkwin"
+# Proyecto de PRODUCCIÓN (v2tov4project, org v2avel-prod).
+# OJO: hasta el 08/08/2026 esto apuntaba a "dpabjyxornxutdfdkwin", el proyecto
+# antiguo de Lovable, que ya no se usa. No revertir.
+project_id = "imkvoywmakzwcjvrlrfx"
 
 [functions.change-password]
 verify_jwt = false
