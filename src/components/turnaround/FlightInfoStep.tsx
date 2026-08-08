@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
+import { flightNumberVariants, normalizeFlightNumber } from '@/utils/arionParking';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -263,17 +264,24 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     const nextDayISO = format(addDays(date, 1), 'yyyy-MM-dd');
 
     (async () => {
-      const { data: rows } = await supabase
+      // Se consultan variantes del número (ceros a la izquierda, espacios) y el
+      // cruce fino se hace en cliente: ARION no siempre escribe el vuelo igual
+      // que la app.
+      const { data: allRows } = await supabase
         .from('scheduled_flights')
-        .select('parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration')
-        .eq('flight_number', clean)
+        .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration')
+        .in('flight_number', flightNumberVariants(clean))
         .eq('movement_type', 'A')
         .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
         .order('flight_date', { ascending: true })
-        .limit(20);
+        .limit(40);
 
+      const target = normalizeFlightNumber(clean);
+      const rows = (allRows ?? []).filter(
+        (r) => normalizeFlightNumber(String(r.flight_number ?? '')) === target
+      );
 
-      if (!rows || rows.length === 0) return;
+      if (rows.length === 0) return;
 
       // Parsear "DD/MM/YYYY HH:MM" → Date
       const parseArionDate = (val: string | null): Date | null => {

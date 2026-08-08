@@ -23,7 +23,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown } from 'lucide-react';
+import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown, RefreshCw } from 'lucide-react';
+import { useArionSync } from '@/hooks/useArionSync';
+import { fetchParkingFromArion } from '@/utils/arionParking';
+import { isRemoteParking } from '@/types/turnaround';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -664,6 +667,97 @@ const TurnaroundForm: React.FC = () => {
   // Step 2: Operational
   const airlineInfo = AIRLINES.find(a => a.code === airline);
 
+  // ---- Parking en vivo -------------------------------------------------
+  // En LEMD el parking se asigna ~1 h antes del vuelo y puede cambiar hasta
+  // minutos antes si el puesto está ocupado. Por eso la escala relee el
+  // parking de ARION: a mano tocando el dato en la cabecera, y sola cada
+  // pocos minutos mientras la escala del día está abierta.
+  const { syncToday: syncArionToday } = useArionSync();
+  const [parkingRefreshing, setParkingRefreshing] = useState(false);
+  const [parkingChanged, setParkingChanged] = useState(false);
+  const isToday = React.useMemo(() => {
+    const now = new Date();
+    return date.getFullYear() === now.getFullYear()
+      && date.getMonth() === now.getMonth()
+      && date.getDate() === now.getDate();
+  }, [date]);
+
+  const applyParkingUpdate = useCallback((code: string) => {
+    setTango(code);
+    const remote = isRemoteParking(code);
+    if (remote !== null) setIsRemote(remote);
+    setParkingChanged(true);
+    setTimeout(() => setParkingChanged(false), 6000);
+  }, []);
+
+  const dateISO = React.useMemo(() => {
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${mm}-${dd}`;
+  }, [date]);
+
+  const refreshParking = useCallback(async () => {
+    const fn = flightNumber.trim();
+    if (!fn) {
+      toast({ title: 'Sin número de vuelo', description: 'La escala no tiene vuelo de llegada para consultar en ARION.' });
+      return;
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      toast({ title: 'Sin conexión', description: 'El parking no se puede consultar ahora.', variant: 'destructive' });
+      return;
+    }
+    setParkingRefreshing(true);
+    try {
+      // Primero se fuerza la sincronización con ARION para traer lo último,
+      // y después se lee el parking ya actualizado.
+      await syncArionToday();
+      const code = await fetchParkingFromArion(fn, dateISO);
+      if (!code) {
+        toast({ title: 'ARION todavía no da parking', description: `El vuelo ${fn} aún no tiene puesto asignado.` });
+        return;
+      }
+      if (code === tango.trim().toUpperCase()) {
+        toast({ title: `Parking sin cambios: ${code}` });
+        return;
+      }
+      const previous = tango.trim();
+      applyParkingUpdate(code);
+      toast({
+        title: previous ? `Parking cambiado: ${previous} → ${code}` : `Parking asignado: ${code}`,
+        description: isRemoteParking(code) ? 'Puesto remoto — la escala se ha marcado como remota.' : 'Puesto de terminal.',
+      });
+    } catch (err) {
+      console.error('[parking] refresh error', err);
+      toast({ title: 'Error', description: 'No se pudo actualizar el parking.', variant: 'destructive' });
+    } finally {
+      setParkingRefreshing(false);
+    }
+  }, [flightNumber, dateISO, tango, syncArionToday, applyParkingUpdate]);
+
+  // Revisión automática cada 5 min, sólo en escalas de hoy y sin salida marcada:
+  // una vez fuera de calzos el parking ya no cambia y no tiene sentido tocarlo.
+  useEffect(() => {
+    if (!isToday || !flightNumber.trim()) return;
+    if (times.chocksOff) return;
+    let cancelled = false;
+    const check = async () => {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+      try {
+        const code = await fetchParkingFromArion(flightNumber.trim(), dateISO);
+        if (cancelled || !code) return;
+        if (code === tango.trim().toUpperCase()) return;
+        const previous = tango.trim();
+        applyParkingUpdate(code);
+        toast({
+          title: previous ? `⚠️ Parking cambiado: ${previous} → ${code}` : `Parking asignado: ${code}`,
+          description: isRemoteParking(code) ? 'Puesto remoto — la escala se ha marcado como remota.' : 'Puesto de terminal.',
+        });
+      } catch { /* silencioso: es una comprobación de fondo */ }
+    };
+    const interval = setInterval(check, 5 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [isToday, flightNumber, dateISO, tango, times.chocksOff, applyParkingUpdate]);
+
   const impersonated = getImpersonatedUser();
   const headerTopOffset = updateAvailable ? 40 : 0;
   const impersonationBarHeight = impersonated ? 36 : 0;
@@ -787,14 +881,26 @@ const TurnaroundForm: React.FC = () => {
             <span>{aircraftModel}</span>
             <span>|</span>
             <span>{format(date, 'dd/MM/yyyy', { locale: es })}</span>
-            {(tango || remoteLocation) && (
-              <>
-                <span>|</span>
-                <span className={cn(isRemote && 'text-warning')}>
-                  {tango || remoteLocation}{isRemote ? ' · Remoto' : ''}
-                </span>
-              </>
-            )}
+            <span>|</span>
+            <button
+              type="button"
+              onClick={refreshParking}
+              disabled={parkingRefreshing}
+              title="Tocar para consultar el parking en ARION"
+              aria-label="Actualizar parking desde ARION"
+              className={cn(
+                'inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-semibold transition-colors',
+                'hover:bg-muted active:scale-95 disabled:opacity-60',
+                isRemote && 'text-warning',
+                parkingChanged && 'ring-2 ring-green-500 bg-green-500/10'
+              )}
+            >
+              {parkingRefreshing
+                ? <Loader2 className="h-3 w-3 animate-spin" />
+                : <RefreshCw className="h-3 w-3 opacity-60" />}
+              {(tango || remoteLocation) || 'Parking'}
+              {isRemote && (tango || remoteLocation) ? ' · Remoto' : ''}
+            </button>
             {matricula && (
               <>
                 <span>|</span>
