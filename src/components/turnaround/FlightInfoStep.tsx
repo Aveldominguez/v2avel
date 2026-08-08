@@ -360,8 +360,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       if (data.departure_fn) {
         const depFlight = String(data.departure_fn).trim().toUpperCase();
         if (depFlight && depFlight !== clean) {
-          const numericPart = depFlight.replace(/[^0-9]/g, '');
           const newPrefix = resolvedAirline ? getAirlinePrefix(resolvedAirline as AirlineCode) : getAirlinePrefix(airline);
+          // El campo guarda prefijo + resto, así que hay que quitar del número de
+          // ARION exactamente el prefijo, no todas las letras: prefijos que acaban
+          // en dígito (ITA = "AZ0") duplicaban el cero ("AZ063" → "AZ0"+"063" =
+          // "AZ0063"), un vuelo que no existe y que rompía el cruce con ARION.
+          const numericPart = depFlight.startsWith(newPrefix)
+            ? depFlight.slice(newPrefix.length)
+            : depFlight.replace(/^[A-Z]+/, '');
           setDepartureFlightNumber(newPrefix + numericPart);
           filled.add('departureFlightNumber');
         }

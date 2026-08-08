@@ -146,24 +146,43 @@ const TurnaroundForm: React.FC = () => {
           }
         }
 
+        const SELECT_COLS = 'flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date, departure_fn';
         const { data } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date')
+          .select(SELECT_COLS)
           .in('flight_number', Array.from(variants))
           .in('flight_date', [dateStr, nextDayStr]);
         if (cancelled || !data) return;
 
         // Preferir la fila del día del formulario; usar el día siguiente solo como fallback
         // (salidas que cruzan la medianoche).
-        const findRow = (fn: string, movement: 'A' | 'D') => {
+        const pickByDate = (matches: any[]) =>
+          matches.find((r: any) => r.flight_date === dateStr) ?? matches[0] ?? null;
+        const findRow = (fn: string, movement: 'A' | 'D', rows: any[] = data) => {
           const target = normFn(fn);
-          const matches = data.filter((r: any) =>
+          return pickByDate(rows.filter((r: any) =>
             r.movement_type === movement && normFn(String(r.flight_number ?? '')) === target
-          );
-          return matches.find((r: any) => r.flight_date === dateStr) ?? matches[0] ?? null;
+          ));
         };
         const arrival = findRow(flightNumber.trim(), 'A');
-        const departure = findRow(departureFlightNumber.trim(), 'D');
+        let departure = findRow(departureFlightNumber.trim(), 'D');
+
+        // Si la salida no aparece con el número que muestra el formulario, buscarla
+        // por el `departure_fn` que la propia llegada trae de ARION: es el dato
+        // exacto de la conexión y no depende de cómo compongamos el número aquí.
+        const linkedDepFn = (arrival as any)?.departure_fn
+          ? String((arrival as any).departure_fn).trim()
+          : null;
+        if (!departure && linkedDepFn) {
+          const { data: depData } = await supabase
+            .from('scheduled_flights')
+            .select(SELECT_COLS)
+            .eq('flight_number', linkedDepFn)
+            .eq('movement_type', 'D')
+            .in('flight_date', [dateStr, nextDayStr]);
+          if (cancelled) return;
+          if (depData && depData.length > 0) departure = pickByDate(depData as any[]);
+        }
         const arrOrigin = (arrival as any)?.source_station ?? null;
         const depDest = (departure as any)?.source_station ?? null;
         const home = ((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null;
