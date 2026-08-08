@@ -269,7 +269,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       // que la app.
       const { data: allRows } = await supabase
         .from('scheduled_flights')
-        .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration')
+        .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration, synced_at')
         .in('flight_number', flightNumberVariants(clean))
         .eq('movement_type', 'A')
         .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
@@ -316,6 +316,16 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       const data = upcoming[0] ?? past[0] ?? rows[0] ?? null;
       if (!data) return;
+
+      // El parking se toma de la fila MÁS RECIENTE de esta misma rotación (mismo
+      // vuelo y misma hora programada). ARION asigna el puesto ~1 h antes, así
+      // que una sincronización anterior pudo guardar la fila con el parking
+      // todavía vacío; esa fila no debe tapar el dato ya asignado.
+      const freshestParking = rows
+        .filter((r) => r.sdt === data.sdt)
+        .filter((r) => String(r.parking_code ?? '').trim() !== '')
+        .sort((a, b) => String(b.synced_at ?? '').localeCompare(String(a.synced_at ?? '')))[0]
+        ?.parking_code ?? data.parking_code;
 
 
       const filled = new Set<string>();
@@ -369,8 +379,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       // 3. Parking (parking_code — tal cual viene de ARION, con o sin prefijo T:
       //    la "T" es justo lo que distingue terminal de remoto)
-      if (data.parking_code && !tango) {
-        const clean = String(data.parking_code).replace(/\s+/g, '').toUpperCase();
+      if (freshestParking && !tango) {
+        const clean = String(freshestParking).replace(/\s+/g, '').toUpperCase();
         if (clean) {
           setTango(clean);
           applyParkingRule(clean);

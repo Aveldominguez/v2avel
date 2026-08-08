@@ -311,6 +311,20 @@ serve(async (req) => {
       const isoDate = ddMmYyyyToIso(flight_date_in);
       const nowIso = new Date().toISOString();
 
+      // La fecha de la fila debe ser el día en que opera el vuelo, no el día que
+      // le pedimos a ARION. La jornada operativa de ARION se solapa con el día
+      // siguiente, así que una sincronización de las 23:40 se traía vuelos de
+      // la madrugada/mañana siguiente y los archivaba con la fecha de ayer:
+      // quedaban duplicados (uno por cada día en que aparecían) y el de la
+      // fecha equivocada solía tener el parking todavía sin asignar.
+      const flightDateFromSchedule = (f: any): string => {
+        const raw = f?.sdt ?? f?.adt ?? f?.edt ?? null;
+        const m = typeof raw === 'string'
+          ? raw.match(/^(\d{2})\/(\d{2})\/(\d{4})/)
+          : null;
+        return m ? `${m[3]}-${m[2]}-${m[1]}` : isoDate;
+      };
+
       const snToFn = new Map<number, string>();
       for (const f of allFlights) {
         if (f?.sn && f?.fn) {
@@ -324,6 +338,8 @@ serve(async (req) => {
         .filter((f) => f && typeof f.fn === 'string' && f.fn.trim().length > 0)
         .map(async (f) => {
           const isArrival = String(f.movementType ?? '').toUpperCase() === 'A';
+          // Día real de operación del vuelo (ver flightDateFromSchedule)
+          const rowDate = flightDateFromSchedule(f);
           let ldm_raw: string | null = null;
           let airline_logo: string | null = null;
           let scheduled_arrival_time: string | null = null;
@@ -335,12 +351,12 @@ serve(async (req) => {
             .from('flight_cpm_data')
             .select('*', { count: 'exact', head: true })
             .eq('flight_sn', String(f.sn))
-            .eq('flight_date', isoDate);
+            .eq('flight_date', rowDate);
           if (existingCpm && existingCpm > 0) {
             // Already have CPM — skip the ARION detail call entirely
             return {
               user_id: userId,
-              flight_date: isoDate,
+              flight_date: rowDate,
               flight_number: String(f.fn).trim(),
               airline_code: f.airline ?? null,
               registration: f.registrationNumber || null,
@@ -451,7 +467,7 @@ serve(async (req) => {
                           const data: string = line?.data ?? '';
                           cpmRowsAll.push({
                             flight_sn: Number(f.sn),
-                            flight_date: isoDate,
+                            flight_date: rowDate,
                             arrival_fn: String(f.fn).trim(),
                             line_number: line?.lineNumber ?? idx + 1,
                             raw_line: data,
@@ -468,7 +484,7 @@ serve(async (req) => {
           } catch { /* ignore */ }
           return {
             user_id: userId, // null for system sync — visible to all approved users
-            flight_date: isoDate,
+            flight_date: rowDate,
             flight_number: String(f.fn).trim(),
             airline_code: f.airline ?? null,
             registration: f.registrationNumber || null,
