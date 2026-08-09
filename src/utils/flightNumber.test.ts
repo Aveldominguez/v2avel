@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeFlightNumber, flightNumberVariants } from './arionParking';
+import { normalizeFlightNumber, flightNumberVariants } from './flightNumber';
 
 describe('normalizeFlightNumber', () => {
   it('iguala el mismo vuelo escrito de distintas formas', () => {

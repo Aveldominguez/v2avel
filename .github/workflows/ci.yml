@@ -25,8 +25,18 @@ jobs:
         run: npm run lint
         continue-on-error: true
 
+      - name: Reglas de hooks de React (bloqueante)
+        run: npm run check:hooks
+
       - name: Tests
         run: npm test
 
+      # El .env real no está en el repositorio. Se usan valores de relleno para
+      # que el build sea representativo: sin ellos el cliente de Supabase
+      # revienta al importarse y el bundle sale roto sin avisar.
       - name: Build de producción
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+          VITE_SUPABASE_PROJECT_ID: ci-placeholder
