@@ -193,6 +193,39 @@ export const ITA_A320_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// ITA A319 — avión contenerizado. Delante 12 y 11 (puerta en 11), detrás
+// 42 (puerta) y 41, y el bulk 51 para granel: sin contenedor y sin puerta.
+export const ITA_A319_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'ita-a319-comp1',
+    airline: 'ITA',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('ITA', 'a319-12'), label: '12' },
+      { id: createHoldId('ITA', 'a319-11'), label: '11 🚪' },
+    ],
+  },
+  {
+    id: 'ita-a319-comp4',
+    airline: 'ITA',
+    compartmentName: 'COMPARTIMIENTO 4 AFT',
+    holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('ITA', 'a319-42'), label: '42 🚪' },
+      { id: createHoldId('ITA', 'a319-41'), label: '41' },
+    ],
+  },
+  {
+    id: 'ita-a319-bulk',
+    airline: 'ITA',
+    compartmentName: 'Bulk 5 — granel, sin puerta',
+    holds: [
+      { id: createHoldId('ITA', 'a319-51'), label: '51' },
+    ],
+  },
+];
+
 // Wizz Air A321
 export const WIZZ_A321_COMPARTMENTS: CompartmentDefinition[] = [
   {
@@ -1339,6 +1372,7 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
   if (airline === 'ITA') {
     if (aircraftModel === 'A321') return ITA_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return ITA_A320_COMPARTMENTS;
+    if (aircraftModel === 'A319') return ITA_A319_COMPARTMENTS;
     if (aircraftModel === 'A220') return ITA_A220_COMPARTMENTS;
     return [];
   }
