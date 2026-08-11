@@ -1,9 +1,7 @@
 {
-  "version": "4.221",
+  "version": "4.231",
   "changelog": [
-    "Home: el aviso de previsión TAF ya no tapa el botón \"Ver más escalas\". El hueco inferior se ajusta solo a la altura real del bloque de meteorología, así que cuando aparece el aviso el contenido se desplaza hacia arriba en lugar de quedar oculto.",
-    "Home: la previsión TAF y el METAR se muestran unidos en una sola tarjeta, cada uno con su etiqueta, en vez de dos avisos sueltos que parecían cosas distintas.",
-    "Equipos — Modo Revisión: nueva función para recorrer el aeropuerto y registrar los equipos desde un solo sitio. Buscas por los últimos números del equipo, anotas parking y batería, y un contador te dice cuántos llevas y cuáles faltan, por categoría.",
-    "Equipos — Modo Revisión: varios compañeros pueden revisar a la vez categorías distintas. Si coincidís en una, la app avisa de quién la está revisando y ofrece uniros a la misma revisión o repartiros las categorías."
+    "Control de Equipos: la franja superior del móvil ya no se ve de otro color ni con ese efecto difuminado. La cabecera pinta ahora también la zona de la barra de estado, así que en iPhone y en Android se ve de un solo color, el mismo de la cabecera.",
+    "Estilo v4 (Aero): el color de la barra de estado estaba puesto al del fondo de la página (azul marino) mientras las cabeceras son blancas, y por eso quedaba una franja distinta arriba. Corregido en toda la app."
   ]
 }

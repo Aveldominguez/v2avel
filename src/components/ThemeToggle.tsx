@@ -53,7 +53,14 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
     // en vez de alternar display por CSS (ver useTheme.ts).
     window.dispatchEvent(new Event('themechange'));
 
-    const themeColor = theme === 'dark' ? '#18202e' : theme === 'sky' ? '#eef2f9' : theme === 'aero' ? '#17243a' : '#ffffff';
+    // Este color pinta la barra de estado (Android) y la zona del notch (iOS),
+    // así que debe ser el de la CABECERA, no el del fondo de la página: en Aero
+    // la cabecera es blanca y con el navy del fondo quedaba una franja de otro
+    // color arriba que parecía un degradado.
+    const themeColor = theme === 'dark' ? '#181c25'
+      : theme === 'sky' ? '#eef2f9'
+      : theme === 'aero' ? '#ffffff'
+      : '#ffffff';
     document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
       (el as HTMLMetaElement).content = themeColor;
     });

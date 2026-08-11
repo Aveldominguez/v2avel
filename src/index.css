@@ -1083,6 +1083,23 @@
      esquinas de abajo y el METAR las de arriba, para que se lean como un
      único bloque de meteorología. Cuando no hay aviso TAF el contenedor queda
      vacío (:empty) y el METAR conserva sus esquinas redondeadas. */
+  /* La cabecera pinta también la zona de la barra de estado / notch, para que
+     arriba no quede una franja de otro color. En navegador de escritorio
+     env() vale 0 y no cambia nada. */
+  .app-safe-header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Cabeceras planas en Aero: sin cristal esmerilado ni transparencia. Con la
+     cabecera semitransparente el navy del fondo se transparentaba al hacer
+     scroll y en iOS se veía como un degradado bajo la barra de estado. */
+  .aero .aero-home-header,
+  .aero .app-safe-header {
+    background-color: #ffffff !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
   .aero .aero-weather-stack:not(:empty) {
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;

@@ -138,7 +138,7 @@ const EquiposRevision = () => {
 
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <header className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-card px-3">
+        <header className="app-safe-header sticky top-0 z-10 flex min-h-14 items-center border-b border-border bg-card px-3">
           <button onClick={() => navigate('/equipos')} className="flex h-10 w-10 items-center justify-center" aria-label="Volver">
             <ArrowLeft size={22} />
           </button>
@@ -320,7 +320,7 @@ const EquiposRevision = () => {
   /* ─────────────── Revisión en curso ─────────────── */
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-card">
+      <header className="app-safe-header sticky top-0 z-10 border-b border-border bg-card">
         <div className="flex h-14 items-center px-3">
           <button onClick={() => navigate('/equipos')} className="flex h-10 w-10 items-center justify-center" aria-label="Volver">
             <ArrowLeft size={22} />
