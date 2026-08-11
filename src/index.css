@@ -1079,6 +1079,26 @@
     pointer-events: auto;
   }
 
+  /* TAF y METAR forman una sola tarjeta: la franja de previsión pierde las
+     esquinas de abajo y el METAR las de arriba, para que se lean como un
+     único bloque de meteorología. Cuando no hay aviso TAF el contenedor queda
+     vacío (:empty) y el METAR conserva sus esquinas redondeadas. */
+  .aero .aero-weather-stack:not(:empty) {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+
+  .aero .aero-weather-stack:not(:empty) > * > button {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+
+  .aero .aero-weather-stack:not(:empty) + .aero-weather-compact {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top-width: 0 !important;
+  }
+
   .aero .aero-weather-compact {
     border-color: #cbd8e7 !important;
     border-left-width: 0.32rem !important;

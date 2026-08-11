@@ -595,7 +595,13 @@ const TurnaroundList: React.FC = () => {
         </div>
       </header>
 
-      <main className="w-full py-4 pb-20 space-y-4">
+      {/* El hueco inferior lo marca la altura real del bloque de meteorología,
+          que cambia si aparece el aviso TAF. El valor de reserva cubre los
+          temas que no llevan ese bloque fijo al fondo. */}
+      <main
+        className="w-full py-4 space-y-4"
+        style={{ paddingBottom: 'calc(var(--aero-weather-dock-h, 5rem) + 1rem)' }}
+      >
         {/* METAR Weather */}
         <div className="classic-only">
           <WeatherWidget />

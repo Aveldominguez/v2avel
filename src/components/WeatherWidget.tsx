@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAirportWeather, degToCompass } from '@/hooks/useAirportWeather'
 import { WindForecastFlag } from '@/components/WindForecastFlag'
 import { Button } from '@/components/ui/button'
@@ -62,6 +62,36 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
   const [expanded, setExpanded] = useState(false)
   const isOpen = expanded
 
+  // El bloque de meteorología va fijo al fondo y su altura cambia (aparece la
+  // franja TAF, se despliega el METAR…). Se publica su alto real en una
+  // variable CSS para que el contenido reserve exactamente ese hueco y no le
+  // tape nada — antes era un padding fijo y la franja TAF pisaba el botón
+  // "Ver más escalas".
+  const dockRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!compact) return
+    const el = dockRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const publish = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height)
+      if (h > 0) {
+        document.documentElement.style.setProperty('--aero-weather-dock-h', `${h}px`)
+      } else {
+        // En los temas que ocultan este bloque (display:none) mide 0: se quita
+        // la variable para que valga el hueco por defecto y no se quede el
+        // contenido pegado al borde inferior.
+        document.documentElement.style.removeProperty('--aero-weather-dock-h')
+      }
+    }
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => {
+      ro.disconnect()
+      document.documentElement.style.removeProperty('--aero-weather-dock-h')
+    }
+  }, [compact])
+
   useEffect(() => { refresh() }, [refresh])
 
   const alert = windAlert ? ALERT_CONFIG[windAlert] : null
@@ -102,7 +132,10 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
       : `${direction} · ${effectiveWind} kt`
 
     return (
-      <div className="aero-weather-dock fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+      <div
+        ref={dockRef}
+        className="aero-weather-dock fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.35rem,env(safe-area-inset-bottom))]"
+      >
         {showRaw && weather && (
           <div className="aero-weather-details mx-auto mb-2 max-w-2xl rounded-xl border border-border bg-popover p-3 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
@@ -119,8 +152,10 @@ export function WeatherWidget({ compact = false }: WeatherWidgetProps) {
             </pre>
           </div>
         )}
-        <div className="mx-auto w-full max-w-2xl">
-          <WindForecastFlag variant="banner" className="mb-1.5" />
+        {/* TAF y METAR van pegados como un único bloque de meteorología: son
+            dos avisos del mismo sitio y por separado parecían cosas distintas. */}
+        <div className="aero-weather-stack mx-auto w-full max-w-2xl overflow-hidden rounded-xl shadow-sm">
+          <WindForecastFlag variant="banner" />
         </div>
         <div
           className={cn(
