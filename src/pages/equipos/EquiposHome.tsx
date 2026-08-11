@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   Truck, ArrowRightLeft, ChevronsUp, Car, Zap,
   MoveLeft, Package, BoxSelect, ArrowLeftRight, Bus,
-  LogOut, Shield, Plane, Loader2, FileDown, RotateCcw,
+  LogOut, Shield, Plane, Loader2, FileDown, RotateCcw, ClipboardList,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { useAuth } from '@/hooks/useAuth';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { useEquipment } from '@/hooks/useEquipment';
+import { useEquipmentReview } from '@/hooks/useEquipmentReview';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -27,6 +28,8 @@ const EquiposHome = () => {
   const { user, signOut } = useAuth();
   const { isAdmin, rampa } = useModuleAccess();
   const { loading, fullCategories, reload } = useEquipment();
+  const { session: reviewSession } = useEquipmentReview();
+  const reviewInProgress = !!reviewSession;
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
 
@@ -124,6 +127,18 @@ const EquiposHome = () => {
 
       {!loading && (
         <div className="flex flex-col gap-2 p-4 pt-0">
+          <button
+            onClick={() => navigate('/equipos/revision')}
+            className="flex items-center justify-center gap-3 rounded-md bg-primary px-4 py-4 text-base font-semibold text-primary-foreground active:scale-[0.99] transition-transform"
+          >
+            <ClipboardList size={20} />
+            Modo Revisión
+            {reviewInProgress && (
+              <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-xs font-bold">
+                en curso
+              </span>
+            )}
+          </button>
           <button
             onClick={handleExportPdf}
             className="flex items-center justify-center gap-3 rounded-md border border-border bg-card px-4 py-4 text-base font-medium active:scale-[0.99] transition-transform"

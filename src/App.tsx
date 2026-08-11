@@ -30,6 +30,7 @@ const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
 const ModuleSelect = lazyWithRetry(() => import("./pages/ModuleSelect"));
 const EquiposHome = lazyWithRetry(() => import("./pages/equipos/EquiposHome"));
 const EquiposCategory = lazyWithRetry(() => import("./pages/equipos/EquiposCategory"));
+const EquiposRevision = lazyWithRetry(() => import("./pages/equipos/EquiposRevision"));
 
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const AppRoutes = () => (
 
       {/* Equipos module */}
       <Route path="/equipos" element={<ModuleRoute module="equipos"><EquiposHome /></ModuleRoute>} />
+      <Route path="/equipos/revision" element={<ModuleRoute module="equipos"><EquiposRevision /></ModuleRoute>} />
       <Route path="/equipos/:categoryId" element={<ModuleRoute module="equipos"><EquiposCategory /></ModuleRoute>} />
 
       <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
