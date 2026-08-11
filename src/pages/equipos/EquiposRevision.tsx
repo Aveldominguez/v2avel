@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Check, ClipboardList, Loader2, Search, Wrench, X, Flag, ListChecks,
+  Users, AlertTriangle, LogIn,
 } from 'lucide-react';
 import { useEquipment, updateParking, updateBattery, toggleBroken } from '@/hooks/useEquipment';
-import { useEquipmentReview } from '@/hooks/useEquipmentReview';
+import { useEquipmentReview, type CategoryConflict } from '@/hooks/useEquipmentReview';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,12 +22,23 @@ import { cn } from '@/lib/utils';
 import type { EquipmentUnitFull } from '@/types/equipment';
 import { matchEquipment } from '@/utils/equipmentSearch';
 
+/** "hace 25 min" — para saber si una revisión abierta está viva o es de ayer. */
+const sinceLabel = (iso: string): string => {
+  const min = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (min < 1) return 'ahora mismo';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.floor(h / 24)} d`;
+};
+
 const EquiposRevision = () => {
   const navigate = useNavigate();
   const { loading: loadingEquipment, fullCategories } = useEquipment();
   const {
-    loading: loadingReview, session, checks,
-    startReview, markChecked, unmarkChecked, finishReview,
+    loading: loadingReview, lastError, session, checks, otherSessions,
+    checkedCountOf, findConflicts,
+    startReview, joinSession, leaveSession, markChecked, unmarkChecked, finishReview,
   } = useEquipmentReview();
 
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -35,15 +47,19 @@ const EquiposRevision = () => {
   const [showMissing, setShowMissing] = useState(false);
   const [confirmStart, setConfirmStart] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [conflicts, setConflicts] = useState<CategoryConflict[] | null>(null);
   const [starting, setStarting] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const loading = loadingEquipment || loadingReview;
+  const catName = useCallback(
+    (id: string) => fullCategories.find(c => c.id === id)?.name ?? id,
+    [fullCategories],
+  );
 
-  /** Unidades reales (sin separadores) de las categorías incluidas. */
   const unitsInScope = useMemo(() => {
     const cats = session
-      ? fullCategories.filter(c => session.category_ids.length === 0 || session.category_ids.includes(c.id))
+      ? fullCategories.filter(c => session.category_ids.includes(c.id))
       : [];
     return cats.flatMap(c => c.units
       .filter(u => !u.is_separator)
@@ -56,20 +72,10 @@ const EquiposRevision = () => {
   );
   const total = unitsInScope.length;
   const pct = total > 0 ? Math.round((reviewedCount / total) * 100) : 0;
+  const missing = useMemo(() => unitsInScope.filter(u => !checks[u.id]), [unitsInScope, checks]);
 
-  const missing = useMemo(
-    () => unitsInScope.filter(u => !checks[u.id]),
-    [unitsInScope, checks],
-  );
+  const matches = useMemo(() => matchEquipment(unitsInScope, query), [query, unitsInScope]);
 
-  /** Coincidencias del buscador: prioriza las que terminan en lo tecleado. */
-  const matches = useMemo(
-    () => matchEquipment(unitsInScope, query),
-    [query, unitsInScope],
-  );
-
-  // Con una única coincidencia se abre sola: es el caso normal al teclear los
-  // 4 últimos números, y ahorra un toque por equipo.
   useEffect(() => {
     if (matches.length === 1) setActiveUnitId(matches[0].id);
     else if (matches.length === 0) setActiveUnitId(null);
@@ -86,30 +92,34 @@ const EquiposRevision = () => {
     searchRef.current?.focus();
   }, []);
 
-  const handleStart = async () => {
+  const doStart = async (cats: string[]) => {
     setStarting(true);
     try {
-      const cats = selectedCats.length === fullCategories.length ? [] : selectedCats;
       const unitIds = fullCategories
-        .filter(c => selectedCats.includes(c.id))
+        .filter(c => cats.includes(c.id))
         .flatMap(c => c.units.filter(u => !u.is_separator).map(u => u.id));
       await startReview(cats, unitIds);
       toast({ title: 'Revisión iniciada', description: `${unitIds.length} equipos por revisar.` });
       setTimeout(() => searchRef.current?.focus(), 100);
     } catch (err) {
-      console.error(err);
-      toast({
-        title: 'No se pudo iniciar',
-        description: 'Puede que otro compañero ya tenga una revisión abierta.',
-        variant: 'destructive',
-      });
+      // Se muestra el motivo real: antes se daba siempre por hecho que había
+      // otra revisión abierta y despistaba cuando el fallo era otro.
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[revisión] error al iniciar', err);
+      toast({ title: 'No se pudo iniciar la revisión', description: msg, variant: 'destructive' });
     } finally {
       setStarting(false);
       setConfirmStart(false);
+      setConflicts(null);
     }
   };
 
-  /* ─────────────── Cargando ─────────────── */
+  const handleStartPressed = () => {
+    const found = findConflicts(selectedCats);
+    if (found.length > 0) setConflicts(found);
+    else setConfirmStart(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -118,11 +128,13 @@ const EquiposRevision = () => {
     );
   }
 
-  /* ─────────────── Sin revisión abierta: elegir categorías ─────────────── */
+  /* ─────────────── Sin revisión activa en este móvil ─────────────── */
   if (!session) {
     const selectedUnits = fullCategories
       .filter(c => selectedCats.includes(c.id))
       .reduce((n, c) => n + c.units.filter(u => !u.is_separator).length, 0);
+    const conflictCats = conflicts?.flatMap(c => c.categoryIds) ?? [];
+    const freeCats = selectedCats.filter(id => !conflictCats.includes(id));
 
     return (
       <div className="flex min-h-screen flex-col bg-background">
@@ -135,6 +147,50 @@ const EquiposRevision = () => {
         </header>
 
         <div className="flex-1 p-4 space-y-4">
+          {lastError && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              <p className="font-semibold">No se pudieron cargar las revisiones</p>
+              <p className="mt-1 font-mono text-xs">{lastError}</p>
+            </div>
+          )}
+
+          {/* Revisiones en marcha de otros compañeros */}
+          {otherSessions.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="flex items-center gap-2 text-sm font-semibold">
+                <Users size={16} /> Revisiones en marcha
+              </h2>
+              {otherSessions.map((s) => {
+                const done = checkedCountOf(s.id);
+                const totalS = fullCategories
+                  .filter(c => s.category_ids.includes(c.id))
+                  .reduce((n, c) => n + c.units.filter(u => !u.is_separator).length, 0);
+                return (
+                  <div key={s.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold">{s.started_by_name || 'Otro usuario'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Empezó {sinceLabel(s.started_at)} · {done}/{totalS} revisados
+                        </p>
+                      </div>
+                      <Button size="sm" variant="outline" className="shrink-0 gap-1.5" onClick={() => joinSession(s.id)}>
+                        <LogIn size={14} /> Unirme
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {s.category_ids.map(id => (
+                        <span key={id} className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase">
+                          {catName(id)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <div className="card-operational p-4 space-y-1">
             <h2 className="flex items-center gap-2 font-semibold"><ClipboardList size={18} /> ¿Qué vas a revisar?</h2>
             <p className="text-sm text-muted-foreground">
@@ -144,32 +200,36 @@ const EquiposRevision = () => {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedCats(fullCategories.map(c => c.id))}>
-              Todas
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setSelectedCats([])}>
-              Ninguna
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => setSelectedCats(fullCategories.map(c => c.id))}>Todas</Button>
+            <Button variant="outline" size="sm" onClick={() => setSelectedCats([])}>Ninguna</Button>
           </div>
 
           <div className="space-y-2">
             {fullCategories.map((cat) => {
               const n = cat.units.filter(u => !u.is_separator).length;
               const on = selectedCats.includes(cat.id);
+              // Aviso en la propia casilla si otro ya la está revisando.
+              const busyBy = otherSessions.find(s => s.category_ids.includes(cat.id));
               return (
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setSelectedCats(prev =>
-                    on ? prev.filter(id => id !== cat.id) : [...prev, cat.id])}
+                  onClick={() => setSelectedCats(prev => on ? prev.filter(id => id !== cat.id) : [...prev, cat.id])}
                   className={cn(
                     'flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors',
                     on ? 'border-primary bg-primary/10' : 'border-border bg-card',
                   )}
                 >
                   <Checkbox checked={on} className="pointer-events-none" />
-                  <span className="flex-1 font-mono text-sm font-bold uppercase">{cat.name}</span>
-                  <span className="text-xs text-muted-foreground">{n} equipos</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block font-mono text-sm font-bold uppercase">{cat.name}</span>
+                    {busyBy && (
+                      <span className="block text-[11px] font-medium text-warning">
+                        La está revisando {busyBy.started_by_name || 'otro usuario'}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{n} equipos</span>
                 </button>
               );
             })}
@@ -180,12 +240,60 @@ const EquiposRevision = () => {
           <Button
             className="w-full gap-2 h-12 text-base"
             disabled={selectedCats.length === 0}
-            onClick={() => setConfirmStart(true)}
+            onClick={handleStartPressed}
           >
             <Flag size={18} />
             Empezar revisión{selectedUnits > 0 ? ` (${selectedUnits} equipos)` : ''}
           </Button>
         </div>
+
+        {/* Coordinación: alguien ya revisa alguna de las categorías elegidas */}
+        <AlertDialog open={!!conflicts} onOpenChange={(o) => !o && setConflicts(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-warning" />
+                Esa categoría ya se está revisando
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-left">
+                  {conflicts?.map(c => (
+                    <p key={c.session.id}>
+                      <strong>{c.session.started_by_name || 'Otro usuario'}</strong> está revisando{' '}
+                      <strong>{c.categoryIds.map(catName).join(', ')}</strong> desde {sinceLabel(c.session.started_at)}
+                      {' '}({checkedCountOf(c.session.id)} equipos ya registrados).
+                    </p>
+                  ))}
+                  <p className="pt-1">
+                    Podéis trabajar juntos en la misma revisión, o repartíroslo: tú te
+                    quedas con las categorías libres y él sigue con las suyas.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+              {conflicts?.length === 1 && (
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => { joinSession(conflicts[0].session.id); setConflicts(null); }}
+                >
+                  <LogIn size={16} />
+                  Unirme a la revisión de {conflicts[0].session.started_by_name || 'mi compañero'}
+                </Button>
+              )}
+              {freeCats.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => { setSelectedCats(freeCats); setConflicts(null); setConfirmStart(true); }}
+                >
+                  Revisar solo las {freeCats.length} categorías libres
+                </Button>
+              )}
+              <AlertDialogCancel className="w-full mt-0">Cancelar</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <AlertDialog open={confirmStart} onOpenChange={setConfirmStart}>
           <AlertDialogContent>
@@ -194,12 +302,12 @@ const EquiposRevision = () => {
               <AlertDialogDescription>
                 Se vaciarán el parking y la batería de los {selectedUnits} equipos seleccionados
                 para que los registres de cero. Los equipos marcados como averiados
-                conservan su estado. La revisión será visible para todos tus compañeros.
+                conservan su estado.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={starting}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={(e) => { e.preventDefault(); handleStart(); }} disabled={starting}>
+              <AlertDialogAction onClick={(e) => { e.preventDefault(); doStart(selectedCats); }} disabled={starting}>
                 {starting ? 'Iniciando…' : 'Sí, empezar'}
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -221,7 +329,6 @@ const EquiposRevision = () => {
           <ThemeToggle />
         </div>
 
-        {/* Progreso */}
         <div className="px-3 pb-3 space-y-1.5">
           <div className="flex items-baseline justify-between text-sm">
             <span className="font-mono font-bold">
@@ -230,16 +337,20 @@ const EquiposRevision = () => {
             <span className={cn('font-mono font-bold', pct === 100 ? 'text-success' : 'text-primary')}>{pct}%</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn('h-full transition-all', pct === 100 ? 'bg-success' : 'bg-primary')}
-              style={{ width: `${pct}%` }}
-            />
+            <div className={cn('h-full transition-all', pct === 100 ? 'bg-success' : 'bg-primary')} style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex flex-wrap items-center gap-1 pt-0.5">
+            {session.category_ids.map(id => (
+              <span key={id} className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase">{catName(id)}</span>
+            ))}
+            {session.started_by_name && (
+              <span className="ml-auto text-[10px] text-muted-foreground">Iniciada por {session.started_by_name}</span>
+            )}
           </div>
         </div>
       </header>
 
       <div className="flex-1 p-3 space-y-3 pb-32">
-        {/* Buscador */}
         <div className="relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -258,7 +369,6 @@ const EquiposRevision = () => {
           )}
         </div>
 
-        {/* Varias coincidencias: elegir */}
         {matches.length > 1 && (
           <div className="space-y-1.5">
             {matches.map((u) => (
@@ -271,14 +381,13 @@ const EquiposRevision = () => {
                 )}
               >
                 <span className="font-mono font-bold">{u.code}</span>
-                <span className="text-xs text-muted-foreground">{u.categoryName}</span>
+                <span className="text-xs text-muted-foreground">{(u as any).categoryName}</span>
                 {checks[u.id] && <Check size={16} className="ml-auto text-success" />}
               </button>
             ))}
           </div>
         )}
 
-        {/* Ficha del equipo */}
         {activeUnit && (
           <ReviewCard
             unit={activeUnit}
@@ -304,11 +413,9 @@ const EquiposRevision = () => {
         )}
       </div>
 
-      {/* Barra inferior */}
       <div className="fixed bottom-0 left-0 right-0 z-20 flex gap-2 border-t border-border bg-card p-3">
         <Button variant="outline" className="flex-1 gap-2 h-12" onClick={() => setShowMissing(true)}>
-          <ListChecks size={18} />
-          Faltantes ({missing.length})
+          <ListChecks size={18} /> Faltantes ({missing.length})
         </Button>
         <Button
           variant={pct === 100 ? 'default' : 'secondary'}
@@ -319,20 +426,15 @@ const EquiposRevision = () => {
         </Button>
       </div>
 
-      {/* Diálogo de faltantes */}
       <Dialog open={showMissing} onOpenChange={setShowMissing}>
         <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Equipos por revisar ({missing.length})</DialogTitle>
-            <DialogDescription>
-              Toca un equipo para abrirlo en el buscador.
-            </DialogDescription>
+            <DialogDescription>Toca un equipo para abrirlo en el buscador.</DialogDescription>
           </DialogHeader>
 
           {missing.length === 0 ? (
-            <p className="py-6 text-center text-sm font-semibold text-success">
-              ¡Todos revisados! 🎉
-            </p>
+            <p className="py-6 text-center text-sm font-semibold text-success">¡Todos revisados! 🎉</p>
           ) : (
             <div className="space-y-4">
               {fullCategories
@@ -348,11 +450,7 @@ const EquiposRevision = () => {
                         {items.map((u) => (
                           <button
                             key={u.id}
-                            onClick={() => {
-                              setQuery(u.code);
-                              setActiveUnitId(u.id);
-                              setShowMissing(false);
-                            }}
+                            onClick={() => { setQuery(u.code); setActiveUnitId(u.id); setShowMissing(false); }}
                             className={cn(
                               'flex items-center gap-1 rounded-md border px-2 py-1.5 font-mono text-xs',
                               u.state?.is_broken
@@ -377,27 +475,44 @@ const EquiposRevision = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Terminar */}
       <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Terminar la revisión?</AlertDialogTitle>
             <AlertDialogDescription>
               {missing.length > 0
-                ? `Quedan ${missing.length} equipos sin revisar. Si la cierras, se cerrará también para tus compañeros.`
+                ? `Quedan ${missing.length} equipos sin revisar. Si la cierras, se cerrará también para los compañeros que estén en ella.`
                 : 'Están todos los equipos revisados. Se cerrará la revisión para todos.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Seguir revisando</AlertDialogCancel>
-            <AlertDialogAction onClick={async (e) => {
-              e.preventDefault();
-              await finishReview();
-              setConfirmFinish(false);
-              toast({ title: 'Revisión cerrada', description: `${reviewedCount} de ${total} equipos revisados.` });
-            }}>
-              Terminar
-            </AlertDialogAction>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={async () => {
+                try {
+                  await finishReview();
+                  setConfirmFinish(false);
+                  toast({ title: 'Revisión cerrada', description: `${reviewedCount} de ${total} equipos revisados.` });
+                } catch (err) {
+                  toast({
+                    title: 'No se pudo cerrar',
+                    description: err instanceof Error ? err.message : String(err),
+                    variant: 'destructive',
+                  });
+                }
+              }}
+            >
+              Cerrar para todos
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => { leaveSession(); setConfirmFinish(false); toast({ title: 'Has salido de la revisión', description: 'Sigue abierta para tus compañeros.' }); }}
+            >
+              Salir sin cerrarla
+            </Button>
+            <AlertDialogCancel className="w-full mt-0">Seguir revisando</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -424,7 +539,6 @@ const ReviewCard = ({ unit, categoryName, checked, checkedBy, onMark, onUnmark, 
   const isBroken = state?.is_broken ?? false;
   const isFuel = unit.fuel_type === 'fuel';
 
-  // Al cambiar de equipo, la ficha se recarga con sus datos.
   useEffect(() => {
     setParking(unit.state?.parking ?? '');
     setBattery(unit.state?.battery_level != null ? String(unit.state.battery_level) : '');
@@ -443,10 +557,7 @@ const ReviewCard = ({ unit, categoryName, checked, checkedBy, onMark, onUnmark, 
   };
 
   return (
-    <div className={cn(
-      'card-operational space-y-3 p-4',
-      checked && 'ring-2 ring-success',
-    )}>
+    <div className={cn('card-operational space-y-3 p-4', checked && 'ring-2 ring-success')}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-mono text-2xl font-bold">{unit.code}</p>
@@ -461,15 +572,11 @@ const ReviewCard = ({ unit, categoryName, checked, checkedBy, onMark, onUnmark, 
             <Check size={14} /> Revisado
           </button>
         ) : (
-          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-            Sin revisar
-          </span>
+          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">Sin revisar</span>
         )}
       </div>
 
-      {checked && checkedBy && (
-        <p className="text-xs text-muted-foreground">Revisado por {checkedBy}</p>
-      )}
+      {checked && checkedBy && <p className="text-xs text-muted-foreground">Revisado por {checkedBy}</p>}
 
       {isBroken && (
         <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-2 text-xs font-semibold text-destructive">
@@ -504,21 +611,14 @@ const ReviewCard = ({ unit, categoryName, checked, checkedBy, onMark, onUnmark, 
       </div>
 
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          className="flex-1 gap-2"
-          onClick={() => { onMark('confirmed'); onDone(); }}
-        >
+        <Button variant="outline" className="flex-1 gap-2" onClick={() => { onMark('confirmed'); onDone(); }}>
           <Check size={16} /> Visto, sin cambios
         </Button>
         <Button
           variant={isBroken ? 'secondary' : 'outline'}
           size="icon"
           className={cn('h-10 w-10 shrink-0', isBroken && 'text-destructive')}
-          onClick={() => {
-            toggleBroken(unit.id, unit.code, unit.category_id, isBroken, 'equipos');
-            onMark('data');
-          }}
+          onClick={() => { toggleBroken(unit.id, unit.code, unit.category_id, isBroken, 'equipos'); onMark('data'); }}
           title={isBroken ? 'Quitar avería' : 'Marcar como averiado'}
         >
           <Wrench size={16} />

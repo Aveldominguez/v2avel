@@ -3,24 +3,25 @@
 -- Una revisión es una "vuelta" al aeropuerto para localizar y registrar el
 -- estado de los equipos. Es COMPARTIDA: varios compañeros pueden repartirse la
 -- pista y ven el progreso del otro en tiempo real, sin revisar dos veces lo
--- mismo. Solo puede haber una revisión abierta a la vez.
+-- mismo.
+--
+-- Pueden convivir VARIAS revisiones abiertas siempre que cubran categorías
+-- distintas (uno revisa cintas y otro tractores a la vez). El solape se avisa
+-- desde la app, que dice quién está revisando qué para poder coordinarse; no
+-- se bloquea en base de datos a propósito.
 
 CREATE TABLE public.equipment_review_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   started_by UUID,
   started_by_name TEXT,
-  -- Categorías incluidas en la revisión. Vacío = todas.
+  -- Categorías incluidas en la revisión (siempre explícitas, para poder
+  -- detectar solapes entre revisiones simultáneas).
   category_ids TEXT[] NOT NULL DEFAULT '{}',
   finished_at TIMESTAMPTZ,
   finished_by UUID,
   finished_by_name TEXT
 );
-
--- Solo una revisión abierta a la vez en toda la instalación.
-CREATE UNIQUE INDEX uq_equipment_review_open
-  ON public.equipment_review_sessions ((finished_at IS NULL))
-  WHERE finished_at IS NULL;
 
 CREATE TABLE public.equipment_review_checks (
   session_id UUID NOT NULL REFERENCES public.equipment_review_sessions(id) ON DELETE CASCADE,
