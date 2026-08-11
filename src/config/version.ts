@@ -1,8 +1,9 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.231';
+export const APP_VERSION = '4.240';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Control de Equipos: la franja superior del móvil ya no se ve de otro color ni con ese efecto difuminado. La cabecera pinta ahora también la zona de la barra de estado, así que en iPhone y en Android se ve de un solo color, el mismo de la cabecera.',
-  'Estilo v4 (Aero): el color de la barra de estado estaba puesto al del fondo de la página (azul marino) mientras las cabeceras son blancas, y por eso quedaba una franja distinta arriba. Corregido en toda la app.',
+  'La barra de estado del móvil toma ahora el color de la cabecera de cada pantalla, y no un color fijo por estilo. Dentro de un mismo estilo conviven cabeceras blancas (Home, Equipos) y azul marino (la escala), así que con un solo color quedaba descuadrada en unas u otras. Corregido en los cinco estilos.',
+  'Control de Equipos: la cabecera de la pantalla principal se queda fija al hacer scroll, como ya hacían las de categoría y Modo Revisión. Antes se iba hacia arriba y el fondo llegaba hasta la barra de estado, que es lo que se veía como difuminado.',
+  'Cabeceras opacas y sin efecto de cristal en toda la app: el contenido que pasaba por debajo al hacer scroll se transparentaba bajo la barra de estado.',
 ];

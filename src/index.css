@@ -1090,12 +1090,17 @@
     padding-top: env(safe-area-inset-top);
   }
 
-  /* Cabeceras planas en Aero: sin cristal esmerilado ni transparencia. Con la
-     cabecera semitransparente el navy del fondo se transparentaba al hacer
-     scroll y en iOS se veía como un degradado bajo la barra de estado. */
-  .aero .aero-home-header,
-  .aero .app-safe-header {
-    background-color: #ffffff !important;
+  /* Cabeceras fijas OPACAS y sin cristal esmerilado, en todos los temas.
+     Con fondo semitransparente + desenfoque, el contenido que pasa por debajo
+     al hacer scroll se transparenta y en el móvil se ve como un degradado
+     borroso justo bajo la barra de estado. El color sale de --card, el mismo
+     token del que se deriva el color de la barra de estado (ver
+     utils/themeColor.ts), así que cabecera y barra siempre coinciden. */
+  .aero-home-header,
+  .aero-flight-header,
+  .app-safe-header,
+  header.classic-only {
+    background-color: hsl(var(--card)) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }

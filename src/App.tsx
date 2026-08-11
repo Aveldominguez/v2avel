@@ -6,6 +6,7 @@ import { UpdateBanner } from "@/components/UpdateBanner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useStatusBarColor } from "@/hooks/useStatusBarColor";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { Suspense, useEffect } from "react";
@@ -71,7 +72,10 @@ const RootRedirect = () => {
   return <Navigate to="/auth" replace />;
 };
 
-const AppRoutes = () => (
+const AppRoutes = () => {
+  // La barra de estado del móvil sigue el color de la cabecera de cada pantalla.
+  useStatusBarColor();
+  return (
   <Suspense fallback={<FullScreenLoader />}>
     <Routes>
       <Route path="/auth" element={<Auth />} />
@@ -93,7 +97,8 @@ const AppRoutes = () => (
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Suspense>
-);
+  );
+};
 
 const CatalogBootstrap = () => {
   useEffect(() => {

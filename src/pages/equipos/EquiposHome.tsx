@@ -81,7 +81,7 @@ const EquiposHome = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="app-safe-header flex min-h-14 items-center justify-between border-b border-border bg-card px-4">
+      <header className="app-safe-header sticky top-0 z-30 flex min-h-14 items-center justify-between border-b border-border bg-card px-4">
         <div className="flex items-center gap-2">
           {isAdmin && (
             <button onClick={() => navigate('/admin')} className="flex h-8 w-8 items-center justify-center text-primary" aria-label="Admin">

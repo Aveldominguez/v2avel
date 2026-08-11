@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Moon, Sun, Contrast, Plane, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { syncStatusBarColor } from '@/utils/themeColor';
 
 type Theme = 'dark' | 'light' | 'exterior' | 'sky' | 'aero';
 
@@ -53,17 +54,9 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => 
     // en vez de alternar display por CSS (ver useTheme.ts).
     window.dispatchEvent(new Event('themechange'));
 
-    // Este color pinta la barra de estado (Android) y la zona del notch (iOS),
-    // así que debe ser el de la CABECERA, no el del fondo de la página: en Aero
-    // la cabecera es blanca y con el navy del fondo quedaba una franja de otro
-    // color arriba que parecía un degradado.
-    const themeColor = theme === 'dark' ? '#181c25'
-      : theme === 'sky' ? '#eef2f9'
-      : theme === 'aero' ? '#ffffff'
-      : '#ffffff';
-    document.querySelectorAll('meta[name="theme-color"]').forEach(el => {
-      (el as HTMLMetaElement).content = themeColor;
-    });
+    // La barra de estado toma el color de las cabeceras del tema (token --card).
+    // Se lee del tema ya aplicado, así ningún estilo se queda descolgado.
+    syncStatusBarColor();
   }, [theme]);
 
   return (
