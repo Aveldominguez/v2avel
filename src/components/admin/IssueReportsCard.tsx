@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getSignedUrl } from '@/utils/storageUrl';
@@ -45,6 +46,7 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState<string | null>(null);
   const [showResolved, setShowResolved] = useState(false);
+  const [viewing, setViewing] = useState<{ url: string | null; label: string; error: boolean } | null>(null);
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -101,10 +103,13 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
     navigate(`/turnaround/${report.turnaround_id}`);
   };
 
-  const handleViewScreenshot = async (value: string) => {
+  // La captura se abre DENTRO de la página. Antes se hacía con window.open
+  // después de pedir la URL firmada, y al no venir directo del clic el
+  // navegador lo bloqueaba como ventana emergente: no pasaba nada al pulsar.
+  const handleViewScreenshot = async (value: string, etiqueta: string) => {
+    setViewing({ url: null, label: etiqueta, error: false });
     const url = await getSignedUrl(value);
-    if (url) window.open(url, '_blank', 'noopener');
-    else toast({ title: 'Error', description: 'No se pudo abrir la captura.', variant: 'destructive' });
+    setViewing({ url, label: etiqueta, error: !url });
   };
 
   return (
@@ -183,7 +188,7 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
                   key={url}
                   variant="outline"
                   size="sm"
-                  onClick={() => handleViewScreenshot(url)}
+                  onClick={() => handleViewScreenshot(url, `Captura ${idx + 1} · ${report.flight_number || 'sin vuelo'}`)}
                   className="gap-1.5 text-xs"
                 >
                   <ImageIcon className="h-3.5 w-3.5" />
@@ -218,6 +223,41 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
           </div>
         ))}
       </CardContent>
+
+      {/* Visor de capturas */}
+      <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{viewing?.label ?? 'Captura'}</DialogTitle>
+          </DialogHeader>
+          {viewing?.error ? (
+            <p className="py-8 text-center text-sm text-destructive">
+              No se pudo cargar la captura.
+            </p>
+          ) : viewing?.url ? (
+            <div className="space-y-3">
+              <img
+                src={viewing.url}
+                alt={viewing.label}
+                className="max-h-[70vh] w-full rounded-md object-contain"
+              />
+              {/* Enlace real: a diferencia de window.open, no lo bloquea el navegador */}
+              <a
+                href={viewing.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center text-xs text-primary underline"
+              >
+                Abrir a tamaño completo en otra pestaña
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Cargando captura…
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
