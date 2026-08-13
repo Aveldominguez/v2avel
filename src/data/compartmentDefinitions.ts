@@ -1160,6 +1160,40 @@ export const SIN_MARCA_A333_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// Sin Marca A321 XLR — el depósito trasero adicional deja el compartimiento 3
+// reducido a la bodega 33, igual que en la ficha del XLR de Wizz Air.
+export const SIN_MARCA_A321_XLR_COMPARTMENTS: CompartmentDefinition[] = [
+  { id: 'sinmarca-a321xlr-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321xlr-11'), label: 'Bodega 11 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a321xlr-12'), label: 'Bodega 12' },
+    ],
+  },
+  { id: 'sinmarca-a321xlr-comp2', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 2',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321xlr-21'), label: 'Bodega 21' },
+      { id: createHoldId('SIN_MARCA', 'a321xlr-22'), label: 'Bodega 22' },
+      { id: createHoldId('SIN_MARCA', 'a321xlr-23'), label: 'Bodega 23' },
+    ],
+  },
+  { id: 'sinmarca-a321xlr-comp3', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321xlr-33'), label: 'Bodega 33' },
+    ],
+  },
+  { id: 'sinmarca-a321xlr-comp4', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 4',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321xlr-41'), label: 'Bodega 41 🚪' },
+      { id: createHoldId('SIN_MARCA', 'a321xlr-42'), label: 'Bodega 42' },
+    ],
+  },
+  { id: 'sinmarca-a321xlr-bulk5', airline: 'SIN_MARCA', compartmentName: 'Bulk 5',
+    holds: [
+      { id: createHoldId('SIN_MARCA', 'a321xlr-51'), label: 'Bodega 51' },
+    ],
+  },
+];
+
 export const SIN_MARCA_GENERIC_COMPARTMENTS: CompartmentDefinition[] = [
   { id: 'sinmarca-gen-comp1', airline: 'SIN_MARCA', compartmentName: 'COMPARTIMIENTO 1 FWD',
     holds: [
@@ -1399,6 +1433,7 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
   if (airline === 'SIN_MARCA') {
     if (aircraftModel === 'A320' || aircraftModel === 'A319' || aircraftModel === 'A220') return SIN_MARCA_A320_COMPARTMENTS;
     if (aircraftModel === 'A321') return SIN_MARCA_A321_COMPARTMENTS;
+    if (aircraftModel === 'A321_XLR') return SIN_MARCA_A321_XLR_COMPARTMENTS;
     if (aircraftModel === '737-800' || aircraftModel === 'B737' || aircraftModel === 'B734') return SIN_MARCA_737_COMPARTMENTS;
     if (aircraftModel === 'EMB90' || aircraftModel === 'EMB95') return SIN_MARCA_EMB_COMPARTMENTS;
     if (aircraftModel === 'A333') return SIN_MARCA_A333_COMPARTMENTS;

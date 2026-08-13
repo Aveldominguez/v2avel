@@ -92,3 +92,32 @@ describe('Bodegas del 737-800 de A Jet', () => {
     expect(etiquetas).not.toMatch(/Bodega (11|12|13|31|32|41|42|5)\b/);
   });
 });
+
+describe('A321 XLR de Sin Marca', () => {
+  const comps = getCompartmentsByAirline('SIN_MARCA', 'A321_XLR');
+
+  it('tiene bodegas propias, no cae en las genéricas', () => {
+    expect(comps.length).toBeGreaterThan(0);
+    const genericas = getCompartmentsByAirline('SIN_MARCA', 'OTHER');
+    expect(comps[0].id).not.toBe(genericas[0]?.id);
+  });
+
+  it('el compartimiento 3 queda reducido a la bodega 33 por el depósito trasero', () => {
+    const c3 = comps.find(c => c.compartmentName.includes('3'));
+    expect(flatten(c3!.holds).map(h => h.label)).toEqual(['Bodega 33']);
+  });
+
+  it('conserva el resto de bodegas del A321 XLR', () => {
+    expect(comps.map(c => c.compartmentName)).toEqual([
+      'COMPARTIMIENTO 1 FWD', 'COMPARTIMIENTO 2', 'COMPARTIMIENTO 3 AFT',
+      'COMPARTIMIENTO 4', 'Bulk 5',
+    ]);
+  });
+
+  it('no comparte identificadores con el A321 normal de Sin Marca', () => {
+    const ids = comps.flatMap(c => flatten(c.holds).map(h => h.id));
+    const a321 = getCompartmentsByAirline('SIN_MARCA', 'A321')
+      .flatMap(c => flatten(c.holds).map(h => h.id));
+    expect(ids.some(id => a321.includes(id))).toBe(false);
+  });
+});
