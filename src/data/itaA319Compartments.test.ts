@@ -52,3 +52,31 @@ describe('Bodegas del A319 de ITA', () => {
     expect(ids.some((id) => a320Ids.includes(id))).toBe(false);
   });
 });
+
+describe('Bodegas del 737-800 de A Jet', () => {
+  const comps = getCompartmentsByAirline('A_JET', '737-800');
+
+  it('tiene los dos compartimientos reales: delantero y trasero', () => {
+    expect(comps.map(c => c.compartmentName)).toEqual([
+      'COMPARTIMIENTO DELANTERO FWD',
+      'COMPARTIMIENTO TRASERO AFT',
+    ]);
+  });
+
+  it('delante: compartimientos 1, 1B y 2', () => {
+    expect(flatten(comps[0].holds).map(h => h.label)).toEqual([
+      'Compartimiento 1', 'Compartimiento 1B', 'Compartimiento 2',
+    ]);
+  });
+
+  it('detrás: compartimientos 3, 4 y 4B (flight kit)', () => {
+    expect(flatten(comps[1].holds).map(h => h.label)).toEqual([
+      'Compartimiento 3', 'Compartimiento 4', 'Compartimiento 4B · flight kit',
+    ]);
+  });
+
+  it('ya no quedan las bodegas 11/12/13 ni 31/32/41/42 copiadas del A320', () => {
+    const etiquetas = comps.flatMap(c => flatten(c.holds).map(h => h.label)).join(' ');
+    expect(etiquetas).not.toMatch(/Bodega (11|12|13|31|32|41|42|5)\b/);
+  });
+});

@@ -20,6 +20,7 @@ import { useFlightLookup } from '@/hooks/useFlightLookup';
 import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { flightNumberVariants, normalizeFlightNumber } from '@/utils/arionParking';
+import { matchAirlineByArionName } from '@/utils/airlineMatch';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -169,6 +170,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     '319': 'A319', 'A319': 'A319',
     '223': 'A220', '22B': 'A220', 'BCS3': 'A220', 'BCS1': 'A220', 'A220': 'A220',
     '738': '737-800', '73H': '737-800', 'B738': '737-800',
+    '7M8': '737_MAX', '7M9': '737_MAX', '7M7': '737_MAX', 'B38M': '737_MAX', 'B39M': '737_MAX',
     '73G': 'B737', '737': 'B737', '73W': 'B737', 'B737': 'B737',
     '734': 'B734', 'B734': 'B734',
     '333': 'A333', 'A333': 'A333',
@@ -330,22 +332,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       const filled = new Set<string>();
 
-      // 1. Aerolínea — buscar en catálogo cargado
-      const arionName = (data.airline_code ?? '').toUpperCase().trim();
-
-      const matchedAirline = allAirlines.find(a => {
-        const catalogName = a.name.toUpperCase();
-        const catalogShort = (a.shortName ?? '').toUpperCase();
-        const catalogCode = a.code.toUpperCase();
-        return (
-          arionName === catalogCode ||
-          arionName === catalogName ||
-          arionName.includes(catalogName) ||
-          catalogName.includes(arionName) ||
-          (catalogShort && arionName.includes(catalogShort))
-        );
-      });
-
+      // 1. Aerolínea — cruce con el catálogo (ver utils/airlineMatch)
+      const matchedAirline = matchAirlineByArionName(data.airline_code ?? '', allAirlines);
       const resolvedAirline = matchedAirline?.code ?? null;
 
       if (resolvedAirline && !airline) {

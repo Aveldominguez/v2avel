@@ -780,33 +780,23 @@ export const A_JET_A321_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+// A Jet 737-800 — distribución real del avión (la anterior estaba copiada de la
+// familia A320 y no correspondía: 11/12/13, 31/32, 41/42 no existen en el 737).
 export const A_JET_737_COMPARTMENTS: CompartmentDefinition[] = [
   {
-    id: 'ajet-737-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
+    id: 'ajet-737-fwd', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO DELANTERO FWD',
     holds: [
-      { id: createHoldId('A_JET', '737-11'), label: 'Bodega 11 🚪' },
-      { id: createHoldId('A_JET', '737-12'), label: 'Bodega 12' },
-      { id: createHoldId('A_JET', '737-13'), label: 'Bodega 13' },
+      { id: createHoldId('A_JET', '737-c1'), label: 'Compartimiento 1' },
+      { id: createHoldId('A_JET', '737-c1b'), label: 'Compartimiento 1B' },
+      { id: createHoldId('A_JET', '737-c2'), label: 'Compartimiento 2' },
     ],
   },
   {
-    id: 'ajet-737-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3 AFT',
+    id: 'ajet-737-aft', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO TRASERO AFT',
     holds: [
-      { id: createHoldId('A_JET', '737-31'), label: 'Bodega 31' },
-      { id: createHoldId('A_JET', '737-32'), label: 'Bodega 32' },
-    ],
-  },
-  {
-    id: 'ajet-737-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4',
-    holds: [
-      { id: createHoldId('A_JET', '737-41'), label: 'Bodega 41 🚪' },
-      { id: createHoldId('A_JET', '737-42'), label: 'Bodega 42' },
-    ],
-  },
-  {
-    id: 'ajet-737-bulk', airline: 'A_JET', compartmentName: 'Bulk',
-    holds: [
-      { id: createHoldId('A_JET', '737-5'), label: 'Bodega 5 🚪' },
+      { id: createHoldId('A_JET', '737-c3'), label: 'Compartimiento 3' },
+      { id: createHoldId('A_JET', '737-c4'), label: 'Compartimiento 4' },
+      { id: createHoldId('A_JET', '737-c4b'), label: 'Compartimiento 4B · flight kit' },
     ],
   },
 ];
