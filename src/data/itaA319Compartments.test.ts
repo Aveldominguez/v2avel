@@ -63,16 +63,28 @@ describe('Bodegas del 737-800 de A Jet', () => {
     ]);
   });
 
-  it('delante: compartimientos 1, 1B y 2', () => {
+  it('delante: 1 con puerta, 1B y 2', () => {
     expect(flatten(comps[0].holds).map(h => h.label)).toEqual([
-      'Compartimiento 1', 'Compartimiento 1B', 'Compartimiento 2',
+      'Compartimiento 1 🚪', 'Compartimiento 1B', 'Compartimiento 2',
     ]);
   });
 
-  it('detrás: compartimientos 3, 4 y 4B (flight kit)', () => {
+  it('detrás: 3, 4 con puerta y 4B (flight kit)', () => {
     expect(flatten(comps[1].holds).map(h => h.label)).toEqual([
-      'Compartimiento 3', 'Compartimiento 4', 'Compartimiento 4B · flight kit',
+      'Compartimiento 3', 'Compartimiento 4 🚪', 'Compartimiento 4B · flight kit',
     ]);
+  });
+
+  it('el 737-800 MAX usa exactamente las mismas bodegas', () => {
+    const max = getCompartmentsByAirline('A_JET', '737_MAX');
+    expect(max.map(c => c.compartmentName)).toEqual(comps.map(c => c.compartmentName));
+    expect(max.flatMap(c => flatten(c.holds).map(h => h.id)))
+      .toEqual(comps.flatMap(c => flatten(c.holds).map(h => h.id)));
+  });
+
+  it('ya no quedan las bodegas sueltas 1/2/3/4 que tenía el MAX', () => {
+    const max = getCompartmentsByAirline('A_JET', '737_MAX');
+    expect(max.flatMap(c => flatten(c.holds).map(h => h.label))).not.toContain('Bodega 1');
   });
 
   it('ya no quedan las bodegas 11/12/13 ni 31/32/41/42 copiadas del A320', () => {

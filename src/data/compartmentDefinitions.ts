@@ -780,13 +780,15 @@ export const A_JET_A321_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
-// A Jet 737-800 — distribución real del avión (la anterior estaba copiada de la
-// familia A320 y no correspondía: 11/12/13, 31/32, 41/42 no existen en el 737).
+// A Jet Boeing 737-800 y 737-800 MAX — misma distribución de bodegas, así que
+// comparten definición: al cambiar el modelo en la escala no se pierde lo ya
+// anotado. La anterior estaba copiada de la familia A320 y no correspondía:
+// 11/12/13, 31/32, 41/42 no existen en el 737.
 export const A_JET_737_COMPARTMENTS: CompartmentDefinition[] = [
   {
     id: 'ajet-737-fwd', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO DELANTERO FWD',
     holds: [
-      { id: createHoldId('A_JET', '737-c1'), label: 'Compartimiento 1' },
+      { id: createHoldId('A_JET', '737-c1'), label: 'Compartimiento 1 🚪' },
       { id: createHoldId('A_JET', '737-c1b'), label: 'Compartimiento 1B' },
       { id: createHoldId('A_JET', '737-c2'), label: 'Compartimiento 2' },
     ],
@@ -795,30 +797,15 @@ export const A_JET_737_COMPARTMENTS: CompartmentDefinition[] = [
     id: 'ajet-737-aft', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO TRASERO AFT',
     holds: [
       { id: createHoldId('A_JET', '737-c3'), label: 'Compartimiento 3' },
-      { id: createHoldId('A_JET', '737-c4'), label: 'Compartimiento 4' },
+      { id: createHoldId('A_JET', '737-c4'), label: 'Compartimiento 4 🚪' },
       { id: createHoldId('A_JET', '737-c4b'), label: 'Compartimiento 4B · flight kit' },
     ],
   },
 ];
 
-export const A_JET_737_MAX_COMPARTMENTS: CompartmentDefinition[] = [
-  {
-    id: 'ajet-737max-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1',
-    holds: [{ id: createHoldId('A_JET', '737max-1'), label: 'Bodega 1' }],
-  },
-  {
-    id: 'ajet-737max-comp2', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 2',
-    holds: [{ id: createHoldId('A_JET', '737max-2'), label: 'Bodega 2' }],
-  },
-  {
-    id: 'ajet-737max-comp3', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 3',
-    holds: [{ id: createHoldId('A_JET', '737max-3'), label: 'Bodega 3' }],
-  },
-  {
-    id: 'ajet-737max-comp4', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 4',
-    holds: [{ id: createHoldId('A_JET', '737max-4'), label: 'Bodega 4' }],
-  },
-];
+/** El MAX comparte bodegas con el 737-800 (ver arriba). */
+export const A_JET_737_MAX_COMPARTMENTS = A_JET_737_COMPARTMENTS;
+
 export const A_JET_A320_AIRBALTIC_COMPARTMENTS: CompartmentDefinition[] = [
   {
     id: 'ajet-a320ab-comp1', airline: 'A_JET', compartmentName: 'COMPARTIMIENTO 1 FWD',
