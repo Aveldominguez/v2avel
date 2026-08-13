@@ -1,6 +1,7 @@
 {
-  "version": "4.270",
+  "version": "4.280",
   "changelog": [
-    "SkyUp: era la única aerolínea sin reglas propias de equipos, así que le aparecían todas las categorías siempre (plataformas y transfer incluidos). Ahora sigue las mismas reglas que el resto de compañías de su grupo."
+    "URGENTE: corregido el fallo por el que la pantalla de inicio de sesión se quedaba parpadeando sin parar y no dejaba entrar en la app. Ocurría cuando la app no lograba comprobar a qué módulos tienes acceso (por ejemplo con mala cobertura): lo interpretaba como \"sin acceso\" y entraba en un rebote infinito entre el login y la pantalla inicial.",
+    "Ahora, si no se puede comprobar el acceso, la app lo dice claramente y ofrece Reintentar o Cerrar sesión, en lugar de dejarte atrapado. Ninguna escala ni dato se ha visto afectado."
   ]
 }

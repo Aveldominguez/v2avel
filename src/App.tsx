@@ -62,6 +62,46 @@ const ModuleRoute = ({ module, children }: { module: 'rampa' | 'equipos'; childr
   return <>{children}</>;
 };
 
+/**
+ * Pantalla de salida cuando hay sesión pero no se puede entrar a ningún módulo.
+ *
+ * Antes esto redirigía a /auth, y como la pantalla de login redirige a "/" en
+ * cuanto detecta sesión, las dos se rebotaban infinitamente: la app se quedaba
+ * parpadeando y no se podía ni iniciar sesión ni salir. Ahora se para aquí y se
+ * explica qué ocurre.
+ */
+const SinAcceso = ({ huboError }: { huboError: boolean }) => {
+  const { signOut } = useAuth();
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-6 text-center">
+        <h1 className="text-lg font-bold">
+          {huboError ? 'No se pudo comprobar tu acceso' : 'Tu cuenta no tiene módulos asignados'}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {huboError
+            ? 'Puede ser un problema de conexión. Comprueba que tienes datos o wifi y vuelve a intentarlo.'
+            : 'Pide a un administrador que te dé acceso a Rampa o a Control de Equipos.'}
+        </p>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full rounded-md bg-primary px-4 py-3 font-semibold text-primary-foreground"
+          >
+            Reintentar
+          </button>
+          <button
+            onClick={async () => { await signOut(); window.location.replace('/auth'); }}
+            className="w-full rounded-md border border-border px-4 py-3 font-medium"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RootRedirect = () => {
   const { user, loading: authLoading } = useAuth();
   const access = useModuleAccess();
@@ -69,7 +109,8 @@ const RootRedirect = () => {
   if (!user) return <Navigate to="/auth" replace />;
   if (access.rampa) return <Navigate to="/rampa" replace />;
   if (access.equipos) return <Navigate to="/equipos" replace />;
-  return <Navigate to="/auth" replace />;
+  // Con sesión activa NO se vuelve a /auth: ahí estaba el rebote infinito.
+  return <SinAcceso huboError={access.error} />;
 };
 
 const AppRoutes = () => {
