@@ -6,6 +6,7 @@ import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels
 import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { CountdownTimer } from './CountdownTimer';
+import { CargoDoorAlert } from './CargoDoorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -369,6 +370,13 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   homeStation,
 }) => {
   useCatalog(); // subscribe to admin overrides so visibility/labels update live
+  // Registra el cierre de puertas con la hora actual desde el botón del aviso.
+  const marcarPuertasCerradas = React.useCallback(() => {
+    const n = new Date();
+    const hhmm = `${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}`;
+    onChange({ ...times, cargoDoorsClosed: hhmm });
+  }, [onChange, times]);
+
   const durationMinutes = getTurnaroundDuration(airline, aircraftModel);
   const cleaningMins = getCleaningMinutes(airline, aircraftModel);
 
@@ -534,6 +542,15 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 </div>
               </div>
               {!soloLlegada && (
+                <>
+                <CargoDoorAlert
+                  aircraftModel={aircraftModel}
+                  departureTime={departureTime}
+                  cargoDoorsClosed={times.cargoDoorsClosed}
+                  soloLlegada={soloLlegada}
+                  flightDate={flightDate}
+                  onCloseDoors={marcarPuertasCerradas}
+                />
                 <CountdownTimer
                   chocksOnTime={times.chocksOnArrival}
                   loadingEndTime={times.loadingEnd}
@@ -543,6 +560,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                   departureTime={departureTime}
                   onDepartureTimeChange={onDepartureTimeChange}
                 />
+                </>
               )}
             </CardTitle>
             {/* STA / ETA / STD row */}
@@ -746,6 +764,15 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             </div>
           </div>
           {!soloLlegada && (
+            <>
+            <CargoDoorAlert
+              aircraftModel={aircraftModel}
+              departureTime={departureTime}
+              cargoDoorsClosed={times.cargoDoorsClosed}
+              soloLlegada={soloLlegada}
+              flightDate={flightDate}
+              onCloseDoors={marcarPuertasCerradas}
+            />
             <CountdownTimer
               chocksOnTime={times.chocksOnArrival}
               loadingEndTime={times.loadingEnd}
@@ -755,6 +782,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
               departureTime={departureTime}
               onDepartureTimeChange={onDepartureTimeChange}
             />
+            </>
           )}
         </CardTitle>
         {/* STA / ETA / STD row */}

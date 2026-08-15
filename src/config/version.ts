@@ -1,8 +1,9 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.310';
+export const APP_VERSION = '4.320';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Se acabó perder lo apuntado en silencio: los borradores de escalas abandonadas se acumulaban hasta llenar el almacén del móvil y, a partir de ahí, la escala en curso dejaba de respaldarse sin avisar. Ahora se limpian solos, se hace sitio automáticamente y si aun así no cabe salta un aviso rojo para que guardes.',
-  'Menos tirones al teclear: el borrador ya no se escribe en el móvil en cada pulsación de tecla.',
+  'Aviso en vivo del cierre de puertas de bodega (normativa H-5 en Narrow Body): cuenta atrás grande en Control de Horas, preaviso en H-15 y aviso insistente cada minuto desde H-10 hasta que registras el cierre.',
+  'Sonido en el aviso, y vibración en Android (iOS no la permite en apps web).',
+  'Campo nuevo CIERRE PUERTAS BODEGA, separado de FIN CARGA: se puede terminar de cargar y no poder cerrar todavía por repostaje u otro motivo.',
 ];

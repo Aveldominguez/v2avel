@@ -16,6 +16,10 @@ export interface TurnaroundTimes {
   unloadingEnd: string | null;           // Fin Descarga
   loadingStart: string | null;           // Inicio Carga
   loadingEnd: string | null;             // Fin Carga
+  // Momento distinto del fin de carga: se puede terminar de cargar y no poder
+  // cerrar todavía (repostaje, espera de última maleta…). La normativa de
+  // cierre en H-5 se mide con ESTE campo, no con el fin de carga.
+  cargoDoorsClosed: string | null;       // Cierre Puertas Bodega
   lastHandBag: string | null;            // Cierre Coordinador
   stairsPlacementDeparture: string | null; // Puesta de Escalera (Salida)
   specialEndLoading: string | null;      // Retirada Escalera (Salida)
@@ -235,6 +239,7 @@ const ARRIVAL_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
 const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'cargoDoorsClosed', label: 'Cierre Puertas Bodega', clockColor: 'red', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
   { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
@@ -252,6 +257,7 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
 const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
   { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'cargoDoorsClosed', label: 'Cierre Puertas Bodega', clockColor: 'red', type: 'time' },
   { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
   { key: 'lastHandBag', label: 'Cierre Coordinador', clockColor: 'red', type: 'time' },
   { key: 'dock1', label: '1ª Muelle', clockColor: 'green', type: 'time' },
@@ -355,6 +361,7 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   unloadingEnd: 'Fin Descarga',
   loadingStart: 'Inicio Carga',
   loadingEnd: 'Fin Carga',
+  cargoDoorsClosed: 'Cierre Puertas Bodega',
   firstBag: '1ª Maleta',
   lastHandBag: 'Cierre Coordinador',
   lirReception: 'Recepción de LIR',
