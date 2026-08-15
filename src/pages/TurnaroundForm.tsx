@@ -39,6 +39,9 @@ import { IssueReportButton } from '@/components/turnaround/IssueReportButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
+// Retardo del borrador local: lo justo para no escribir en disco en cada tecla
+// pero seguir siendo instantáneo a ojo del que apunta.
+const DRAFT_DELAY = 800;
 
 const TurnaroundForm: React.FC = () => {
   const navigate = useNavigate();
@@ -218,6 +221,8 @@ const TurnaroundForm: React.FC = () => {
 
   // Auto-save refs
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftWarned = useRef(false);
   const hasUnsavedChanges = useRef(false);
   const isInitialLoad = useRef(true);
   const savedAndNavigating = useRef(false);
@@ -403,13 +408,38 @@ const TurnaroundForm: React.FC = () => {
     savedAt: Date.now(),
   }), [id, flightNumber, date, selectedAirline, aircraftModel, getTimesWithFlightInfo, fieldValues, observations, tango, matricula, isRemote, soloLlegada, soloSalida, remoteLocation, step]);
 
+  /**
+   * Escribe el borrador en el móvil. Si no cabe se avisa UNA vez y bien claro:
+   * hasta ahora fallaba en silencio y el usuario seguía apuntando horas que no
+   * quedaban respaldadas en ningún sitio.
+   */
+  const flushDraft = useCallback(() => {
+    if (isInitialLoad.current || savedAndNavigating.current) return;
+    let ok = false;
+    try { ok = saveDraft(buildDraft()); } catch { ok = false; }
+    if (!ok && !draftWarned.current) {
+      draftWarned.current = true;
+      toast({
+        title: '⚠️ El móvil no puede guardar el borrador',
+        description: 'Almacenamiento lleno. Pulsa Guardar ahora para no perder lo apuntado.',
+        variant: 'destructive',
+      });
+    }
+    if (ok) draftWarned.current = false;
+  }, [buildDraft]);
+
   // --- Auto-save: save draft to localStorage on any change ---
   useEffect(() => {
     if (isInitialLoad.current || savedAndNavigating.current) return;
     hasUnsavedChanges.current = true;
 
-    // Always save draft locally immediately
-    saveDraft(buildDraft());
+    // Borrador local con retardo. Antes se serializaba la escala ENTERA a
+    // localStorage en cada pulsación de tecla; es una escritura síncrona que
+    // bloquea el hilo de la pantalla y en el móvil se notaba como tirones y
+    // como que el cursor del campo se quedaba colgado. El respaldo real ante
+    // un cierre inesperado lo da el flush de `pagehide`/`visibilitychange`.
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => { flushDraft(); }, DRAFT_DELAY);
 
     // Debounced server save (only in step 2, editing mode, online)
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -422,26 +452,23 @@ const TurnaroundForm: React.FC = () => {
 
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+      if (draftTimer.current) clearTimeout(draftTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
   useEffect(() => {
-    const flush = () => {
-      if (isInitialLoad.current || savedAndNavigating.current) return;
-      try { saveDraft(buildDraft()); } catch { /* ignore */ }
-    };
-    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
-    window.addEventListener('pagehide', flush);
-    window.addEventListener('beforeunload', flush);
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flushDraft(); };
+    window.addEventListener('pagehide', flushDraft);
+    window.addEventListener('beforeunload', flushDraft);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
-      window.removeEventListener('pagehide', flush);
-      window.removeEventListener('beforeunload', flush);
+      window.removeEventListener('pagehide', flushDraft);
+      window.removeEventListener('beforeunload', flushDraft);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [buildDraft]);
+  }, [flushDraft]);
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;

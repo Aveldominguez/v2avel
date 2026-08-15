@@ -51,13 +51,66 @@ export interface TurnaroundDraft {
   savedAt: number;
 }
 
-export const saveDraft = (draft: TurnaroundDraft) => {
+/**
+ * Borradores caducados que se pueden tirar para hacer sitio.
+ *
+ * Un borrador sólo se borra al guardar la escala: cada escala que se abre y se
+ * deja a medias deja el suyo para siempre. Con los meses llenan el almacén del
+ * navegador (Safari da ~5 MB por web) y a partir de ahí NINGÚN borrador se
+ * guarda: es la causa de que se pierda lo apuntado.
+ */
+const DRAFT_TTL_MS = 48 * 60 * 60 * 1000;
+
+const draftKeys = (): string[] =>
+  Object.keys(localStorage).filter((k) => k.startsWith(`${DRAFT_KEY}_`));
+
+/** Tira los borradores más viejos que `olderThanMs`. Devuelve cuántos ha tirado. */
+export const pruneDrafts = (olderThanMs = DRAFT_TTL_MS, keep?: string): number => {
+  const limite = Date.now() - olderThanMs;
+  let tirados = 0;
+  for (const k of draftKeys()) {
+    if (keep && k === keep) continue;
+    try {
+      const d = JSON.parse(localStorage.getItem(k) ?? '{}') as Partial<TurnaroundDraft>;
+      // Sin fecha se considera de una versión antigua: también sobra.
+      if (!d.savedAt || d.savedAt < limite) {
+        localStorage.removeItem(k);
+        tirados++;
+      }
+    } catch {
+      localStorage.removeItem(k);
+      tirados++;
+    }
+  }
+  return tirados;
+};
+
+/**
+ * Guarda el borrador. Devuelve `false` SÓLO si no ha podido guardarlo ni
+ * después de hacer sitio: quien llama debe avisar al usuario, porque a partir
+ * de ese momento lo que apunte no está respaldado en el móvil.
+ */
+export const saveDraft = (draft: TurnaroundDraft): boolean => {
+  const key = draft.turnaroundId ? `${DRAFT_KEY}_${draft.turnaroundId}` : `${DRAFT_KEY}_new`;
+  const payload = JSON.stringify(draft);
   try {
-    const key = draft.turnaroundId ? `${DRAFT_KEY}_${draft.turnaroundId}` : `${DRAFT_KEY}_new`;
-    localStorage.setItem(key, JSON.stringify(draft));
+    localStorage.setItem(key, payload);
+    return true;
   } catch (e) {
     console.warn('Failed to save draft:', e);
   }
+  // Almacén lleno: se hace sitio tirando borradores viejos y se reintenta,
+  // primero los de más de 48 h y, si aún no cabe, todos menos el de esta escala.
+  for (const ttl of [DRAFT_TTL_MS, 0]) {
+    try {
+      if (pruneDrafts(ttl, key) === 0) continue;
+      localStorage.setItem(key, payload);
+      return true;
+    } catch (e) {
+      console.warn('Draft still not saved after pruning:', e);
+    }
+  }
+  return false;
 };
 
 export const loadDraft = (turnaroundId?: string): TurnaroundDraft | null => {
@@ -82,8 +135,22 @@ const getQueue = (): PendingOperation[] => {
   } catch { return []; }
 };
 
-const saveQueue = (queue: PendingOperation[]) => {
-  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+const saveQueue = (queue: PendingOperation[]): boolean => {
+  try {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+    return true;
+  } catch (e) {
+    // La cola es lo último que queda cuando falla el guardado en servidor: si
+    // tampoco cabe, se hace sitio con los borradores antes de darla por perdida.
+    console.warn('No se pudo guardar la cola de sincronización:', e);
+    pruneDrafts(0);
+    try {
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+      return true;
+    } catch {
+      return false;
+    }
+  }
 };
 
 export const useOfflineSync = () => {
@@ -120,7 +187,14 @@ export const useOfflineSync = () => {
       timestamp: Date.now(),
       retryCount: 0,
     });
-    saveQueue(filtered);
+    if (!saveQueue(filtered)) {
+      toast({
+        title: '⚠️ No se pudo guardar en el móvil',
+        description: 'El almacenamiento está lleno. Guarda la escala con conexión antes de cerrar.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setPendingCount(filtered.length);
   }, []);
 
