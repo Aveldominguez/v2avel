@@ -43,7 +43,10 @@ const generateIncidentPdf = async (data: {
   descripcion: string;
   fecha: string;
 }) => {
-  const logoUrl = `${window.location.origin}/images/aviapartner-logo.jpeg`;
+  // PNG de 1200 px con fondo transparente. El JPEG anterior era de baja
+  // resolución, en escala de grises y con una caja blanca opaca alrededor que
+  // se veía como un recuadro gris dentro de la celda.
+  const logoUrl = `${window.location.origin}/images/aviapartner-logo.png`;
 
   // Create a hidden container to render HTML for capture
   const container = document.createElement('div');
@@ -64,7 +67,7 @@ const generateIncidentPdf = async (data: {
         <table style="width:100%;border-collapse:collapse;flex-shrink:0;">
           <tr>
             <td style="width:35%;text-align:center;border:1px solid #000;padding:6px 10px;vertical-align:middle;" rowspan="2">
-              <img src="${logoUrl}" alt="Aviapartner" style="max-height:60px;" />
+              <img src="${logoUrl}" alt="Aviapartner" style="max-height:60px;max-width:100%;" />
             </td>
             <td style="width:20%;text-align:center;border:1px solid #000;padding:6px 10px;vertical-align:middle;" rowspan="2">
               <div style="font-size:22px;font-weight:bold;">MAD</div>

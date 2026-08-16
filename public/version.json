@@ -1,6 +1,6 @@
 {
-  "version": "4.331",
+  "version": "4.340",
   "changelog": [
-    "Arreglo interno: las comprobaciones automáticas del proyecto volvían a fallar por una dependencia mal colocada en los tests. Sin efecto en la app."
+    "Informe de incidente: logo de Aviapartner en alta resolución, en color y con fondo transparente. El anterior era un JPEG de baja calidad en escala de grises que dejaba un recuadro gris alrededor."
   ]
 }
