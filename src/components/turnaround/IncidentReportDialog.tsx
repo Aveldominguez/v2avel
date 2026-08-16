@@ -106,6 +106,34 @@ const generateIncidentPdf = async (data: {
 
   document.body.appendChild(container);
 
+  /**
+   * Rasteriza la hoja a la escala pedida, o devuelve null si no ha salido bien.
+   *
+   * Safari en iOS tiene un tope de superficie de lienzo y, cuando se supera, NO
+   * lanza ningún error: devuelve un lienzo en blanco. Sin esta comprobación el
+   * informe podría salir en blanco sin que nadie se enterase hasta enviarlo.
+   * Por eso se mira que haya tinta de verdad antes de darlo por bueno.
+   */
+  const renderCanvas = async (el: HTMLElement, scale: number): Promise<HTMLCanvasElement | null> => {
+    try {
+      const c = await html2canvas(el, { scale, useCORS: true, logging: false, width: 794, height: 1123 });
+      if (!c.width || !c.height) return null;
+      // El recuadro y la cabecera ocupan la parte de arriba de la hoja: si esa
+      // franja no tiene ni un píxel oscuro, la captura ha fallado.
+      const ctx = c.getContext('2d');
+      if (!ctx) return null;
+      const franja = ctx.getImageData(0, 0, c.width, Math.round(c.height * 0.2)).data;
+      for (let i = 0; i < franja.length; i += 4) {
+        if (franja[i] < 200 && franja[i + 3] > 0) return c;
+      }
+      console.warn(`[informe] captura en blanco a escala ${scale}`);
+      return null;
+    } catch (e) {
+      console.warn(`[informe] fallo al capturar a escala ${scale}`, e);
+      return null;
+    }
+  };
+
   // Wait for logo to load
   const img = container.querySelector('img');
   if (img && !img.complete) {
@@ -117,17 +145,18 @@ const generateIncidentPdf = async (data: {
   }
 
   try {
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      width: 794,
-      height: 1123,
-    });
+    // Se captura a 3x para que el texto salga bien definido. Si el móvil no
+    // puede con un lienzo de ese tamaño se repite a 2x: ver `renderCanvas`.
+    const canvas = await renderCanvas(container, 3) ?? await renderCanvas(container, 2);
+    if (!canvas) throw new Error('No se pudo generar la imagen del informe');
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    // `compress` + el modo 'FAST' de addImage son lo que hace manejable el
+    // fichero: sin ellos la hoja se incrustaba en crudo y un informe de una
+    // sola página salía de más de 10 MB, incómodo de enviar por correo.
+    // La compresión es sin pérdida, así que no cuesta nitidez.
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
     const imgData = canvas.toDataURL('image/png');
-    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
     return pdf.output('blob');
   } finally {
     document.body.removeChild(container);
