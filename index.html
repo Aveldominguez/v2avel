@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- interactive-widget: al abrirse el teclado se redimensiona la maquetación
+         en lugar de tapar la página. Evita en Android el mismo descuadre de las
+         barras inferiores que en iPhone se corrige con posiciones pegajosas.
+         iOS todavía lo ignora, así que no sustituye a aquello. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
     <title>Control rampa</title>
     <meta name="description" content="Control de horas">
     <link rel="manifest" href="/manifest.json">

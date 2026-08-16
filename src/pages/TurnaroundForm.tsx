@@ -791,7 +791,9 @@ const TurnaroundForm: React.FC = () => {
   const impersonationBarHeight = impersonated ? 36 : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    // Columna flexible para que la barra de Guardar pueda ir pegada al final:
+    // ver el comentario de `classic-save-bar` más abajo.
+    <div className="min-h-screen flex flex-col bg-background">
       {impersonated && (
         <div
           className="sticky z-[60] bg-warning text-warning-foreground border-b-2 border-warning/60"
@@ -1014,7 +1016,9 @@ const TurnaroundForm: React.FC = () => {
         </div>
       </header>
 
-      <main className="w-full px-2 sm:px-4 py-6 space-y-6 pb-28">
+      {/* `pb-28` reservaba hueco para la barra fija, que se superponía al
+          contenido. Ahora la barra ocupa su propio sitio y sobra ese hueco. */}
+      <main className="w-full flex-1 px-2 sm:px-4 py-6 space-y-6 pb-6">
         <div id="sec-tiempos" className="scroll-mt-48">
         <AirlineTimesBlock
           airline={selectedAirline}
@@ -1170,7 +1174,17 @@ const TurnaroundForm: React.FC = () => {
       </main>
 
       {showSaveFab && step === 2 && (
-        <div className="classic-save-bar fixed bottom-0 left-0 right-0 z-50 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
+        /*
+         * `sticky` y NO `fixed` a propósito.
+         *
+         * Un elemento fijo se ancla al viewport visible del móvil. Al abrirse el
+         * teclado iOS lo encoge, y al cerrarlo a veces no recalcula: la barra se
+         * quedaba clavada a media pantalla, tapando contenido, hasta cerrar la
+         * app entera. Pegada al flujo de la página no hay anclaje que se quede
+         * obsoleto, porque se posiciona respecto al desplazamiento y no respecto
+         * al viewport.
+         */
+        <div className="classic-save-bar sticky bottom-0 z-40 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
           <button
             onClick={handleSave}
             disabled={saving}

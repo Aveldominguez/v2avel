@@ -1676,13 +1676,20 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  /*
+   * El bloqueo horizontal vive SÓLO en <html>, que es quien desplaza la página.
+   *
+   * Al ponerlo también en body y en #root se rompían los elementos pegajosos:
+   * en cuanto un eje deja de ser `visible`, la especificación obliga al otro a
+   * calcularse como `auto`, así que #root pasaba a ser contenedor de
+   * desplazamiento. Los `position: sticky` de dentro se resolvían contra él,
+   * y como su altura es la del contenido y nunca desplaza, no se pegaban nunca.
+   */
   body {
-    overflow-x: hidden;
     overscroll-behavior-x: none;
   }
 
   #root {
-    overflow-x: hidden;
     overscroll-behavior-x: none;
   }
 }
