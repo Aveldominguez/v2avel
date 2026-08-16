@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { saveDraft, loadDraft, pruneDrafts, type TurnaroundDraft } from './useOfflineSync';
+import { saveDraft, loadDraft, pruneDrafts, type TurnaroundDraft } from '@/lib/turnaroundDraft';
 
 const HORA = 60 * 60 * 1000;
 

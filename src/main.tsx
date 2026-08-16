@@ -3,7 +3,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { installPwaResumeRecovery } from "./lib/pwaResume";
 import { registerAppServiceWorker } from "./lib/registerSW";
-import { pruneDrafts } from "./hooks/useOfflineSync";
+import { pruneDrafts } from "./lib/turnaroundDraft";
 
 // Aplica el tema guardado ANTES del primer render, para que rutas sin el
 // botón de tema (p. ej. el formulario) también respeten la preferencia.

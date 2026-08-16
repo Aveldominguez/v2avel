@@ -28,8 +28,15 @@ jobs:
       - name: Reglas de hooks de React (bloqueante)
         run: npm run check:hooks
 
+      # Mismos valores de relleno que el build. Un test que importe (aunque sea
+      # de forma indirecta) el cliente de Supabase revienta al cargar el módulo
+      # si no existen, y el fallo aparenta ser del test cuando no lo es.
       - name: Tests
         run: npm test
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+          VITE_SUPABASE_PROJECT_ID: ci-placeholder
 
       # El .env real no está en el repositorio. Se usan valores de relleno para
       # que el build sea representativo: sin ellos el cliente de Supabase
