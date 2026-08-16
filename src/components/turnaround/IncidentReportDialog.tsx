@@ -49,7 +49,17 @@ const generateIncidentPdf = async (data: {
   const container = document.createElement('div');
   container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;height:1123px;background:white;z-index:-1;';
   container.innerHTML = `
-    <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;padding:38px;width:794px;height:1123px;box-sizing:border-box;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#000;padding:38px;width:794px;height:1123px;box-sizing:border-box;position:relative;">
+      <!--
+        Sello vertical de la casa. Va en el margen izquierdo de la hoja, FUERA
+        del recuadro: antes se posicionaba dentro de la caja con borde y, al
+        girarlo, la mancha caía sobre el texto de la descripción.
+        El contenedor ocupa exactamente el margen (38 px) y centra el texto;
+        así el giro es sobre su propio centro y no hay que calcular offsets.
+      -->
+      <div style="position:absolute;left:0;top:0;width:38px;height:100%;display:flex;align-items:center;justify-content:center;">
+        <span style="transform:rotate(-90deg);font-size:9px;font-weight:bold;letter-spacing:1px;color:#555;white-space:nowrap;">AVIAPARTNER (MAD)</span>
+      </div>
       <div style="border:2px solid #000;width:100%;height:100%;display:flex;flex-direction:column;position:relative;">
         <table style="width:100%;border-collapse:collapse;flex-shrink:0;">
           <tr>
@@ -83,7 +93,6 @@ const generateIncidentPdf = async (data: {
           <div style="font-weight:bold;margin-bottom:8px;">DESCRIPCIÓN:</div>
           <div style="white-space:pre-wrap;font-size:12px;line-height:1.6;flex:1;">${esc(data.descripcion)}</div>
         </div>
-        <div style="position:absolute;left:-2px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:10px;font-weight:bold;letter-spacing:1px;color:#555;white-space:nowrap;">AVIAPARTNER (MAD)</div>
         <div style="flex-shrink:0;display:flex;justify-content:space-between;padding:10px 16px;font-size:9px;color:#333;border-top:1px solid #ccc;">
           <div>Management System Aviapartner<br>SPAIN-<br>APO A002.ed 170619.1.0</div>
           <div>Uncontrolled Copy when not On Intranet</div>

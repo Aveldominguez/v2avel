@@ -1142,10 +1142,12 @@ const TurnaroundForm: React.FC = () => {
                 </div>
                 Observaciones
               </div>
+              {/* El parking se guarda tal cual lo publica ARION, con su "T" si
+                  la lleva: anteponer otra producía "TT31" en el informe. */}
               <IncidentReportDialog
                 flightNumber={flightNumber}
                 date={date}
-                parking={isRemote ? remoteLocation : tango ? `T${tango}` : '—'}
+                parking={tango || remoteLocation || '—'}
                 reportData={incidentReport}
                 onSave={setIncidentReport}
               />
