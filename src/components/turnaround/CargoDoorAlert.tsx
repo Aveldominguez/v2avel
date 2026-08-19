@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { DoorClosed, Volume2, VolumeX, Check } from 'lucide-react';
+import { DoorClosed, Volume2, VolumeX, Check, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   computeDoorAlert, formatCountdown, DOOR_DEADLINE_MIN,
@@ -10,19 +10,28 @@ import { isAlertMuted, setAlertMuted, playAlert, type AlertTone } from '@/lib/al
 interface CargoDoorAlertProps {
   aircraftModel: string | null | undefined;
   departureTime: string | null | undefined;
+  /** Calzos de llegada: hasta que no están puestos no se avisa de nada. */
+  chocksOnArrival?: string | null;
+  /** Escala programada por la aerolínea para el modelo, en minutos. */
+  turnaroundMinutes?: number | null;
   cargoDoorsClosed: string | null | undefined;
   soloLlegada?: boolean;
+  soloSalida?: boolean;
   /** Fecha de la escala: sólo se avisa en las de hoy. */
   flightDate?: Date | null;
   /** Registra el cierre con la hora actual desde el propio aviso. */
   onCloseDoors: () => void;
 }
 
-const ESTILOS: Record<Exclude<DoorAlertLevel, 'off'>, string> = {
+const ESTILOS: Record<Exclude<DoorAlertLevel, 'off'> | 'doneLate', string> = {
   headsUp: 'border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400',
   urgent: 'border-orange-500 bg-orange-500/20 text-orange-600 dark:text-orange-400',
   late: 'border-red-600 bg-red-600/20 text-red-600 dark:text-red-400 animate-pulse',
   done: 'border-emerald-600 bg-emerald-600/15 text-emerald-600 dark:text-emerald-400',
+  // Cerrado, pero fuera de normativa. En verde se leía como "todo correcto" de
+  // un vistazo y era justo lo contrario. Sin parpadeo: ya no hay nada que
+  // corregir, sólo constancia de que se salió del límite.
+  doneLate: 'border-red-600 bg-red-600/20 text-red-600 dark:text-red-400',
 };
 
 const TITULOS: Record<Exclude<DoorAlertLevel, 'off' | 'done'>, string> = {
@@ -36,7 +45,8 @@ const TITULOS: Record<Exclude<DoorAlertLevel, 'off' | 'done'>, string> = {
  * Sólo aparece cuando toca: si no aplica, no ocupa sitio en la pantalla.
  */
 export const CargoDoorAlert: React.FC<CargoDoorAlertProps> = ({
-  aircraftModel, departureTime, cargoDoorsClosed, soloLlegada, flightDate, onCloseDoors,
+  aircraftModel, departureTime, chocksOnArrival, turnaroundMinutes,
+  cargoDoorsClosed, soloLlegada, soloSalida, flightDate, onCloseDoors,
 }) => {
   const [now, setNow] = useState(() => new Date());
   const [muted, setMuted] = useState(isAlertMuted);
@@ -49,7 +59,8 @@ export const CargoDoorAlert: React.FC<CargoDoorAlertProps> = ({
   }, []);
 
   const alerta = computeDoorAlert({
-    aircraftModel, departureTime, cargoDoorsClosed, soloLlegada, flightDate, now,
+    aircraftModel, departureTime, chocksOnArrival, turnaroundMinutes,
+    cargoDoorsClosed, soloLlegada, soloSalida, flightDate, now,
   });
 
   useEffect(() => {
@@ -69,9 +80,17 @@ export const CargoDoorAlert: React.FC<CargoDoorAlertProps> = ({
 
   if (alerta.level === 'done') {
     const m = alerta.marginMinutes;
+    const fueraDeNormativa = m !== null && m < 0;
     return (
-      <div className={cn('flex items-center gap-2 rounded-lg border-2 px-3 py-2', ESTILOS.done)}>
-        <Check size={18} className="shrink-0" />
+      <div
+        className={cn(
+          'flex items-center gap-2 rounded-lg border-2 px-3 py-2',
+          fueraDeNormativa ? ESTILOS.doneLate : ESTILOS.done,
+        )}
+      >
+        {fueraDeNormativa
+          ? <AlertTriangle size={18} className="shrink-0" />
+          : <Check size={18} className="shrink-0" />}
         <span className="font-mono text-sm font-bold uppercase tracking-wide">
           Bodegas cerradas
           {m !== null && (m >= 0 ? ` · ${m} min de margen` : ` · ${Math.abs(m)} min tarde`)}
@@ -111,6 +130,16 @@ export const CargoDoorAlert: React.FC<CargoDoorAlertProps> = ({
           {alerta.level === 'late' ? `pasado H-${DOOR_DEADLINE_MIN}` : `para H-${DOOR_DEADLINE_MIN}`}
         </span>
       </div>
+
+      {/* De qué salida cuelga el límite: si el avión llegó tarde no es la ETD,
+          y sin decirlo el operador no entiende por qué le pide cerrar a esa
+          hora. */}
+      {alerta.departureLabel && (
+        <p className="text-center text-[11px] font-mono opacity-80">
+          salida {alerta.departureLabel}
+          {alerta.basedOnGroundTime && ' · calzos + escala'}
+        </p>
+      )}
 
       <button
         type="button"

@@ -8,6 +8,12 @@
  * H-10 minuto a minuto hasta que se registra el cierre. El objetivo es llegar
  * a H-5 con las puertas ya cerradas, no enterarse justo en H-5.
  *
+ * La hora de salida contra la que se mide NO es sin más la prevista (ETD/STD):
+ * cuando el avión llega tarde esa hora ya no se va a cumplir, y avisar contra
+ * ella pedía cerrar bodegas de un avión que todavía venía de camino. Manda el
+ * terreno: calzos de llegada más la escala que la aerolínea tiene programada.
+ * Ver `salidaEfectiva`.
+ *
  * El cierre se mide con `cargoDoorsClosed`, NUNCA con el fin de carga: se
  * puede terminar de cargar y no poder cerrar todavía (repostaje, una última
  * maleta en camino…), y son dos momentos operativos distintos.
@@ -35,7 +41,7 @@ export const isNarrowBody = (aircraftModel: string | null | undefined): boolean 
 };
 
 export type DoorAlertLevel =
-  | 'off'      // No aplica: no es Narrow Body, no hay hora de salida o falta mucho
+  | 'off'      // No aplica: no es Narrow Body, el avión no ha llegado o falta mucho
   | 'headsUp'  // H-15: ve cerrando
   | 'urgent'   // H-10: insiste cada minuto
   | 'late'     // Pasado H-5 sin cerrar: fuera de normativa
@@ -50,10 +56,14 @@ export interface DoorAlert {
   /** Con las puertas ya cerradas: minutos de margen respecto a H-5 (+ = a tiempo). */
   marginMinutes: number | null;
   shouldBeep: boolean;
+  /** Salida contra la que se mide el H-5 (HH:mm), para enseñarla en el aviso. */
+  departureLabel: string | null;
+  /** La salida sale de calzos + escala porque el avión llegó tarde, no del ETD. */
+  basedOnGroundTime: boolean;
 }
 
-/** "14:35" → Date de hoy; si quedó a más de 12 h en el pasado, es de mañana. */
-export const parseDepartureTime = (hhmm: string, now: Date): Date | null => {
+/** "14:35" → Date de hoy; si quedó a más de 12 h de distancia, es de otro día. */
+export const parseClockTime = (hhmm: string, now: Date): Date | null => {
   if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(hhmm)) return null;
   const [h, m] = hhmm.split(':').map(Number);
   const d = new Date(now);
@@ -65,11 +75,17 @@ export const parseDepartureTime = (hhmm: string, now: Date): Date | null => {
 
 export interface DoorAlertInput {
   aircraftModel: string | null | undefined;
-  /** Hora de salida escrita a mano en la escala (HH:mm). */
+  /** Salida prevista (ETD de ARION o escrita a mano en la escala), HH:mm. */
   departureTime: string | null | undefined;
+  /** Calzos de llegada registrados (HH:mm). Sin ellos el avión no está en plataforma. */
+  chocksOnArrival?: string | null;
+  /** Escala que la aerolínea tiene programada para este modelo, en minutos. */
+  turnaroundMinutes?: number | null;
   /** Hora de cierre de puertas ya registrada (HH:mm), si la hay. */
   cargoDoorsClosed: string | null | undefined;
   soloLlegada?: boolean;
+  /** Escala sin vuelo de llegada: no hay calzos que esperar, el avión ya está. */
+  soloSalida?: boolean;
   /** Fecha de la escala. Sin ella no se avisa: ver la comprobación de abajo. */
   flightDate?: Date | null;
   now: Date;
@@ -80,10 +96,42 @@ const mismoDia = (a: Date, b: Date): boolean =>
 
 const APAGADO: DoorAlert = {
   level: 'off', secondsToDeadline: 0, minuteMark: 0, marginMinutes: null, shouldBeep: false,
+  departureLabel: null, basedOnGroundTime: false,
+};
+
+const hhmm = (d: Date): string =>
+  `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+/**
+ * Hora de salida real contra la que se mide el H-5.
+ *
+ * Con el avión ya en plataforma manda la escala programada: si calza a las
+ * 19:10 y la aerolínea tiene 40 min de escala, la salida es a las 19:50 y no
+ * la ETD de las 19:35 que se quedó por el camino.
+ *
+ * Se coge la más TARDÍA de las dos porque llegar pronto no adelanta una
+ * salida: el avión no se va antes de su hora aunque la escala termine antes.
+ */
+const salidaEfectiva = (
+  prevista: Date | null,
+  calzosLlegada: Date | null,
+  turnaroundMinutes: number | null | undefined,
+): { salida: Date; porEscala: boolean } | null => {
+  const porEscala = calzosLlegada && turnaroundMinutes && turnaroundMinutes > 0
+    ? new Date(calzosLlegada.getTime() + turnaroundMinutes * 60_000)
+    : null;
+
+  if (porEscala && (!prevista || porEscala.getTime() > prevista.getTime())) {
+    return { salida: porEscala, porEscala: true };
+  }
+  return prevista ? { salida: prevista, porEscala: false } : null;
 };
 
 export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
-  const { aircraftModel, departureTime, cargoDoorsClosed, soloLlegada, flightDate, now } = input;
+  const {
+    aircraftModel, departureTime, chocksOnArrival, turnaroundMinutes,
+    cargoDoorsClosed, soloLlegada, soloSalida, flightDate, now,
+  } = input;
 
   if (soloLlegada) return APAGADO;
   // Sólo se avisa en escalas de hoy. Al consultar una de hace días, su hora de
@@ -91,19 +139,30 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   // falsa por un avión que se fue hace tres días.
   if (!flightDate || !mismoDia(flightDate, now)) return APAGADO;
   if (!isNarrowBody(aircraftModel)) return APAGADO;
-  if (!departureTime) return APAGADO;
 
-  const salida = parseDepartureTime(departureTime, now);
-  if (!salida) return APAGADO;
+  // Sin calzos de llegada el avión no está en plataforma: no hay bodega que
+  // cerrar y la hora prevista ya no dice nada. Éste era el aviso que saltaba
+  // con la escala entera en blanco y sólo sembraba dudas. En sólo salida no
+  // hay llegada que esperar, así que ahí no se exige.
+  if (!soloSalida && !chocksOnArrival) return APAGADO;
+
+  const calzos = chocksOnArrival ? parseClockTime(chocksOnArrival, now) : null;
+  const prevista = departureTime ? parseClockTime(departureTime, now) : null;
+
+  const efectiva = salidaEfectiva(prevista, calzos, turnaroundMinutes);
+  if (!efectiva) return APAGADO;
+  const { salida, porEscala } = efectiva;
 
   const limite = salida.getTime() - DOOR_DEADLINE_MIN * 60_000;
   const secondsToDeadline = Math.round((limite - now.getTime()) / 1000);
+  const contexto = { departureLabel: hhmm(salida), basedOnGroundTime: porEscala };
 
   // Puertas ya cerradas: se deja constancia del margen y no se molesta más.
   if (cargoDoorsClosed) {
-    const cierre = parseDepartureTime(cargoDoorsClosed, now);
+    const cierre = parseClockTime(cargoDoorsClosed, now);
     return {
       ...APAGADO,
+      ...contexto,
       level: 'done',
       secondsToDeadline,
       marginMinutes: cierre ? Math.round((limite - cierre.getTime()) / 60_000) : null,
@@ -116,7 +175,7 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   const minutosASalida = Math.ceil((salida.getTime() - now.getTime()) / 60_000);
 
   if (minutosASalida > DOOR_HEADS_UP_MIN) {
-    return { ...APAGADO, secondsToDeadline, minuteMark: minutosASalida };
+    return { ...APAGADO, ...contexto, secondsToDeadline, minuteMark: minutosASalida };
   }
 
   // Un vuelo que salió hace rato no debe seguir pitando en el bolsillo.
@@ -130,7 +189,14 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   // El preaviso suena una sola vez; desde H-10 se insiste cada minuto.
   const shouldBeep = level === 'headsUp' ? minutosASalida === DOOR_HEADS_UP_MIN : true;
 
-  return { level, secondsToDeadline, minuteMark: minutosASalida, marginMinutes: null, shouldBeep };
+  return {
+    ...contexto,
+    level,
+    secondsToDeadline,
+    minuteMark: minutosASalida,
+    marginMinutes: null,
+    shouldBeep,
+  };
 }
 
 /** "-1:20" pasado el límite, "4:05" antes. */

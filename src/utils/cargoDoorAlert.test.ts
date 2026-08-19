@@ -1,14 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import {
-  computeDoorAlert, isNarrowBody, formatCountdown, parseDepartureTime,
+  computeDoorAlert, isNarrowBody, formatCountdown, parseClockTime,
 } from './cargoDoorAlert';
 
-/** `now` a `min` minutos de una salida a las 14:00. */
+/**
+ * `now` a `min` minutos de una salida a las 14:00, con el avión ya calzado a
+ * las 13:00: 40 min de escala terminan a las 13:40, antes de la salida
+ * prevista, así que manda la prevista y el H-5 cae en 13:55.
+ */
 const aFaltaDe = (min: number, extra: Partial<Parameters<typeof computeDoorAlert>[0]> = {}) => {
   const salida = new Date('2026-08-16T14:00:00');
   return computeDoorAlert({
     aircraftModel: 'A321',
     departureTime: '14:00',
+    chocksOnArrival: '13:00',
+    turnaroundMinutes: 40,
     cargoDoorsClosed: null,
     flightDate: salida,
     now: new Date(salida.getTime() - min * 60_000),
@@ -71,13 +77,79 @@ describe('cuándo NO debe avisar', () => {
     expect(aFaltaDe(7, { aircraftModel: 'B777' }).level).toBe('off');
   });
 
-  it('sin hora de salida escrita a mano no hay cuenta atrás', () => {
-    expect(aFaltaDe(7, { departureTime: null }).level).toBe('off');
-    expect(aFaltaDe(7, { departureTime: 'sale ya' }).level).toBe('off');
+  it('sin salida prevista ni escala calculable no hay cuenta atrás', () => {
+    expect(aFaltaDe(7, { departureTime: null, turnaroundMinutes: null }).level).toBe('off');
+    expect(aFaltaDe(7, { departureTime: 'sale ya', turnaroundMinutes: null }).level).toBe('off');
   });
 
   it('en escalas de sólo llegada no hay cierre de bodegas', () => {
     expect(aFaltaDe(7, { soloLlegada: true }).level).toBe('off');
+  });
+});
+
+describe('el avión tiene que estar en plataforma', () => {
+  // El fallo real: escala en blanco, avión todavía en el aire y el aviso
+  // pidiendo cerrar bodegas contra una ETD que ya no se iba a cumplir.
+  it('sin calzos de llegada no se avisa aunque la ETD esté encima', () => {
+    expect(aFaltaDe(7, { chocksOnArrival: null }).level).toBe('off');
+    expect(aFaltaDe(0, { chocksOnArrival: null }).level).toBe('off');
+    expect(aFaltaDe(7, { chocksOnArrival: null }).shouldBeep).toBe(false);
+  });
+
+  it('en sólo salida no hay llegada que esperar y el aviso funciona', () => {
+    const a = aFaltaDe(7, { chocksOnArrival: null, soloSalida: true });
+    expect(a.level).toBe('urgent');
+    expect(a.departureLabel).toBe('14:00');
+  });
+});
+
+describe('salida contra la que se mide el H-5', () => {
+  const escala = (calzos: string, now: string, extra = {}) => computeDoorAlert({
+    aircraftModel: 'A320',
+    departureTime: '14:00',
+    chocksOnArrival: calzos,
+    turnaroundMinutes: 40,
+    cargoDoorsClosed: null,
+    flightDate: new Date('2026-08-16T14:00:00'),
+    now: new Date(`2026-08-16T${now}:00`),
+    ...extra,
+  });
+
+  it('llegando tarde el límite se corre a calzos + escala', () => {
+    // Calza a las 13:50 con 40 min de escala: sale a las 14:30, no a las 14:00.
+    const a = escala('13:50', '14:00');
+    expect(a.departureLabel).toBe('14:30');
+    expect(a.basedOnGroundTime).toBe(true);
+    // A las 14:00 faltan 30 min: antes esto ya gritaba "fuera de normativa".
+    expect(a.level).toBe('off');
+  });
+
+  it('el aviso llega a su hora sobre la salida recalculada', () => {
+    const a = escala('13:50', '14:20'); // H-10 de las 14:30
+    expect(a.level).toBe('urgent');
+    expect(a.secondsToDeadline).toBe(300);
+  });
+
+  it('llegar pronto no adelanta la salida: manda la prevista', () => {
+    // Calza a las 12:30, la escala acaba a las 13:10, pero el vuelo sale a las 14:00.
+    const a = escala('12:30', '13:53');
+    expect(a.departureLabel).toBe('14:00');
+    expect(a.basedOnGroundTime).toBe(false);
+    expect(a.level).toBe('urgent');
+  });
+
+  it('sin salida prevista el H-5 sale de la escala programada', () => {
+    const a = escala('13:50', '14:20', { departureTime: null });
+    expect(a.departureLabel).toBe('14:30');
+    expect(a.basedOnGroundTime).toBe(true);
+    expect(a.level).toBe('urgent');
+  });
+
+  it('sin escala programada se sigue midiendo contra la prevista', () => {
+    const a = escala('13:50', '13:53', { turnaroundMinutes: null });
+    expect(a.departureLabel).toBe('14:00');
+    expect(a.basedOnGroundTime).toBe(false);
+    expect(a.level).toBe('urgent');
   });
 });
 
@@ -111,16 +183,16 @@ describe('cuenta atrás mostrada', () => {
   });
 });
 
-describe('parseDepartureTime', () => {
+describe('parseClockTime', () => {
   it('una salida de madrugada tras la medianoche es del día siguiente', () => {
     const now = new Date('2026-08-16T23:50:00');
-    expect(parseDepartureTime('00:20', now)!.getDate()).toBe(17);
+    expect(parseClockTime('00:20', now)!.getDate()).toBe(17);
   });
 
   it('rechaza lo que no es una hora', () => {
     const now = new Date('2026-08-16T12:00:00');
-    expect(parseDepartureTime('25:00', now)).toBeNull();
-    expect(parseDepartureTime('', now)).toBeNull();
+    expect(parseClockTime('25:00', now)).toBeNull();
+    expect(parseClockTime('', now)).toBeNull();
   });
 });
 
@@ -130,6 +202,8 @@ describe('escalas que no son de hoy', () => {
     const a = computeDoorAlert({
       aircraftModel: 'A321',
       departureTime: '14:00',
+      chocksOnArrival: '13:00',
+      turnaroundMinutes: 40,
       cargoDoorsClosed: null,
       flightDate: new Date('2026-08-13T00:00:00'), // la escala era de otro día
       now: new Date(salida.getTime() - 7 * 60_000),

@@ -1,7 +1,8 @@
 {
-  "version": "4.360",
+  "version": "4.370",
   "changelog": [
-    "La barra de Guardar ya no se queda pegada a media pantalla tapando el contenido. Dejaba de estar en su sitio al abrir y cerrar el teclado, y solo se arreglaba cerrando la app del todo.",
-    "De paso quedan bien fijadas todas las barras y cabeceras de la app, que arrastraban el mismo problema."
+    "El aviso de cierre de bodegas ya no salta con el avión todavía en el aire: espera a que estén marcados los calzos de llegada.",
+    "Si el avión llega tarde, el H-5 se cuenta desde los calzos de llegada más la escala programada de la aerolínea, no desde una hora de salida que ya no se va a cumplir. El propio aviso indica con qué hora de salida está contando.",
+    "El banner de bodegas cerradas se pinta en rojo cuando el cierre quedó fuera de límite. Antes salía en verde aunque pusiera \"19 min tarde\"."
   ]
 }

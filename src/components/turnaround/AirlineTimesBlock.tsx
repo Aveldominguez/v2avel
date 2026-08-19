@@ -546,8 +546,11 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
                 <CargoDoorAlert
                   aircraftModel={aircraftModel}
                   departureTime={departureTime}
+                  chocksOnArrival={times.chocksOnArrival}
+                  turnaroundMinutes={durationMinutes}
                   cargoDoorsClosed={times.cargoDoorsClosed}
                   soloLlegada={soloLlegada}
+                  soloSalida={soloSalida}
                   flightDate={flightDate}
                   onCloseDoors={marcarPuertasCerradas}
                 />
@@ -768,8 +771,11 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
             <CargoDoorAlert
               aircraftModel={aircraftModel}
               departureTime={departureTime}
+              chocksOnArrival={times.chocksOnArrival}
+              turnaroundMinutes={durationMinutes}
               cargoDoorsClosed={times.cargoDoorsClosed}
               soloLlegada={soloLlegada}
+              soloSalida={soloSalida}
               flightDate={flightDate}
               onCloseDoors={marcarPuertasCerradas}
             />
