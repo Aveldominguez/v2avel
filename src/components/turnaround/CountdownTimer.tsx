@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Timer, SprayCan, AlertTriangle, Pause, Play } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { parseClockTime, effectiveDeparture } from '@/utils/effectiveDeparture';
 
 interface CountdownTimerProps {
   chocksOnTime: string | null;
@@ -65,30 +66,20 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const isPaused = pausedAt !== null;
   const effectiveShiftMs = pauseShiftMs + (pausedAt !== null ? Date.now() - pausedAt : 0);
 
-  const useDepartureMode = !!departureTime && /^\d{2}:\d{2}$/.test(departureTime);
   const hasChocksOff = !!chocksOffTime && /^\d{2}:\d{2}$/.test(chocksOffTime);
   const hasLoadingEnd = !!loadingEndTime && /^\d{2}:\d{2}$/.test(loadingEndTime);
 
-  // Compute the target end date (handles midnight rollover by comparing to "now")
+  // Hora objetivo del cronómetro. Antes la hora prevista ganaba siempre que
+  // estuviera puesta, y como se autorrellena con el ETD de ARION la escala
+  // programada no llegaba a usarse nunca: con el avión llegando tarde, el
+  // cronómetro contaba hacia una hora imposible y encima discrepaba del aviso
+  // de cierre de bodegas, que sí la recalcula. Los dos comparten ya la regla.
   useEffect(() => {
-    if (useDepartureMode) {
-      const dep = parseTimeToDate(departureTime!);
-      // If departure time is in the past by more than 12h, assume it's tomorrow
-      if (dep.getTime() < Date.now() - 12 * 60 * 60 * 1000) {
-        dep.setDate(dep.getDate() + 1);
-      }
-      endDateRef.current = dep;
-    } else if (chocksOnTime && /^\d{2}:\d{2}$/.test(chocksOnTime)) {
-      const startDate = parseTimeToDate(chocksOnTime);
-      // If chocksOn is "in the future" relative to now by more than 12h, it actually was yesterday
-      if (startDate.getTime() > Date.now() + 12 * 60 * 60 * 1000) {
-        startDate.setDate(startDate.getDate() - 1);
-      }
-      endDateRef.current = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
-    } else {
-      endDateRef.current = null;
-    }
-  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime]);
+    const now = new Date();
+    const prevista = departureTime ? parseClockTime(departureTime, now) : null;
+    const calzos = chocksOnTime ? parseClockTime(chocksOnTime, now) : null;
+    endDateRef.current = effectiveDeparture(prevista, calzos, durationMinutes)?.salida ?? null;
+  }, [chocksOnTime, durationMinutes, departureTime]);
 
   // Main countdown timer - stops when chocksOff is marked or reaches 0
   useEffect(() => {
@@ -145,7 +136,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       clearTimeout(alignTimeout);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [chocksOnTime, durationMinutes, useDepartureMode, departureTime, hasChocksOff, chocksOffTime, pauseShiftMs, pausedAt]);
+  }, [chocksOnTime, durationMinutes, departureTime, hasChocksOff, chocksOffTime, pauseShiftMs, pausedAt]);
 
   // Delay counter: starts when countdown reaches 0 and chocksOff is not set
   useEffect(() => {

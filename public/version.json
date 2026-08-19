@@ -1,8 +1,7 @@
 {
-  "version": "4.370",
+  "version": "4.380",
   "changelog": [
-    "El aviso de cierre de bodegas ya no salta con el avión todavía en el aire: espera a que estén marcados los calzos de llegada.",
-    "Si el avión llega tarde, el H-5 se cuenta desde los calzos de llegada más la escala programada de la aerolínea, no desde una hora de salida que ya no se va a cumplir. El propio aviso indica con qué hora de salida está contando.",
-    "El banner de bodegas cerradas se pinta en rojo cuando el cierre quedó fuera de límite. Antes salía en verde aunque pusiera \"19 min tarde\"."
+    "El cronómetro de Control de horas y el aviso de cierre de bodegas ya cuentan hacia la misma hora de salida. Con el avión llegando tarde, uno decía 23:15 y el otro 23:20 en la misma pantalla.",
+    "Esa hora es ahora la más tardía entre la salida prevista y los calzos de llegada más la escala de la aerolínea, igual que en el aviso de bodegas."
   ]
 }

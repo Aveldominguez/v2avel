@@ -12,12 +12,16 @@
  * cuando el avión llega tarde esa hora ya no se va a cumplir, y avisar contra
  * ella pedía cerrar bodegas de un avión que todavía venía de camino. Manda el
  * terreno: calzos de llegada más la escala que la aerolínea tiene programada.
- * Ver `salidaEfectiva`.
+ * Ver `effectiveDeparture`, que comparte esa regla con el cronómetro.
  *
  * El cierre se mide con `cargoDoorsClosed`, NUNCA con el fin de carga: se
  * puede terminar de cargar y no poder cerrar todavía (repostaje, una última
  * maleta en camino…), y son dos momentos operativos distintos.
  */
+
+import { parseClockTime, effectiveDeparture } from './effectiveDeparture';
+
+export { parseClockTime };
 
 /** Minuto antes de la salida en el que las puertas deben estar cerradas. */
 export const DOOR_DEADLINE_MIN = 5;
@@ -62,17 +66,6 @@ export interface DoorAlert {
   basedOnGroundTime: boolean;
 }
 
-/** "14:35" → Date de hoy; si quedó a más de 12 h de distancia, es de otro día. */
-export const parseClockTime = (hhmm: string, now: Date): Date | null => {
-  if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(hhmm)) return null;
-  const [h, m] = hhmm.split(':').map(Number);
-  const d = new Date(now);
-  d.setHours(h, m, 0, 0);
-  if (d.getTime() < now.getTime() - 12 * 60 * 60 * 1000) d.setDate(d.getDate() + 1);
-  else if (d.getTime() > now.getTime() + 12 * 60 * 60 * 1000) d.setDate(d.getDate() - 1);
-  return d;
-};
-
 export interface DoorAlertInput {
   aircraftModel: string | null | undefined;
   /** Salida prevista (ETD de ARION o escrita a mano en la escala), HH:mm. */
@@ -102,31 +95,6 @@ const APAGADO: DoorAlert = {
 const hhmm = (d: Date): string =>
   `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
-/**
- * Hora de salida real contra la que se mide el H-5.
- *
- * Con el avión ya en plataforma manda la escala programada: si calza a las
- * 19:10 y la aerolínea tiene 40 min de escala, la salida es a las 19:50 y no
- * la ETD de las 19:35 que se quedó por el camino.
- *
- * Se coge la más TARDÍA de las dos porque llegar pronto no adelanta una
- * salida: el avión no se va antes de su hora aunque la escala termine antes.
- */
-const salidaEfectiva = (
-  prevista: Date | null,
-  calzosLlegada: Date | null,
-  turnaroundMinutes: number | null | undefined,
-): { salida: Date; porEscala: boolean } | null => {
-  const porEscala = calzosLlegada && turnaroundMinutes && turnaroundMinutes > 0
-    ? new Date(calzosLlegada.getTime() + turnaroundMinutes * 60_000)
-    : null;
-
-  if (porEscala && (!prevista || porEscala.getTime() > prevista.getTime())) {
-    return { salida: porEscala, porEscala: true };
-  }
-  return prevista ? { salida: prevista, porEscala: false } : null;
-};
-
 export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   const {
     aircraftModel, departureTime, chocksOnArrival, turnaroundMinutes,
@@ -149,7 +117,7 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   const calzos = chocksOnArrival ? parseClockTime(chocksOnArrival, now) : null;
   const prevista = departureTime ? parseClockTime(departureTime, now) : null;
 
-  const efectiva = salidaEfectiva(prevista, calzos, turnaroundMinutes);
+  const efectiva = effectiveDeparture(prevista, calzos, turnaroundMinutes);
   if (!efectiva) return APAGADO;
   const { salida, porEscala } = efectiva;
 
