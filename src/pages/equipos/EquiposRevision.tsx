@@ -92,14 +92,27 @@ const EquiposRevision = () => {
     searchRef.current?.focus();
   }, []);
 
-  const doStart = async (cats: string[]) => {
+  /**
+   * Arranca la revisión.
+   *
+   * `vaciar` decide si se borran parking y batería de los equipos antes de
+   * empezar. Vaciar obliga a registrarlo todo de cero y garantiza que no queda
+   * ningún dato viejo colado; mantenerlos sirve para continuar una vuelta ya
+   * empezada, o para revisar sin perder lo que ya estaba bien anotado.
+   */
+  const doStart = async (cats: string[], vaciar: boolean) => {
     setStarting(true);
     try {
       const unitIds = fullCategories
         .filter(c => cats.includes(c.id))
         .flatMap(c => c.units.filter(u => !u.is_separator).map(u => u.id));
-      await startReview(cats, unitIds);
-      toast({ title: 'Revisión iniciada', description: `${unitIds.length} equipos por revisar.` });
+      await startReview(cats, vaciar ? unitIds : []);
+      toast({
+        title: 'Revisión iniciada',
+        description: vaciar
+          ? `${unitIds.length} equipos por revisar, empezando de cero.`
+          : `${unitIds.length} equipos por revisar, conservando lo ya registrado.`,
+      });
       setTimeout(() => searchRef.current?.focus(), 100);
     } catch (err) {
       // Se muestra el motivo real: antes se daba siempre por hecho que había
@@ -299,17 +312,43 @@ const EquiposRevision = () => {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>¿Empezar la revisión?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Se vaciarán el parking y la batería de los {selectedUnits} equipos seleccionados
-                para que los registres de cero. Los equipos marcados como averiados
-                conservan su estado.
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-left">
+                  <p>
+                    <strong>Empezar de cero</strong> vacía el parking y la batería de los{' '}
+                    {selectedUnits} equipos seleccionados, para que no quede ningún dato
+                    viejo sin comprobar.
+                  </p>
+                  <p>
+                    <strong>Mantener los datos</strong> deja lo que ya haya registrado y sólo
+                    lleva la cuenta de lo que vayas revisando. Útil para continuar una vuelta
+                    a medias o para no perder lo que ya estaba bien anotado.
+                  </p>
+                  <p className="text-xs">
+                    En ambos casos los equipos marcados como averiados conservan su estado.
+                  </p>
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={starting}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={(e) => { e.preventDefault(); doStart(selectedCats); }} disabled={starting}>
-                {starting ? 'Iniciando…' : 'Sí, empezar'}
+            {/* En columna: tres opciones en fila no caben en un móvil sin
+                recortar el texto, y aquí el texto es lo que distingue una de otra. */}
+            <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+              <AlertDialogAction
+                className="w-full"
+                onClick={(e) => { e.preventDefault(); doStart(selectedCats, true); }}
+                disabled={starting}
+              >
+                {starting ? 'Iniciando…' : 'Sí, empezar de cero'}
               </AlertDialogAction>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => doStart(selectedCats, false)}
+                disabled={starting}
+              >
+                {starting ? 'Iniciando…' : 'Empezar y mantener los datos'}
+              </Button>
+              <AlertDialogCancel className="w-full mt-0" disabled={starting}>Cancelar</AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
