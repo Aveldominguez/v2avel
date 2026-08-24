@@ -44,4 +44,24 @@ describe('banner de bodegas cerradas', () => {
     expect(banner.className).toContain('border-emerald-600');
     expect(banner.className).not.toContain('red-600');
   });
+
+  // Es la constancia del cierre, no una alarma: en una escala terminada es
+  // justo cuando hace falta consultarla.
+  it('se sigue viendo al abrir una escala de días atrás', () => {
+    const haceTresDias = new Date();
+    haceTresDias.setDate(haceTresDias.getDate() - 3);
+    render(
+      <CargoDoorAlert
+        aircraftModel="A320"
+        departureTime="14:00"
+        chocksOnArrival="13:00"
+        turnaroundMinutes={40}
+        cargoDoorsClosed="13:52"
+        flightDate={haceTresDias}
+        onCloseDoors={() => {}}
+      />,
+    );
+    // Límite H-5 = 13:55, cerrado a las 13:52.
+    expect(screen.getByText(/bodegas cerradas · 3 min de margen/i)).toBeInTheDocument();
+  });
 });

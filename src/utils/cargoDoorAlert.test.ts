@@ -197,21 +197,69 @@ describe('parseClockTime', () => {
 });
 
 describe('escalas que no son de hoy', () => {
-  it('una escala de hace días no dispara alarmas falsas', () => {
-    const salida = new Date('2026-08-16T14:00:00');
-    const a = computeDoorAlert({
+  /** La misma escala del 13, consultada tres días después. */
+  const terminada = (extra: Partial<Parameters<typeof computeDoorAlert>[0]> = {}) =>
+    computeDoorAlert({
       aircraftModel: 'A321',
       departureTime: '14:00',
       chocksOnArrival: '13:00',
       turnaroundMinutes: 40,
       cargoDoorsClosed: null,
       flightDate: new Date('2026-08-13T00:00:00'), // la escala era de otro día
-      now: new Date(salida.getTime() - 7 * 60_000),
+      now: new Date('2026-08-16T09:00:00'),
+      ...extra,
     });
-    expect(a.level).toBe('off');
+
+  it('una escala de hace días no dispara alarmas falsas', () => {
+    expect(terminada().level).toBe('off');
   });
 
   it('sin fecha de escala tampoco se avisa', () => {
     expect(aFaltaDe(7, { flightDate: null }).level).toBe('off');
+  });
+
+  // El cierre registrado es un dato de la escala, no una alarma: se consulta
+  // cuando haga falta. Al limitar TODO el aviso a las escalas de hoy se perdía
+  // también esta constancia en cuanto la escala dejaba de ser la del día.
+  it('el cierre registrado se sigue consultando días después', () => {
+    // Límite H-5 = 13:55; cerrado a las 13:52 → 3 min de margen.
+    const a = terminada({ cargoDoorsClosed: '13:52' });
+    expect(a.level).toBe('done');
+    expect(a.marginMinutes).toBe(3);
+    expect(a.departureLabel).toBe('14:00');
+  });
+
+  it('y un cierre fuera de límite se sigue viendo como retraso', () => {
+    expect(terminada({ cargoDoorsClosed: '13:58' }).marginMinutes).toBe(-3);
+  });
+
+  it('el margen sale del día de la escala, no del reloj de hoy', () => {
+    // Consultada a las 09:00 de otro día: si las horas se colocaran alrededor
+    // de "ahora", las 13:52 y las 13:55 caerían en días distintos.
+    const a = terminada({ cargoDoorsClosed: '13:52', now: new Date('2026-08-16T23:30:00') });
+    expect(a.marginMinutes).toBe(3);
+  });
+
+  it('una escala que cruzó la medianoche mide contra la salida del día siguiente', () => {
+    // Calza a las 23:50 del 13 y sale a las 00:30 del 14: límite H-5 = 00:25.
+    const a = terminada({
+      chocksOnArrival: '23:50',
+      departureTime: '00:30',
+      turnaroundMinutes: null,
+      cargoDoorsClosed: '00:20',
+    });
+    expect(a.departureLabel).toBe('00:30');
+    expect(a.marginMinutes).toBe(5);
+  });
+
+  it('sin calzos ni salida calculable se deja constancia del cierre sin margen', () => {
+    const a = terminada({
+      chocksOnArrival: null,
+      departureTime: null,
+      turnaroundMinutes: null,
+      cargoDoorsClosed: '13:52',
+    });
+    expect(a.level).toBe('done');
+    expect(a.marginMinutes).toBeNull();
   });
 });
