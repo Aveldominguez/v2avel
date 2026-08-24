@@ -7,6 +7,7 @@ import { getModelsForAirline } from '@/data/aircraftModels';
 import { validateTimes, formatDateTime } from '@/utils/timeValidation';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
 import { useOfflineSync, saveDraft, loadDraft, clearDraft, TurnaroundDraft } from '@/hooks/useOfflineSync';
+import { useUploadsInFlight } from '@/hooks/useUploadsInFlight';
 import { getEmptyTimes } from '@/hooks/useTurnaroundStore';
 import { FlightInfoStep } from '@/components/turnaround/FlightInfoStep';
 import { AirlineTimesBlock } from '@/components/turnaround/AirlineTimesBlock';
@@ -16,6 +17,7 @@ import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import AirCanadaCargoScanner from '@/components/turnaround/AirCanadaCargoScanner';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
+import { AttachmentRecovery } from '@/components/turnaround/AttachmentRecovery';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
@@ -220,6 +222,9 @@ const TurnaroundForm: React.FC = () => {
 
 
   // Auto-save refs
+  // Subidas de adjuntos en marcha: guardar con alguna a medias perdía el
+  // archivo, porque su URL sólo entra en la escala al terminar la subida.
+  const uploadsInFlight = useUploadsInFlight();
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftWarned = useRef(false);
@@ -457,6 +462,23 @@ const TurnaroundForm: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
+  /*
+   * Guardado inmediato en cuanto cambian los adjuntos.
+   *
+   * La URL de un archivo sólo existe en memoria hasta que hay un guardado. Con
+   * el autoguardado normal (3 s) bastaba con que la escala se recargara antes
+   * para perderla: un adjunto real se perdió así porque el siguiente guardado
+   * llegó 29 minutos más tarde. Las fotos de esa misma escala sobrevivieron
+   * porque se guardó 5 segundos después.
+   */
+  const adjuntos = `${loadingSheetUrls.join('|')}#${fileUrls.join('|')}#${observationPhotos.join('|')}`;
+  useEffect(() => {
+    if (isInitialLoad.current || savedAndNavigating.current) return;
+    flushDraft();
+    if (isEditing) autoSaveToServer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adjuntos]);
+
   // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
   useEffect(() => {
     const onVisibility = () => { if (document.visibilityState === 'hidden') flushDraft(); };
@@ -539,6 +561,17 @@ const TurnaroundForm: React.FC = () => {
   const handleSave = useCallback(async () => {
     if (!flightNumber.trim()) {
       toast({ title: 'Campo requerido', description: 'Ingrese el número de vuelo', variant: 'destructive' });
+      return;
+    }
+
+    // La miniatura de un adjunto es una previsualización local: se ve aunque el
+    // archivo no haya llegado al servidor. Guardar ahora lo dejaría fuera.
+    if (uploadsInFlight > 0) {
+      toast({
+        title: 'Espera a que suban los archivos',
+        description: `Quedan ${uploadsInFlight} por subir. Si guardas ahora no quedarán en la escala.`,
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -1019,6 +1052,18 @@ const TurnaroundForm: React.FC = () => {
       {/* `pb-28` reservaba hueco para la barra fija, que se superponía al
           contenido. Ahora la barra ocupa su propio sitio y sobra ese hueco. */}
       <main className="w-full flex-1 px-2 sm:px-4 py-6 space-y-6 pb-6">
+        {/* Adjuntos que se subieron pero no llegaron a quedar en la escala. */}
+        <AttachmentRecovery
+          turnaroundId={id}
+          loadingSheetUrls={loadingSheetUrls}
+          fileUrls={fileUrls}
+          observationPhotos={observationPhotos}
+          onRecover={(r) => {
+            if (r.loadingSheetUrls.length) setLoadingSheetUrls(prev => [...prev, ...r.loadingSheetUrls]);
+            if (r.fileUrls.length) setFileUrls(prev => [...prev, ...r.fileUrls]);
+            if (r.observationPhotos.length) setObservationPhotos(prev => [...prev, ...r.observationPhotos]);
+          }}
+        />
         <div id="sec-tiempos" className="scroll-mt-48">
         <AirlineTimesBlock
           airline={selectedAirline}

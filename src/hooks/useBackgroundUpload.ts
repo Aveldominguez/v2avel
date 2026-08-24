@@ -5,6 +5,7 @@ import { buildStoragePath } from '@/utils/storageUrl';
 import { toast } from '@/hooks/use-toast';
 import { saveImageBackup, removeImageBackup } from '@/utils/imageBackupStore';
 import { compressImage } from '@/utils/imageCompressor';
+import { uploadStarted, uploadFinished } from '@/lib/uploadTracker';
 
 export interface PendingUpload {
   localUrl: string;   // blob: URL for instant preview
@@ -85,6 +86,7 @@ export function useBackgroundUpload({
       }
 
       uploadQueueRef.current = uploadQueueRef.current.slice(1);
+      uploadFinished();
     }
 
     isProcessingRef.current = false;
@@ -152,6 +154,7 @@ export function useBackgroundUpload({
     }
 
     setPending(prev => [...prev, ...newPending]);
+    newPending.forEach(() => uploadStarted());
     uploadQueueRef.current = [...uploadQueueRef.current, ...newPending];
 
     processQueue();
@@ -164,7 +167,9 @@ export function useBackgroundUpload({
     }
     URL.revokeObjectURL(localUrl);
     setPending(prev => prev.filter(p => p.localUrl !== localUrl));
+    const seguiaEnCola = uploadQueueRef.current.some(p => p.localUrl === localUrl);
     uploadQueueRef.current = uploadQueueRef.current.filter(p => p.localUrl !== localUrl);
+    if (seguiaEnCola) uploadFinished();
   }, [pending]);
 
   const retryFailed = useCallback((localUrl: string) => {
@@ -174,6 +179,7 @@ export function useBackgroundUpload({
     const item = pending.find(p => p.localUrl === localUrl);
     if (item) {
       item.status = 'uploading';
+      uploadStarted();
       uploadQueueRef.current.push(item);
       processQueue();
     }

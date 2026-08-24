@@ -1,4 +1,4 @@
-import { AirlineCode } from '@/types/turnaround';
+import { AirlineCode, airlineUsesStairsAtGate } from '@/types/turnaround';
 
 export interface EquipmentItem {
   id: string;
@@ -186,10 +186,13 @@ export const getEquipmentCategories = (aircraftModel: string | null): EquipmentC
 
 type CategoryVisibility = 'always' | 'remote' | 'never';
 
+/**
+ * ESCALERAS no está aquí a propósito: se deduce de si la aerolínea tiene campo
+ * de hora de escalera en parking. Ver `getFilteredEquipmentCategories`.
+ */
 interface AirlineEquipmentRules {
   TRACTORES: CategoryVisibility;
   CINTAS: CategoryVisibility;
-  ESCALERAS: CategoryVisibility;
   FURGONETAS: CategoryVisibility;
   GPUS: CategoryVisibility;
   PUSHBACK: CategoryVisibility;
@@ -203,7 +206,6 @@ interface AirlineEquipmentRules {
 const STANDARD_RULES: AirlineEquipmentRules = {
   TRACTORES: 'always',
   CINTAS: 'always',
-  ESCALERAS: 'remote',
   FURGONETAS: 'always',
   GPUS: 'remote',
   PUSHBACK: 'never',
@@ -218,14 +220,12 @@ const STANDARD_RULES: AirlineEquipmentRules = {
 // en AIRLINES_WITH_STAIRS y sí tienen los campos de hora de escalera).
 const STANDARD_WITH_STAIRS_RULES: AirlineEquipmentRules = {
   ...STANDARD_RULES,
-  ESCALERAS: 'always',
 };
 
 // Group 2: widebody / long-haul
 const WIDEBODY_RULES: AirlineEquipmentRules = {
   TRACTORES: 'always',
   CINTAS: 'always',
-  ESCALERAS: 'always',
   FURGONETAS: 'always',
   GPUS: 'remote',
   PUSHBACK: 'always',
@@ -239,7 +239,6 @@ const WIDEBODY_RULES: AirlineEquipmentRules = {
 const CARGO_RULES: AirlineEquipmentRules = {
   TRACTORES: 'always',
   CINTAS: 'always',
-  ESCALERAS: 'always',
   FURGONETAS: 'always',
   GPUS: 'always',
   PUSHBACK: 'always',
@@ -253,7 +252,6 @@ const CARGO_RULES: AirlineEquipmentRules = {
 const ALL_RULES: AirlineEquipmentRules = {
   TRACTORES: 'always',
   CINTAS: 'always',
-  ESCALERAS: 'always',
   FURGONETAS: 'always',
   GPUS: 'always',
   PUSHBACK: 'always',
@@ -269,7 +267,7 @@ const AIRLINE_RULES: Record<string, AirlineEquipmentRules> = {
   DAN_AIR: STANDARD_RULES,
   NILE_AIR: STANDARD_RULES,
   AEGEAN: STANDARD_RULES,
-  PEGASUS: STANDARD_WITH_STAIRS_RULES,
+  PEGASUS: STANDARD_RULES,
   SKYEXPRESS: STANDARD_RULES,
   SKYUP: STANDARD_RULES,
   A_JET: STANDARD_RULES,
@@ -305,6 +303,12 @@ export const getFilteredEquipmentCategories = (
     // Pushback in equipment follows same logic as in Control de Horas:
     // always in parking T (!isRemote), or in remote when pushBack toggle is on
     if (cat.id === 'PUSHBACK') return !isRemote || needsPushBack;
+
+    // La escalera sigue a Control de Horas: en remoto siempre, y en puerta
+    // cuando la aerolínea tiene ahí campo de hora de escalera. Mantenerlo como
+    // una lista aparte hizo que cinco aerolíneas pidieran la hora de la
+    // escalera sin dejar apuntar cuál se había usado.
+    if (cat.id === 'ESCALERAS') return isRemote || airlineUsesStairsAtGate(airline);
 
     const vis = rules[cat.id as keyof AirlineEquipmentRules];
     if (!vis || vis === 'always') return true;

@@ -608,6 +608,64 @@ export const getTimeFieldsForAirline = (airline: AirlineCode, isRemote: boolean,
   return applyTimeFieldOverrides(airline, baseFields);
 };
 
+/**
+ * Los campos de hora que la escala muestra realmente, en su mismo orden.
+ *
+ * El PDF llamaba a `getTimeFieldsForAirline`, que es el selector heredado que
+ * hoy sólo usan FedEx y Amazon. Para el resto de aerolíneas la escala se pinta
+ * con `getArrivalFields` + `getDepartureFields`, y los dos listados se habían
+ * separado: al PDF le faltaban entre 7 y 11 campos por aerolínea (búsqueda de
+ * maleta, AVI, cargo y correo de salida, cierre de puertas de bodega…).
+ *
+ * Con esto el PDF deja de tener criterio propio: exporta lo que se ve.
+ */
+export const getEscalaTimeFields = (
+  airline: AirlineCode,
+  isRemote: boolean,
+  soloLlegada: boolean = false,
+  soloSalida: boolean = false,
+): TimeFieldConfig[] => {
+  if (!usesSplitLayout(airline)) {
+    return getTimeFieldsForAirline(airline, isRemote, soloLlegada, soloSalida);
+  }
+
+  const llegada = soloSalida ? [] : getArrivalFields(airline, isRemote, soloLlegada);
+  const salida = soloLlegada ? [] : getDepartureFields(airline, isRemote, soloLlegada);
+
+  // Alguna clave puede salir en los dos bloques; en el PDF una fila basta.
+  const vistas = new Set<string>();
+  return [...llegada, ...salida].filter(f => {
+    const k = String(f.key);
+    if (vistas.has(k)) return false;
+    vistas.add(k);
+    return true;
+  });
+};
+
+/** Claves de hora que delatan que se trabaja con escalera. */
+const STAIRS_TIME_KEYS: Set<string> = new Set([
+  'stairsTime', 'stairsRemovalArrival', 'stairsPlacementDeparture', 'specialEndLoading',
+]);
+
+/**
+ * ¿La aerolínea trabaja con escalera estando en puerta, no sólo en remoto?
+ *
+ * Se deduce de los propios campos de hora de la escala en vez de mantener una
+ * segunda lista a mano. Si en parking aparece "Puesta Escalera" o "Retirada
+ * Escalera", es que se usa escalera y el equipo tiene que poder registrarse.
+ *
+ * Se hace así porque las dos listas ya se habían desincronizado: cinco
+ * aerolíneas pedían la hora de la escalera pero no dejaban apuntar qué
+ * escalera se había usado. Al leer los campos reales también se respetan los
+ * ajustes del panel de administración, que `applyTimeFieldOverrides` aplica.
+ */
+export const airlineUsesStairsAtGate = (airline: AirlineCode): boolean => {
+  const enParking = usesSplitLayout(airline)
+    ? [...getArrivalFields(airline, false), ...getDepartureFields(airline, false)]
+    : getTimeFieldsForAirline(airline, false);
+  return enParking.some(f => STAIRS_TIME_KEYS.has(f.key as string));
+};
+
 // Airline prefixes for flight numbers
 export const AIRLINE_PREFIXES: Record<string, string> = {
   FEDEX: '3V',
