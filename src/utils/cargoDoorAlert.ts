@@ -17,6 +17,11 @@
  * El cierre se mide con `cargoDoorsClosed`, NUNCA con el fin de carga: se
  * puede terminar de cargar y no poder cerrar todavía (repostaje, una última
  * maleta en camino…), y son dos momentos operativos distintos.
+ *
+ * Una vez registrado el cierre, la constancia («cerradas con X min de margen»)
+ * es un dato de la escala, no una alarma: se puede consultar siempre, también
+ * en escalas terminadas de días anteriores. Lo que se limita a las escalas de
+ * hoy son los avisos en vivo, que son los que miran el reloj.
  */
 
 import { parseClockTime, effectiveDeparture } from './effectiveDeparture';
@@ -79,13 +84,40 @@ export interface DoorAlertInput {
   soloLlegada?: boolean;
   /** Escala sin vuelo de llegada: no hay calzos que esperar, el avión ya está. */
   soloSalida?: boolean;
-  /** Fecha de la escala. Sin ella no se avisa: ver la comprobación de abajo. */
+  /**
+   * Fecha de la escala. Sin ella no hay avisos en vivo (ver la comprobación de
+   * abajo) y, además, es lo que ancla las horas HH:mm al día correcto cuando se
+   * consulta una escala ya terminada.
+   */
   flightDate?: Date | null;
   now: Date;
 }
 
 const mismoDia = (a: Date, b: Date): boolean =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+/**
+ * Mediodía del día de la escala. Es la referencia con la que se interpretan las
+ * HH:mm de una escala que no es la de hoy: desde el mediodía, cualquier hora
+ * del día cae dentro de la ventana de ±12 h de `parseClockTime` y aterriza en
+ * su propio día, en vez de en el de hoy.
+ */
+const aMediodia = (d: Date): Date => {
+  const x = new Date(d);
+  x.setHours(12, 0, 0, 0);
+  return x;
+};
+
+/**
+ * Una hora anterior a los calzos de llegada es en realidad del día siguiente:
+ * la escala cruzó la medianoche (calza a las 23:50 y sale a las 00:30).
+ */
+const trasCalzos = (hora: Date | null, calzos: Date | null): Date | null => {
+  if (!hora || !calzos || hora.getTime() >= calzos.getTime()) return hora;
+  const d = new Date(hora);
+  d.setDate(d.getDate() + 1);
+  return d;
+};
 
 const APAGADO: DoorAlert = {
   level: 'off', secondsToDeadline: 0, minuteMark: 0, marginMinutes: null, shouldBeep: false,
@@ -102,11 +134,44 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   } = input;
 
   if (soloLlegada) return APAGADO;
-  // Sólo se avisa en escalas de hoy. Al consultar una de hace días, su hora de
-  // salida se interpretaría contra el reloj de ahora y saltaría una alarma
-  // falsa por un avión que se fue hace tres días.
-  if (!flightDate || !mismoDia(flightDate, now)) return APAGADO;
   if (!isNarrowBody(aircraftModel)) return APAGADO;
+
+  const esDeHoy = !!flightDate && mismoDia(flightDate, now);
+
+  // Con qué reloj se leen las HH:mm de la escala. En la de hoy, el de ahora.
+  // En una terminada, el mediodía de SU día: si no, las horas se colocarían
+  // alrededor de hoy y el margen saldría de comparar días distintos.
+  const ref = esDeHoy || !flightDate ? now : aMediodia(flightDate);
+
+  const calzos = chocksOnArrival ? parseClockTime(chocksOnArrival, ref) : null;
+  const prevista = trasCalzos(departureTime ? parseClockTime(departureTime, ref) : null, calzos);
+
+  const efectiva = effectiveDeparture(prevista, calzos, turnaroundMinutes);
+  const limite = efectiva ? efectiva.salida.getTime() - DOOR_DEADLINE_MIN * 60_000 : null;
+  const contexto = efectiva
+    ? { departureLabel: hhmm(efectiva.salida), basedOnGroundTime: efectiva.porEscala }
+    : { departureLabel: null, basedOnGroundTime: false };
+
+  // Puertas ya cerradas: se deja constancia del margen y no se molesta más.
+  // Esto NO es una alarma sino un dato de la escala, así que se muestra siempre,
+  // también días después: es lo que se consulta al revisar una escala terminada.
+  // Por lo mismo no exige calzos ni salida calculable; sin ellos se enseña el
+  // cierre sin margen, que sigue siendo mejor que no enseñar nada.
+  if (cargoDoorsClosed) {
+    const cierre = trasCalzos(parseClockTime(cargoDoorsClosed, ref), calzos);
+    return {
+      ...APAGADO,
+      ...contexto,
+      level: 'done',
+      secondsToDeadline: limite !== null && esDeHoy ? Math.round((limite - now.getTime()) / 1000) : 0,
+      marginMinutes: limite !== null && cierre ? Math.round((limite - cierre.getTime()) / 60_000) : null,
+    };
+  }
+
+  // A partir de aquí son avisos en vivo, que miran el reloj: sólo en las escalas
+  // de hoy. En una de hace días su hora de salida se mediría contra el reloj de
+  // ahora y saltaría una alarma falsa por un avión que se fue hace tres días.
+  if (!esDeHoy) return APAGADO;
 
   // Sin calzos de llegada el avión no está en plataforma: no hay bodega que
   // cerrar y la hora prevista ya no dice nada. Éste era el aviso que saltaba
@@ -114,28 +179,9 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   // hay llegada que esperar, así que ahí no se exige.
   if (!soloSalida && !chocksOnArrival) return APAGADO;
 
-  const calzos = chocksOnArrival ? parseClockTime(chocksOnArrival, now) : null;
-  const prevista = departureTime ? parseClockTime(departureTime, now) : null;
-
-  const efectiva = effectiveDeparture(prevista, calzos, turnaroundMinutes);
-  if (!efectiva) return APAGADO;
-  const { salida, porEscala } = efectiva;
-
-  const limite = salida.getTime() - DOOR_DEADLINE_MIN * 60_000;
+  if (!efectiva || limite === null) return APAGADO;
+  const { salida } = efectiva;
   const secondsToDeadline = Math.round((limite - now.getTime()) / 1000);
-  const contexto = { departureLabel: hhmm(salida), basedOnGroundTime: porEscala };
-
-  // Puertas ya cerradas: se deja constancia del margen y no se molesta más.
-  if (cargoDoorsClosed) {
-    const cierre = parseClockTime(cargoDoorsClosed, now);
-    return {
-      ...APAGADO,
-      ...contexto,
-      level: 'done',
-      secondsToDeadline,
-      marginMinutes: cierre ? Math.round((limite - cierre.getTime()) / 60_000) : null,
-    };
-  }
 
   // Minutos que faltan para la SALIDA, que es como se nombra la normativa
   // (H-15, H-10, H-5). Se redondea hacia arriba: a falta de 9 min y 20 s
