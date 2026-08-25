@@ -1,9 +1,8 @@
 {
-  "version": "4.420",
+  "version": "4.430",
   "changelog": [
-    "El parking deja de cambiarse solo mientras trabajas: en cuanto registras una hora, la app deja de consultarlo en ARION. Si el avión ya está recibido, está en un puesto concreto y de ahí no se mueve.",
-    "ARION ya nunca sobrescribe un parking puesto por una persona. Si difiere, lo propone con un aviso y decides tú: cambiarlo o mantener el tuyo.",
-    "Si la escala aún no tiene parking, ARION lo sigue rellenando solo como hasta ahora.",
-    "El aviso de bodegas cerradas vuelve a verse en las escalas terminadas: la hora de cierre y los minutos de margen quedan en Control de horas para consultarlos cuando haga falta, no sólo el día del vuelo."
+    "La app ya distingue quedarse sin cobertura de tener red pero no llegar al servidor. Antes, con un bloqueo del operador el móvil tenía 5G, la app se creía conectada y fallaba sin explicar nada.",
+    "Cuando no se llega al servidor sale un aviso claro y se sugiere cambiar de wifi a datos móviles, que es lo que suele arreglarlo porque el corte lo aplica cada operador por su lado.",
+    "Mientras tanto todo se guarda en el móvil y se envía solo en cuanto vuelve el servidor, sin gastar batería reintentando contra una puerta cerrada."
   ]
 }

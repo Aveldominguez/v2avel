@@ -7,6 +7,7 @@ import { Json } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 import { localTurnaroundStore } from '@/lib/turnaroundLocalStore';
 import { pruneDrafts, type TurnaroundDraft } from '@/lib/turnaroundDraft';
+import { isBackendReachable, reportBackendFailure } from '@/lib/backendReachability';
 
 // Se reexportan para no romper a quien ya los importaba desde aquí.
 export { saveDraft, loadDraft, clearDraft, pruneDrafts } from '@/lib/turnaroundDraft';
@@ -107,7 +108,7 @@ export const useOfflineSync = () => {
   }, []);
 
   const processQueue = useCallback(async () => {
-    if (!user || syncingRef.current || !navigator.onLine) return;
+    if (!user || syncingRef.current || !isBackendReachable()) return;
     const queue = getQueue();
     if (queue.length === 0) return;
 
@@ -156,6 +157,7 @@ export const useOfflineSync = () => {
         processed++;
       } catch (err) {
         console.error('Sync failed for operation:', op.id, err);
+        reportBackendFailure();
         const retryCount = (op.retryCount || 0) + 1;
         if (retryCount < MAX_RETRY) {
           remaining.push({ ...op, retryCount });
@@ -186,7 +188,7 @@ export const useOfflineSync = () => {
     if (isOnline) processQueue();
 
     const tryProcess = () => {
-      if (navigator.onLine && getQueue().length > 0) processQueue();
+      if (isBackendReachable() && getQueue().length > 0) processQueue();
     };
     const onVisibility = () => {
       if (document.visibilityState === 'visible') tryProcess();

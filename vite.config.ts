@@ -120,7 +120,11 @@ export default defineConfig(() => ({
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.hostname.includes('supabase.co'),
+            // La comprobación de conectividad lleva `_probe` y NO se cachea: si
+            // se respondiera desde la caché, diríamos que hay servidor justo
+            // cuando no lo hay. Ver src/lib/backendReachability.ts.
+            urlPattern: ({ url }) =>
+              url.hostname.includes('supabase.co') && !url.searchParams.has('_probe'),
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',

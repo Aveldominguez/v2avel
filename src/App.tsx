@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { unlockAlertSound } from "@/lib/alertSound";
+import { startConnectivityMonitor } from "@/lib/backendReachability";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { useStatusBarColor } from "@/hooks/useStatusBarColor";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -120,6 +122,8 @@ const AppRoutes = () => {
   // El navegador no deja sonar nada hasta que el usuario toca la pantalla:
   // se aprovecha el primer toque para que el primer aviso del día no sea mudo.
   useEffect(() => unlockAlertSound(), []);
+  // Vigila si se llega al servidor: `navigator.onLine` no lo sabe.
+  useEffect(() => startConnectivityMonitor(), []);
   return (
   <Suspense fallback={<FullScreenLoader />}>
     <Routes>
@@ -160,6 +164,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <InstallPrompt />
+      <OfflineBanner />
       
       <BrowserRouter>
         <AuthProvider>
