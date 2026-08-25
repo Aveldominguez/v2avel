@@ -29,6 +29,7 @@ import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil
 import { useArionSync } from '@/hooks/useArionSync';
 import { fetchParkingFromArion } from '@/utils/arionParking';
 import { isRemoteParking } from '@/types/turnaround';
+import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -685,11 +686,16 @@ const TurnaroundForm: React.FC = () => {
       && date.getDate() === now.getDate();
   }, [date]);
 
+  // Parking que ARION propone y no coincide con el de la escala. No se aplica
+  // solo: se enseña para que decida quien está en la pista.
+  const [arionParking, setArionParking] = useState<string | null>(null);
+
   const applyParkingUpdate = useCallback((code: string) => {
     setTango(code);
     const remote = isRemoteParking(code);
     if (remote !== null) setIsRemote(remote);
     setParkingChanged(true);
+    setArionParking(null);
     setTimeout(() => setParkingChanged(false), 6000);
   }, []);
 
@@ -723,10 +729,20 @@ const TurnaroundForm: React.FC = () => {
         toast({ title: `Parking sin cambios: ${code}` });
         return;
       }
-      const previous = tango.trim();
+      // Consultar no es aceptar: si ya hay un parking puesto, se propone y se
+      // cambia con un toque. Así ARION no puede llevarse por delante el puesto
+      // real cuando el aeropuerto movió el avión y ARION no se enteró.
+      if (tango.trim()) {
+        setArionParking(code);
+        toast({
+          title: `ARION indica ${code}`,
+          description: `La escala tiene ${tango.trim()}. Abajo puedes cambiarlo o mantener el tuyo.`,
+        });
+        return;
+      }
       applyParkingUpdate(code);
       toast({
-        title: previous ? `Parking cambiado: ${previous} → ${code}` : `Parking asignado: ${code}`,
+        title: `Parking asignado: ${code}`,
         description: isRemoteParking(code) ? 'Puesto remoto — la escala se ha marcado como remota.' : 'Puesto de terminal.',
       });
     } catch (err) {
@@ -737,29 +753,44 @@ const TurnaroundForm: React.FC = () => {
     }
   }, [flightNumber, dateISO, tango, syncArionToday, applyParkingUpdate]);
 
-  // Revisión automática cada 5 min, sólo en escalas de hoy y sin salida marcada:
-  // una vez fuera de calzos el parking ya no cambia y no tiene sentido tocarlo.
+  /*
+   * Revisión automática del parking cada 5 min, sólo en escalas de hoy.
+   *
+   * Se para en cuanto hay una hora registrada: si el avión ya está recibido,
+   * está en un puesto concreto y de ahí no se mueve. ARION, en cambio, sigue
+   * publicando el puesto que le asignaron en su día aunque el aeropuerto lo
+   * haya cambiado, y antes machacaba el parking real cada pocos minutos.
+   *
+   * Y aunque no esté fijada, esta comprobación ya nunca pisa un parking que
+   * haya puesto una persona: si difiere, lo propone y decide quien está allí.
+   */
+  const parkingFijado = isParkingLocked(times);
   useEffect(() => {
     if (!isToday || !flightNumber.trim()) return;
-    if (times.chocksOff) return;
+    if (times.chocksOff || parkingFijado) return;
     let cancelled = false;
     const check = async () => {
       if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
       try {
         const code = await fetchParkingFromArion(flightNumber.trim(), dateISO);
         if (cancelled || !code) return;
-        if (code === tango.trim().toUpperCase()) return;
-        const previous = tango.trim();
+        const accion = decideParkingUpdate(code, tango, times);
+        if (accion === 'ignore') return;
+        if (accion === 'suggest') {
+          setArionParking(code);
+          return;
+        }
         applyParkingUpdate(code);
         toast({
-          title: previous ? `⚠️ Parking cambiado: ${previous} → ${code}` : `Parking asignado: ${code}`,
+          title: `Parking asignado: ${code}`,
           description: isRemoteParking(code) ? 'Puesto remoto — la escala se ha marcado como remota.' : 'Puesto de terminal.',
         });
       } catch { /* silencioso: es una comprobación de fondo */ }
     };
     const interval = setInterval(check, 5 * 60 * 1000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [isToday, flightNumber, dateISO, tango, times.chocksOff, applyParkingUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isToday, flightNumber, dateISO, tango, times.chocksOff, parkingFijado, applyParkingUpdate]);
 
   if (loading) {
     return (
@@ -1052,6 +1083,33 @@ const TurnaroundForm: React.FC = () => {
       {/* `pb-28` reservaba hueco para la barra fija, que se superponía al
           contenido. Ahora la barra ocupa su propio sitio y sobra ese hueco. */}
       <main className="w-full flex-1 px-2 sm:px-4 py-6 space-y-6 pb-6">
+        {/* ARION propone otro parking. Nunca se aplica solo: si el aeropuerto
+            movió el avión, el que manda es quien está en la pista. */}
+        {arionParking && (
+          <div className="rounded-lg border-2 border-sky-500 bg-sky-500/15 p-3 text-sky-700 dark:text-sky-400">
+            <p className="font-semibold">ARION indica el parking {arionParking}</p>
+            <p className="text-sm opacity-90">
+              La escala tiene {tango || remoteLocation || 'ninguno'}. Si el avión no se ha movido, ignóralo.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={() => applyParkingUpdate(arionParking)}
+                className="flex-1 rounded-md border-2 border-current bg-background/60 py-2 font-semibold"
+              >
+                Cambiar a {arionParking}
+              </button>
+              <button
+                type="button"
+                onClick={() => setArionParking(null)}
+                className="flex-1 rounded-md border border-current/40 py-2 font-medium"
+              >
+                Mantener el mío
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Adjuntos que se subieron pero no llegaron a quedar en la escala. */}
         <AttachmentRecovery
           turnaroundId={id}
