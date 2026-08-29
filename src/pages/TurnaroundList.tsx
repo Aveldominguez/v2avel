@@ -72,6 +72,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ConnectivityChip } from '@/components/ConnectivityChip';
 import { useTheme } from '@/hooks/useTheme';
 import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
@@ -461,7 +462,8 @@ const TurnaroundList: React.FC = () => {
           <div className="flex flex-col items-center gap-2.5">
             {/* FILA 1 — Identidad compacta */}
             <div className="flex items-center justify-between w-full">
-              <ThemeToggle />
+              <ConnectivityChip />
+          <ThemeToggle />
               <div className="text-center flex-1 min-w-0">
                 <h1 className="text-lg sm:text-2xl font-bold tracking-tight leading-tight">Registros de Escalas Rampa</h1>
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground min-w-0">
@@ -554,7 +556,8 @@ const TurnaroundList: React.FC = () => {
               <p className="text-xs text-muted-foreground truncate">Operaciones de rampa</p>
             </div>
 
-            <ThemeToggle />
+            <ConnectivityChip />
+          <ThemeToggle />
 
             <Popover>
               <PopoverTrigger asChild>

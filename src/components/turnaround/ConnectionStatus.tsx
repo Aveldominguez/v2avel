@@ -1,5 +1,6 @@
 import React from 'react';
-import { Wifi, WifiOff, Loader2, CloudOff, Check } from 'lucide-react';
+import { Wifi, Loader2, CloudOff, Check } from 'lucide-react';
+import { ConnectivityChip } from '@/components/ConnectivityChip';
 
 interface ConnectionStatusProps {
   isOnline: boolean;
@@ -40,15 +41,16 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
   }
 
   if (!isOnline) {
+    // La píldora es la misma de las demás cabeceras: distingue quedarse sin
+    // cobertura de no llegar al servidor, y al tocarla explica qué hacer.
     return (
-      <div
-        className="flex shrink-0 items-center gap-1.5 text-xs text-warning"
-        title={`Sin conexión${pendingCount > 0 ? ` · ${pendingCount} pendiente(s)` : ''}`}
-      >
-        <WifiOff className="h-3.5 w-3.5 shrink-0" />
-        <Label>Sin conexión</Label>
+      <div className="flex shrink-0 items-center gap-1.5 text-xs">
+        <ConnectivityChip />
         {pendingCount > 0 && (
-          <span className="shrink-0 bg-warning/20 text-warning px-1.5 py-0.5 rounded-full font-semibold">
+          <span
+            className="shrink-0 rounded-full bg-warning/20 px-1.5 py-0.5 font-semibold text-warning"
+            title={`${pendingCount} cambio(s) pendiente(s) de sincronizar`}
+          >
             {pendingCount}
           </span>
         )}

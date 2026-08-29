@@ -6,6 +6,7 @@ import {
 } from '@/hooks/useEquipment';
 import EquipmentRow from '@/components/equipos/EquipmentRow';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ConnectivityChip } from '@/components/ConnectivityChip';
 import type { EquipmentUnitFull } from '@/types/equipment';
 
 function getRanked(units: EquipmentUnitFull[]) {
@@ -50,6 +51,7 @@ const EquiposCategory = () => {
         </button>
         <h1 className="flex-1 text-center font-mono text-base font-bold uppercase tracking-wide">{category.name}</h1>
         <div className="flex items-center gap-1">
+          <ConnectivityChip />
           <ThemeToggle />
           <div className="w-1" />
         </div>

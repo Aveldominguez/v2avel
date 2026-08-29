@@ -34,6 +34,7 @@ import { IssueReportsCard } from '@/components/admin/IssueReportsCard';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ConnectivityChip } from '@/components/ConnectivityChip';
 import { getImpersonatedUser, setImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 
 const AdminPanel: React.FC = () => {
@@ -327,7 +328,8 @@ const AdminPanel: React.FC = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-2 justify-center w-full">
-              <ThemeToggle />
+              <ConnectivityChip />
+          <ThemeToggle />
               <Shield className="h-6 w-6 text-destructive" />
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Panel de Administración</h1>
             </div>

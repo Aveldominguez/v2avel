@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { unlockAlertSound } from "@/lib/alertSound";
 import { startConnectivityMonitor } from "@/lib/backendReachability";
-import { OfflineBanner } from "@/components/OfflineBanner";
+import { useConnectivityToasts } from "@/hooks/useConnectivityToasts";
 import { useStatusBarColor } from "@/hooks/useStatusBarColor";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -124,6 +124,8 @@ const AppRoutes = () => {
   useEffect(() => unlockAlertSound(), []);
   // Vigila si se llega al servidor: `navigator.onLine` no lo sabe.
   useEffect(() => startConnectivityMonitor(), []);
+  // Avisa al perder y al recuperar el servidor, sin ocupar la pantalla mientras.
+  useConnectivityToasts();
   return (
   <Suspense fallback={<FullScreenLoader />}>
     <Routes>
@@ -164,7 +166,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <InstallPrompt />
-      <OfflineBanner />
       
       <BrowserRouter>
         <AuthProvider>

@@ -7,6 +7,7 @@ import {
 import { useEquipment, updateParking, updateBattery, toggleBroken } from '@/hooks/useEquipment';
 import { useEquipmentReview, type CategoryConflict } from '@/hooks/useEquipmentReview';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ConnectivityChip } from '@/components/ConnectivityChip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -156,6 +157,7 @@ const EquiposRevision = () => {
             <ArrowLeft size={22} />
           </button>
           <h1 className="flex-1 text-center font-mono text-base font-bold uppercase tracking-wide">Modo Revisión</h1>
+          <ConnectivityChip />
           <ThemeToggle />
         </header>
 
@@ -365,6 +367,7 @@ const EquiposRevision = () => {
             <ArrowLeft size={22} />
           </button>
           <h1 className="flex-1 text-center font-mono text-base font-bold uppercase tracking-wide">Modo Revisión</h1>
+          <ConnectivityChip />
           <ThemeToggle />
         </div>
 
