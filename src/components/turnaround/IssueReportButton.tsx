@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { buildStoragePath } from '@/utils/storageUrl';
 import { compressImage } from '@/utils/imageCompressor';
@@ -24,6 +25,8 @@ interface IssueReportButtonProps {
   isRemote?: boolean;
   remoteLocation?: string;
   departureTime?: string | null;
+  /** Permite encogerlo cuando comparte fila con texto pequeño. */
+  className?: string;
 }
 
 interface ExistingReport {
@@ -44,6 +47,7 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
   isRemote,
   remoteLocation,
   departureTime,
+  className,
 }) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -146,7 +150,11 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="aero-header-action shrink-0 flex items-center justify-center h-9 w-9 rounded-lg border-2 bg-muted border-border text-warning hover:bg-muted/80 transition-colors"
+        className={cn(
+          'aero-header-action shrink-0 flex items-center justify-center rounded-lg border-2',
+          'bg-muted border-border text-warning hover:bg-muted/80 transition-colors',
+          className ?? 'h-9 w-9',
+        )}
         title="Reportar fallo de la app en esta escala"
         aria-label="Reportar fallo de la app"
       >

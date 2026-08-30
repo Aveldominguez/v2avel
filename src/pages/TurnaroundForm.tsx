@@ -998,6 +998,7 @@ const TurnaroundForm: React.FC = () => {
               isRemote={isRemote}
               remoteLocation={remoteLocation}
               departureTime={departureTime}
+              className="h-6 w-6"
             />
             <span>{airlineInfo?.name}</span>
             <span>|</span>
@@ -1028,15 +1029,19 @@ const TurnaroundForm: React.FC = () => {
                 <span>{matricula}</span>
               </>
             )}
-            {/* Sin barra separadora delante: al envolver a la línea siguiente
-                dejaba un "|" suelto al final de la anterior. El icono ya separa. */}
+            {/* La barra separadora va DENTRO del bloque, no como elemento
+                suelto: así viaja con la sala al pasar a la línea siguiente en
+                vez de quedarse colgando al final de la anterior.
+                Sin color propio: hereda el de la fila, que es el que mejor
+                contrasta en cada estilo (blanco sobre la cabecera oscura). */}
             {formatBaggageBelt(baggageBelt) && (
-              <>
-                <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                <span aria-hidden>|</span>
+                <span className="flex items-center gap-1">
                   <Luggage className="h-3 w-3" />
                   {formatBaggageBelt(baggageBelt)}
                 </span>
-              </>
+              </span>
             )}
             {errors.length > 0 && (
               <>
