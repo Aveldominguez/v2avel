@@ -1,8 +1,9 @@
 {
-  "version": "4.470",
+  "version": "4.480",
   "changelog": [
-    "La sala y la cinta se leen mejor: mismo color que el resto de la línea en lugar del azul, que contrastaba poco.",
-    "La línea de datos de la escala es más baja: el botón de reportar fallo la estiraba 12 píxeles de más.",
-    "La sala y la cinta van tras la matrícula separadas por una barra, y si no caben bajan enteras a la línea siguiente, centradas y con su icono."
+    "El PDF de la escala cabe ahora en una sola hoja: las horas se reparten en tres columnas en vez de una, que dejaba dos tercios de la hoja en blanco.",
+    "Antes de exportar se elige qué imágenes incluir: hoja de carga, adjuntar file y fotos de observaciones, por separado. Todo empieza desmarcado, así no imprimes fotos sin querer.",
+    "Las imágenes que sí incluyas van a dos por hoja: con 9 fotos se pasa de 9 hojas a 5.",
+    "La sala y la cinta de equipaje salen también en el PDF, junto al parking."
   ]
 }

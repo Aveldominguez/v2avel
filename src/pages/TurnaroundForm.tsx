@@ -18,6 +18,7 @@ import AirCanadaCargoScanner from '@/components/turnaround/AirCanadaCargoScanner
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import { AttachmentRecovery } from '@/components/turnaround/AttachmentRecovery';
+import { PdfExportDialog } from '@/components/turnaround/PdfExportDialog';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
@@ -86,6 +87,7 @@ const TurnaroundForm: React.FC = () => {
   const [saving, setSaving] = useState(false);
   // Parpadeo verde del botón Guardar al terminar bien: confirmación visual
   // inmediata, sin tener que leer el aviso flotante.
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [saveFlash, setSaveFlash] = useState(false);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flashSaved = useCallback(() => {
@@ -1241,7 +1243,22 @@ const TurnaroundForm: React.FC = () => {
           type="button"
           variant="secondary"
           className="aero-export-pdf w-full gap-2 font-semibold"
-          onClick={async () => {
+          onClick={() => setPdfDialogOpen(true)}
+        >
+          <FileDown className="h-4 w-4" />
+          Exportar PDF
+        </Button>
+
+        {/* Se elige qué imágenes van al PDF antes de generarlo. */}
+        <PdfExportDialog
+          open={pdfDialogOpen}
+          onOpenChange={setPdfDialogOpen}
+          counts={{
+            loadingSheets: loadingSheetUrls.length,
+            files: fileUrls.length,
+            observationPhotos: observationPhotos.length,
+          }}
+          onExport={async (images) => {
             const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
             await generateTurnaroundPdf({
               flightNumber,
@@ -1254,12 +1271,9 @@ const TurnaroundForm: React.FC = () => {
               times: getTimesWithFlightInfo(),
               fieldValues,
               observations,
-            });
+            }, images);
           }}
-        >
-          <FileDown className="h-4 w-4" />
-          Exportar PDF
-        </Button>
+        />
 
         {selectedAirline === 'WESTJET' && (
           <div className="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/50 bg-amber-500/10 rounded-md p-3 leading-relaxed">

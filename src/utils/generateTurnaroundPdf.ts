@@ -2,6 +2,7 @@ import { TurnaroundTimes, AirlineCode, AIRLINES, getEscalaTimeFields, getPushBac
 // getFieldsByAirline removed: códigos de carga ya no se exportan en PDF
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
+import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { format } from 'date-fns';
 import { getSignedUrl, getSignedUrls } from '@/utils/storageUrl';
 import { es } from 'date-fns/locale';
@@ -126,7 +127,18 @@ interface PdfData {
   observations: string;
 }
 
-export const generateTurnaroundPdf = async (data: PdfData) => {
+/**
+ * Qué imágenes se llevan al PDF. Todo desactivado por defecto: imprimir un
+ * informe costaba tres hojas o más, y las fotos eran la mayor parte. Se eligen
+ * en el diálogo previo, así que nunca se imprime de más por descuido.
+ */
+export interface PdfImageOptions {
+  loadingSheets?: boolean;
+  files?: boolean;
+  observationPhotos?: boolean;
+}
+
+export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptions = {}) => {
   const airlineInfo = AIRLINES.find(a => a.code === data.airline);
   // Los mismos campos que muestra la escala: el PDF no decide por su cuenta.
   const baseTimeFields = getEscalaTimeFields(data.airline, data.isRemote, data.times.soloLlegada, data.times.soloSalida);
@@ -138,6 +150,38 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   const getValue = (fieldId: string): string =>
     data.fieldValues.find(v => v.fieldDefinitionId === fieldId)?.value || '—';
+
+  /**
+   * Reparte filas de etiqueta+valor en varias columnas.
+   *
+   * La tabla original gastaba una fila entera por dato: etiqueta al 30% y el
+   * resto de la hoja vacío. Un informe se iba a tres hojas. Con tres pares por
+   * fila esa sección ocupa un tercio.
+   *
+   * Se transforma el HTML ya montado en vez de rehacer la construcción: así se
+   * conservan intactos los casos especiales (ristras de Amazon, jardineras
+   * añadidas, ACU…) que generan filas de más.
+   */
+  const toCompactRows = (rowsHtml: string, perRow = 3): string => {
+    const filas = rowsHtml.match(/<tr>[\s\S]*?<\/tr>/g) ?? [];
+    const pares: string[] = [];
+    for (const fila of filas) {
+      const celdas = fila.match(/<td[^>]*>[\s\S]*?<\/td>/g);
+      if (!celdas || celdas.length < 2) continue;
+      pares.push(
+        celdas[0].replace(/^<td[^>]*>/, '<td class="k">') +
+        celdas[1].replace(/^<td[^>]*>/, '<td class="v">'),
+      );
+    }
+    const salida: string[] = [];
+    for (let i = 0; i < pares.length; i += perRow) {
+      const grupo = pares.slice(i, i + perRow);
+      // Se rellena el hueco final para que la rejilla no quede descuadrada.
+      while (grupo.length < perRow) grupo.push('<td class="k vacia"></td><td class="v vacia"></td>');
+      salida.push(`<tr>${grupo.join('')}</tr>`);
+    }
+    return salida.join('');
+  };
 
   // Build times rows
   const timesRows = timeFields.map(f => {
@@ -327,12 +371,28 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
     return data.filter((v): v is string => Boolean(v));
   };
 
+  // Las imágenes no elegidas ni siquiera se descargan: en rampa eso es tiempo
+  // y datos móviles, no sólo papel.
   const loadingSheetUrlsList = data.times.loadingSheetUrls?.length ? data.times.loadingSheetUrls : (data.times.loadingSheetUrl ? [data.times.loadingSheetUrl] : []);
-  const loadingSheetSignedUrls = await resolveImages(loadingSheetUrlsList);
+  const loadingSheetSignedUrls = images.loadingSheets ? await resolveImages(loadingSheetUrlsList) : [];
   const fileUrls = data.times.fileUrls?.length ? data.times.fileUrls : (data.times.fileUrl ? [data.times.fileUrl] : []);
-  const fileSignedUrls = await resolveImages(fileUrls);
-  const obsPhotoSignedUrls = await resolveImages(data.times.observationPhotos ?? []);
+  const fileSignedUrls = images.files ? await resolveImages(fileUrls) : [];
+  const obsPhotoSignedUrls = images.observationPhotos ? await resolveImages(data.times.observationPhotos ?? []) : [];
 
+
+  /** Un apartado de imágenes, agrupadas de dos en dos por hoja. */
+  const bloqueFotos = (titulo: string, urls: string[]): string => {
+    const validas = urls.filter(Boolean);
+    if (validas.length === 0) return '';
+    const parejas: string[] = [];
+    for (let i = 0; i < validas.length; i += 2) {
+      const par = validas.slice(i, i + 2)
+        .map((url, j) => `<img class="pdf-photo" src="${url}" alt="${titulo} ${i + j + 1}" />`)
+        .join('');
+      parejas.push(`<section class="pdf-section" data-pdf-section><div class="foto-par">${par}</div></section>`);
+    }
+    return `<section class="pdf-section" data-pdf-section><h2>${titulo}</h2></section>${parejas.join('')}`;
+  };
 
   const acScannerHtml = (data.airline === 'AIR_CANADA' || data.airline === 'AIR_CANADA_CARGO')
     ? await buildAirCanadaScannerHtml(data.flightNumber, format(data.date, 'yyyy-MM-dd'))
@@ -363,8 +423,17 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   .ita-table td { background: #fff !important; font-weight: normal; width: auto !important; }
   .ita-table tr:first-child td { background: #e5e5e5 !important; font-weight: bold; }
   .data-table td.code { width: 50px; text-align: center; font-family: monospace; }
+  /* Rejilla compacta: tres pares etiqueta+valor por fila en vez de uno, para
+     no dejar dos tercios de la hoja en blanco. */
+  .grid-table td { padding: 3px 6px; font-size: 10px; }
+  .grid-table td.k { width: 21%; font-weight: bold; background: #f5f5f5; }
+  .grid-table td.v { width: 12%; font-family: monospace; font-size: 11px; }
+  .grid-table td.vacia { background: #fff; border-color: #eee; }
   .obs { white-space: pre-wrap; border: 1px solid #ccc; padding: 8px; min-height: 40px; background: #fafafa; }
-  .pdf-photo { display: block; width: 100%; max-height: 520px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px; }
+  /* Dos por hoja: con 9 fotos se pasa de 9 hojas a 5 y siguen siendo
+     perfectamente legibles para un daño o una incidencia. */
+  .pdf-photo { display: block; width: 100%; max-height: 330px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 6px; }
+  .foto-par { display: flex; flex-direction: column; gap: 6px; }
   .pdf-toolbar { position: sticky; top: 0; z-index: 9999; display: flex; gap: 8px; justify-content: flex-end; padding: 10px 12px; background: #1a1a2e; border-bottom: 2px solid #000; }
   .pdf-toolbar button { font-family: inherit; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; padding: 10px 16px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
   .pdf-toolbar .btn-download { background: #2563eb; }
@@ -534,6 +603,7 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
       <div class="meta">
         ${(data.tango || data.remoteLocation) ? `<span><b>Parking:</b> ${data.tango || data.remoteLocation}</span>` : ''}
         ${data.isRemote ? `<span><b>🟠 Remoto</b></span>` : ''}
+        ${formatBaggageBelt(data.times.baggageBelt) ? `<span><b>🧳 Equipaje:</b> ${formatBaggageBelt(data.times.baggageBelt)}</span>` : ''}
       </div>
     </div>
     ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}
@@ -543,11 +613,13 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   ${(data.times.scheduledArrival || data.times.scheduledEta || data.times.scheduledStd || data.times.scheduledEtd) ? `
   <section class="pdf-section" data-pdf-section>
   <h2>Horarios Programados</h2>
-  <table class="data-table">
-    ${data.times.scheduledArrival ? `<tr><td>STA (Programada Llegada)</td><td>${data.times.scheduledArrival}</td></tr>` : ''}
-    ${data.times.scheduledEta ? `<tr><td>ETA (Estimada Llegada)</td><td>${data.times.scheduledEta}</td></tr>` : ''}
-    ${data.times.scheduledStd ? `<tr><td>STD (Programada Salida)</td><td>${data.times.scheduledStd}</td></tr>` : ''}
-    ${data.times.scheduledEtd ? `<tr><td>ETD (Estimada Salida)</td><td>${data.times.scheduledEtd}</td></tr>` : ''}
+  <table class="data-table grid-table">
+    ${toCompactRows([
+      data.times.scheduledArrival ? `<tr><td>STA Llegada</td><td>${data.times.scheduledArrival}</td></tr>` : '',
+      data.times.scheduledEta ? `<tr><td>ETA Llegada</td><td>${data.times.scheduledEta}</td></tr>` : '',
+      data.times.scheduledStd ? `<tr><td>STD Salida</td><td>${data.times.scheduledStd}</td></tr>` : '',
+      data.times.scheduledEtd ? `<tr><td>ETD Salida</td><td>${data.times.scheduledEtd}</td></tr>` : '',
+    ].join(''))}
   </table>
   </section>` : ''}
 
@@ -565,8 +637,8 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
 
   <section class="pdf-section" data-pdf-section>
   <h2>Control de Horas</h2>
-  <table class="data-table">
-    ${timesRows}
+  <table class="data-table grid-table">
+    ${toCompactRows(timesRows)}
   </table>
   </section>
 
@@ -591,17 +663,9 @@ export const generateTurnaroundPdf = async (data: PdfData) => {
   <div class="obs">${data.observations}</div>
   </section>` : ''}
 
-  ${loadingSheetSignedUrls.filter(Boolean).length > 0 ? `
-  <section class="pdf-section" data-pdf-section><h2>Hoja de Carga</h2></section>
-  ${loadingSheetSignedUrls.filter(Boolean).map((url, i) => `<section class="pdf-section" data-pdf-section><img class="pdf-photo" src="${url}" alt="Hoja de carga ${i + 1}" /></section>`).join('\n  ')}` : ''}
-
-  ${fileSignedUrls.filter(Boolean).length > 0 ? `
-  <section class="pdf-section" data-pdf-section><h2>Adjuntar File</h2></section>
-  ${fileSignedUrls.filter(Boolean).map((url, i) => `<section class="pdf-section" data-pdf-section><img class="pdf-photo" src="${url}" alt="File ${i + 1}" /></section>`).join('\n  ')}` : ''}
-
-  ${obsPhotoSignedUrls.filter(Boolean).length > 0 ? `
-  <section class="pdf-section" data-pdf-section><h2>Fotos de Observaciones</h2></section>
-  ${obsPhotoSignedUrls.filter(Boolean).map((url, i) => `<section class="pdf-section" data-pdf-section><img class="pdf-photo" src="${url}" alt="Observación ${i + 1}" /></section>`).join('\n  ')}` : ''}
+  ${bloqueFotos('Hoja de Carga', loadingSheetSignedUrls)}
+  ${bloqueFotos('Adjuntar File', fileSignedUrls)}
+  ${bloqueFotos('Fotos de Observaciones', obsPhotoSignedUrls)}
 </div>
 </body>
 </html>`;
