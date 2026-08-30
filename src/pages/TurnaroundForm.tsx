@@ -33,7 +33,6 @@ import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { WindAlertBadge } from '@/components/WindAlertBadge';
 import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImpersonation';
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
@@ -84,6 +83,16 @@ const TurnaroundForm: React.FC = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
+  // Parpadeo verde del botón Guardar al terminar bien: confirmación visual
+  // inmediata, sin tener que leer el aviso flotante.
+  const [saveFlash, setSaveFlash] = useState(false);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashSaved = useCallback(() => {
+    setSaveFlash(true);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setSaveFlash(false), 1200);
+  }, []);
+  useEffect(() => () => { if (flashTimer.current) clearTimeout(flashTimer.current); }, []);
   const saveButtonRef = useRef<HTMLButtonElement | null>(null);
   const [showSaveFab, setShowSaveFab] = useState(false);
 
@@ -612,9 +621,13 @@ const TurnaroundForm: React.FC = () => {
               },
             });
             toast({ title: '📱 Guardado localmente', description: 'Se sincronizará al volver online' });
+            // También cuenta como guardado para quien pulsa: queda a salvo en
+            // el móvil y se envía solo. Lo que cambia lo cuenta el aviso.
+            flashSaved();
           } else {
             setLastSaved(new Date());
             clearDraft(id);
+            flashSaved();
           }
         } else {
           const created = await createTurnaround(flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
@@ -931,20 +944,7 @@ const TurnaroundForm: React.FC = () => {
               >
                 <Pencil className="h-4 w-4" />
               </button>
-              <IssueReportButton
-                turnaroundId={id}
-                flightNumber={flightNumber}
-                airlineName={airlineInfo?.name ?? String(airline || '')}
-                aircraftModel={aircraftModel}
-                date={date}
-                matricula={matricula}
-                tango={tango}
-                isRemote={isRemote}
-                remoteLocation={remoteLocation}
-                departureTime={departureTime}
-              />
               <WindAlertBadge className="h-9 min-w-9" />
-              <ThemeToggle className="h-9 w-9" />
               <ConnectionStatus
                 isOnline={isOnline}
                 syncing={syncing}
@@ -955,26 +955,45 @@ const TurnaroundForm: React.FC = () => {
                 ref={saveButtonRef}
                 onClick={handleSave}
                 size="sm"
-                className="gap-1 shrink-0 h-9 px-2 text-xs"
+                className={cn(
+                  'gap-1 shrink-0 h-9 px-2 text-xs transition-colors duration-200',
+                  // Verde un instante al terminar: se ve de reojo, sin leer.
+                  saveFlash && 'bg-emerald-600 hover:bg-emerald-600 text-white',
+                )}
                 disabled={saving}
                 aria-label="Guardar"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {/* Por debajo de 420px queda sólo el icono: el texto no cabe sin
-                    empujar el botón fuera del marco. No se pierde acceso, la
-                    barra fija inferior sigue mostrando "Guardar" a todo el ancho. */}
-                <span className="hidden min-[420px]:inline">Guardar</span>
+                {/* El texto se muestra siempre: al sacar de esta fila el botón
+                    de estilo y el de reportar fallo ya hay sitio de sobra. */}
+                <span>Guardar</span>
               </Button>
             </div>
           </div>
 
-          {/* Bottom row: flight details */}
-          <div className="flex items-center justify-center gap-2 text-xs font-semibold flex-wrap">
+          {/*
+            Datos de la escala. El reporte de fallo abre la fila por la
+            izquierda: es la única acción que baja aquí, y va lejos de editar y
+            viento —que están arriba a la derecha— para no provocar toques
+            falsos al buscar esos dos.
+            La fecha no se muestra: dentro de la escala ya se sabe qué día es.
+          */}
+          <div className="flex items-center gap-2 text-xs font-semibold flex-wrap">
+            <IssueReportButton
+              turnaroundId={id}
+              flightNumber={flightNumber}
+              airlineName={airlineInfo?.name ?? String(airline || '')}
+              aircraftModel={aircraftModel}
+              date={date}
+              matricula={matricula}
+              tango={tango}
+              isRemote={isRemote}
+              remoteLocation={remoteLocation}
+              departureTime={departureTime}
+            />
             <span>{airlineInfo?.name}</span>
             <span>|</span>
             <span>{aircraftModel}</span>
-            <span>|</span>
-            <span>{format(date, 'dd/MM/yyyy', { locale: es })}</span>
             <span>|</span>
             <button
               type="button"
@@ -1010,6 +1029,7 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </>
             )}
+
           </div>
 
           <div id="aero-flight-documents" className="aero-only" />
@@ -1292,7 +1312,11 @@ const TurnaroundForm: React.FC = () => {
             onClick={handleSave}
             disabled={saving}
             aria-label="Guardar"
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-60 active:scale-[0.99] transition-transform"
+            className={cn(
+              'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold',
+              'disabled:opacity-60 active:scale-[0.99] transition-all duration-200',
+              saveFlash ? 'bg-emerald-600 text-white' : 'bg-primary text-primary-foreground',
+            )}
           >
             {saving ? (
               <Loader2 className="h-5 w-5 animate-spin" />

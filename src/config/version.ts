@@ -1,9 +1,11 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.440';
+export const APP_VERSION = '4.450';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'El aviso de conexión deja de ocupar la pantalla: pasa a ser una pastilla pequeña en la cabecera, junto al botón Guardar, que ya no tapa nada. Al tocarla se explica qué ocurre y qué hacer.',
-  'Ahora sí avisa cuando la conexión se restablece, para que sepas que se están enviando los cambios guardados en el móvil.',
-  'El estado de la conexión se ve también en la home, Control de Equipos y administración, no sólo dentro de una escala.',
+  'Cabecera de la escala reorganizada: arriba quedan atrás, logo, editar, viento, estado de conexión y Guardar, sin amontonarse ni solaparse.',
+  'El botón Guardar recupera su texto en cualquier móvil, y parpadea en verde al guardar con éxito.',
+  'El botón de reportar fallo pasa a la fila de datos, a la izquierda del todo, lejos de editar y viento para evitar toques falsos.',
+  'El botón de cambiar estilo sale de la cabecera de la escala: se cambia desde la pantalla de inicio.',
+  'La fecha ya no ocupa sitio en la fila de datos: dentro de la escala ya se sabe qué día es.',
 ];
