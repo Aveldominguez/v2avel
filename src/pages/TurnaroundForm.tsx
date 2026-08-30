@@ -25,11 +25,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown, RefreshCw, Luggage } from 'lucide-react';
 import { useArionSync } from '@/hooks/useArionSync';
 import { fetchParkingFromArion } from '@/utils/arionParking';
 import { isRemoteParking } from '@/types/turnaround';
 import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
+import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -116,6 +117,8 @@ const TurnaroundForm: React.FC = () => {
   const [scheduledEtd, setScheduledEtd] = useState<string | null>(null);
 
   const [airlineLogo, setAirlineLogo] = useState<string | null>(null);
+  // Sala y cinta de equipaje, tal cual las publica ARION ("N617").
+  const [baggageBelt, setBaggageBelt] = useState<string | null>(null);
 
 
   // Fetch origin (arrival source) + home station + departure dest + STA/ETA/STD from ARION.
@@ -164,7 +167,7 @@ const TurnaroundForm: React.FC = () => {
           }
         }
 
-        const SELECT_COLS = 'flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date, departure_fn';
+        const SELECT_COLS = 'flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date, departure_fn, baggage_belt';
         const { data } = await supabase
           .from('scheduled_flights')
           .select(SELECT_COLS)
@@ -206,6 +209,8 @@ const TurnaroundForm: React.FC = () => {
         const home = ((arrival as any)?.home_station ?? (departure as any)?.home_station) ?? null;
         const ldm = (arrival as any)?.ldm_raw ?? null;
         const logo = ((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null;
+        // Se entrega en la llegada, así que sólo se mira esa fila.
+        const belt = (arrival as any)?.baggage_belt ?? null;
         const extractTime = (val: string | null | undefined): string | null => {
           if (!val) return null;
           const m = String(val).match(/(\d{2}:\d{2})$/);
@@ -220,6 +225,7 @@ const TurnaroundForm: React.FC = () => {
         if (home !== null) setHomeStation(home);
         if (ldm !== null) setLdmRaw(ldm);
         if (logo !== null) setAirlineLogo(logo);
+        if (belt !== null) setBaggageBelt(belt);
         if (sta !== null) setScheduledArrival(sta);
         if (eta !== null) setScheduledEta(eta);
         if (std !== null) setScheduledStd(std);
@@ -304,6 +310,7 @@ const TurnaroundForm: React.FC = () => {
             setHomeStation((existing.times as any).homeStation ?? null);
             setLdmRaw((existing.times as any).ldmRaw ?? null);
             setAirlineLogo((existing.times as any).airlineLogo ?? null);
+            setBaggageBelt((existing.times as any).baggageBelt ?? null);
             setScheduledArrival((existing.times as any).scheduledArrival ?? null);
             setScheduledEta((existing.times as any).scheduledEta ?? null);
             setScheduledStd((existing.times as any).scheduledStd ?? null);
@@ -395,13 +402,14 @@ const TurnaroundForm: React.FC = () => {
     homeStation: homeStation || null,
     ldmRaw: ldmRaw || null,
     airlineLogo: airlineLogo || null,
+    baggageBelt: baggageBelt || null,
     scheduledArrival: scheduledArrival || (times as any).scheduledArrival || null,
     scheduledEta: scheduledEta || (times as any).scheduledEta || null,
     scheduledStd: scheduledStd || (times as any).scheduledStd || null,
     scheduledEtd: scheduledEtd || (times as any).scheduledEtd || null,
     // CPM snapshot survives in 'times' (set by AirlineTimesBlock when CPM is opened)
     cpmRawLines: (times as any).cpmRawLines ?? null,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   // --- Build current draft snapshot ---
   const buildDraft = useCallback((): TurnaroundDraft => ({
@@ -470,7 +478,7 @@ const TurnaroundForm: React.FC = () => {
       if (draftTimer.current) clearTimeout(draftTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   /*
    * Guardado inmediato en cuanto cambian los adjuntos.
@@ -978,7 +986,7 @@ const TurnaroundForm: React.FC = () => {
             falsos al buscar esos dos.
             La fecha no se muestra: dentro de la escala ya se sabe qué día es.
           */}
-          <div className="flex items-center gap-2 text-xs font-semibold flex-wrap">
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold">
             <IssueReportButton
               turnaroundId={id}
               flightNumber={flightNumber}
@@ -1018,6 +1026,16 @@ const TurnaroundForm: React.FC = () => {
               <>
                 <span>|</span>
                 <span>{matricula}</span>
+              </>
+            )}
+            {/* Sin barra separadora delante: al envolver a la línea siguiente
+                dejaba un "|" suelto al final de la anterior. El icono ya separa. */}
+            {formatBaggageBelt(baggageBelt) && (
+              <>
+                <span className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
+                  <Luggage className="h-3 w-3" />
+                  {formatBaggageBelt(baggageBelt)}
+                </span>
               </>
             )}
             {errors.length > 0 && (

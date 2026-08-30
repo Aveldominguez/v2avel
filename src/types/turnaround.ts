@@ -95,6 +95,9 @@ export interface TurnaroundTimes {
   homeStation?: string | null;         // Estación local / base (ARION)
   ldmRaw?: string | null;              // LDM bruto recibido de ARION
   airlineLogo?: string | null;         // Logo aerolínea (data URL) recibido de ARION
+  // Sala y cinta de entrega de equipaje, tal cual las publica ARION ("N617").
+  // Se guarda sin partir: ver utils/baggageBelt.ts.
+  baggageBelt?: string | null;
   scheduledArrival?: string | null;    // STA (HH:mm)
   scheduledEta?: string | null;        // ETA (HH:mm)
   scheduledStd?: string | null;        // STD (HH:mm)

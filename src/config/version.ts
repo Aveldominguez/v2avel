@@ -1,11 +1,8 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.450';
+export const APP_VERSION = '4.460';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Cabecera de la escala reorganizada: arriba quedan atrás, logo, editar, viento, estado de conexión y Guardar, sin amontonarse ni solaparse.',
-  'El botón Guardar recupera su texto en cualquier móvil, y parpadea en verde al guardar con éxito.',
-  'El botón de reportar fallo pasa a la fila de datos, a la izquierda del todo, lejos de editar y viento para evitar toques falsos.',
-  'El botón de cambiar estilo sale de la cabecera de la escala: se cambia desde la pantalla de inicio.',
-  'La fecha ya no ocupa sitio en la fila de datos: dentro de la escala ya se sabe qué día es.',
+  'Nueva información en la cabecera de la escala: sala y cinta de entrega de equipaje, sacadas de ARION. Aparecen en cuanto ARION las publica.',
+  'La línea de datos del vuelo vuelve a estar centrada.',
 ];

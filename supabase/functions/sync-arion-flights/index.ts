@@ -383,12 +383,16 @@ serve(async (req) => {
             };
           }
 
+          let baggage_belt: string | null = null;
           try {
             const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
             if (detailResp.ok) {
               const detail = await detailResp.json();
               const side = isArrival ? detail?.arrival : detail?.departure;
               airline_logo = side?.airlineLogo ?? null;
+              // Sala y cinta de equipaje. Sólo tiene sentido en la llegada, que
+              // es donde se entrega. Se guarda sin partir: ver la migración.
+              baggage_belt = detail?.arrival?.secondaryGateNumber || null;
               scheduled_arrival_time =
                 detail?.arrival?.scheduledArrivalTime ??
                 detail?.arrival?.sta ??
@@ -490,6 +494,7 @@ serve(async (req) => {
             registration: f.registrationNumber || null,
             aircraft_type: f.aircraftType ?? null,
             parking_code: f.parkingCode ?? null,
+            baggage_belt,
             source_station: f.sourceStation ?? null,
             home_station: station_code,
             edt: f.edt ?? null,
