@@ -413,10 +413,16 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
   h2 { font-size: 14px; margin: 0 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
   h3 { font-size: 12px; margin: 8px 0 4px; color: #444; }
   section.pdf-section { margin-bottom: 12px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 8px; }
-  .header-left { flex: 1; }
-  .meta { font-size: 11px; color: #555; margin-top: 2px; }
-  .meta span { margin-right: 12px; }
+  /* El título va centrado y el logo flotando arriba a la derecha, para que
+     el centrado sea respecto a la hoja y no respecto al hueco que deje el logo. */
+  .header { position: relative; margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 8px; }
+  .header h1 { text-align: center; }
+  .header-right { position: absolute; top: 0; right: 0; }
+  /* Los datos van seguidos, uno al lado de otro, y saltan de línea al llenar
+     el ancho. Antes iban en tres renglones fijos que dejaban huecos. */
+  .meta { display: flex; flex-wrap: wrap; column-gap: 20px; row-gap: 3px;
+          font-size: 11px; color: #555; margin-top: 6px; }
+  .meta > span { white-space: nowrap; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
   .data-table td { border: 1px solid #ccc; padding: 4px 8px; vertical-align: top; word-break: break-word; }
   .data-table td:first-child { font-weight: bold; width: 30%; background: #f5f5f5; }
@@ -588,23 +594,17 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
 <div id="pdf-root">
   <section class="pdf-section" data-pdf-section>
   <div class="header">
-    <div class="header-left">
-      <h1>✈️ Escala</h1>
-      <div class="meta">
-        <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}${data.times.originStation && data.times.homeStation ? ` <span style="color:#555;">(${data.times.originStation} → ${data.times.homeStation})</span>` : ''}</span>
-        <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}${data.times.homeStation && data.times.destStation ? ` <span style="color:#555;">(${data.times.homeStation} → ${data.times.destStation})</span>` : ''}</span>
-      </div>
-      <div class="meta">
-        <span><b>Aerolínea:</b> ${airlineInfo?.name || data.airline}</span>
-        <span><b>Modelo:</b> ${data.aircraftModel || '—'}</span>
-        <span><b>Matrícula:</b> ${data.times.matricula || '—'}</span>
-        <span><b>Fecha:</b> ${format(data.date, "dd 'de' MMMM yyyy", { locale: es })}</span>
-      </div>
-      <div class="meta">
-        ${(data.tango || data.remoteLocation) ? `<span><b>Parking:</b> ${data.tango || data.remoteLocation}</span>` : ''}
-        ${data.isRemote ? `<span><b>🟠 Remoto</b></span>` : ''}
-        ${formatBaggageBelt(data.times.baggageBelt) ? `<span><b>🧳 Equipaje:</b> ${formatBaggageBelt(data.times.baggageBelt)}</span>` : ''}
-      </div>
+    <h1>Informe de escala</h1>
+    <div class="meta">
+      <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}${data.times.originStation && data.times.homeStation ? ` (${data.times.originStation} → ${data.times.homeStation})` : ''}</span>
+      <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}${data.times.homeStation && data.times.destStation ? ` (${data.times.homeStation} → ${data.times.destStation})` : ''}</span>
+      <span><b>Aerolínea:</b> ${airlineInfo?.name || data.airline}</span>
+      <span><b>Modelo:</b> ${data.aircraftModel || '—'}</span>
+      <span><b>Matrícula:</b> ${data.times.matricula || '—'}</span>
+      <span><b>Fecha:</b> ${format(data.date, "dd 'de' MMMM yyyy", { locale: es })}</span>
+      ${(data.tango || data.remoteLocation) ? `<span><b>Parking:</b> ${data.tango || data.remoteLocation}</span>` : ''}
+      ${data.isRemote ? `<span><b>🟠 Remoto</b></span>` : ''}
+      ${formatBaggageBelt(data.times.baggageBelt) ? `<span><b>🧳 Equipaje:</b> ${formatBaggageBelt(data.times.baggageBelt)}</span>` : ''}
     </div>
     ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}
   </div>
