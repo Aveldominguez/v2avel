@@ -1015,13 +1015,17 @@ const TurnaroundForm: React.FC = () => {
               className={cn(
                 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-semibold transition-colors',
                 'hover:bg-muted active:scale-95 disabled:opacity-60',
-                isRemote && 'text-warning',
+                // Texto siempre al máximo contraste: en rampa esto se lee a
+                // pleno sol. En remoto el aviso lo da el fondo ámbar, no un
+                // texto ámbar sobre fondo oscuro, que era ilegible fuera.
+                'text-foreground',
+                isRemote && 'bg-warning/25 ring-1 ring-warning/60',
                 parkingChanged && 'ring-2 ring-green-500 bg-green-500/10'
               )}
             >
               {parkingRefreshing
                 ? <Loader2 className="h-3 w-3 animate-spin" />
-                : <RefreshCw className="h-3 w-3 opacity-60" />}
+                : <RefreshCw className="h-3 w-3 opacity-80" />}
               {(tango || remoteLocation) || 'Parking'}
               {isRemote && (tango || remoteLocation) ? ' · Remoto' : ''}
             </button>
