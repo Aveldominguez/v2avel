@@ -1,7 +1,6 @@
 {
-  "version": "4.500",
+  "version": "4.510",
   "changelog": [
-    "El parking en la cabecera de la escala se lee al sol: en remoto salía en ámbar, con un contraste de 1,87 sobre el fondo, y ahora va al máximo contraste del estilo. Se sigue distinguiendo el remoto por el fondo ámbar de la pastilla.",
-    "El icono de actualizar el parking también estaba atenuado; ahora se ve más."
+    "El parking de la cabecera ya se ve en blanco, igual que el resto de la línea. Al ser un botón se pintaba con un gris apagado que ninguna clase de color corregía; ahora hereda el color de la cabecera. Contraste medido: de 3 a 17,23."
   ]
 }

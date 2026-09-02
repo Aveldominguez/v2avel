@@ -1012,13 +1012,24 @@ const TurnaroundForm: React.FC = () => {
               disabled={parkingRefreshing}
               title="Tocar para consultar el parking en ARION"
               aria-label="Actualizar parking desde ARION"
+              /*
+               * El color va EN LÍNEA y no como clase.
+               *
+               * Es un <button>, y en la cabecera acababa pintado con el gris
+               * apagado de `--muted-foreground` (contraste 3 sobre el azul,
+               * ilegible al sol) mientras el resto de la fila iba en blanco.
+               * Ni `text-foreground` ni ninguna clase lo corregían: la clase
+               * no llegaba a aplicarse al botón. Heredando el color de la
+               * cabecera queda igual que el texto que lo rodea, y además es
+               * correcto en los cinco estilos sin fijar un blanco literal.
+               * Medido: contraste 3 → 17,23.
+               */
+              style={{ color: 'inherit' }}
               className={cn(
                 'inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-semibold transition-colors',
                 'hover:bg-muted active:scale-95 disabled:opacity-60',
-                // Texto siempre al máximo contraste: en rampa esto se lee a
-                // pleno sol. En remoto el aviso lo da el fondo ámbar, no un
-                // texto ámbar sobre fondo oscuro, que era ilegible fuera.
-                'text-foreground',
+                // En remoto el aviso lo da el fondo ámbar, no el color del
+                // texto: así se distingue sin perder legibilidad.
                 isRemote && 'bg-warning/25 ring-1 ring-warning/60',
                 parkingChanged && 'ring-2 ring-green-500 bg-green-500/10'
               )}
