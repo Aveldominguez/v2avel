@@ -413,11 +413,18 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
   h2 { font-size: 14px; margin: 0 0 6px; border-bottom: 2px solid #333; padding-bottom: 3px; }
   h3 { font-size: 12px; margin: 8px 0 4px; color: #444; }
   section.pdf-section { margin-bottom: 12px; }
-  /* El título va centrado y el logo flotando arriba a la derecha, para que
-     el centrado sea respecto a la hoja y no respecto al hueco que deje el logo. */
-  .header { position: relative; margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 8px; }
+  /* Título centrado con el logo a la derecha, en una rejilla de tres columnas
+     con los laterales del mismo ancho: así el título queda centrado respecto a
+     la HOJA y no respecto al hueco que deja el logo.
+     El logo va EN EL FLUJO. Estuvo en posición absoluta y se salía por encima
+     de los datos del vuelo: un logo ancho (Wizz Air) tapaba el modelo de
+     avión, porque el texto pasaba por debajo sin saber que estaba ahí. */
+  .header { margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 8px; }
+  .header-top { display: grid; grid-template-columns: 120px 1fr 120px; align-items: center; column-gap: 8px; }
   .header h1 { text-align: center; }
-  .header-right { position: absolute; top: 0; right: 0; }
+  .header-right { justify-self: end; }
+  /* Cualquier logo, sea cual sea su proporción, entra en 120x60 sin deformarse. */
+  .header-right img { display: block; max-width: 120px; max-height: 60px; width: auto; height: auto; }
   /* Los datos van seguidos, uno al lado de otro, y saltan de línea al llenar
      el ancho. Antes iban en tres renglones fijos que dejaban huecos. */
   .meta { display: flex; flex-wrap: wrap; column-gap: 20px; row-gap: 3px;
@@ -594,7 +601,11 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
 <div id="pdf-root">
   <section class="pdf-section" data-pdf-section>
   <div class="header">
-    <h1>Informe de escala</h1>
+    <div class="header-top">
+      <div></div>
+      <h1>Informe de escala</h1>
+      ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" onerror="this.style.display='none'" /></div>` : '<div></div>'}
+    </div>
     <div class="meta">
       <span><b>🛬 Vuelo de llegada:</b> ${data.flightNumber || '—'}${data.times.originStation && data.times.homeStation ? ` (${data.times.originStation} → ${data.times.homeStation})` : ''}</span>
       <span><b>🛫 Vuelo de salida:</b> ${data.times.departureFlightNumber || '—'}${data.times.homeStation && data.times.destStation ? ` (${data.times.homeStation} → ${data.times.destStation})` : ''}</span>
@@ -606,7 +617,6 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
       ${data.isRemote ? `<span><b>🟠 Remoto</b></span>` : ''}
       ${formatBaggageBelt(data.times.baggageBelt) ? `<span><b>🧳 Equipaje:</b> ${formatBaggageBelt(data.times.baggageBelt)}</span>` : ''}
     </div>
-    ${data.times.airlineLogo ? `<div class="header-right"><img src="${data.times.airlineLogo}" alt="Logo aerolínea" style="max-height:60px;max-width:120px;object-fit:contain;" onerror="this.style.display='none'" /></div>` : ''}
   </div>
   </section>
 
