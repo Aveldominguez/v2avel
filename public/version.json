@@ -1,8 +1,8 @@
 {
-  "version": "4.550",
+  "version": "4.560",
   "changelog": [
-    "Reediciones de la LIR: junto a «Recepción de LIR» hay un botón + para apuntar la hora en que te entregan la edición 2, la 3 y hasta la 5. Disponible en todas las aerolíneas.",
-    "En Air Canada esto sustituye al campo «Recibo Nueva LIR», que sólo servía para una reedición.",
-    "Las reediciones salen también en el PDF, justo detrás de la primera."
+    "Las fotos ya se abren a tamaño completo sin la pantalla negra con «InvalidJWT». El permiso de acceso a la imagen se pedía al abrir la escala y caducaba a la hora, así que al tocarla dos horas después ya no valía.",
+    "Ahora el permiso se pide al tocar la foto, dura un turno completo y la imagen se muestra dentro de la app, sin depender de que el navegador deje abrir una pestaña.",
+    "Corregido en los tres sitios: hoja de carga, adjuntar file y fotos de observaciones."
   ]
 }

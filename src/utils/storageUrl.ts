@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 
-const SIGNED_URL_EXPIRY = 3600; // 1 hour
+// Una escala se trabaja durante horas y luego se consulta: con una hora, las
+// miniaturas ya cargadas dejaban de poder abrirse a media escala.
+const SIGNED_URL_EXPIRY = 8 * 3600; // 8 h, un turno completo
 
 /**
  * Extract bucket name and path from a stored URL or path string.

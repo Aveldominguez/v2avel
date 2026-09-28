@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { DeletePhotoButton } from './DeletePhotoButton';
 import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
+import { useAttachmentLightbox } from '@/components/turnaround/AttachmentLightbox';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
 const MAX_PHOTOS = Number.POSITIVE_INFINITY;
@@ -23,6 +24,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [displayUrls, setDisplayUrls] = useState<(string | null)[]>([]);
 
+  const { abrir: abrirAdjunto, node: visorAdjunto } = useAttachmentLightbox();
   const { pending, addFiles, removePending, retryFailed, isUploading } = useBackgroundUpload({
     bucket: 'turnaround-files',
     filePrefix: 'obs',
@@ -101,7 +103,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
                 src={displayUrls[i] || ''}
                 alt={`Observación ${i + 1}`}
                 className="w-full h-32 object-cover rounded-lg border border-border cursor-pointer"
-                onClick={() => displayUrls[i] && window.open(displayUrls[i]!, '_blank')}
+                onClick={() => abrirAdjunto(photos[i])}
               />
               <DeletePhotoButton onConfirm={() => handleDelete(i)} />
             </div>
@@ -135,6 +137,8 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
           ))}
         </div>
       )}
+
+      {visorAdjunto}
 
       <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
       <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />

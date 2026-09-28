@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, FileImage, RefreshCw } from 'lucide-react';
 import { DeletePhotoButton } from './DeletePhotoButton';
 import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
+import { useAttachmentLightbox } from '@/components/turnaround/AttachmentLightbox';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
 const MAX_FILES = Number.POSITIVE_INFINITY;
@@ -24,6 +25,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [displayUrls, setDisplayUrls] = useState<(string | null)[]>([]);
 
+  const { abrir: abrirAdjunto, node: visorAdjunto } = useAttachmentLightbox();
   const { pending, addFiles, removePending, retryFailed, isUploading } = useBackgroundUpload({
     bucket: 'loading-sheets',
     filePrefix: 'ls',
@@ -84,7 +86,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
                   src={displayUrls[idx] || ''}
                   alt={`Hoja de carga ${idx + 1}`}
                   className="w-full aspect-square rounded-lg border border-border object-cover cursor-pointer"
-                  onClick={() => displayUrls[idx] && window.open(displayUrls[idx]!, '_blank')}
+                  onClick={() => abrirAdjunto(imageUrls[idx])}
                 />
                 <DeletePhotoButton onConfirm={() => handleDelete(idx)} />
               </div>
@@ -140,7 +142,9 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
           </div>
         )}
 
-        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+        {visorAdjunto}
+
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
         <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
       </CardContent>
     </Card>
