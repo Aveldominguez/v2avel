@@ -8,7 +8,12 @@ export type KnownAirlineCode = 'TAP' | 'WIZZ' | 'ITA' | 'AEGEAN' | 'PEGASUS' | '
 
 export interface TurnaroundTimes {
   manualCompleted?: boolean;             // Marcada como completada a mano desde el historial
-  lirReception: string | null;           // Recepción de LIR
+  lirReception: string | null;           // Recepción de LIR (edición 1)
+  // Reediciones de la LIR durante la escala. Ver utils/lirEditions.ts.
+  lirReception2?: string | null;
+  lirReception3?: string | null;
+  lirReception4?: string | null;
+  lirReception5?: string | null;
   chocksOnArrival: string | null;        // Calzos Llegada
   stairsTime: string | null;             // Puesta de Escalera (Llegada)
   stairsRemovalArrival: string | null;   // Retirada de Escalera (Llegada)
@@ -368,6 +373,10 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   firstBag: '1ª Maleta',
   lastHandBag: 'Cierre Coordinador',
   lirReception: 'Recepción de LIR',
+  lirReception2: 'LIR Ed. 2',
+  lirReception3: 'LIR Ed. 3',
+  lirReception4: 'LIR Ed. 4',
+  lirReception5: 'LIR Ed. 5',
   dock1: '1ª Muelle',
   cargoArrival: 'Cargo Llegada',
   cargoDeparture: 'Cargo Salida',
@@ -497,7 +506,6 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, solo
     const extras: TimeFieldConfig[] = [
       { key: 'crewArrival', label: 'Llegada Tripulación', clockColor: 'green', type: 'time' },
       { key: 'lirChangeNotice', label: 'Aviso Cambio de LIR', type: 'time' },
-      { key: 'lirNewReceived', label: 'Recibo Nueva LIR', type: 'time' },
     ];
     if (lirIdx >= 0) fields.splice(lirIdx + 1, 0, ...extras);
     else fields.push(...extras);

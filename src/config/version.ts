@@ -1,7 +1,9 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.540';
+export const APP_VERSION = '4.550';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'El A319 de TAP ya tiene su sección de compartimientos: antes no aparecía ninguna. Compartimiento 1 con bodegas 11 y 12, compartimiento 4 con 41 y 42, y bulk 5 con 51 y 52, paletizado con contenedores AKE como el A320.',
+  'Reediciones de la LIR: junto a «Recepción de LIR» hay un botón + para apuntar la hora en que te entregan la edición 2, la 3 y hasta la 5. Disponible en todas las aerolíneas.',
+  'En Air Canada esto sustituye al campo «Recibo Nueva LIR», que sólo servía para una reedición.',
+  'Las reediciones salen también en el PDF, justo detrás de la primera.',
 ];

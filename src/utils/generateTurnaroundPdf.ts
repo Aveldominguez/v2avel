@@ -3,6 +3,7 @@ import { TurnaroundTimes, AirlineCode, AIRLINES, getEscalaTimeFields, getPushBac
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { formatBaggageBelt } from '@/utils/baggageBelt';
+import { filledLirEditions } from '@/utils/lirEditions';
 import { format } from 'date-fns';
 import { getSignedUrl, getSignedUrls } from '@/utils/storageUrl';
 import { es } from 'date-fns/locale';
@@ -210,6 +211,13 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
         if (rVal) {
           row += `<tr><td>${r.label}</td><td>${rVal}</td></tr>`;
         }
+      }
+    }
+
+    // Reediciones de la LIR, justo detrás de la primera.
+    if (f.key === 'lirReception') {
+      for (const ed of filledLirEditions(data.times)) {
+        row += `<tr><td>${ed.label}</td><td>${ed.value}</td></tr>`;
       }
     }
 

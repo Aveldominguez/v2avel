@@ -59,3 +59,20 @@ describe('el PDF exporta los mismos campos que muestra la escala', () => {
     });
   });
 });
+
+describe('reediciones de LIR', () => {
+  it('Air Canada ya no tiene el campo suelto "Recibo Nueva LIR"', () => {
+    ['AIR_CANADA', 'AIR_CANADA_CARGO'].forEach(a => {
+      expect(claves(getEscalaTimeFields(a, false)), a).not.toContain('lirNewReceived');
+    });
+  });
+
+  it('la recepción de LIR sigue estando en todas las aerolíneas', () => {
+    // Es donde vive el botón "+" de las reediciones: si desaparece de alguna,
+    // esa aerolínea se queda sin poder registrarlas.
+    const sinLir = AIRLINES
+      .filter(a => !claves(getEscalaTimeFields(a.code, false)).includes('lirReception'))
+      .map(a => a.code);
+    expect(sinLir).toEqual([]);
+  });
+});

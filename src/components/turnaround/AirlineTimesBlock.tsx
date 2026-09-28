@@ -7,6 +7,7 @@ import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { CountdownTimer } from './CountdownTimer';
 import { CargoDoorAlert } from './CargoDoorAlert';
+import { LIR_EXTRA_KEYS, MAX_LIR_EDITIONS, lirEditionLabel, visibleLirCount as contarLir } from '@/utils/lirEditions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,7 @@ const FieldRenderer: React.FC<{
   disabled: boolean;
   airline: AirlineCode;
   // Dock state
+  visibleLirCount: number; setVisibleLirCount: (v: number) => void;
   showDock2: boolean; setShowDock2: (v: boolean) => void;
   showDock3: boolean; setShowDock3: (v: boolean) => void;
   showDock4: boolean; setShowDock4: (v: boolean) => void;
@@ -63,7 +65,7 @@ const FieldRenderer: React.FC<{
   showRistra2: boolean; setShowRistra2: (v: boolean) => void;
   showRistra3: boolean; setShowRistra3: (v: boolean) => void;
   showRistra4: boolean; setShowRistra4: (v: boolean) => void;
-}> = ({ field, times, updateTime, onChange, getError, disabled, airline, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
+}> = ({ field, times, updateTime, onChange, getError, disabled, airline, visibleLirCount, setVisibleLirCount, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
   if (field.type === 'acu') {
     const boolVal = times[field.key] as boolean;
     const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;
@@ -226,6 +228,60 @@ const FieldRenderer: React.FC<{
     );
   }
 
+  /*
+   * Recepción de LIR, con sus reediciones.
+   *
+   * La LIR puede reemitirse durante la escala y hace falta la hora de cada
+   * entrega, no sólo la de la primera. El "+" añade la siguiente edición,
+   * igual que en 1ª Muelle. Sustituye al campo suelto "Recibo Nueva LIR",
+   * que sólo existía en Air Canada y sólo servía para una reedición.
+   */
+  if (field.key === 'lirReception') {
+    const puedeAnadir = visibleLirCount < MAX_LIR_EDITIONS;
+    return (
+      <React.Fragment key={field.key}>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-foreground uppercase tracking-wide">
+              {field.label}
+            </label>
+            {puedeAnadir && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                onClick={() => setVisibleLirCount(visibleLirCount + 1)}
+                disabled={disabled}
+                className="h-6 w-6 shrink-0"
+                title={'Añadir ' + lirEditionLabel(visibleLirCount + 1)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+          <TimeInput
+            value={times.lirReception as string | null}
+            onChange={(v) => updateTime('lirReception', v)}
+            error={getError('lirReception')}
+            disabled={disabled}
+            clockColor={field.clockColor || 'default'}
+          />
+        </div>
+        {LIR_EXTRA_KEYS.slice(0, visibleLirCount - 1).map((k, i) => (
+          <TimeInput
+            key={k}
+            label={lirEditionLabel(i + 2)}
+            value={(times[k] as string | null) ?? null}
+            onChange={(v) => updateTime(k, v)}
+            error={getError(k)}
+            disabled={disabled}
+            clockColor="default"
+          />
+        ))}
+      </React.Fragment>
+    );
+  }
+
   // Dock fields
   if (field.key === 'dock1') {
     const nextDockToShow = !showDock2 ? 'dock2' : !showDock3 ? 'dock3' : !showDock4 ? 'dock4' : null;
@@ -383,6 +439,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   const showPushBack = !isRemote || times.pushBack;
 
   // Dock state
+  const [visibleLirCount, setVisibleLirCount] = useState(() => contarLir(times));
   const [showDock2, setShowDock2] = useState(!!times.dock2 || !!times.dock3 || !!times.dock4);
   const [showDock3, setShowDock3] = useState(!!times.dock3 || !!times.dock4);
   const [showDock4, setShowDock4] = useState(!!times.dock4);
@@ -485,6 +542,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   const sharedFieldProps = {
     times, updateTime, onChange, getError, disabled, airline,
+    visibleLirCount, setVisibleLirCount,
     showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4,
     busKeys: BUS_KEYS, visibleBusCount, setVisibleBusCount,
     showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4,
