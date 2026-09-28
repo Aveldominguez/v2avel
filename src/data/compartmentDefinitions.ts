@@ -927,6 +927,33 @@ export const TAP_A321_COMPARTMENTS: CompartmentDefinition[] = [
 ];
 
 // TAP Air Portugal A320
+// TAP Air Portugal A319 — paletizado con contenedores AKE, como el A320.
+// El A319 no tiene compartimiento 3: lleva la bodega 1 delante, la 4 detrás y
+// el bulk 5 al final.
+export const TAP_A319_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'tap-a319-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 FWD', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a319-11'), label: '11 🚪' },
+      { id: createHoldId('TAP', 'a319-12'), label: '12' },
+    ],
+  },
+  {
+    id: 'tap-a319-comp4', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 4', holdStyle: 'ita',
+    holds: [
+      { id: createHoldId('TAP', 'a319-41'), label: '41' },
+      { id: createHoldId('TAP', 'a319-42'), label: '42 🚪' },
+    ],
+  },
+  {
+    id: 'tap-a319-comp5', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 5 — Bulk',
+    holds: [
+      { id: createHoldId('TAP', 'a319-51'), label: '51' },
+      { id: createHoldId('TAP', 'a319-52'), label: '52 🚪' },
+    ],
+  },
+];
+
 export const TAP_A320_COMPARTMENTS: CompartmentDefinition[] = [
   {
     id: 'tap-a320-comp1', airline: 'TAP', compartmentName: 'COMPARTIMIENTO 1 FWD', holdStyle: 'ita',
@@ -1377,6 +1404,7 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
     if (aircraftModel === 'EMB95') return TAP_EMB95_COMPARTMENTS;
     if (aircraftModel === 'A321') return TAP_A321_COMPARTMENTS;
     if (aircraftModel === 'A320') return TAP_A320_COMPARTMENTS;
+    if (aircraftModel === 'A319') return TAP_A319_COMPARTMENTS;
     if (aircraftModel === '321_GRANEL') return TAP_321_GRANEL_COMPARTMENTS;
     return [];
   }

@@ -121,3 +121,41 @@ describe('A321 XLR de Sin Marca', () => {
     expect(ids.some(id => a321.includes(id))).toBe(false);
   });
 });
+
+describe('A319 de TAP', () => {
+  const comps = getCompartmentsByAirline('TAP', 'A319');
+
+  it('ya tiene sección de compartimientos: antes no salía ninguna', () => {
+    expect(comps.length).toBeGreaterThan(0);
+  });
+
+  it('los tres compartimientos del avión, sin el 3 que el A319 no tiene', () => {
+    expect(comps.map(c => c.compartmentName)).toEqual([
+      'COMPARTIMIENTO 1 FWD', 'COMPARTIMIENTO 4', 'COMPARTIMIENTO 5 — Bulk',
+    ]);
+  });
+
+  it('delante: 11 con puerta y 12', () => {
+    expect(flatten(comps[0].holds).map(h => h.label)).toEqual(['11 🚪', '12']);
+  });
+
+  it('detrás: 41 y 42 con puerta', () => {
+    expect(flatten(comps[1].holds).map(h => h.label)).toEqual(['41', '42 🚪']);
+  });
+
+  it('bulk: 51 y 52 con puerta', () => {
+    expect(flatten(comps[2].holds).map(h => h.label)).toEqual(['51', '52 🚪']);
+  });
+
+  it('usa contenedores AKE en el 1 y el 4, y el bulk va suelto', () => {
+    expect(comps[0].holdStyle).toBe('ita');
+    expect(comps[1].holdStyle).toBe('ita');
+    expect(comps[2].holdStyle).toBeUndefined();
+  });
+
+  it('no comparte identificadores con el A320 de TAP', () => {
+    const ids = comps.flatMap(c => flatten(c.holds).map(h => h.id));
+    const a320 = getCompartmentsByAirline('TAP', 'A320').flatMap(c => flatten(c.holds).map(h => h.id));
+    expect(ids.some(id => a320.includes(id))).toBe(false);
+  });
+});
