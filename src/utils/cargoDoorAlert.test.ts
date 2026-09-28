@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  computeDoorAlert, isNarrowBody, formatCountdown, parseClockTime,
+  computeDoorAlert, isNarrowBody, formatCountdown, parseClockTime, sameDayOrNext,
 } from './cargoDoorAlert';
 
 /**
@@ -261,5 +261,54 @@ describe('escalas que no son de hoy', () => {
     });
     expect(a.level).toBe('done');
     expect(a.marginMinutes).toBeNull();
+  });
+});
+
+describe('llegar tarde no es cruzar la medianoche (W43401 del 03/09)', () => {
+  /** Datos reales del vuelo que mostraba «1386 min de margen». */
+  const w43401 = (now: string) => computeDoorAlert({
+    aircraftModel: 'A321',
+    departureTime: '20:54',      // prevista, ANTERIOR a los calzos por el retraso
+    chocksOnArrival: '21:08',
+    turnaroundMinutes: 45,
+    cargoDoorsClosed: '21:43',
+    flightDate: new Date('2026-09-03T12:00:00'),
+    now: new Date(`2026-09-03T${now}:00`),
+  });
+
+  it('la salida se mide contra calzos + escala, el mismo día', () => {
+    expect(w43401('22:06').departureLabel).toBe('21:53');
+  });
+
+  it('el margen es de 5 minutos, no de 1386', () => {
+    // Límite H-5 = 21:48, cerradas a las 21:43.
+    expect(w43401('22:06').marginMinutes).toBe(5);
+  });
+});
+
+describe('sameDayOrNext', () => {
+  const d = (hhmm: string, dia = 3) =>
+    new Date(`2026-09-${String(dia).padStart(2, '0')}T${hhmm}:00`);
+
+  it('una salida poco anterior a los calzos es un retraso: no cambia de día', () => {
+    expect(sameDayOrNext(d('20:54'), d('21:08'))!.getDate()).toBe(3);
+  });
+
+  it('un vuelo muy retrasado tampoco cambia de día', () => {
+    expect(sameDayOrNext(d('18:00'), d('21:08'))!.getDate()).toBe(3);
+  });
+
+  it('cruzar la medianoche sí cambia de día', () => {
+    // Calza a las 23:50 y sale a las 00:30: eso sí es el día siguiente.
+    expect(sameDayOrNext(d('00:30'), d('23:50'))!.getDate()).toBe(4);
+  });
+
+  it('una hora posterior a los calzos se queda como está', () => {
+    expect(sameDayOrNext(d('21:43'), d('21:08'))!.getDate()).toBe(3);
+  });
+
+  it('sin datos no inventa nada', () => {
+    expect(sameDayOrNext(null, d('21:08'))).toBeNull();
+    expect(sameDayOrNext(d('21:43'), null)!.getDate()).toBe(3);
   });
 });

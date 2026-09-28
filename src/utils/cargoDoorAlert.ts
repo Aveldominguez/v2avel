@@ -109,14 +109,36 @@ const aMediodia = (d: Date): Date => {
 };
 
 /**
- * Una hora anterior a los calzos de llegada es en realidad del día siguiente:
- * la escala cruzó la medianoche (calza a las 23:50 y sale a las 00:30).
+ * Escala máxima plausible. Por encima de esto, una hora que cae después de los
+ * calzos al pasarla al día siguiente no es una escala: es otra cosa.
  */
-const trasCalzos = (hora: Date | null, calzos: Date | null): Date | null => {
+const MAX_ESCALA_H = 6;
+
+/**
+ * Coloca una hora de la escala en su día correcto respecto a los calzos.
+ *
+ * Una hora anterior a los calzos PUEDE ser del día siguiente (calza a las 23:50
+ * y sale a las 00:30), pero casi siempre es simplemente que el avión llegó
+ * tarde: calza a las 21:08 con salida prevista a las 20:54.
+ *
+ * Antes se pasaba al día siguiente en cuanto la hora era anterior a los calzos,
+ * sin más. Con ese vuelo real, la salida prevista se iba a las 20:54 del día
+ * siguiente y el margen de cierre de bodegas salía de 1386 minutos, 23 horas.
+ *
+ * Ahora sólo se cambia de día si al hacerlo sigue pareciendo una escala: es
+ * decir, si la hora queda dentro de las horas siguientes a los calzos. Con un
+ * retraso, pasarla al día siguiente la dejaría a casi 24 h, y se descarta.
+ */
+export const sameDayOrNext = (
+  hora: Date | null,
+  calzos: Date | null,
+  maxEscalaH: number = MAX_ESCALA_H,
+): Date | null => {
   if (!hora || !calzos || hora.getTime() >= calzos.getTime()) return hora;
-  const d = new Date(hora);
-  d.setDate(d.getDate() + 1);
-  return d;
+  const diaSiguiente = new Date(hora);
+  diaSiguiente.setDate(diaSiguiente.getDate() + 1);
+  const horasTrasCalzos = (diaSiguiente.getTime() - calzos.getTime()) / 3_600_000;
+  return horasTrasCalzos <= maxEscalaH ? diaSiguiente : hora;
 };
 
 const APAGADO: DoorAlert = {
@@ -144,7 +166,7 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   const ref = esDeHoy || !flightDate ? now : aMediodia(flightDate);
 
   const calzos = chocksOnArrival ? parseClockTime(chocksOnArrival, ref) : null;
-  const prevista = trasCalzos(departureTime ? parseClockTime(departureTime, ref) : null, calzos);
+  const prevista = sameDayOrNext(departureTime ? parseClockTime(departureTime, ref) : null, calzos);
 
   const efectiva = effectiveDeparture(prevista, calzos, turnaroundMinutes);
   const limite = efectiva ? efectiva.salida.getTime() - DOOR_DEADLINE_MIN * 60_000 : null;
@@ -158,7 +180,7 @@ export function computeDoorAlert(input: DoorAlertInput): DoorAlert {
   // Por lo mismo no exige calzos ni salida calculable; sin ellos se enseña el
   // cierre sin margen, que sigue siendo mejor que no enseñar nada.
   if (cargoDoorsClosed) {
-    const cierre = trasCalzos(parseClockTime(cargoDoorsClosed, ref), calzos);
+    const cierre = sameDayOrNext(parseClockTime(cargoDoorsClosed, ref), calzos);
     return {
       ...APAGADO,
       ...contexto,
