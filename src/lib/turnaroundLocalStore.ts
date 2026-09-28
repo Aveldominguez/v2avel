@@ -2,6 +2,8 @@
 // Stored in localStorage as JSON arrays keyed by user_id. Volume is small (one
 // record per escala) so localStorage (5 MB+) is sufficient and synchronous.
 import { Turnaround, TurnaroundTimes, AirlineCode, FieldValue } from '@/types/turnaround';
+import { getAirlineLogo, setAirlineLogo } from '@/lib/airlineLogoCache';
+import { pruneByAge } from '@/lib/localStoreUpkeep';
 
 const KEY = (userId: string) => `turnarounds_local_v1_${userId}`;
 
@@ -23,15 +25,29 @@ export interface LocalTurnaround {
 const readAll = (userId: string): LocalTurnaround[] => {
   try {
     const raw = localStorage.getItem(KEY(userId));
-    return raw ? (JSON.parse(raw) as LocalTurnaround[]) : [];
+    const lista = raw ? (JSON.parse(raw) as LocalTurnaround[]) : [];
+    // El logo no se guarda con cada escala: se repone desde la caché por
+    // aerolínea, de modo que todo lo que lo usa lo sigue viendo igual.
+    return lista.map(e => e.times?.airlineLogo
+      ? e
+      : { ...e, times: { ...e.times, airlineLogo: getAirlineLogo(e.airline) } });
   } catch {
     return [];
   }
 };
 
+/** Saca el logo a su caché por aerolínea y lo quita de la escala. */
+const aligerar = (e: LocalTurnaround): LocalTurnaround => {
+  const logo = e.times?.airlineLogo;
+  if (!logo) return e;
+  setAirlineLogo(e.airline, logo);
+  return { ...e, times: { ...e.times, airlineLogo: null } };
+};
+
 const writeAll = (userId: string, list: LocalTurnaround[]) => {
+  const limpia = pruneByAge(list, new Date()).map(aligerar);
   try {
-    localStorage.setItem(KEY(userId), JSON.stringify(list));
+    localStorage.setItem(KEY(userId), JSON.stringify(limpia));
   } catch (e) {
     console.warn('turnaroundLocalStore: write failed', e);
   }

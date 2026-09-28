@@ -7,6 +7,7 @@
  * Aquí no debe entrar NINGUNA dependencia de red.
  */
 import { TurnaroundTimes, AirlineCode, FieldValue } from '@/types/turnaround';
+import { getAirlineLogo, setAirlineLogo, clearAirlineLogos } from '@/lib/airlineLogoCache';
 
 const DRAFT_KEY = 'turnaround_draft';
 
@@ -70,7 +71,14 @@ export const pruneDrafts = (olderThanMs = DRAFT_TTL_MS, keep?: string): number =
  */
 export const saveDraft = (draft: TurnaroundDraft): boolean => {
   const key = draft.turnaroundId ? `${DRAFT_KEY}_${draft.turnaroundId}` : `${DRAFT_KEY}_new`;
-  const payload = JSON.stringify(draft);
+  // El logo de la aerolínea pesa ~27 KB y es el mismo para todas las escalas
+  // de esa compañía: se guarda una vez aparte, no dentro de cada borrador.
+  const logo = draft.times?.airlineLogo;
+  if (logo) setAirlineLogo(draft.airline, logo);
+  const aGuardar: TurnaroundDraft = logo
+    ? { ...draft, times: { ...draft.times, airlineLogo: null } }
+    : draft;
+  const payload = JSON.stringify(aGuardar);
   try {
     localStorage.setItem(key, payload);
     return true;
@@ -88,6 +96,15 @@ export const saveDraft = (draft: TurnaroundDraft): boolean => {
       console.warn('Draft still not saved after pruning:', e);
     }
   }
+  // Último recurso: los logos se vuelven a bajar solos de ARION, así que son lo
+  // primero que sobra cuando la alternativa es no guardar lo que se apunta.
+  try {
+    clearAirlineLogos();
+    localStorage.setItem(key, payload);
+    return true;
+  } catch (e) {
+    console.warn('Draft not saved even after clearing logos:', e);
+  }
   return false;
 };
 
@@ -95,7 +112,13 @@ export const loadDraft = (turnaroundId?: string): TurnaroundDraft | null => {
   try {
     const key = turnaroundId ? `${DRAFT_KEY}_${turnaroundId}` : `${DRAFT_KEY}_new`;
     const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    const d = JSON.parse(stored) as TurnaroundDraft;
+    // Se repone el logo al leer: nada aguas abajo nota que no estaba guardado.
+    if (d?.times && !d.times.airlineLogo) {
+      d.times = { ...d.times, airlineLogo: getAirlineLogo(d.airline) };
+    }
+    return d;
   } catch {
     return null;
   }
