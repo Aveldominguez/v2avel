@@ -7,6 +7,7 @@ import { TimeInput } from './TimeInput';
 import { BooleanInput } from './BooleanInput';
 import { CountdownTimer } from './CountdownTimer';
 import { CargoDoorAlert } from './CargoDoorAlert';
+import { FirstBagCountdown } from './FirstBagCountdown';
 import { LIR_EXTRA_KEYS, MAX_LIR_EDITIONS, lirEditionLabel, visibleLirCount as contarLir } from '@/utils/lirEditions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,7 @@ const FieldRenderer: React.FC<{
   disabled: boolean;
   airline: AirlineCode;
   // Dock state
+  flightDate?: Date;
   visibleLirCount: number; setVisibleLirCount: (v: number) => void;
   showDock2: boolean; setShowDock2: (v: boolean) => void;
   showDock3: boolean; setShowDock3: (v: boolean) => void;
@@ -65,7 +67,7 @@ const FieldRenderer: React.FC<{
   showRistra2: boolean; setShowRistra2: (v: boolean) => void;
   showRistra3: boolean; setShowRistra3: (v: boolean) => void;
   showRistra4: boolean; setShowRistra4: (v: boolean) => void;
-}> = ({ field, times, updateTime, onChange, getError, disabled, airline, visibleLirCount, setVisibleLirCount, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
+}> = ({ field, times, updateTime, onChange, getError, disabled, airline, flightDate, visibleLirCount, setVisibleLirCount, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
   if (field.type === 'acu') {
     const boolVal = times[field.key] as boolean;
     const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;
@@ -279,6 +281,34 @@ const FieldRenderer: React.FC<{
           />
         ))}
       </React.Fragment>
+    );
+  }
+
+  /*
+   * Inicio de descarga, con la cuenta atrás de la primera maleta debajo.
+   *
+   * La norma es enviarlas a los 10 min de marcar esta hora. Va justo aquí, bajo
+   * el dato que la origina, y no arriba: allí competiría con el aviso de cierre
+   * de bodegas por la misma zona de la pantalla.
+   */
+  if (field.key === 'unloadingStart') {
+    return (
+      <div key={field.key} className="flex flex-col gap-1.5">
+        <TimeInput
+          label={field.label}
+          value={times.unloadingStart as string | null}
+          onChange={(v) => updateTime('unloadingStart', v)}
+          error={getError('unloadingStart')}
+          disabled={disabled}
+          clockColor={field.clockColor || 'default'}
+        />
+        <FirstBagCountdown
+          unloadingStart={times.unloadingStart as string | null}
+          firstBag={times.firstBag as string | null}
+          soloSalida={times.soloSalida}
+          flightDate={flightDate}
+        />
+      </div>
     );
   }
 
@@ -542,6 +572,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
 
   const sharedFieldProps = {
     times, updateTime, onChange, getError, disabled, airline,
+    flightDate,
     visibleLirCount, setVisibleLirCount,
     showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4,
     busKeys: BUS_KEYS, visibleBusCount, setVisibleBusCount,
