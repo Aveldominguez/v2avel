@@ -65,6 +65,7 @@ import {
   KeyRound,
   BarChart3,
   CheckCircle,
+  Bug,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -78,6 +79,7 @@ import { APP_VERSION } from '@/config/version';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
 
 import { WeatherWidget } from '@/components/WeatherWidget';
+import { IssueReportButton } from '@/components/turnaround/IssueReportButton';
 import { useIssueReportNotifications } from '@/hooks/useIssueReportNotifications';
 import { ListRenderBoundary } from '@/components/turnaround/ListRenderBoundary';
 
@@ -97,6 +99,19 @@ const TurnaroundList: React.FC = () => {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [totalRecords, setTotalRecords] = useState<number | null>(null);
+  // Reporte de la app en general, sin escala. Vive aquí y no dentro del menú
+  // porque el menú se cierra al pulsar y se llevaría el diálogo con él.
+  const [showAppReport, setShowAppReport] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  /**
+   * Cerrar el menú y abrir el reporte a la vez no funciona: el diálogo se monta
+   * mientras el menú todavía se está cerrando y Radix se lo lleva por delante
+   * (se abre y desaparece solo). Se espera a que el menú termine de irse.
+   */
+  const abrirReporteApp = useCallback(() => {
+    setMenuOpen(false);
+    setTimeout(() => setShowAppReport(true), 300);
+  }, []);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
@@ -456,6 +471,14 @@ const TurnaroundList: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Reporte de la app en general: sin vuelo detrás, se abre desde el menú. */}
+      <IssueReportButton
+        general
+        hideTrigger
+        open={showAppReport}
+        onOpenChange={setShowAppReport}
+      />
+
       {/* Header (temas dark/light/exterior/sky) */}
       <header className={cn("classic-only sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="w-full px-3 py-3">
@@ -514,7 +537,7 @@ const TurnaroundList: React.FC = () => {
       <header className={cn("aero-home-header aero-only sticky z-50 border-b border-border bg-background/95 backdrop-blur-xl", updateAvailable ? "top-[40px]" : "top-0")}>
         <div className="mx-auto max-w-3xl px-3 py-3">
           <div className="grid grid-cols-[40px_1fr_40px_40px] items-center gap-2">
-            <Sheet>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <button className="aero-home-action flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card" aria-label="Abrir menú">
                   <Menu className="h-5 w-5" />
@@ -547,6 +570,10 @@ const TurnaroundList: React.FC = () => {
                       Actualizar app
                     </button>
                   </SheetClose>
+                  <button onClick={abrirReporteApp} className="aero-home-menu-link flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
+                    <Bug className="h-5 w-5 text-sidebar-primary" />
+                    Reportar fallo de la app
+                  </button>
                 </nav>
               </SheetContent>
             </Sheet>

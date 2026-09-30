@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  Bug, CheckCircle2, Clock, ExternalLink, Image as ImageIcon, Loader2, RefreshCw,
+  Bug, CheckCircle2, Clock, ExternalLink, Image as ImageIcon, Loader2, RefreshCw, Smartphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -147,7 +147,9 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
             {showResolved ? 'No hay reportes.' : 'No hay reportes pendientes. 🎉'}
           </p>
         )}
-        {visible.map(report => (
+        {visible.map(report => {
+          const esGeneral = !report.turnaround_id && !report.flight_number;
+          return (
           <div
             key={report.id}
             className={cn(
@@ -160,7 +162,9 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
                 {report.status === 'resolved'
                   ? <CheckCircle2 className="h-4 w-4 text-success" />
                   : <Clock className="h-4 w-4 text-warning" />}
-                <span className="font-mono">{report.flight_number || 'Sin vuelo'}</span>
+                {esGeneral
+                  ? <span className="flex items-center gap-1.5"><Smartphone className="h-4 w-4 text-muted-foreground" />Reporte general de la app</span>
+                  : <span className="font-mono">{report.flight_number || 'Sin vuelo'}</span>}
                 {report.airline && <span className="text-muted-foreground font-normal">· {report.airline}</span>}
               </div>
               <Badge variant={report.status === 'pending' ? 'secondary' : 'outline'} className="text-xs">
@@ -168,6 +172,7 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
               </Badge>
             </div>
 
+            {!esGeneral && (
             <div className="text-xs text-muted-foreground font-mono flex flex-wrap gap-x-3 gap-y-0.5">
               {report.aircraft_model && <span>{report.aircraft_model}</span>}
               {report.matricula && <span>{report.matricula}</span>}
@@ -175,6 +180,7 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
               {report.departure_time && <span>STD {report.departure_time}</span>}
               <span>{`Parking ${report.tango || report.remote_location || '—'}${report.is_remote ? ' · Remoto' : ''}`}</span>
             </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
               {report.user_email || report.user_id} · {format(new Date(report.created_at), 'dd/MM/yyyy HH:mm')}
@@ -188,7 +194,7 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
                   key={url}
                   variant="outline"
                   size="sm"
-                  onClick={() => handleViewScreenshot(url, `Captura ${idx + 1} · ${report.flight_number || 'sin vuelo'}`)}
+                  onClick={() => handleViewScreenshot(url, `Captura ${idx + 1} · ${report.flight_number || 'reporte general'}`)}
                   className="gap-1.5 text-xs"
                 >
                   <ImageIcon className="h-3.5 w-3.5" />
@@ -221,7 +227,8 @@ export const IssueReportsCard: React.FC<IssueReportsCardProps> = ({ adminUserId 
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </CardContent>
 
       {/* Visor de capturas */}

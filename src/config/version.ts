@@ -1,9 +1,9 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.580';
+export const APP_VERSION = '4.590';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Nueva cuenta atrás para la primera maleta: al marcar Inicio Descarga aparece justo debajo el tiempo que queda para enviarla a los 10 minutos.',
-  'Avisa con un pitido a falta de 3 minutos y otro al agotarse el plazo, y pasa a rojo si se supera.',
-  'Al registrar la 1ª maleta la cuenta se apaga y deja constancia de en cuántos minutos se envió.',
+  'Nuevo botón «Reportar fallo de la app» en el menú de la pantalla de inicio, para fallos generales que no tienen nada que ver con una escala.',
+  'Se puede describir el problema y adjuntar hasta 3 capturas, igual que en el reporte de una escala, y se ven los reportes generales anteriores con su estado.',
+  'En el panel de control estos reportes salen marcados como «Reporte general de la app», sin la ficha de vuelo vacía.',
 ];

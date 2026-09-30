@@ -16,10 +16,16 @@ import { compressImage } from '@/utils/imageCompressor';
 
 interface IssueReportButtonProps {
   turnaroundId?: string;
-  flightNumber: string;
-  airlineName: string;
-  aircraftModel: string;
-  date: Date;
+  /**
+   * Reporte de la app en general, sin escala detrás: lo que se abre desde el
+   * menú de la home. No hay vuelo del que hablar, así que no se pide ni se
+   * enseña, y los reportes anteriores que se listan son los generales.
+   */
+  general?: boolean;
+  flightNumber?: string;
+  airlineName?: string;
+  aircraftModel?: string;
+  date?: Date;
   matricula?: string;
   tango?: string;
   isRemote?: boolean;
@@ -27,6 +33,15 @@ interface IssueReportButtonProps {
   departureTime?: string | null;
   /** Permite encogerlo cuando comparte fila con texto pequeño. */
   className?: string;
+  /**
+   * Apertura desde fuera, para abrirlo desde otro botón (el menú de la home).
+   * Hace falta porque el menú es un Sheet que se cierra al pulsar: el diálogo
+   * tiene que vivir fuera de él, no dentro del elemento que desaparece.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Con la apertura controlada desde fuera, aquí no se pinta ningún botón. */
+  hideTrigger?: boolean;
 }
 
 interface ExistingReport {
@@ -38,6 +53,7 @@ interface ExistingReport {
 
 export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
   turnaroundId,
+  general,
   flightNumber,
   airlineName,
   aircraftModel,
@@ -48,9 +64,17 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
   remoteLocation,
   departureTime,
   className,
+  open: openProp,
+  onOpenChange,
+  hideTrigger,
 }) => {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [openInterno, setOpenInterno] = useState(false);
+  const open = openProp ?? openInterno;
+  const setOpen = useCallback((v: boolean) => {
+    setOpenInterno(v);
+    onOpenChange?.(v);
+  }, [onOpenChange]);
   const [description, setDescription] = useState('');
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -60,18 +84,20 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
 
   // Load previous reports for this escala so the user sees their status (⏳/✅)
   useEffect(() => {
-    if (!open || !user || !turnaroundId) return;
+    if (!open || !user) return;
+    if (!general && !turnaroundId) return;
     (async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data } = await (supabase as any)
+      let q = (supabase as any)
         .from('issue_reports')
         .select('id, description, status, created_at')
-        .eq('user_id', user.id)
-        .eq('turnaround_id', turnaroundId)
-        .order('created_at', { ascending: false });
+        .eq('user_id', user.id);
+      // En el reporte general no hay escala: se listan los que tampoco la tienen.
+      q = general ? q.is('turnaround_id', null) : q.eq('turnaround_id', turnaroundId);
+      const { data } = await q.order('created_at', { ascending: false }).limit(5);
       if (data) setExisting(data as ExistingReport[]);
     })();
-  }, [open, user, turnaroundId]);
+  }, [open, user, turnaroundId, general]);
 
   const handleAddScreenshot = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -121,7 +147,7 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
         flight_number: flightNumber || null,
         airline: airlineName || null,
         aircraft_model: aircraftModel || null,
-        flight_date: format(date, 'yyyy-MM-dd'),
+        flight_date: date ? format(date, 'yyyy-MM-dd') : null,
         departure_time: departureTime ?? null,
         matricula: matricula || null,
         tango: tango || null,
@@ -147,6 +173,7 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
 
   return (
     <>
+      {!hideTrigger && (
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -160,6 +187,7 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
       >
         <Bug className="h-4 w-4" />
       </button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -169,11 +197,14 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
               Reportar fallo de la app
             </DialogTitle>
             <DialogDescription>
-              El reporte queda ligado a esta escala para que el administrador pueda analizarlo con toda la información.
+              {general
+                ? 'Para fallos de la app en general, sin relación con ninguna escala: la pantalla de inicio, el tema, el acceso, la lentitud…'
+                : 'El reporte queda ligado a esta escala para que el administrador pueda analizarlo con toda la información.'}
             </DialogDescription>
           </DialogHeader>
 
           {/* Flight context (read-only) */}
+          {!general && (
           <div className="rounded-lg bg-muted p-3 text-xs font-mono space-y-1">
             <div className="flex flex-wrap gap-x-3 gap-y-0.5">
               <span><strong>Vuelo:</strong> {flightNumber || '—'}</span>
@@ -184,11 +215,12 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
               <span><strong>Matrícula:</strong> {matricula || '—'}</span>
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-              <span><strong>Fecha:</strong> {format(date, 'dd/MM/yyyy', { locale: es })}</span>
+              {date && <span><strong>Fecha:</strong> {format(date, 'dd/MM/yyyy', { locale: es })}</span>}
               {departureTime && <span><strong>Salida:</strong> {departureTime}</span>}
               <span><strong>Parking:</strong> {tango || remoteLocation || '—'}{isRemote ? ' · Remoto' : ''}</span>
             </div>
           </div>
+          )}
 
           {/* Previous reports for this escala */}
           {existing.length > 0 && (
@@ -212,7 +244,9 @@ export const IssueReportButton: React.FC<IssueReportButtonProps> = ({
 
           {/* Description */}
           <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">¿Qué ha fallado?</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              {general ? '¿Qué falla en la app?' : '¿Qué ha fallado?'}
+            </p>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
