@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { flightNumberVariants, normalizeFlightNumber } from '@/utils/arionParking';
 import { matchAirlineByArionName } from '@/utils/airlineMatch';
+import { resolveAircraftModel } from '@/utils/aircraftTypeMatch';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -114,6 +115,12 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const [showLdm, setShowLdm] = React.useState(false);
   const [autofilledFields, setAutofilledFields] = React.useState<Set<string>>(new Set());
   const allAirlines = useAllAirlines();
+  // Con su código IATA, para poder cruzar los vuelos en los que ARION manda
+  // el código ("PC") en vez del nombre de la compañía.
+  const airlinesConCodigo = React.useMemo(
+    () => allAirlines.map((a) => ({ ...a, prefix: getAirlinePrefix(a.code as AirlineCode) })),
+    [allAirlines],
+  );
   const models = airline ? getModelsForAirline(airline) : [];
 
   const activePrefix = getAirlinePrefix(airline);
@@ -164,22 +171,6 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   }, [setIsRemote]);
 
   // IATA aircraft type codes to our internal model names
-  const IATA_TO_MODEL: Record<string, string> = {
-    '32B': 'A321', '321': 'A321', '32Q': 'A321', 'A21N': 'A321', 'A321': 'A321',
-    '320': 'A320', '32A': 'A320', '32N': 'A320', 'A20N': 'A320', 'A320': 'A320',
-    '319': 'A319', 'A319': 'A319',
-    '223': 'A220', '22B': 'A220', 'BCS3': 'A220', 'BCS1': 'A220', 'A220': 'A220',
-    '738': '737-800', '73H': '737-800', 'B738': '737-800',
-    '7M8': '737_MAX', '7M9': '737_MAX', '7M7': '737_MAX', 'B38M': '737_MAX', 'B39M': '737_MAX',
-    '73G': 'B737', '737': 'B737', '73W': 'B737', 'B737': 'B737',
-    '734': 'B734', 'B734': 'B734',
-    '333': 'A333', 'A333': 'A333',
-    '339': 'A339', 'A339': 'A339',
-    '767': 'B767', '763': 'B767', '76W': 'B767', 'B763': 'B767', 'B767': 'B767',
-    '777': 'B777', '77W': 'B777', '772': 'B777', 'B777': 'B777', 'B772': 'B777',
-    '788': '787-800', 'B788': '787-800', '789': '787-900', 'B789': '787-900',
-    'E90': 'EMB90', 'E190': 'EMB90', 'E95': 'EMB95', 'E195': 'EMB95', 'E290': 'EMB90', 'E295': 'EMB95',
-  };
 
   const applyLookupResult = React.useCallback((lookupResult: typeof arrivalLookup.result) => {
     if (!lookupResult) return;
@@ -197,15 +188,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
     const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];
 
     if (lookupResult.aircraftModel && !aircraftModel) {
-      const iataCode = lookupResult.aircraftModel.toUpperCase();
-      const mappedModel = IATA_TO_MODEL[iataCode];
-      const match = currentModels.find(
-        (m) => m.model === mappedModel ||
-               m.model.toLowerCase() === iataCode.toLowerCase() ||
-               m.label.toLowerCase() === iataCode.toLowerCase() ||
-               m.model.toUpperCase().includes(iataCode) ||
-               iataCode.includes(m.model.toUpperCase())
-      );
+      const match = resolveAircraftModel(lookupResult.aircraftModel, currentModels);
       if (match) {
         setAircraftModel(match.model);
         filled.add('aircraftModel');
@@ -333,7 +316,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       const filled = new Set<string>();
 
       // 1. Aerolínea — cruce con el catálogo (ver utils/airlineMatch)
-      const matchedAirline = matchAirlineByArionName(data.airline_code ?? '', allAirlines);
+      const matchedAirline = matchAirlineByArionName(data.airline_code ?? '', airlinesConCodigo);
       const resolvedAirline = matchedAirline?.code ?? null;
 
       if (resolvedAirline && !airline) {
@@ -346,13 +329,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];
 
       if (data.aircraft_type && currentModels.length > 0) {
-        const iataCode = data.aircraft_type.toUpperCase();
-        const mappedModel = IATA_TO_MODEL[iataCode];
-        const match = currentModels.find(
-          (m) => m.model === mappedModel ||
-                 m.model.toLowerCase() === iataCode.toLowerCase() ||
-                 m.label.toLowerCase() === iataCode.toLowerCase()
-        );
+        const match = resolveAircraftModel(data.aircraft_type, currentModels);
         if (match && !aircraftModel) {
           setAircraftModel(match.model);
           filled.add('aircraftModel');

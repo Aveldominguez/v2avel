@@ -10,6 +10,12 @@ export interface AirlineLike {
   code: string;
   name: string;
   shortName?: string;
+  /**
+   * Código IATA de la compañía (el prefijo de sus números de vuelo: PC, TP,
+   * W6…). ARION no siempre manda el nombre: en algunos vuelos manda sólo este
+   * código, y entonces es lo único con lo que se puede cruzar.
+   */
+  prefix?: string;
 }
 
 /** Deja solo letras y números en mayúsculas: "Alba Star S.A." → "ALBASTARSA". */
@@ -36,6 +42,7 @@ export function matchAirlineByArionName<T extends AirlineLike>(
     code: normalizeAirlineName(a.code),
     name: normalizeAirlineName(a.name),
     short: normalizeAirlineName(a.shortName ?? ''),
+    prefix: normalizeAirlineName(a.prefix ?? ''),
   }));
 
   // 1. Coincidencia exacta con el código, el nombre o el nombre corto.
@@ -44,7 +51,19 @@ export function matchAirlineByArionName<T extends AirlineLike>(
   );
   if (exacto) return exacto.a;
 
-  // 2. Parcial: ARION suele añadir el país o la forma jurídica ("WIZZ AIR MALTA",
+  // 2. Código IATA de la compañía ("PC" = Pegasus). Cuando ARION manda el
+  //    código en vez del nombre no hay nada más con lo que cruzar, y por abajo
+  //    no entra: con dos letras no se permite coincidencia parcial.
+  //    Sólo vale si ese código es de UNA sola compañía: "AC" es a la vez Air
+  //    Canada y Air Canada Cargo, y ahí es mejor no rellenar que acertar a
+  //    medias. Tampoco valen los de una letra (Aegean "A", Wizz "W"), que
+  //    cruzarían con cualquier cosa.
+  if (arion.length >= 2) {
+    const porCodigo = candidatos.filter((c) => c.prefix.length >= 2 && c.prefix === arion);
+    if (porCodigo.length === 1) return porCodigo[0].a;
+  }
+
+  // 3. Parcial: ARION suele añadir el país o la forma jurídica ("WIZZ AIR MALTA",
   //    "ALBA STAR S.A."), o recortar el nombre ("AZUL BRAZILIAN AIRLI").
   //    Se prefiere la coincidencia más larga, que es la más específica.
   //    Se exige longitud mínima EN AMBOS lados: con un nombre de ARION de una

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { matchAirlineByArionName, normalizeAirlineName } from './airlineMatch';
-import { AIRLINES } from '@/types/turnaround';
+import { AIRLINES, AIRLINE_PREFIXES } from '@/types/turnaround';
 
 const match = (arion: string) => matchAirlineByArionName(arion, AIRLINES)?.code ?? null;
 
@@ -44,5 +44,35 @@ describe('matchAirlineByArionName · nombres reales de ARION', () => {
     // "A" o "AC" aparecen dentro de muchos nombres: no deben resolver nada.
     expect(match('A')).toBeNull();
     expect(match('AC')).toBeNull();
+  });
+});
+
+describe('matchAirlineByArionName · ARION manda el código IATA en vez del nombre', () => {
+  const conCodigo = AIRLINES.map(a => ({ ...a, prefix: AIRLINE_PREFIXES[a.code] ?? '' }));
+  const porCodigo = (arion: string) => matchAirlineByArionName(arion, conCodigo)?.code ?? null;
+
+  it('resuelve Pegasus por su código, que era el caso roto', () => {
+    expect(porCodigo('PC')).toBe('PEGASUS');
+  });
+
+  it('resuelve otros códigos de dos letras', () => {
+    expect(porCodigo('TP')).toBe('TAP');
+    expect(porCodigo('TO')).toBe('TRANSAVIA');
+    expect(porCodigo('GQ')).toBe('SKYEXPRESS');
+  });
+
+  it('no resuelve un código compartido por dos compañías', () => {
+    // "AC" es Air Canada y Air Canada Cargo: mejor vacío que la equivocada.
+    expect(porCodigo('AC')).toBeNull();
+  });
+
+  it('no resuelve códigos de una sola letra', () => {
+    expect(porCodigo('A')).toBeNull();
+    expect(porCodigo('W')).toBeNull();
+  });
+
+  it('el nombre completo sigue mandando sobre el código', () => {
+    expect(porCodigo('PEGASUS AIRLINES')).toBe('PEGASUS');
+    expect(porCodigo('AIR CANADA CARGO')).toBe('AIR_CANADA_CARGO');
   });
 });
