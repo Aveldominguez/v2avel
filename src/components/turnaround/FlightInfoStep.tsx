@@ -324,6 +324,14 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         filled.add('airline');
       }
 
+      // El vuelo está en ARION pero su compañía no cuadra con el catálogo.
+      // Antes esto no se veía: la escala simplemente salía vacía y no había
+      // forma de saber si faltaba el vuelo o fallaba el cruce. Con el nombre
+      // delante se arregla en el catálogo en vez de a ciegas.
+      if (!resolvedAirline && !airline && String(data.airline_code ?? '').trim()) {
+        toast(`ARION dice «${data.airline_code}»: esa aerolínea no está en el catálogo. Elígela a mano.`, { duration: 6000 });
+      }
+
       // 2. Modelo de avión
       const targetAirline = (resolvedAirline ?? airline) as AirlineCode;
       const currentModels = targetAirline ? getModelsForAirline(targetAirline) : [];

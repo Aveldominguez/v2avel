@@ -1,9 +1,9 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.610';
+export const APP_VERSION = '4.620';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Pegasus con un 737-800 ya rellena el modelo: ARION lo llama «738» y en la lista de Pegasus ese avión es el genérico «B737», así que antes no cruzaba y el campo se quedaba vacío.',
-  'El cruce de modelos va ahora por familias en todas las aerolíneas: si la compañía no distingue la versión exacta, se coge su modelo genérico, y nunca uno de otra familia.',
-  'Si ARION manda el código de la compañía («PC») en vez del nombre, la aerolínea también se reconoce.',
+  'Pegasus vuelve a autocompletarse: ARION escribe «PEGAGUS AIRLINES», con una errata, y por eso no cruzaba con el catálogo. Ahora se tolera una letra de diferencia (dos en nombres largos), sin elegir nunca entre dos compañías parecidas.',
+  'Con la aerolínea resuelta entran también el modelo (A320/A321), la matrícula y el parking.',
+  'Si un vuelo está en ARION pero su compañía no está en el catálogo, la app lo dice con el nombre delante en vez de quedarse en blanco.',
 ];

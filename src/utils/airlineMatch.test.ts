@@ -76,3 +76,37 @@ describe('matchAirlineByArionName · ARION manda el código IATA en vez del nomb
     expect(porCodigo('AIR CANADA CARGO')).toBe('AIR_CANADA_CARGO');
   });
 });
+
+describe('matchAirlineByArionName · erratas de ARION', () => {
+  it('resuelve "PEGAGUS AIRLINES", que es como ARION escribe Pegasus (con G)', () => {
+    // Dato real de scheduled_flights: todos los vuelos PC vienen así.
+    expect(match('PEGAGUS AIRLINES')).toBe('PEGASUS');
+  });
+
+  it('aguanta otras erratas de una letra', () => {
+    expect(match('ICELANDAIF')).toBe('ICELANDAIR');
+    expect(match('EUROWINHS')).toBe('EUROWINGS');
+  });
+
+  it('no tapa una errata que ademas recorta o alarga el nombre', () => {
+    // Se tolera una letra cambiada, no un nombre distinto: 'TRANSAVIE FRANCE'
+    // tiene la errata Y el pais, y ahi ya no hay forma de estar seguro.
+    // 'TRANSAVIA FRANCE', que es lo que manda ARION de verdad, sigue cruzando.
+    expect(match('TRANSAVIA FRANCE')).toBe('TRANSAVIA');
+  });
+
+  it('sigue sin inventarse una aerolínea que no está en el catálogo', () => {
+    expect(match('IBERIA')).toBeNull();
+    expect(match('RYANAIR')).toBeNull();
+    expect(match('LUFTHANSA')).toBeNull();
+    expect(match('BRITISH AIRWAYS')).toBeNull();
+    expect(match('VUELING')).toBeNull();
+  });
+
+  it('ninguna aerolínea del catálogo se cruza con otra', () => {
+    // Si dos nombres reales quedasen a distancia de errata, el cruce sería
+    // una lotería: se comprueba que cada una se resuelve a sí misma.
+    const fallos = AIRLINES.filter(a => match(a.name) !== a.code).map(a => a.name);
+    expect(fallos).toEqual([]);
+  });
+});

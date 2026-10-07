@@ -22,6 +22,31 @@ export interface AirlineLike {
 export const normalizeAirlineName = (s: string): string =>
   (s ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+/**
+ * Distancia de edición entre dos cadenas, con tope: en cuanto se pasa de
+ * `tope` se deja de calcular y se devuelve tope + 1. Sirve para aguantar las
+ * erratas de ARION sin ponerse a comparar nombres que no se parecen en nada.
+ */
+export const editDistance = (a: string, b: string, tope: number): number => {
+  if (Math.abs(a.length - b.length) > tope) return tope + 1;
+  let fila = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const nueva = [i];
+    let mejor = i;
+    for (let j = 1; j <= b.length; j++) {
+      const coste = a[i - 1] === b[j - 1] ? 0 : 1;
+      nueva[j] = Math.min(fila[j] + 1, nueva[j - 1] + 1, fila[j - 1] + coste);
+      if (nueva[j] < mejor) mejor = nueva[j];
+    }
+    if (mejor > tope) return tope + 1;
+    fila = nueva;
+  }
+  return fila[b.length];
+};
+
+/** Erratas que se toleran según lo largo que sea el nombre. */
+const erratasPermitidas = (largo: number): number => (largo >= 10 ? 2 : largo >= 6 ? 1 : 0);
+
 // Por debajo de esta longitud no se acepta una coincidencia parcial: "A" o "AC"
 // aparecen dentro de media lista y cruzarían con la compañía equivocada.
 const MIN_PARCIAL = 4;
@@ -78,5 +103,31 @@ export function matchAirlineByArionName<T extends AirlineLike>(
     })
     .sort((x, y) => y.peso - x.peso);
 
-  return parciales[0]?.a ?? null;
+  if (parciales[0]) return parciales[0].a;
+
+  // 4. Último recurso: el nombre de ARION trae una errata. Caso real: publica
+  //    "PEGAGUS AIRLINES", con G en vez de S, y así ni coincide entero ni se
+  //    contiene por ningún lado, de modo que esos vuelos se quedaban sin
+  //    aerolínea, sin modelo y sin matrícula.
+  //
+  //    Se admite una letra de diferencia (dos en nombres largos) y se exige
+  //    que gane UNA sola compañía: si dos quedan a la misma distancia no se
+  //    elige a cara o cruz, se deja vacío.
+  const cercanos = candidatos
+    .flatMap((c) => {
+      const claves = [c.name, c.short, c.code].filter((k) => k.length >= 6);
+      const distancias = claves.map((k) => {
+        const tope = erratasPermitidas(Math.max(k.length, arion.length));
+        return tope === 0 ? Infinity : editDistance(arion, k, tope);
+      });
+      const mejor = Math.min(...distancias, Infinity);
+      const tope = erratasPermitidas(arion.length);
+      return mejor <= tope ? [{ a: c.a, dist: mejor }] : [];
+    })
+    .sort((x, y) => x.dist - y.dist);
+
+  if (cercanos.length === 1) return cercanos[0].a;
+  if (cercanos.length > 1 && cercanos[0].dist < cercanos[1].dist) return cercanos[0].a;
+
+  return null;
 }
