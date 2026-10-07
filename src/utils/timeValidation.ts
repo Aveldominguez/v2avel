@@ -52,6 +52,11 @@ export const validateTimes = (times: TurnaroundTimes): TimeValidationError[] => 
   // Validate unloading before loading (if both exist)
   checkOrder('unloadingEnd', 'loadingStart', 'Fin Descarga', 'Inicio Carga');
 
+  // El coordinador tiene que dar el visto bueno (walk around) antes de que se
+  // puedan abrir bodegas: si la descarga empieza antes, es un aviso.
+  checkOrder('coordinatorApproval', 'unloadingStart', 'VB Coordinador', 'Inicio Descarga');
+  checkOrder('chocksOnArrival', 'coordinatorApproval', 'Calzos Llegada', 'VB Coordinador');
+
   // Validate stairs after arrival
   checkOrder('chocksOnArrival', 'stairsTime', 'Calzos Llegada', 'Puesta Escalera');
 

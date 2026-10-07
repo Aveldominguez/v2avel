@@ -15,6 +15,10 @@ export interface TurnaroundTimes {
   lirReception4?: string | null;
   lirReception5?: string | null;
   chocksOnArrival: string | null;        // Calzos Llegada
+  // Visto bueno del coordinador tras el walk around de la aeronave. Hasta que
+  // no lo da no se pueden abrir bodegas ni empezar a trabajar, así que va
+  // entre los calzos de llegada y el inicio de descarga.
+  coordinatorApproval: string | null;    // VB Coordinador (walk around)
   stairsTime: string | null;             // Puesta de Escalera (Llegada)
   stairsRemovalArrival: string | null;   // Retirada de Escalera (Llegada)
   unloadingStart: string | null;         // Inicio Descarga
@@ -224,6 +228,7 @@ export interface TimeFieldConfig {
 // Arrival fields (for non-FedEx/Amazon split layout)
 const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
@@ -235,6 +240,7 @@ const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
 
 const ARRIVAL_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
@@ -282,6 +288,7 @@ const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
 // Base fields for TAP/AEGEAN/ITA (with stairs) - kept for FedEx/Amazon legacy
 const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
@@ -302,6 +309,7 @@ const FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
 // Fields without stairs (WIZZ, etc.) - kept for FedEx/Amazon legacy
 const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
@@ -320,6 +328,7 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
 // FedEx-specific fields
 const FIELDS_FEDEX: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
@@ -360,6 +369,7 @@ export const usesSplitLayout = (airline: AirlineCode): boolean => {
 // the raw technical key (e.g. "AVIARRIVAL", "GPUOFF").
 const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   chocksOnArrival: 'Calzos Llegada',
+  coordinatorApproval: 'VB Coordinador',
   chocksOff: 'Calzos Salida',
   stairsTime: 'Puesta Escalera',
   stairsRemovalArrival: 'Retirada Escalera',
@@ -524,6 +534,7 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, solo
 // Fields to keep in "Sólo llegada" mode (arrival only)
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
+  'coordinatorApproval',
   'stairsTime',
   'unloadingStart',
   'unloadingEnd',

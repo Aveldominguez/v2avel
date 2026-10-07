@@ -1,9 +1,9 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.590';
+export const APP_VERSION = '4.600';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Nuevo botón «Reportar fallo de la app» en el menú de la pantalla de inicio, para fallos generales que no tienen nada que ver con una escala.',
-  'Se puede describir el problema y adjuntar hasta 3 capturas, igual que en el reporte de una escala, y se ven los reportes generales anteriores con su estado.',
-  'En el panel de control estos reportes salen marcados como «Reporte general de la app», sin la ficha de vuelo vacía.',
+  'Nuevo botón «VB Coordinador» en el bloque de llegada de todas las aerolíneas, justo detrás de Calzos Llegada: registra la hora en que el coordinador da el visto bueno del walk around para abrir bodegas.',
+  'Si la descarga se registra antes del visto bueno, la escala lo marca como aviso (no bloquea: puedes guardar igual).',
+  'La hora sale en el informe PDF junto al resto de horas de llegada.',
 ];
