@@ -239,10 +239,13 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
   React.useEffect(() => {
     const clean = flightNumber.trim().replace(/\s/g, '').toUpperCase();
-    if (clean.length < 3) return;
+    const cleanDep = departureFlightNumber.trim().replace(/\s/g, '').toUpperCase();
+    // Basta con uno de los dos números: hay escalas en las que sólo se hace la
+    // salida y el operario no tiene el vuelo de llegada.
+    if (clean.length < 3 && cleanDep.length < 3) return;
 
     const formDateISO = format(date, 'yyyy-MM-dd');
-    const arionKey = `${clean}__${formDateISO}`;
+    const arionKey = `${clean}__${cleanDep}__${formDateISO}`;
     if (lastArionKeyRef.current === arionKey) return;
 
     const prevDayISO = format(subDays(date, 1), 'yyyy-MM-dd');
@@ -252,19 +255,30 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
       // Se consultan variantes del número (ceros a la izquierda, espacios) y el
       // cruce fino se hace en cliente: ARION no siempre escribe el vuelo igual
       // que la app.
-      const { data: allRows } = await supabase
-        .from('scheduled_flights')
-        .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration, synced_at')
-        .in('flight_number', flightNumberVariants(clean))
-        .eq('movement_type', 'A')
-        .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
-        .order('flight_date', { ascending: true })
-        .limit(40);
+      const buscarFilas = async (numero: string, movimiento: 'A' | 'D') => {
+        if (numero.length < 3) return [];
+        const { data: allRows } = await supabase
+          .from('scheduled_flights')
+          .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration, synced_at')
+          .in('flight_number', flightNumberVariants(numero))
+          .eq('movement_type', movimiento)
+          .in('flight_date', [formDateISO, nextDayISO, prevDayISO])
+          .order('flight_date', { ascending: true })
+          .limit(40);
+        const target = normalizeFlightNumber(numero);
+        return (allRows ?? []).filter(
+          (r) => normalizeFlightNumber(String(r.flight_number ?? '')) === target
+        );
+      };
 
-      const target = normalizeFlightNumber(clean);
-      const rows = (allRows ?? []).filter(
-        (r) => normalizeFlightNumber(String(r.flight_number ?? '')) === target
-      );
+      // Manda la llegada, que es la fila con más información de la escala. Si
+      // no hay (o no se ha escrito), se tira del vuelo de salida.
+      let rows = await buscarFilas(clean, 'A');
+      let desdeSalida = false;
+      if (rows.length === 0) {
+        rows = await buscarFilas(cleanDep, 'D');
+        desdeSalida = rows.length > 0;
+      }
 
       if (rows.length === 0) return;
 
@@ -361,8 +375,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         }
       }
 
-      // 4. Vuelo de salida (departure_fn)
-      if (data.departure_fn) {
+      // 4. Vuelo de salida (departure_fn). En una fila de salida ese campo
+      //    apunta al vuelo CONECTADO, que es el de llegada: escribirlo aquí
+      //    pondría el número de la llegada en el campo de la salida.
+      if (!desdeSalida && data.departure_fn) {
         const depFlight = String(data.departure_fn).trim().toUpperCase();
         if (depFlight && depFlight !== clean) {
           const newPrefix = resolvedAirline ? getAirlinePrefix(resolvedAirline as AirlineCode) : getAirlinePrefix(airline);
@@ -378,8 +394,11 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         }
       }
 
-      // 5. Hora de salida (ETD preferido, si no STD)
-      const depTime = extractTime(data.etd) ?? extractTime(data.connection_sdt);
+      // 5. Hora de salida (ETD preferido, si no STD). Desde la fila de salida
+      //    la hora es la suya propia, no la de la conexión.
+      const depTime = desdeSalida
+        ? (extractTime(data.etd) ?? extractTime(data.edt) ?? extractTime(data.sdt))
+        : (extractTime(data.etd) ?? extractTime(data.connection_sdt));
       if (depTime && !departureTime) {
         setDepartureTime(depTime);
         filled.add('departureTime');
@@ -397,7 +416,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
 
       lastArionKeyRef.current = arionKey;
     })();
-  }, [flightNumber, date]);
+  }, [flightNumber, departureFlightNumber, date]);
 
 
 

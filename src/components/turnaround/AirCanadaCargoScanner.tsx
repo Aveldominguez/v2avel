@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { decidirModuloAbierto, verModuloLlegada, verModuloSalida } from '@/utils/acScannerModules';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +20,13 @@ interface AirCanadaCargoScannerProps {
   flightDate: string; // YYYY-MM-DD
   aircraftType: string;
   turnaroundId?: string;
+  /**
+   * Modos de media escala. En "sólo salida" no hay descarga que escanear y en
+   * "sólo llegada" no hay carga: enseñar el módulo que no toca invita a
+   * escanear la hoja equivocada.
+   */
+  soloLlegada?: boolean;
+  soloSalida?: boolean;
 }
 
 interface PositionData {
@@ -557,6 +565,8 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
   flightDate,
   aircraftType,
   turnaroundId,
+  soloLlegada,
+  soloSalida,
 }) => {
   const [arrival, setArrival] = useState<ScanModuleState>(emptyModule());
   const [departure, setDeparture] = useState<ScanModuleState>(emptyModule());
@@ -846,19 +856,26 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
 
   if (!SUPPORTED_TYPES.includes(aircraftType)) return null;
 
+  const verLlegada = verModuloLlegada(soloSalida);
+  const verSalida = verModuloSalida(soloLlegada);
+  const abierto = decidirModuloAbierto(openModule, verLlegada, verSalida);
+
+  if (!verLlegada && !verSalida) return null;
+
   return (
     <div className="space-y-3">
+      {verLlegada && (
       <div>
         <ModuleHeader
           scanType="arrival"
           label="✈️ Descarga — Llegada"
           color="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-          active={openModule === 'arrival'}
+          active={abierto === 'arrival'}
           fwdScanned={arrival.fwdScanned}
           aftScanned={arrival.aftScanned}
           onToggle={toggleModule}
         />
-        {openModule === 'arrival' && (
+        {abierto === 'arrival' && (
           <ScanModule
             scanType="arrival"
             state={arrival}
@@ -870,18 +887,20 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           />
         )}
       </div>
+      )}
 
+      {verSalida && (
       <div>
         <ModuleHeader
           scanType="departure"
           label="✈️ Carga — Salida"
           color="bg-rose-500/15 text-rose-700 dark:text-rose-400"
-          active={openModule === 'departure'}
+          active={abierto === 'departure'}
           fwdScanned={departure.fwdScanned}
           aftScanned={departure.aftScanned}
           onToggle={toggleModule}
         />
-        {openModule === 'departure' && (
+        {abierto === 'departure' && (
           <ScanModule
             scanType="departure"
             state={departure}
@@ -893,6 +912,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           />
         )}
       </div>
+      )}
 
       <Dialog open={lirDialog.open} onOpenChange={(o) => setLirDialog((p) => ({ ...p, open: o }))}>
         <DialogContent className="max-w-2xl">

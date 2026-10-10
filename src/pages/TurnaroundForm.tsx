@@ -1220,6 +1220,8 @@ const TurnaroundForm: React.FC = () => {
             flightDate={date ? format(date, 'yyyy-MM-dd') : ''}
             aircraftType={aircraftModel}
             turnaroundId={id}
+            soloLlegada={soloLlegada}
+            soloSalida={soloSalida}
           />
         )}
 

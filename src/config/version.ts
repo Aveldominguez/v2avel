@@ -1,9 +1,8 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.620';
+export const APP_VERSION = '4.630';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Pegasus vuelve a autocompletarse: ARION escribe «PEGAGUS AIRLINES», con una errata, y por eso no cruzaba con el catálogo. Ahora se tolera una letra de diferencia (dos en nombres largos), sin elegir nunca entre dos compañías parecidas.',
-  'Con la aerolínea resuelta entran también el modelo (A320/A321), la matrícula y el parking.',
-  'Si un vuelo está en ARION pero su compañía no está en el catálogo, la app lo dice con el nombre delante en vez de quedarse en blanco.',
+  'Air Canada: al marcar «sólo salida» desaparece el escáner de la LIR de llegada, y al marcar «sólo llegada» desaparece el de carga. Si lo que tenías abierto deja de verse, se abre el que queda.',
+  'La escala se autocompleta también desde el número de vuelo de SALIDA: si no hay vuelo de llegada, se buscan en ARION la aerolínea, el modelo, la matrícula, el parking y la hora de salida con ese número.',
 ];
