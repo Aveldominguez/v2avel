@@ -4,6 +4,7 @@ import { useCatalog } from '@/hooks/useCatalog';
 import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, getAirlinePrefix, getCargoMailDestination } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
 import { TimeInput } from './TimeInput';
+import { CountInput } from './CountInput';
 import { BooleanInput } from './BooleanInput';
 import { CountdownTimer } from './CountdownTimer';
 import { CargoDoorAlert } from './CargoDoorAlert';
@@ -68,6 +69,18 @@ const FieldRenderer: React.FC<{
   showRistra3: boolean; setShowRistra3: (v: boolean) => void;
   showRistra4: boolean; setShowRistra4: (v: boolean) => void;
 }> = ({ field, times, updateTime, onChange, getError, disabled, airline, flightDate, visibleLirCount, setVisibleLirCount, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
+  if (field.type === 'number') {
+    return (
+      <CountInput
+        key={field.key}
+        label={field.label}
+        value={times[field.key] as string | null}
+        onChange={(v) => updateTime(field.key, v)}
+        disabled={disabled}
+      />
+    );
+  }
+
   if (field.type === 'acu') {
     const boolVal = times[field.key] as boolean;
     const textKey = `${String(field.key)}Data` as keyof TurnaroundTimes;

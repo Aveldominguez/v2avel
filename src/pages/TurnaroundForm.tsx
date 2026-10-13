@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDisplayName } from '@/hooks/useDisplayName';
 import { useNavigate, useParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
@@ -67,6 +68,8 @@ const TurnaroundForm: React.FC = () => {
   const [aircraftModel, setAircraftModel] = useState('');
   const [remoteLocation, setRemoteLocation] = useState('');
   const [matricula, setMatricula] = useState('');
+  // Firma la hoja de Control de Rampa como capataz.
+  const nombreCapataz = useDisplayName();
   const [soloLlegada, setSoloLlegada] = useState(false);
   const [soloSalida, setSoloSalida] = useState(false);
   const [pushBack, setPushBack] = useState(false);
@@ -1275,9 +1278,9 @@ const TurnaroundForm: React.FC = () => {
             files: fileUrls.length,
             observationPhotos: observationPhotos.length,
           }}
-          onExport={async (images) => {
-            const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
-            await generateTurnaroundPdf({
+          tieneLirEscaneada={selectedAirline === 'AIR_CANADA' || selectedAirline === 'AIR_CANADA_CARGO'}
+          onExport={async ({ formato, images, lirAirCanada }) => {
+            const comun = {
               flightNumber,
               date,
               airline: selectedAirline,
@@ -1288,7 +1291,30 @@ const TurnaroundForm: React.FC = () => {
               times: getTimesWithFlightInfo(),
               fieldValues,
               observations,
-            }, images);
+            };
+
+            if (formato === 'informe') {
+              const { generateTurnaroundPdf } = await import('@/utils/generateTurnaroundPdf');
+              await generateTurnaroundPdf(comun, images);
+              return;
+            }
+
+            // El detalle de la LIR escaneada va en hojas aparte, y sólo si se pide.
+            let lirHtml = '';
+            if (lirAirCanada) {
+              const { buildAirCanadaScannerHtml } = await import('@/utils/generateTurnaroundPdf');
+              const bruto = await buildAirCanadaScannerHtml(
+                flightNumber,
+                format(date, 'yyyy-MM-dd'),
+                { arrival: 'LIR DE LLEGADA', departure: 'LIR DE SALIDA' },
+              );
+              if (bruto) {
+                lirHtml = `<section class="hoja" data-pdf-section>${bruto}</section>`;
+              }
+            }
+
+            const { generateControlRampaPdf } = await import('@/utils/generateControlRampaPdf');
+            await generateControlRampaPdf({ ...comun, capataz: nombreCapataz }, { lirAirCanada: lirHtml });
           }}
         />
 

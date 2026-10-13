@@ -1,8 +1,10 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.630';
+export const APP_VERSION = '4.640';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Air Canada: al marcar «sólo salida» desaparece el escáner de la LIR de llegada, y al marcar «sólo llegada» desaparece el de carga. Si lo que tenías abierto deja de verse, se abre el que queda.',
-  'La escala se autocompleta también desde el número de vuelo de SALIDA: si no hay vuelo de llegada, se buscan en ARION la aerolínea, el modelo, la matrícula, el parking y la hora de salida con ese número.',
+  'Exportar PDF ahora pregunta qué documento quieres: el informe de escala de siempre (con las imágenes que marques) o la hoja «Control de Rampa», el parte de papel de Aviapartner en una sola A4.',
+  'La hoja se rellena sola con los datos de la escala y lleva al final «Otros registros» con todo lo que la app guarda y el papel no tiene casilla: VB del coordinador, ediciones de la LIR, muelles, ACU, ETA/ETD, sala y cinta…',
+  'Cuatro campos nuevos en la escala para completar la hoja: Tránsitos (llegada), Total Maletas facturadas, Nº Cuerdas y Nº Anillas (salida).',
+  'Los ULD de ITA y TAP salen en «Control de contenedores». En Air Canada, la LIR escaneada se puede adjuntar aparte marcándolo antes de exportar.',
 ];

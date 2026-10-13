@@ -79,6 +79,11 @@ export interface TurnaroundTimes {
   soloSalida: boolean;                  // Sólo salida (departure only)
   pushBack: boolean;                    // Push Back requerido (parking T)
   pushBackTime: string | null;          // Hora de Push Back
+  // Recuentos de la hoja de Control de Rampa. Son cantidades, no horas.
+  transitBags: string | null;           // Tránsitos (llegada)
+  checkedBagsTotal: string | null;      // Total de maletas facturadas del vuelo de salida
+  ropeCount: string | null;             // Nº de cuerdas usadas
+  ringCount: string | null;             // Nº de anillas usadas
   bagSearchStart: string | null;        // Inicio búsqueda maleta
   bagSearchEnd: string | null;          // Fin búsqueda maleta
   departureTime: string | null;         // Hora de salida programada
@@ -222,7 +227,7 @@ export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
   label: string;
   clockColor?: 'green' | 'red' | 'default';
-  type: 'time' | 'boolean' | 'boolean-text' | 'acu';
+  type: 'time' | 'boolean' | 'boolean-text' | 'acu' | 'number';
 }
 
 // Arrival fields (for non-FedEx/Amazon split layout)
@@ -233,6 +238,7 @@ const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
+  { key: 'transitBags', label: 'Tránsitos', type: 'number' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'aviArrival', label: 'AVI Llegada', type: 'boolean' },
@@ -244,6 +250,7 @@ const ARRIVAL_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
+  { key: 'transitBags', label: 'Tránsitos', type: 'number' },
   { key: 'cargoArrival', label: 'Cargo Llegada', type: 'boolean' },
   { key: 'mailArrival', label: 'Correo Llegada', type: 'boolean' },
   { key: 'aviArrival', label: 'AVI Llegada', type: 'boolean' },
@@ -265,6 +272,9 @@ const DEPARTURE_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'acu', label: 'ACU', type: 'acu' },
   { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
   { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
+  { key: 'checkedBagsTotal', label: 'Total Maletas', type: 'number' },
+  { key: 'ropeCount', label: 'Nº Cuerdas', type: 'number' },
+  { key: 'ringCount', label: 'Nº Anillas', type: 'number' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
 ];
 
@@ -282,6 +292,9 @@ const DEPARTURE_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'acu', label: 'ACU', type: 'acu' },
   { key: 'bagSearchStart', label: 'Inicio Búsqueda Maleta', clockColor: 'green', type: 'time' },
   { key: 'bagSearchEnd', label: 'Fin Búsqueda Maleta', clockColor: 'red', type: 'time' },
+  { key: 'checkedBagsTotal', label: 'Total Maletas', type: 'number' },
+  { key: 'ropeCount', label: 'Nº Cuerdas', type: 'number' },
+  { key: 'ringCount', label: 'Nº Anillas', type: 'number' },
   { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
 ];
 
@@ -396,6 +409,10 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   aviDeparture: 'AVI Salida',
   asu: 'ASU',
   acu: 'ACU',
+  transitBags: 'Tránsitos',
+  checkedBagsTotal: 'Total Maletas',
+  ropeCount: 'Nº Cuerdas',
+  ringCount: 'Nº Anillas',
   bagSearchStart: 'Inicio Búsqueda Maleta',
   bagSearchEnd: 'Fin Búsqueda Maleta',
   gpuOn: 'Puesta de GPU',
@@ -535,6 +552,7 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, solo
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
   'coordinatorApproval',
+  'transitBags',
   'stairsTime',
   'unloadingStart',
   'unloadingEnd',
@@ -550,6 +568,9 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
 // Fields to keep in "Sólo salida" mode (departure only)
 const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOff',
+  'checkedBagsTotal',
+  'ropeCount',
+  'ringCount',
   'specialEndLoading',
   'loadingStart',
   'loadingEnd',

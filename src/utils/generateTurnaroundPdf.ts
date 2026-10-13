@@ -8,11 +8,19 @@ import { format } from 'date-fns';
 import { getSignedUrl, getSignedUrls } from '@/utils/storageUrl';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
+import { PDF_LIBS, PDF_TOOLBAR_Y_SCRIPT, entregarPdfHtml } from './pdfShell';
 
 const escapeHtml = (s: string) =>
   String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string));
 
-async function buildAirCanadaScannerHtml(flightNumber: string, flightDate: string): Promise<string> {
+export async function buildAirCanadaScannerHtml(
+  flightNumber: string,
+  flightDate: string,
+  titulos: { arrival: string; departure: string } = {
+    arrival: 'Escáner Descarga (Arrival)',
+    departure: 'Escáner Carga (Departure)',
+  },
+): Promise<string> {
   if (!flightNumber || !flightDate) return '';
   const [{ data: positions }, { data: bulkRows }] = await Promise.all([
     supabase
@@ -111,8 +119,8 @@ async function buildAirCanadaScannerHtml(flightNumber: string, flightDate: strin
     `;
   };
 
-  return renderSection('arrival', 'Escáner Descarga (Arrival)') +
-         renderSection('departure', 'Escáner Carga (Departure)');
+  return renderSection('arrival', titulos.arrival) +
+         renderSection('departure', titulos.departure);
 }
 
 interface PdfData {
@@ -465,147 +473,10 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
     .pdf-toolbar { display: none !important; }
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+${PDF_LIBS}
 </head>
 <body>
-  <div class="pdf-toolbar" id="pdf-toolbar">
-    <button class="btn-share" id="btn-share" type="button">📤 Compartir</button>
-    <button class="btn-download" id="btn-download" type="button">⬇️ Descargar PDF</button>
-  </div>
-<script>
-(function(){
-  var toolbar = document.getElementById('pdf-toolbar');
-  var btnDownload = document.getElementById('btn-download');
-  var btnShare = document.getElementById('btn-share');
-  var title = document.title || 'escala';
-  var fileName = title.replace(/[^a-zA-Z0-9-_]+/g,'-').replace(/^-+|-+$/g,'') + '.pdf';
-
-  function setBusy(text){
-    btnDownload.disabled = true; btnShare.disabled = true;
-    btnDownload.style.opacity = '0.6'; btnShare.style.opacity = '0.6';
-    if(text){ btnDownload.textContent = text; }
-  }
-  function resetBtns(){
-    btnDownload.disabled = false; btnShare.disabled = false;
-    btnDownload.style.opacity = ''; btnShare.style.opacity = '';
-    btnDownload.textContent = '⬇️ Descargar PDF';
-    btnShare.textContent = '📤 Compartir';
-  }
-
-  async function buildPdfBlob(){
-    if(!window.jspdf || !window.html2canvas){
-      throw new Error('PDF libraries not loaded');
-    }
-    toolbar.style.display = 'none';
-    await new Promise(function(r){ requestAnimationFrame(function(){ r(null); }); });
-    try {
-      var jsPDF = window.jspdf.jsPDF;
-      var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      var PAGE_W = pdf.internal.pageSize.getWidth();
-      var PAGE_H = pdf.internal.pageSize.getHeight();
-      var MARGIN = 10;
-      var CONTENT_W = PAGE_W - MARGIN * 2;
-      var CONTENT_H = PAGE_H - MARGIN * 2;
-      var GAP = 3;
-
-      var sections = Array.prototype.slice.call(document.querySelectorAll('[data-pdf-section]'));
-      var currentY = MARGIN;
-      var first = true;
-
-      for (var i = 0; i < sections.length; i++) {
-        var el = sections[i];
-        if (!el || !el.offsetHeight) continue;
-        var canvas = await window.html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: '#ffffff',
-          logging: false,
-        });
-        var pxW = canvas.width;
-        var pxH = canvas.height;
-        var scale = CONTENT_W / (pxW / 2); // undo scale:2 for mm mapping
-        var wMM = CONTENT_W;
-        var hMM = (pxH / 2) * scale;
-
-        // If a single section is taller than a page, scale it down to fit one page.
-        if (hMM > CONTENT_H) {
-          var shrink = CONTENT_H / hMM;
-          hMM = CONTENT_H;
-          wMM = wMM * shrink;
-        }
-
-        var remaining = PAGE_H - MARGIN - currentY;
-        if (!first && hMM > remaining) {
-          pdf.addPage();
-          currentY = MARGIN;
-        }
-
-        var xMM = MARGIN + (CONTENT_W - wMM) / 2;
-        var imgData = canvas.toDataURL('image/jpeg', 0.92);
-        pdf.addImage(imgData, 'JPEG', xMM, currentY, wMM, hMM);
-        currentY += hMM + GAP;
-        first = false;
-      }
-
-      return pdf.output('blob');
-    } finally {
-      toolbar.style.display = '';
-    }
-  }
-
-  function downloadBlob(blob){
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 15000);
-  }
-
-  btnDownload.addEventListener('click', async function(){
-    setBusy('Generando…');
-    try {
-      var blob = await buildPdfBlob();
-      var file = new File([blob], fileName, { type: 'application/pdf' });
-      if(navigator.canShare && navigator.canShare({ files: [file] })){
-        try { await navigator.share({ title: title, files: [file] }); resetBtns(); return; }
-        catch(e){ if(e && e.name === 'AbortError'){ resetBtns(); return; } }
-      }
-      try {
-        downloadBlob(blob);
-      } catch(e){
-        var url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-      }
-    } catch(e){
-      alert('No se pudo generar el PDF: ' + (e && e.message ? e.message : e));
-    } finally {
-      resetBtns();
-    }
-  });
-
-  btnShare.addEventListener('click', async function(){
-    setBusy('Preparando…');
-    try {
-      var blob = await buildPdfBlob();
-      var file = new File([blob], fileName, { type: 'application/pdf' });
-      if(navigator.canShare && navigator.canShare({ files: [file] })){
-        try { await navigator.share({ title: title, files: [file] }); }
-        catch(e){ if(!e || e.name !== 'AbortError'){ downloadBlob(blob); } }
-      } else {
-        downloadBlob(blob);
-      }
-    } catch(e){
-      alert('No se pudo compartir el PDF: ' + (e && e.message ? e.message : e));
-    } finally {
-      resetBtns();
-    }
-  });
-})();
-</script>
+${PDF_TOOLBAR_Y_SCRIPT}
 <div id="pdf-root">
   <section class="pdf-section" data-pdf-section>
   <div class="header">
@@ -689,57 +560,9 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
 </html>`;
 
 
-  // Detect standalone mode (PWA / home screen web app on iOS)
-  const isStandalone = (window.navigator as any).standalone === true ||
-    window.matchMedia('(display-mode: standalone)').matches;
-
-  if (isStandalone) {
-    // In standalone (PWA) mode, window.open and blob downloads are blocked.
-    // Open the HTML content in a full-screen overlay iframe.
-    const existingOverlay = document.getElementById('pdf-overlay');
-    if (existingOverlay) document.body.removeChild(existingOverlay);
-
-    const overlay = document.createElement('div');
-    overlay.id = 'pdf-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:white;display:flex;flex-direction:column;';
-
-    const toolbar = document.createElement('div');
-    toolbar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#1a1a2e;color:#fff;font-family:sans-serif;font-size:15px;';
-
-    const title = document.createElement('span');
-    title.textContent = `Escala ${data.flightNumber}`;
-    toolbar.appendChild(title);
-
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Cerrar';
-    closeBtn.style.cssText = 'background:#ef4444;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;';
-    closeBtn.onclick = () => document.body.removeChild(overlay);
-    toolbar.appendChild(closeBtn);
-
-    overlay.appendChild(toolbar);
-
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'flex:1;border:none;width:100%;';
-    iframe.srcdoc = html;
-    overlay.appendChild(iframe);
-
-    document.body.appendChild(overlay);
-  } else {
-    // Standard browser: try opening in a new tab
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
-
-    if (!newWindow) {
-      // Fallback: trigger download
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `escala-${data.flightNumber}-${format(data.date, 'yyyyMMdd')}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
-    setTimeout(() => URL.revokeObjectURL(url), 15000);
-  }
+  entregarPdfHtml(
+    html,
+    `escala-${data.flightNumber}-${format(data.date, 'yyyyMMdd')}`,
+    `Escala ${data.flightNumber}`,
+  );
 };
