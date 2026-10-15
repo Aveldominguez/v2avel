@@ -92,7 +92,6 @@ const cuerpoHoja = (h: ControlRampa, logoUrl: string, aerolinea: string): string
   </table>
 
   ${bloqueCasillas([
-    { label: 'Nº FILE', value: '' },
     { label: 'FECHA', value: h.cabecera.fecha },
     { label: 'NOMBRE CAPATAZ', value: h.cabecera.capataz },
     { label: 'TIPO AVIÓN', value: h.cabecera.tipoAvion },

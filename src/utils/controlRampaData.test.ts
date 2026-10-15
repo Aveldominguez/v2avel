@@ -76,12 +76,30 @@ describe('hoja de Control de Rampa', () => {
 
   it('los recuentos nuevos van a sus casillas', () => {
     const h = buildControlRampa(escala({
-      times: { ...getEmptyTimes(), transitBags: '12', checkedBagsTotal: '118', ropeCount: '4', ringCount: '8' },
+      times: { ...getEmptyTimes(), transit: true, transitBags: '12', ropeCount: '4', ringCount: '8' },
     }));
     expect(buscar(h.tiempos, 'TRÁNSITOS')).toBe('12');
-    expect(buscar(h.tiempos, 'CIERRE BAGS')).toBe('118');
     expect(buscar(h.extras, 'Nº CUERDAS')).toBe('4');
     expect(buscar(h.extras, 'Nº ANILLAS')).toBe('8');
+  });
+
+  describe('tránsitos', () => {
+    it('sin tránsitos la casilla lo dice, que es un dato en sí', () => {
+      const h = buildControlRampa(escala());
+      expect(buscar(h.tiempos, 'TRÁNSITOS')).toBe('NO');
+    });
+
+    it('marcados pero sin contar, queda en SÍ', () => {
+      const h = buildControlRampa(escala({ times: { ...getEmptyTimes(), transit: true } }));
+      expect(buscar(h.tiempos, 'TRÁNSITOS')).toBe('SÍ');
+    });
+  });
+
+  it('el cierre de bodegas ocupa la casilla que dejó el total de maletas', () => {
+    const h = buildControlRampa(escala({ times: { ...getEmptyTimes(), cargoDoorsClosed: '16:40' } }));
+    expect(buscar(h.tiempos, 'CIERRE BODEGAS')).toBe('16:40');
+    // Y por tanto ya no se repite abajo.
+    expect(h.otros.map((o) => o.label)).not.toContain('Cierre Puertas Bodega');
   });
 
   describe('bodegas y contenedores', () => {
@@ -124,14 +142,12 @@ describe('hoja de Control de Rampa', () => {
         ...getEmptyTimes(),
         chocksOnArrival: '15:32',          // tiene casilla propia
         coordinatorApproval: '15:35',      // no la tiene
-        cargoDoorsClosed: '16:40',
         lirReception: '16:00', lirReception2: '16:20',
         baggageBelt: 'N617', scheduledEta: '15:28',
       },
     }));
     const etiquetas = h.otros.map((o) => o.label);
     expect(etiquetas).toContain('VB Coordinador');
-    expect(etiquetas).toContain('Cierre Puertas Bodega');
     expect(etiquetas).toContain('LIR Ed. 2');
     expect(buscar(h.otros, 'Equipaje')).toBe('Sala 6 · Cinta 17');
     expect(buscar(h.otros, 'ETA')).toBe('15:28');

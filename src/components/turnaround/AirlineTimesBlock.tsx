@@ -69,6 +69,36 @@ const FieldRenderer: React.FC<{
   showRistra3: boolean; setShowRistra3: (v: boolean) => void;
   showRistra4: boolean; setShowRistra4: (v: boolean) => void;
 }> = ({ field, times, updateTime, onChange, getError, disabled, airline, flightDate, visibleLirCount, setVisibleLirCount, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
+  // Sí/no con recuento: el tránsito. Mientras esté en NO no se pide número,
+  // y al apagarlo se borra el que hubiera para no dejar un dato huérfano.
+  if (field.type === 'number-toggle') {
+    const activo = times[field.key] as boolean;
+    const countKey = field.countKey;
+    return (
+      <div key={field.key} className={activo ? 'col-span-2 flex items-end gap-3' : 'flex items-end gap-3'}>
+        <BooleanInput
+          label={field.label}
+          value={activo}
+          onChange={(v) => {
+            if (!v && countKey) onChange({ ...times, [field.key]: false, [countKey]: null });
+            else updateTime(field.key, v);
+          }}
+          disabled={disabled}
+        />
+        {activo && countKey && (
+          <div className="flex-1">
+            <CountInput
+              label="Cuántos"
+              value={times[countKey] as string | null}
+              onChange={(v) => updateTime(countKey, v)}
+              disabled={disabled}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (field.type === 'number') {
     return (
       <CountInput

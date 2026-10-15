@@ -86,8 +86,8 @@ export const jardinerasConHora = (times: TurnaroundTimes): string[] =>
  */
 const EN_LA_HOJA = new Set<string>([
   'chocksOnArrival', 'stairsTime', 'loadingStart', 'loadingEnd', 'chocksOff',
-  'unloadingStart', 'unloadingEnd', 'firstBag', 'transitBags', 'checkedBagsTotal',
-  'cargoArrival', 'cargoDeparture', 'gpuOn', 'gpuOff', 'asu', 'acu',
+  'unloadingStart', 'unloadingEnd', 'firstBag', 'transit', 'transitBags',
+  'cargoArrival', 'cargoDeparture', 'gpuOn', 'gpuOff', 'asu', 'acu', 'cargoDoorsClosed',
   'ropeCount', 'ringCount', 'pushBackTime', 'aviArrival', 'aviDeparture',
   'mailArrival', 'mailDeparture', 'bagSearchStart', 'bagSearchEnd',
   ...JARDINERAS.map(String),
@@ -227,11 +227,12 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
       { label: 'FIN CARGA', value: V(t.loadingEnd) },
       { label: 'ÚLTIMA JARDINERA', value: ultimaJard },
       { label: 'CALZOS SAL.', value: V(t.chocksOff) },
-      { label: 'TRÁNSITOS', value: V(t.transitBags) },
+      // El tránsito es un sí/no y, cuando lo hay, cuántos.
+      { label: 'TRÁNSITOS', value: t.transit ? (V(t.transitBags) || 'SÍ') : 'NO' },
       { label: 'COM. DESC.', value: V(t.unloadingStart) },
       { label: '1ª MALETA', value: V(t.firstBag) },
       { label: 'FIN DESCARGA', value: V(t.unloadingEnd) },
-      { label: 'CIERRE BAGS', value: V(t.checkedBagsTotal) },
+      { label: 'CIERRE BODEGAS', value: V(t.cargoDoorsClosed) },
       { label: 'GPU', value: [V(t.gpuOn), V(t.gpuOff)].filter(Boolean).join(' → ') },
       { label: 'CGO LLEG.', value: siNo(t.cargoArrival) },
       { label: 'CGO SAL.', value: siNo(t.cargoDeparture) },

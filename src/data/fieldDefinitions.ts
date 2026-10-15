@@ -205,7 +205,7 @@ export const CROATIA_FIELDS: FieldDefinition[] = [
   createField('CROATIA', 'BT', 'Tránsito', 1),
   createField('CROATIA', 'BY', 'Local', 2),
   createField('CROATIA', 'BG', 'Gate / Mano / Puerta', 3),
-  createField('CROATIA', 'BP', 'Priority', 4),
+  createField('CROATIA', 'BF', 'Priority', 4),
   createField('CROATIA', 'DAA', 'Delivery at Aircraft (Carrito)', 5),
   createField('CROATIA', 'D', 'Crew', 6),
   createField('CROATIA', 'E', 'Equipment', 7),
