@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown, RefreshCw, Luggage } from 'lucide-react';
+import { ArrowLeft, Save, Clock, AlertTriangle, Loader2, FileText, Plane, Pencil, FileDown, RefreshCw, Luggage, UserRound } from 'lucide-react';
 import { useArionSync } from '@/hooks/useArionSync';
 import { fetchParkingFromArion } from '@/utils/arionParking';
 import { isRemoteParking } from '@/types/turnaround';
@@ -1066,6 +1066,18 @@ const TurnaroundForm: React.FC = () => {
                 <span className="flex items-center gap-1">
                   <Luggage className="h-3 w-3" />
                   {formatBaggageBelt(baggageBelt)}
+                </span>
+              </span>
+            )}
+            {/* Coordinador, detrás de la sala y la cinta. Mismo montaje: la
+                barra va dentro para que viaje con el nombre al saltar de
+                línea, y sin color propio para heredar el de la fila. */}
+            {times.coordinator && (
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                <span aria-hidden>|</span>
+                <span className="flex items-center gap-1">
+                  <UserRound className="h-3 w-3" />
+                  {times.coordinator}
                 </span>
               </span>
             )}

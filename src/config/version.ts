@@ -1,10 +1,10 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.642';
+export const APP_VERSION = '4.650';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'Exportar PDF ahora pregunta qué documento quieres: el informe de escala de siempre (con las imágenes que marques) o la hoja «Control de Rampa», el parte de papel de Aviapartner en una sola A4.',
-  'La hoja se rellena sola con los datos de la escala y lleva al final «Otros registros» con todo lo que la app guarda y el papel no tiene casilla: VB del coordinador, ediciones de la LIR, muelles, ACU, ETA/ETD, sala y cinta…',
-  'Cuatro campos nuevos en la escala para completar la hoja: Tránsitos (llegada), Total Maletas facturadas, Nº Cuerdas y Nº Anillas (salida).',
-  'Los ULD de ITA y TAP salen en «Control de contenedores». En Air Canada, la LIR escaneada se puede adjuntar aparte marcándolo antes de exportar.',
+  'Nuevo campo «Coordinador» en el bloque de llegada: se rellena solo con el nombre que el coordinador escribe en ARION y se puede corregir a mano. Aparece en la cabecera, detrás de la sala y la cinta, y en su casilla de la hoja de Control de Rampa.',
+  'Tránsitos pasa a ser un sí/no: sólo al marcar que sí se pide cuántos, y al quitarlo se borra el número.',
+  'Fuera el campo «Total Maletas» y la casilla «Nº FILE» de la hoja exportada. El hueco lo ocupa ahora la hora de cierre de bodegas.',
+  'Croatia Airlines: el código de Priority pasa de BP a BF.',
 ];
