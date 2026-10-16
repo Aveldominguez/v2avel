@@ -80,6 +80,7 @@ import { useAppUpdate } from '@/hooks/useAppUpdate';
 
 import { WeatherWidget } from '@/components/WeatherWidget';
 import { IssueReportButton } from '@/components/turnaround/IssueReportButton';
+import { numeroVueloVisible } from '@/utils/escalaStart';
 import { useIssueReportNotifications } from '@/hooks/useIssueReportNotifications';
 import { ListRenderBoundary } from '@/components/turnaround/ListRenderBoundary';
 
@@ -776,9 +777,7 @@ const TurnaroundList: React.FC = () => {
                 <div className="aero-recent-list px-3 pb-1">
                   {rows.map((t) => {
                     const status = getCompletionStatus(t);
-                    const flight = (t.times?.soloSalida && t.times?.departureFlightNumber)
-                      ? t.times.departureFlightNumber
-                      : t.flightNumber;
+                    const flight = numeroVueloVisible(t.flightNumber, t.times?.departureFlightNumber);
                     const routeOrigin = t.times?.homeStation || t.times?.originStation || '—';
                     const routeDestination = t.times?.destStation || t.times?.homeStation || '—';
                     const statusLabel = status === 'completed'
@@ -880,7 +879,7 @@ const TurnaroundList: React.FC = () => {
                                 onClick={() => openTurnaround(t.id)}
                                 className="font-mono font-bold text-base text-foreground hover:text-muted-foreground cursor-pointer bg-transparent border-none p-0"
                               >
-                                {(t.times?.soloSalida && t.times?.departureFlightNumber) ? t.times.departureFlightNumber : t.flightNumber}
+                                {numeroVueloVisible(t.flightNumber, t.times?.departureFlightNumber)}
                                 {t.observations && t.observations.replace(/[\s\u200B\uFEFF\u00A0]/g, '').length > 0 && (
                                   <span className="text-destructive ml-0.5">*</span>
                                 )}

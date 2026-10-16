@@ -22,6 +22,7 @@ import { ParkingRefreshButton } from './ParkingRefreshButton';
 import { flightNumberVariants, normalizeFlightNumber } from '@/utils/arionParking';
 import { matchAirlineByArionName } from '@/utils/airlineMatch';
 import { resolveAircraftModel } from '@/utils/aircraftTypeMatch';
+import { puedeContinuar, tieneNumeroReal } from '@/utils/escalaStart';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -128,12 +129,8 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   const isPrefixedMode = airline !== '';
 
   // Check if both flights have real content (not just prefix) and are equal
-  const hasRealArrivalContent = isPrefixedMode
-    ? flightNumber.length > activePrefix.length
-    : flightNumber.trim().length > 0;
-  const hasRealDepartureContent = isPrefixedMode
-    ? departureFlightNumber.length > activePrefix.length
-    : departureFlightNumber.trim().length > 0;
+  const hasRealArrivalContent = tieneNumeroReal(flightNumber, activePrefix, isPrefixedMode);
+  const hasRealDepartureContent = tieneNumeroReal(departureFlightNumber, activePrefix, isPrefixedMode);
   const hasFlightConflict = hasRealArrivalContent && hasRealDepartureContent && flightNumber === departureFlightNumber;
 
   // Flight lookup hooks — independent for arrival and departure
@@ -430,7 +427,10 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
   };
 
   const [showModelError, setShowModelError] = React.useState(false);
-  const canContinue = (soloSalida || flightNumber.trim() !== '') && airline !== '' && aircraftModel !== '';
+  // Vale cualquiera de los dos números: ver utils/escalaStart.
+  const canContinue = puedeContinuar({
+    flightNumber, departureFlightNumber, prefijo: activePrefix, airline, soloSalida,
+  });
 
   // Clear error once a model is chosen
   React.useEffect(() => {
@@ -890,7 +890,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
           {/* Continue */}
           <Button
             onClick={handleContinueClick}
-            disabled={(!soloSalida && flightNumber.trim() === '') || airline === ''}
+            disabled={!canContinue}
             className="w-full gap-2 h-12 text-lg font-semibold"
             size="lg"
           >
