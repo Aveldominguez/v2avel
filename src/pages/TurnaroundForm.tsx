@@ -3,7 +3,7 @@ import { useDisplayName } from '@/hooks/useDisplayName';
 import { useNavigate, useParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
-import { TurnaroundTimes, AirlineCode, FieldValue, TimeValidationError, AIRLINES } from '@/types/turnaround';
+import { TurnaroundTimes, AirlineCode, FieldValue, TimeValidationError, AIRLINES, getAirlinePrefix } from '@/types/turnaround';
 import { getModelsForAirline } from '@/data/aircraftModels';
 import { validateTimes, formatDateTime } from '@/utils/timeValidation';
 import { useTurnarounds } from '@/hooks/useTurnarounds';
@@ -34,6 +34,7 @@ import { isRemoteParking } from '@/types/turnaround';
 import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
 import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { nombreCoordinador } from '@/utils/coordinatorName';
+import { hayNumeroDeVuelo } from '@/utils/escalaStart';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -579,17 +580,36 @@ const TurnaroundForm: React.FC = () => {
     }
   }, [id, flightNumber, date, airline, fieldValues, observations, isEditing, isOnline, getTimesWithFlightInfo, updateTurnaround, enqueue]);
 
+  /**
+   * Hace falta un número de vuelo, pero sirve el de salida: hay escalas en
+   * las que sólo se hace la salida y el de llegada no se conoce. Exigir el de
+   * llegada dejaba la escala bloqueada después de haberse autocompletado
+   * entera con el número de salida.
+   */
+  const faltaNumeroDeVuelo = useCallback(() => !hayNumeroDeVuelo({
+    flightNumber,
+    departureFlightNumber,
+    prefijo: getAirlinePrefix(selectedAirline),
+    airline,
+  }), [flightNumber, departureFlightNumber, selectedAirline, airline]);
+
+  const avisoSinNumero = () => toast({
+    title: 'Campo requerido',
+    description: 'Escribe el número de vuelo, el de llegada o el de salida.',
+    variant: 'destructive',
+  });
+
   const handleContinue = () => {
-    if (!flightNumber.trim()) {
-      toast({ title: 'Campo requerido', description: 'Ingrese el número de vuelo', variant: 'destructive' });
+    if (faltaNumeroDeVuelo()) {
+      avisoSinNumero();
       return;
     }
     setStep(2);
   };
 
   const handleSave = useCallback(async () => {
-    if (!flightNumber.trim()) {
-      toast({ title: 'Campo requerido', description: 'Ingrese el número de vuelo', variant: 'destructive' });
+    if (faltaNumeroDeVuelo()) {
+      avisoSinNumero();
       return;
     }
 
@@ -701,7 +721,7 @@ const TurnaroundForm: React.FC = () => {
     } finally {
       setSaving(false);
     }
-  }, [flightNumber, date, airline, fieldValues, observations, isEditing, id, navigate, createTurnaround, updateTurnaround, getTimesWithFlightInfo, isOnline, enqueue]);
+  }, [faltaNumeroDeVuelo, flightNumber, date, airline, fieldValues, observations, isEditing, id, navigate, createTurnaround, updateTurnaround, getTimesWithFlightInfo, isOnline, enqueue]);
 
   // ---- Parking en vivo -------------------------------------------------
   // En LEMD el parking se asigna ~1 h antes del vuelo y puede cambiar hasta

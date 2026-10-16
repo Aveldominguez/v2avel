@@ -45,6 +45,21 @@ export const puedeContinuar = (e: InicioEscala): boolean => {
 };
 
 /**
+ * ¿La escala tiene con qué identificarse?
+ *
+ * Vale cualquiera de los dos vuelos. Es la misma pregunta que la del botón
+ * de continuar, pero sin el caso de «sólo salida»: ahí el botón deja pasar
+ * para que se pueda elegir la aerolínea antes de tener el número, mientras
+ * que para avanzar de pantalla y para guardar hace falta un número de verdad,
+ * o la escala se queda sin forma de encontrarla luego.
+ */
+export const hayNumeroDeVuelo = (e: Omit<InicioEscala, 'soloSalida'>): boolean => {
+  const hayAerolinea = e.airline !== '';
+  return tieneNumeroReal(e.flightNumber, e.prefijo, hayAerolinea) ||
+    tieneNumeroReal(e.departureFlightNumber, e.prefijo, hayAerolinea);
+};
+
+/**
  * Número con el que se identifica la escala en el historial.
  *
  * Si no hay vuelo de llegada se enseña el de salida, se haya marcado «sólo
