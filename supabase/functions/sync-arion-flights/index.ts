@@ -352,7 +352,24 @@ serve(async (req) => {
             .select('*', { count: 'exact', head: true })
             .eq('flight_sn', String(f.sn))
             .eq('flight_date', rowDate);
+
+          // El atajo no vale mientras falte el coordinador: lo escribe él
+          // mismo al firmar, DESPUÉS de la escala, y para entonces el CPM ya
+          // está guardado. Saltándose siempre el detalle no llegaría nunca.
+          let yaHayCoordinador = false;
           if (existingCpm && existingCpm > 0) {
+            const { data: previa } = await admin
+              .from('scheduled_flights')
+              .select('coordinator')
+              .eq('flight_number', String(f.fn).trim())
+              .eq('flight_date', rowDate)
+              .eq('movement_type', f.movementType ?? null)
+              .limit(1)
+              .maybeSingle();
+            yaHayCoordinador = Boolean(previa?.coordinator);
+          }
+
+          if (existingCpm && existingCpm > 0 && yaHayCoordinador) {
             // Already have CPM — skip the ARION detail call entirely
             return {
               user_id: userId,
