@@ -47,6 +47,7 @@ export interface ControlRampa {
     capataz: string;
     tipoAvion: string;
     matricula: string;
+    coordinador: string;
   };
   vuelo: {
     llegada: string; origen: string; sta: string; parking: string; pushback: string;
@@ -88,7 +89,7 @@ const EN_LA_HOJA = new Set<string>([
   'chocksOnArrival', 'stairsTime', 'loadingStart', 'loadingEnd', 'chocksOff',
   'unloadingStart', 'unloadingEnd', 'firstBag', 'transit', 'transitBags',
   'cargoArrival', 'cargoDeparture', 'gpuOn', 'gpuOff', 'asu', 'acu', 'cargoDoorsClosed',
-  'ropeCount', 'ringCount', 'pushBackTime', 'aviArrival', 'aviDeparture',
+  'ropeCount', 'ringCount', 'pushBackTime', 'aviArrival', 'aviDeparture', 'coordinator',
   'mailArrival', 'mailDeparture', 'bagSearchStart', 'bagSearchEnd',
   ...JARDINERAS.map(String),
 ]);
@@ -207,6 +208,7 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
       capataz: d.capataz,
       tipoAvion: V(d.aircraftModel),
       matricula: V(t.matricula),
+      coordinador: V(t.coordinator),
     },
     vuelo: {
       llegada: t.soloSalida ? '' : V(d.flightNumber),

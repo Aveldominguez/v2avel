@@ -33,6 +33,7 @@ import { fetchParkingFromArion } from '@/utils/arionParking';
 import { isRemoteParking } from '@/types/turnaround';
 import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
 import { formatBaggageBelt } from '@/utils/baggageBelt';
+import { nombreCoordinador } from '@/utils/coordinatorName';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -172,7 +173,7 @@ const TurnaroundForm: React.FC = () => {
           }
         }
 
-        const SELECT_COLS = 'flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date, departure_fn, baggage_belt';
+        const SELECT_COLS = 'flight_number, movement_type, source_station, home_station, ldm_raw, airline_logo, sdt, edt, connection_sdt, flight_date, departure_fn, baggage_belt, coordinator';
         const { data } = await supabase
           .from('scheduled_flights')
           .select(SELECT_COLS)
@@ -216,6 +217,8 @@ const TurnaroundForm: React.FC = () => {
         const logo = ((arrival as any)?.airline_logo ?? (departure as any)?.airline_logo) ?? null;
         // Se entrega en la llegada, así que sólo se mira esa fila.
         const belt = (arrival as any)?.baggage_belt ?? null;
+        // El coordinador firma en cualquiera de los dos movimientos.
+        const coord = nombreCoordinador((arrival as any)?.coordinator) ?? nombreCoordinador((departure as any)?.coordinator);
         const extractTime = (val: string | null | undefined): string | null => {
           if (!val) return null;
           const m = String(val).match(/(\d{2}:\d{2})$/);
@@ -231,6 +234,9 @@ const TurnaroundForm: React.FC = () => {
         if (ldm !== null) setLdmRaw(ldm);
         if (logo !== null) setAirlineLogo(logo);
         if (belt !== null) setBaggageBelt(belt);
+        // Sólo si está vacío: cuando se abre la escala el coordinador aún no
+        // ha firmado y lo normal es escribirlo a mano. Lo escrito manda.
+        if (coord) setTimes((t) => (t.coordinator ? t : { ...t, coordinator: coord }));
         if (sta !== null) setScheduledArrival(sta);
         if (eta !== null) setScheduledEta(eta);
         if (std !== null) setScheduledStd(std);

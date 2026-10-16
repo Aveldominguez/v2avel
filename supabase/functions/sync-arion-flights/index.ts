@@ -384,6 +384,7 @@ serve(async (req) => {
           }
 
           let baggage_belt: string | null = null;
+          let coordinator: string | null = null;
           try {
             const detailResp = await fetch(`${ARION_BASE}/flights/${f.sn}`, { headers: authHeaders });
             if (detailResp.ok) {
@@ -393,6 +394,14 @@ serve(async (req) => {
               // Sala y cinta de equipaje. Sólo tiene sentido en la llegada, que
               // es donde se entrega. Se guarda sin partir: ver la migración.
               baggage_belt = detail?.arrival?.secondaryGateNumber || null;
+              // Coordinador: ARION no tiene campo propio y lo deja en el
+              // "breve comentario", que es texto libre. Se guarda tal cual
+              // llega, como el parking; quién decide si eso es un nombre es
+              // la app, en utils/coordinatorName.ts.
+              const comentario = String(
+                side?.shortRemark ?? detail?.arrival?.shortRemark ?? detail?.departure?.shortRemark ?? '',
+              ).trim();
+              coordinator = comentario || null;
               scheduled_arrival_time =
                 detail?.arrival?.scheduledArrivalTime ??
                 detail?.arrival?.sta ??
@@ -495,6 +504,7 @@ serve(async (req) => {
             aircraft_type: f.aircraftType ?? null,
             parking_code: f.parkingCode ?? null,
             baggage_belt,
+            coordinator,
             source_station: f.sourceStation ?? null,
             home_station: station_code,
             edt: f.edt ?? null,

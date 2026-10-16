@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const getEmptyTimes = (): TurnaroundTimes => ({
   lirReception: null,
   chocksOnArrival: null,
+  coordinator: null,
   transit: false,
   transitBags: null,
   ropeCount: null,

@@ -31,6 +31,7 @@ describe('hoja de Control de Rampa', () => {
       },
     }));
     expect(h.cabecera).toMatchObject({ fecha: '13/10/26', capataz: 'Avel', tipoAvion: 'A320', matricula: 'CSTNV' });
+    expect(h.cabecera.coordinador).toBe('');
     expect(h.vuelo).toMatchObject({
       llegada: 'TP1018', origen: 'LIS', sta: '15:30', parking: 'T16',
       pushback: '16:55', salida: 'TP1019', destino: 'OPO', std: '16:50',
@@ -153,6 +154,13 @@ describe('hoja de Control de Rampa', () => {
     expect(buscar(h.otros, 'ETA')).toBe('15:28');
     // Lo que ya está en una casilla de la hoja no se repite abajo.
     expect(etiquetas).not.toContain('Calzos Llegada');
+  });
+
+  it('el coordinador que vino de ARION va a su casilla', () => {
+    const h = buildControlRampa(escala({ times: { ...getEmptyTimes(), coordinator: 'FEDERICO' } }));
+    expect(h.cabecera.coordinador).toBe('FEDERICO');
+    // Y no se repite abajo, que ya tiene sitio arriba.
+    expect(h.otros.map((o) => o.label)).not.toContain('Coordinador');
   });
 
   it('las observaciones recogen también la incidencia', () => {

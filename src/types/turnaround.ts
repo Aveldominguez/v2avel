@@ -19,6 +19,10 @@ export interface TurnaroundTimes {
   // no lo da no se pueden abrir bodegas ni empezar a trabajar, así que va
   // entre los calzos de llegada y el inicio de descarga.
   coordinatorApproval: string | null;    // VB Coordinador (walk around)
+  // Quién es el coordinador. Llega de ARION, que lo deja en el "breve
+  // comentario" del vuelo, y se puede escribir a mano: cuando se abre la
+  // escala muchas veces todavía no ha firmado nadie.
+  coordinator: string | null;            // Nombre del coordinador
   stairsTime: string | null;             // Puesta de Escalera (Llegada)
   stairsRemovalArrival: string | null;   // Retirada de Escalera (Llegada)
   unloadingStart: string | null;         // Inicio Descarga
@@ -230,7 +234,7 @@ export interface TimeFieldConfig {
   key: keyof TurnaroundTimes;
   label: string;
   clockColor?: 'green' | 'red' | 'default';
-  type: 'time' | 'boolean' | 'boolean-text' | 'acu' | 'number' | 'number-toggle';
+  type: 'time' | 'boolean' | 'boolean-text' | 'acu' | 'number' | 'number-toggle' | 'text';
   /** Para 'number-toggle': dónde se guarda el recuento que acompaña al sí/no. */
   countKey?: keyof TurnaroundTimes;
 }
@@ -239,6 +243,7 @@ export interface TimeFieldConfig {
 const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
   { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
+  { key: 'coordinator', label: 'Coordinador', type: 'text' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
@@ -252,6 +257,7 @@ const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
 const ARRIVAL_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
   { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
+  { key: 'coordinator', label: 'Coordinador', type: 'text' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
@@ -412,6 +418,7 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   aviDeparture: 'AVI Salida',
   asu: 'ASU',
   acu: 'ACU',
+  coordinator: 'Coordinador',
   transit: 'Tránsitos',
   transitBags: 'Tránsitos (cuántos)',
   ropeCount: 'Nº Cuerdas',
@@ -555,6 +562,7 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, solo
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
   'coordinatorApproval',
+  'coordinator',
   'transit',
   'transitBags',
   'stairsTime',

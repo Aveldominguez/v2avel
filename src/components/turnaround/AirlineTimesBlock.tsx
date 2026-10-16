@@ -69,6 +69,22 @@ const FieldRenderer: React.FC<{
   showRistra3: boolean; setShowRistra3: (v: boolean) => void;
   showRistra4: boolean; setShowRistra4: (v: boolean) => void;
 }> = ({ field, times, updateTime, onChange, getError, disabled, airline, flightDate, visibleLirCount, setVisibleLirCount, showDock2, setShowDock2, showDock3, setShowDock3, showDock4, setShowDock4, busKeys, visibleBusCount, setVisibleBusCount, showRistra2, setShowRistra2, showRistra3, setShowRistra3, showRistra4, setShowRistra4 }) => {
+  if (field.type === 'text') {
+    return (
+      <div key={field.key} className="flex flex-col gap-2">
+        <label className="text-xs uppercase tracking-wide text-muted-foreground">{field.label}</label>
+        <Input
+          type="text"
+          value={(times[field.key] as string) || ''}
+          onChange={(e) => updateTime(field.key, e.target.value.toUpperCase() || null)}
+          disabled={disabled}
+          placeholder="—"
+          className="input-operational h-12 text-center font-mono text-base"
+        />
+      </div>
+    );
+  }
+
   // Sí/no con recuento: el tránsito. Mientras esté en NO no se pide número,
   // y al apagarlo se borra el que hubiera para no dejar un dato huérfano.
   if (field.type === 'number-toggle') {

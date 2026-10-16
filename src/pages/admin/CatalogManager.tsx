@@ -718,6 +718,7 @@ const TIME_FIELD_DEFAULT_LABELS: Record<string, string> = {
   loadingEnd: 'Fin Carga',
   firstBag: '1ª Maleta',
   coordinatorApproval: 'VB Coordinador',
+  coordinator: 'Coordinador',
   transit: 'Tránsitos',
   transitBags: 'Tránsitos (cuántos)',
   ropeCount: 'Nº Cuerdas',

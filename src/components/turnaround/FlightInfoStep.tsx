@@ -259,7 +259,7 @@ export const FlightInfoStep: React.FC<FlightInfoStepProps> = ({
         if (numero.length < 3) return [];
         const { data: allRows } = await supabase
           .from('scheduled_flights')
-          .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration, synced_at')
+          .select('flight_number, parking_code, departure_fn, edt, sdt, connection_sdt, aircraft_type, etd, airline_code, flight_date, registration, synced_at, coordinator')
           .in('flight_number', flightNumberVariants(numero))
           .eq('movement_type', movimiento)
           .in('flight_date', [formDateISO, nextDayISO, prevDayISO])

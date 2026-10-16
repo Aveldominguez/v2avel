@@ -1,5 +1,5 @@
 {
-  "version": "4.640",
+  "version": "4.642",
   "changelog": [
     "Exportar PDF ahora pregunta qué documento quieres: el informe de escala de siempre (con las imágenes que marques) o la hoja «Control de Rampa», el parte de papel de Aviapartner en una sola A4.",
     "La hoja se rellena sola con los datos de la escala y lleva al final «Otros registros» con todo lo que la app guarda y el papel no tiene casilla: VB del coordinador, ediciones de la LIR, muelles, ACU, ETA/ETD, sala y cinta…",

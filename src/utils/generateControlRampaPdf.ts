@@ -96,7 +96,7 @@ const cuerpoHoja = (h: ControlRampa, logoUrl: string, aerolinea: string): string
     { label: 'NOMBRE CAPATAZ', value: h.cabecera.capataz },
     { label: 'TIPO AVIÓN', value: h.cabecera.tipoAvion },
     { label: 'REG.', value: h.cabecera.matricula },
-    { label: 'COORDINAD@R', value: '' },
+    { label: 'COORDINAD@R', value: h.cabecera.coordinador },
   ])}
 
   ${bloqueCasillas([
