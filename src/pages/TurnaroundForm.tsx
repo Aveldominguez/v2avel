@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDisplayName } from '@/hooks/useDisplayName';
+import { useMyProfile } from '@/hooks/useMyProfile';
 import { useNavigate, useParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
@@ -71,7 +71,7 @@ const TurnaroundForm: React.FC = () => {
   const [remoteLocation, setRemoteLocation] = useState('');
   const [matricula, setMatricula] = useState('');
   // Firma la hoja de Control de Rampa como capataz.
-  const nombreCapataz = useDisplayName();
+  const { displayName: nombreCapataz } = useMyProfile();
   const [soloLlegada, setSoloLlegada] = useState(false);
   const [soloSalida, setSoloSalida] = useState(false);
   const [pushBack, setPushBack] = useState(false);

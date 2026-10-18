@@ -66,6 +66,8 @@ import {
   BarChart3,
   CheckCircle,
   Bug,
+  UserRound,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -81,6 +83,8 @@ import { useAppUpdate } from '@/hooks/useAppUpdate';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import { IssueReportButton } from '@/components/turnaround/IssueReportButton';
 import { numeroVueloVisible } from '@/utils/escalaStart';
+import { MyProfileDialog } from '@/components/MyProfileDialog';
+import { StandaloneReportDialog } from '@/components/StandaloneReportDialog';
 import { useIssueReportNotifications } from '@/hooks/useIssueReportNotifications';
 import { ListRenderBoundary } from '@/components/turnaround/ListRenderBoundary';
 
@@ -112,6 +116,14 @@ const TurnaroundList: React.FC = () => {
   const abrirReporteApp = useCallback(() => {
     setMenuOpen(false);
     setTimeout(() => setShowAppReport(true), 300);
+  }, []);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showInforme, setShowInforme] = useState(false);
+  // Mismo truco que con el reporte de fallos: el menú se cierra al pulsar y
+  // se llevaría el diálogo por delante si se montara dentro.
+  const abrirInforme = useCallback(() => {
+    setMenuOpen(false);
+    setTimeout(() => setShowInforme(true), 300);
   }, []);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -472,6 +484,9 @@ const TurnaroundList: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      <MyProfileDialog open={showProfileDialog} onOpenChange={setShowProfileDialog} />
+      <StandaloneReportDialog open={showInforme} onOpenChange={setShowInforme} />
+
       {/* Reporte de la app en general: sin vuelo detrás, se abre desde el menú. */}
       <IssueReportButton
         general
@@ -571,6 +586,10 @@ const TurnaroundList: React.FC = () => {
                       Actualizar app
                     </button>
                   </SheetClose>
+                  <button onClick={abrirInforme} className="aero-home-menu-link flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
+                    <AlertTriangle className="h-5 w-5 text-sidebar-primary" />
+                    Generar informe
+                  </button>
                   <button onClick={abrirReporteApp} className="aero-home-menu-link flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                     <Bug className="h-5 w-5 text-sidebar-primary" />
                     Reportar fallo de la app
@@ -607,6 +626,10 @@ const TurnaroundList: React.FC = () => {
                   <BarChart3 className="h-4 w-4 text-primary" />
                   Escalas registradas: <strong>{totalRecords ?? '—'}</strong>
                 </div>
+                <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => setShowProfileDialog(true)}>
+                  <UserRound className="h-4 w-4" />
+                  Mis datos
+                </Button>
                 <Button variant="ghost" className="w-full justify-start gap-2" onClick={() => setShowPasswordDialog(true)}>
                   <KeyRound className="h-4 w-4" />
                   Cambiar contraseña

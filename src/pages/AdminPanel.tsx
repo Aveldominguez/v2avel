@@ -25,7 +25,7 @@ import { Label } from '@/components/ui/label';
 import {
   ArrowLeft, Shield, Users, CheckCircle, XCircle, Trash2, Eye, EyeOff,
   Loader2, ShieldCheck, Link, Plane, LogOut, UserPlus, KeyRound,
-  Download, Upload, Sparkles, RefreshCw, Settings,
+  Download, Upload, Sparkles, RefreshCw, Settings, Pencil,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
@@ -48,6 +48,8 @@ const AdminPanel: React.FC = () => {
     exportUserTurnarounds, importUserTurnarounds,
     createUser,
     changePassword,
+    changeDisplayName,
+    changeEmail,
     setUserModule,
   } = useAdmin();
 
@@ -64,6 +66,11 @@ const AdminPanel: React.FC = () => {
   const [newModules, setNewModules] = useState<{ rampa: boolean; equipos: boolean }>({ rampa: true, equipos: false });
   const [createLoading, setCreateLoading] = useState(false);
   const [passwordDialog, setPasswordDialog] = useState<{ userId: string; email: string } | null>(null);
+  // Edición de la ficha: nombre y correo de acceso.
+  const [fichaDialog, setFichaDialog] = useState<{ userId: string; email: string; displayName: string } | null>(null);
+  const [fichaNombre, setFichaNombre] = useState('');
+  const [fichaCorreo, setFichaCorreo] = useState('');
+  const [fichaGuardando, setFichaGuardando] = useState(false);
   const [newUserPassword, setNewUserPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -646,6 +653,18 @@ const AdminPanel: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                onClick={() => {
+                                  setFichaDialog({ userId: u.user_id, email: u.email, displayName: u.display_name ?? '' });
+                                  setFichaNombre(u.display_name ?? '');
+                                  setFichaCorreo(u.email);
+                                }}
+                                title="Editar nombre y correo"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => handleViewTurnarounds(u.user_id, u.email)}
                                 title="Ver escalas"
                               >
@@ -896,6 +915,71 @@ const AdminPanel: React.FC = () => {
             >
               {createLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
               Crear Usuario
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ficha del usuario: nombre y correo de acceso */}
+      <Dialog open={!!fichaDialog} onOpenChange={() => { if (!fichaGuardando) setFichaDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar usuario</DialogTitle>
+            <DialogDescription>
+              Nombre y correo de acceso de {fichaDialog?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ficha-nombre">Nombre</Label>
+              <Input
+                id="ficha-nombre"
+                value={fichaNombre}
+                onChange={(e) => setFichaNombre(e.target.value)}
+                placeholder="Nombre y apellido"
+                maxLength={60}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ficha-correo">Correo de acceso</Label>
+              <Input
+                id="ficha-correo"
+                type="email"
+                value={fichaCorreo}
+                onChange={(e) => setFichaCorreo(e.target.value)}
+                placeholder="nombre@dominio.com"
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Es el correo con el que esta persona inicia sesión. El cambio es inmediato y queda
+                dado por válido: no se le envía ningún correo de confirmación, así que avísale tú.
+              </p>
+            </div>
+            <Button
+              className="w-full gap-2"
+              disabled={fichaGuardando || !fichaNombre.trim() || !fichaCorreo.trim()}
+              onClick={async () => {
+                if (!fichaDialog) return;
+                setFichaGuardando(true);
+                try {
+                  const nombreCambia = fichaNombre.trim() !== (fichaDialog.displayName ?? '').trim();
+                  const correoCambia = fichaCorreo.trim().toLowerCase() !== fichaDialog.email.toLowerCase();
+                  if (nombreCambia) await changeDisplayName(fichaDialog.userId, fichaNombre);
+                  if (correoCambia) await changeEmail(fichaDialog.userId, fichaCorreo);
+                  toast({
+                    title: nombreCambia || correoCambia ? 'Usuario actualizado' : 'Sin cambios',
+                    description: correoCambia ? 'Avisa al usuario de su nuevo correo de acceso.' : undefined,
+                  });
+                  setFichaDialog(null);
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                } finally {
+                  setFichaGuardando(false);
+                }
+              }}
+            >
+              {fichaGuardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
+              Guardar cambios
             </Button>
           </div>
         </DialogContent>

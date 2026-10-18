@@ -351,6 +351,48 @@ export const useAdmin = () => {
     return data;
   };
 
+  /**
+   * Nombre visible de un usuario. Los administradores ya pueden escribir en
+   * la tabla de perfiles, así que no hace falta pasar por ninguna función.
+   */
+  const changeDisplayName = async (userId: string, nuevoNombre: string) => {
+    const limpio = nuevoNombre.trim().replace(/\s+/g, ' ');
+    if (!limpio) throw new Error('El nombre no puede estar vacío');
+    if (limpio.length > 60) throw new Error('El nombre no puede pasar de 60 caracteres');
+    const { error } = await supabase.from('profiles').update({ display_name: limpio }).eq('user_id', userId);
+    if (error) throw error;
+    await fetchUsers();
+  };
+
+  /**
+   * Correo de acceso. Esto NO se puede hacer desde el cliente: cambia la
+   * cuenta en auth, así que va por la función con permisos de administrador.
+   */
+  const changeEmail = async (userId: string, nuevoCorreo: string) => {
+    const { data, error } = await supabase.functions.invoke('change-email', {
+      body: { user_id: userId, new_email: nuevoCorreo.trim().toLowerCase() },
+    });
+
+    if (error) {
+      // El mensaje de verdad viene en el cuerpo de la respuesta, no en
+      // error.message (ver changePassword, mismo caso).
+      let realMessage = error.message || 'Error al cambiar el correo';
+      try {
+        const ctx: any = (error as any).context;
+        if (ctx && typeof ctx.json === 'function') {
+          const body = await ctx.clone().json();
+          if (body?.error) realMessage = body.error;
+        }
+      } catch {
+        // se queda el mensaje genérico
+      }
+      throw new Error(realMessage);
+    }
+    if (data?.error) throw new Error(data.error);
+    await fetchUsers();
+    return data;
+  };
+
   return {
     isAdmin,
     loading,
@@ -368,6 +410,8 @@ export const useAdmin = () => {
     importUserTurnarounds,
     createUser,
     changePassword,
+    changeDisplayName,
+    changeEmail,
     setUserModule,
   };
 };
