@@ -1,9 +1,9 @@
 {
-  "version": "4.680",
+  "version": "4.690",
   "changelog": [
-    "Nuevo «Mis datos» en el menú de tu cuenta: ya puedes cambiar tu propio nombre, que es el que sale como capataz en la hoja de Control de Rampa y en los informes.",
-    "El administrador puede editar el nombre y el correo de acceso de cualquier usuario desde «Todos los Usuarios».",
-    "Nuevo «Generar informe» en el menú de inicio: el impreso de incidente de la empresa sin necesidad de una escala, con tu nombre, la fecha de los hechos y la ubicación. Se guarda, se puede reabrir y se exporta o comparte en PDF.",
-    "El coordinador se escribe tocando su nombre en la cabecera de la escala. Antes tenía una casilla en el bloque de llegada, que ocupaba sitio y no existía en las escalas de sólo salida."
+    "Arreglado: el generador de informes se salía de la pantalla en el móvil cuando ya había informes guardados, y los campos de fecha y ubicación se montaban uno sobre otro.",
+    "En el móvil la fecha y la ubicación van una debajo de otra; en tablet y ordenador siguen lado a lado.",
+    "La lista de informes guardados enseña sólo la primera línea, la fecha y el lugar, que es lo que hace falta para reconocerlos.",
+    "El mismo fallo estaba latente en todas las ventanas emergentes de la app: cualquiera con un texto largo podía desbordarse. Corregido de raíz."
   ]
 }
