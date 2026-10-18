@@ -11,6 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,6 +83,11 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
   const [exportando, setExportando] = useState(false);
   const [compartiendo, setCompartiendo] = useState(false);
   const [previos, setPrevios] = useState<InformeGuardado[]>([]);
+  // Un informe no se borra de un toque: la papelera está pegada a la fila
+  // que se pulsa para abrirlo, y en el móvil un roce se lleva por delante
+  // algo que puede haber costado media escala escribir.
+  const [aBorrar, setABorrar] = useState<InformeGuardado | null>(null);
+  const [borrando, setBorrando] = useState(false);
 
   const limpiar = useCallback(() => {
     setEditandoId(null);
@@ -196,22 +205,33 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
     setDescripcion(r.description);
   };
 
-  const borrarPrevio = async (id: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any).from('standalone_reports').delete().eq('id', id);
-    if (error) {
-      toast({ title: 'No se pudo borrar', variant: 'destructive' });
-      return;
+  const borrarPrevio = async () => {
+    if (!aBorrar) return;
+    setBorrando(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from('standalone_reports').delete().eq('id', aBorrar.id);
+      if (error) throw error;
+      if (editandoId === aBorrar.id) limpiar();
+      await cargarPrevios();
+      toast({ title: 'Informe borrado' });
+      setABorrar(null);
+    } catch (e) {
+      toast({
+        title: 'No se pudo borrar',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setBorrando(false);
     }
-    if (editandoId === id) limpiar();
-    await cargarPrevios();
-    toast({ title: 'Informe borrado' });
   };
 
   const ocupado = guardando || exportando || compartiendo;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!ocupado) onOpenChange(v); }}>
+    <>
+      <Dialog open={open} onOpenChange={(v) => { if (!ocupado) onOpenChange(v); }}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -307,7 +327,7 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
                   </button>
                   <button
                     type="button"
-                    onClick={() => borrarPrevio(r.id)}
+                    onClick={() => setABorrar(r)}
                     className="shrink-0 rounded p-1 text-muted-foreground hover:text-destructive"
                     aria-label="Borrar informe"
                   >
@@ -319,6 +339,36 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
           )}
         </div>
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      <AlertDialog open={!!aBorrar} onOpenChange={(v) => { if (!v && !borrando) setABorrar(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar este informe?</AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              {aBorrar && (
+                <>
+                  <span className="mb-2 block font-mono text-xs">
+                    {fechaImpresa(aBorrar.report_date)}{aBorrar.location ? ` · ${aBorrar.location}` : ''}
+                  </span>
+                  <span className="mb-2 block italic">«{resumenInforme(aBorrar.description, 120)}»</span>
+                </>
+              )}
+              No se puede deshacer. Si ya lo has entregado en PDF, esa copia no se borra.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={borrando}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void borrarPrevio(); }}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={borrando}
+            >
+              {borrando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

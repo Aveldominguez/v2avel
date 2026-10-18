@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { generateIncidentPdf } from '@/utils/generateIncidentPdf';
@@ -45,6 +49,7 @@ export const StandaloneReportsCard: React.FC<StandaloneReportsCardProps> = ({ us
   const [cargando, setCargando] = useState(true);
   const [exportando, setExportando] = useState<string | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
+  const [aBorrar, setABorrar] = useState<StandaloneReport | null>(null);
   const [filtro, setFiltro] = useState('');
   const [autor, setAutor] = useState('TODOS');
   const [abierto, setAbierto] = useState(false);
@@ -134,13 +139,13 @@ export const StandaloneReportsCard: React.FC<StandaloneReportsCardProps> = ({ us
   };
 
   const borrar = async (r: StandaloneReport) => {
-    if (!confirm(`¿Borrar el informe de ${r.author_name} del ${fechaImpresa(r.report_date)}?`)) return;
     setBorrando(r.id);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any).from('standalone_reports').delete().eq('id', r.id);
       if (error) throw error;
       setInformes((prev) => prev.filter((x) => x.id !== r.id));
+      setABorrar(null);
       toast({ title: 'Informe borrado' });
     } catch (e) {
       toast({
@@ -264,7 +269,7 @@ export const StandaloneReportsCard: React.FC<StandaloneReportsCardProps> = ({ us
                   variant="ghost"
                   size="sm"
                   className="ml-auto gap-1.5 text-xs text-destructive hover:text-destructive"
-                  onClick={() => borrar(r)}
+                  onClick={() => setABorrar(r)}
                   disabled={borrando === r.id}
                 >
                   {borrando === r.id
@@ -281,6 +286,37 @@ export const StandaloneReportsCard: React.FC<StandaloneReportsCardProps> = ({ us
         )}
       </CardContent>
       )}
+
+      <AlertDialog open={!!aBorrar} onOpenChange={(v) => { if (!v && !borrando) setABorrar(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar este informe?</AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              {aBorrar && (
+                <>
+                  <span className="mb-2 block font-mono text-xs">
+                    {aBorrar.author_name} · {fechaImpresa(aBorrar.report_date)}
+                    {aBorrar.location ? ` · ${aBorrar.location}` : ''}
+                  </span>
+                  <span className="mb-2 block italic">«{resumenInforme(aBorrar.description, 120)}»</span>
+                </>
+              )}
+              No se puede deshacer, y es el informe de otra persona: si lo necesitas sólo
+              para dejar de verlo en la lista, no lo borres.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!borrando}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); if (aBorrar) void borrar(aBorrar); }}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={!!borrando}
+            >
+              {borrando ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

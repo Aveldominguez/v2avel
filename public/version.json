@@ -1,6 +1,6 @@
 {
-  "version": "4.710",
+  "version": "4.720",
   "changelog": [
-    "Cambios en el panel de administración. Nada que afecte al trabajo del día a día."
+    "Borrar un informe ahora pide confirmación: se ve de cuál se trata (fecha, lugar y primera línea) y hay que elegir entre Eliminar y Cancelar. Antes se borraba al primer toque, y en el móvil la papelera está pegada al informe."
   ]
 }
