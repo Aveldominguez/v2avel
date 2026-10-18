@@ -1,14 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertTriangle, FileDown, Loader2, MapPin, RefreshCw, Trash2, UserRound } from 'lucide-react';
+import {
+  AlertTriangle, ChevronDown, ChevronUp, FileDown, Loader2, MapPin, RefreshCw, Trash2, UserRound,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { generateIncidentPdf } from '@/utils/generateIncidentPdf';
-import { fechaImpresa, nombreArchivoInforme } from '@/components/StandaloneReportDialog';
+import { fechaImpresa, nombreArchivoInforme, resumenInforme } from '@/components/StandaloneReportDialog';
 
 export interface StandaloneReport {
   id: string;
@@ -20,20 +23,32 @@ export interface StandaloneReport {
   created_at: string;
 }
 
+interface StandaloneReportsCardProps {
+  /** Para poder filtrar por persona enseñando su correo, no sólo el nombre. */
+  usuarios?: { user_id: string; email: string; display_name: string | null }[];
+}
+
 /**
  * Los informes de incidente que no van ligados a una escala, todos juntos.
  *
- * Son los que se hacen desde la pantalla de inicio. El administrador los ve
- * completos porque un informe de incidente es justo lo que un responsable
- * tiene que poder leer, y puede reexportar el PDF tal cual lo entregó quien
- * lo escribió.
+ * Son los que se hacen desde la pantalla de inicio. El administrador puede
+ * leerlos enteros —un informe de incidente es justo lo que un responsable
+ * tiene que poder leer— y reexportar el PDF tal cual lo entregó quien lo
+ * escribió.
+ *
+ * La lista nace plegada y cada informe se abre uno a uno: con el texto
+ * completo de todos a la vez, el panel se hacía kilométrico y había que
+ * bajar media pantalla para llegar a lo siguiente.
  */
-export const StandaloneReportsCard: React.FC = () => {
+export const StandaloneReportsCard: React.FC<StandaloneReportsCardProps> = ({ usuarios = [] }) => {
   const [informes, setInformes] = useState<StandaloneReport[]>([]);
   const [cargando, setCargando] = useState(true);
   const [exportando, setExportando] = useState<string | null>(null);
   const [borrando, setBorrando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState('');
+  const [autor, setAutor] = useState('TODOS');
+  const [abierto, setAbierto] = useState(false);
+  const [desplegado, setDesplegado] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -59,14 +74,37 @@ export const StandaloneReportsCard: React.FC = () => {
 
   useEffect(() => { void cargar(); }, [cargar]);
 
+  /**
+   * Quién ha escrito informes. Sale de los propios informes y no de la lista
+   * de usuarios para no ofrecer veinte nombres que no tienen ninguno; el
+   * correo se añade cuando se conoce, que es como se distingue a dos personas
+   * que se llamen igual.
+   */
+  const autores = useMemo(() => {
+    const porId = new Map<string, { id: string; etiqueta: string; cuantos: number }>();
+    for (const r of informes) {
+      const previo = porId.get(r.user_id);
+      if (previo) { previo.cuantos += 1; continue; }
+      const u = usuarios.find((x) => x.user_id === r.user_id);
+      porId.set(r.user_id, {
+        id: r.user_id,
+        etiqueta: u?.email ? `${r.author_name} · ${u.email}` : r.author_name,
+        cuantos: 1,
+      });
+    }
+    return [...porId.values()].sort((a, b) => a.etiqueta.localeCompare(b.etiqueta));
+  }, [informes, usuarios]);
+
   const visibles = useMemo(() => {
     const q = filtro.trim().toLowerCase();
-    if (!q) return informes;
-    return informes.filter((r) =>
-      r.author_name.toLowerCase().includes(q) ||
-      (r.location ?? '').toLowerCase().includes(q) ||
-      r.description.toLowerCase().includes(q));
-  }, [informes, filtro]);
+    return informes.filter((r) => {
+      if (autor !== 'TODOS' && r.user_id !== autor) return false;
+      if (!q) return true;
+      return r.author_name.toLowerCase().includes(q) ||
+        (r.location ?? '').toLowerCase().includes(q) ||
+        r.description.toLowerCase().includes(q);
+    });
+  }, [informes, filtro, autor]);
 
   const exportar = async (r: StandaloneReport) => {
     setExportando(r.id);
@@ -122,18 +160,39 @@ export const StandaloneReportsCard: React.FC = () => {
           <AlertTriangle className="h-5 w-5 text-warning" />
           Informes de incidente ({informes.length})
         </CardTitle>
-        <Button variant="ghost" size="icon" onClick={cargar} disabled={cargando} title="Recargar">
-          <RefreshCw className={cargando ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={cargar} disabled={cargando} title="Recargar">
+            <RefreshCw className={cargando ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setAbierto((v) => !v)}>
+            {abierto ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {abierto ? 'Ocultar' : 'Ver informes'}
+          </Button>
+        </div>
       </CardHeader>
+
+      {abierto && (
       <CardContent className="space-y-3">
         {informes.length > 0 && (
-          <Input
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
-            placeholder="Buscar por nombre, ubicación o texto…"
-            className="h-9"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+              placeholder="Buscar por nombre, ubicación o texto…"
+              className="h-9 sm:flex-1"
+            />
+            <Select value={autor} onValueChange={setAutor}>
+              <SelectTrigger className="h-9 sm:w-64">
+                <SelectValue placeholder="Todos los usuarios" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TODOS">Todos los usuarios ({informes.length})</SelectItem>
+                {autores.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.etiqueta} ({a.cuantos})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
         {cargando ? (
@@ -145,22 +204,42 @@ export const StandaloneReportsCard: React.FC = () => {
             {informes.length === 0 ? 'Todavía no hay informes.' : 'Ningún informe coincide con la búsqueda.'}
           </p>
         ) : (
-          visibles.map((r) => (
+          visibles.map((r) => {
+            const esteAbierto = desplegado === r.id;
+            return (
             <div key={r.id} className="min-w-0 space-y-2 rounded-lg border border-border bg-muted/30 p-3">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold">
-                <span className="flex items-center gap-1.5">
-                  <UserRound className="h-4 w-4 text-muted-foreground" />
-                  {r.author_name}
-                </span>
-                <span className="font-mono text-muted-foreground">{fechaImpresa(r.report_date)}</span>
-                {r.location && (
-                  <span className="flex items-center gap-1 font-mono text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {r.location}
+              <button
+                type="button"
+                className="flex w-full min-w-0 items-start gap-2 text-left"
+                onClick={() => setDesplegado(esteAbierto ? null : r.id)}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold">
+                    <span className="flex items-center gap-1.5">
+                      <UserRound className="h-4 w-4 text-muted-foreground" />
+                      {r.author_name}
+                    </span>
+                    <span className="font-mono text-muted-foreground">{fechaImpresa(r.report_date)}</span>
+                    {r.location && (
+                      <span className="flex items-center gap-1 font-mono text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {r.location}
+                      </span>
+                    )}
                   </span>
-                )}
-              </div>
+                  {!esteAbierto && (
+                    <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                      {resumenInforme(r.description, 120)}
+                    </span>
+                  )}
+                </span>
+                {esteAbierto
+                  ? <ChevronUp className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  : <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />}
+              </button>
 
+              {esteAbierto && (
+              <>
               {/* break-words: una referencia larga sin espacios estiraría la tarjeta. */}
               <p className="whitespace-pre-wrap break-words text-sm">{r.description}</p>
 
@@ -194,10 +273,14 @@ export const StandaloneReportsCard: React.FC = () => {
                   Borrar
                 </Button>
               </div>
+              </>
+              )}
             </div>
-          ))
+            );
+          })
         )}
       </CardContent>
+      )}
     </Card>
   );
 };

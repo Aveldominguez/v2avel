@@ -1,8 +1,10 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.700';
+export const APP_VERSION = '4.710';
 
-// Changelog for the current version — update this with each meaningful change
+// Changelog for the current version — update this with each meaningful change.
+// Lo que se escriba aquí lo lee todo el mundo al actualizar, así que los
+// cambios que sólo tocan al panel de administración se resumen en una línea:
+// al resto no le aportan nada y sólo harían ruido.
 export const APP_CHANGELOG: string[] = [
-  'El Estilo v4 (Aero) pasa a ser el aspecto de la casa: lo verá todo el mundo al entrar, también quien tuviera guardado otro tema de antes.',
-  'El botón de cambiar estilo sigue en la pantalla de inicio: si eliges otro a propósito, se respeta y no se vuelve a cambiar.',
+  'Cambios en el panel de administración. Nada que afecte al trabajo del día a día.',
 ];

@@ -409,7 +409,7 @@ const AdminPanel: React.FC = () => {
         {/* Reportes de fallos de la app */}
         {user && <IssueReportsCard adminUserId={user.id} />}
 
-        <StandaloneReportsCard />
+        <StandaloneReportsCard usuarios={users} />
 
         {/* ARION Sync Management */}
         <Card className="card-operational">

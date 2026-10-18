@@ -1,7 +1,6 @@
 {
-  "version": "4.700",
+  "version": "4.710",
   "changelog": [
-    "El Estilo v4 (Aero) pasa a ser el aspecto de la casa: lo verá todo el mundo al entrar, también quien tuviera guardado otro tema de antes.",
-    "El botón de cambiar estilo sigue en la pantalla de inicio: si eliges otro a propósito, se respeta y no se vuelve a cambiar."
+    "Cambios en el panel de administración. Nada que afecte al trabajo del día a día."
   ]
 }
