@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
+import { leerTema, type ThemeName } from '@/lib/theme';
 
-export type ThemeName = 'dark' | 'light' | 'exterior' | 'sky' | 'aero';
+export type { ThemeName };
 
-const readTheme = (): ThemeName => {
-  if (typeof window === 'undefined') return 'dark';
-  const saved = localStorage.getItem('theme');
-  if (saved === 'light' || saved === 'exterior' || saved === 'dark' || saved === 'sky' || saved === 'aero') {
-    return saved;
-  }
-  return 'dark';
-};
+const readTheme = leerTema;
 
 /**
  * Lee el tema activo y se actualiza en vivo cuando cambia (ThemeToggle

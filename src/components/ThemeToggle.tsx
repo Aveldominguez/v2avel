@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Moon, Sun, Contrast, Plane, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { syncStatusBarColor } from '@/utils/themeColor';
+import { aplicarClasesTema, leerTema, type ThemeName } from '@/lib/theme';
 
-type Theme = 'dark' | 'light' | 'exterior' | 'sky' | 'aero';
+type Theme = ThemeName;
 
 const CYCLE: Record<Theme, Theme> = {
   dark: 'light',
@@ -23,11 +24,9 @@ const LABEL: Record<Theme, string> = {
 
 export const applyTheme = (theme: string | null) => {
   const root = document.documentElement;
-  // 'exterior' es una variante de alto contraste sobre el tema claro
-  root.classList.toggle('light', theme === 'light' || theme === 'exterior');
-  root.classList.toggle('exterior', theme === 'exterior');
-  root.classList.toggle('sky', theme === 'sky');
-  root.classList.toggle('aero', theme === 'aero');
+  // Las clases se ponen en lib/theme, que es de donde las toma también el
+  // arranque: tenerlo en dos sitios era pedir que se descolgara uno.
+  aplicarClasesTema((theme ?? 'dark') as Theme);
 
   // Fuerza un reflow tras el cambio de clase: Safari/iOS a veces no repinta
   // bien contenido que pasa de display:none a grid/block cuando hay elementos
@@ -39,13 +38,7 @@ export const applyTheme = (theme: string | null) => {
 };
 
 export const ThemeToggle: React.FC<{ className?: string }> = ({ className }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'light' || saved === 'exterior' || saved === 'dark' || saved === 'sky' || saved === 'aero') return saved;
-    }
-    return 'dark';
-  });
+  const [theme, setTheme] = useState<Theme>(leerTema);
 
   useEffect(() => {
     applyTheme(theme);

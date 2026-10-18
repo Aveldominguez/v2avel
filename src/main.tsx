@@ -4,14 +4,13 @@ import "./index.css";
 import { installPwaResumeRecovery } from "./lib/pwaResume";
 import { registerAppServiceWorker } from "./lib/registerSW";
 import { pruneDrafts } from "./lib/turnaroundDraft";
+import { aplicarClasesTema, igualarTemaDeLaCasa } from "./lib/theme";
 
-// Aplica el tema guardado ANTES del primer render, para que rutas sin el
-// botón de tema (p. ej. el formulario) también respeten la preferencia.
-const savedTheme = localStorage.getItem('theme');
-document.documentElement.classList.toggle('light', savedTheme === 'light' || savedTheme === 'exterior');
-document.documentElement.classList.toggle('exterior', savedTheme === 'exterior');
-document.documentElement.classList.toggle('sky', savedTheme === 'sky');
-document.documentElement.classList.toggle('aero', savedTheme === 'aero');
+// El tema se aplica ANTES del primer render, para que las rutas sin botón de
+// tema (p. ej. el formulario) no parpadeen con el aspecto equivocado.
+// igualarTemaDeLaCasa pone a todo el mundo en el tema de la casa la primera
+// vez; después manda lo que cada uno elija.
+aplicarClasesTema(igualarTemaDeLaCasa());
 
 installPwaResumeRecovery();
 registerAppServiceWorker();
