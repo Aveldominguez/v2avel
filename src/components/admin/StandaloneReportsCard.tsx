@@ -146,7 +146,7 @@ export const StandaloneReportsCard: React.FC = () => {
           </p>
         ) : (
           visibles.map((r) => (
-            <div key={r.id} className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+            <div key={r.id} className="min-w-0 space-y-2 rounded-lg border border-border bg-muted/30 p-3">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold">
                 <span className="flex items-center gap-1.5">
                   <UserRound className="h-4 w-4 text-muted-foreground" />
@@ -161,7 +161,8 @@ export const StandaloneReportsCard: React.FC = () => {
                 )}
               </div>
 
-              <p className="whitespace-pre-wrap text-sm">{r.description}</p>
+              {/* break-words: una referencia larga sin espacios estiraría la tarjeta. */}
+              <p className="whitespace-pre-wrap break-words text-sm">{r.description}</p>
 
               <p className="text-xs text-muted-foreground">
                 Escrito el {format(parseISO(r.created_at), "dd/MM/yyyy 'a las' HH:mm", { locale: es })}

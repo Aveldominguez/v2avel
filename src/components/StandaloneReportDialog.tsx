@@ -38,6 +38,19 @@ export const fechaImpresa = (iso: string): string => {
   return isNaN(d.getTime()) ? iso : format(d, 'dd/MM/yyyy', { locale: es });
 };
 
+/**
+ * Primera línea de un informe, para la lista.
+ *
+ * Se corta aquí y no sólo con CSS: `truncate` deja el texto en una línea,
+ * pero su anchura MÍNIMA sigue siendo la del texto entero, así que un
+ * informe largo estiraba el diálogo a 3800 px y se salía de la pantalla con
+ * todo lo demás detrás. Cortando el dato, no hay nada que estirar.
+ */
+export const resumenInforme = (texto: string, maximo = 80): string => {
+  const plano = (texto ?? '').replace(/\s+/g, ' ').trim();
+  return plano.length <= maximo ? plano : `${plano.slice(0, maximo - 1).trimEnd()}…`;
+};
+
 /** Nombre del fichero: sin espacios ni barras, que rompen la descarga. */
 export const nombreArchivoInforme = (fechaIso: string, ubicacion: string): string => {
   const trozo = ubicacion.trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
@@ -199,7 +212,7 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!ocupado) onOpenChange(v); }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-warning" />
@@ -217,7 +230,7 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
             <Input id="inf-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={60} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="inf-fecha">Fecha de los hechos</Label>
               <Input id="inf-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
@@ -270,7 +283,7 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
           </div>
 
           {previos.length > 0 && (
-            <div className="space-y-1.5 border-t border-border pt-3">
+            <div className="min-w-0 space-y-1.5 border-t border-border pt-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Informes guardados
               </p>
@@ -278,13 +291,17 @@ export const StandaloneReportDialog: React.FC<StandaloneReportDialogProps> = ({ 
                 <div
                   key={r.id}
                   className={cn(
-                    'flex items-start gap-2 rounded-md border p-2 text-xs',
+                    'flex min-w-0 items-start gap-2 rounded-md border p-2 text-xs',
                     editandoId === r.id ? 'border-primary bg-primary/10' : 'border-border',
                   )}
                 >
-                  <button type="button" className="min-w-0 flex-1 text-left" onClick={() => abrirPrevio(r)}>
-                    <p className="truncate font-medium">{r.description}</p>
-                    <p className="text-muted-foreground">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 overflow-hidden text-left"
+                    onClick={() => abrirPrevio(r)}
+                  >
+                    <p className="truncate font-medium">{resumenInforme(r.description)}</p>
+                    <p className="truncate text-muted-foreground">
                       {fechaImpresa(r.report_date)}{r.location ? ` · ${r.location}` : ''}
                     </p>
                   </button>
