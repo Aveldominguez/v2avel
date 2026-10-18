@@ -243,7 +243,6 @@ export interface TimeFieldConfig {
 const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
   { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
-  { key: 'coordinator', label: 'Coordinador', type: 'text' },
   { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
@@ -257,7 +256,6 @@ const ARRIVAL_FIELDS_WITH_STAIRS: TimeFieldConfig[] = [
 const ARRIVAL_FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
   { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
-  { key: 'coordinator', label: 'Coordinador', type: 'text' },
   { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
   { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
   { key: 'firstBag', label: '1ª Maleta', clockColor: 'green', type: 'time' },
@@ -562,7 +560,6 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, solo
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
   'coordinatorApproval',
-  'coordinator',
   'transit',
   'transitBags',
   'stairsTime',

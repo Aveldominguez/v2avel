@@ -30,6 +30,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { PasswordStrength, evaluatePassword, isPasswordStrong, generateStrongPassword } from '@/components/admin/PasswordStrength';
 import { IssueReportsCard } from '@/components/admin/IssueReportsCard';
+import { StandaloneReportsCard } from '@/components/admin/StandaloneReportsCard';
 
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -407,6 +408,8 @@ const AdminPanel: React.FC = () => {
 
         {/* Reportes de fallos de la app */}
         {user && <IssueReportsCard adminUserId={user.id} />}
+
+        <StandaloneReportsCard />
 
         {/* ARION Sync Management */}
         <Card className="card-operational">

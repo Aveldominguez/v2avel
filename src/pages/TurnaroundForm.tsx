@@ -43,7 +43,8 @@ import { getImpersonatedUser, clearImpersonatedUser } from '@/utils/adminImperso
 import { LogOut as ExitUserIcon, UserCircle2 } from 'lucide-react';
 import { IncidentReportDialog, type IncidentReportData } from '@/components/turnaround/IncidentReportDialog';
 import { IssueReportButton } from '@/components/turnaround/IssueReportButton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 const AUTOSAVE_DELAY = 3000; // 3 seconds debounce
 // Retardo del borrador local: lo justo para no escribir en disco en cada tecla
@@ -72,6 +73,9 @@ const TurnaroundForm: React.FC = () => {
   const [matricula, setMatricula] = useState('');
   // Firma la hoja de Control de Rampa como capataz.
   const { displayName: nombreCapataz } = useMyProfile();
+  // El coordinador se escribe desde la cabecera, no desde la rejilla de horas.
+  const [showCoordinador, setShowCoordinador] = useState(false);
+  const [coordinadorBorrador, setCoordinadorBorrador] = useState('');
   const [soloLlegada, setSoloLlegada] = useState(false);
   const [soloSalida, setSoloSalida] = useState(false);
   const [pushBack, setPushBack] = useState(false);
@@ -1089,18 +1093,30 @@ const TurnaroundForm: React.FC = () => {
                 </span>
               </span>
             )}
-            {/* Coordinador, detrás de la sala y la cinta. Mismo montaje: la
-                barra va dentro para que viaje con el nombre al saltar de
-                línea, y sin color propio para heredar el de la fila. */}
-            {times.coordinator && (
-              <span className="flex items-center gap-2 whitespace-nowrap">
-                <span aria-hidden>|</span>
-                <span className="flex items-center gap-1">
-                  <UserRound className="h-3 w-3" />
-                  {times.coordinator}
-                </span>
-              </span>
-            )}
+            {/* Coordinador, detrás de la sala y la cinta. Se toca para
+                escribirlo o corregirlo: tenía un campo propio en el bloque de
+                llegada que ocupaba sitio en la zona de trabajo y, además,
+                desaparecía en las escalas de sólo salida. Aquí está siempre, y
+                se muestra aunque esté vacío o no habría dónde pulsar.
+                La barra va dentro del bloque para que viaje con el nombre al
+                saltar de línea, y el color se hereda de la fila. */}
+            <span className="flex items-center gap-2 whitespace-nowrap">
+              <span aria-hidden>|</span>
+              <button
+                type="button"
+                onClick={() => { setCoordinadorBorrador(times.coordinator ?? ''); setShowCoordinador(true); }}
+                style={{ color: 'inherit' }}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-semibold transition-colors',
+                  'hover:bg-muted active:scale-95',
+                  !times.coordinator && 'opacity-70',
+                )}
+                title="Tocar para escribir el coordinador"
+              >
+                <UserRound className="h-3 w-3" />
+                {times.coordinator || 'Coordinador'}
+              </button>
+            </span>
             {errors.length > 0 && (
               <>
                 <span>|</span>
@@ -1306,6 +1322,47 @@ const TurnaroundForm: React.FC = () => {
           <FileDown className="h-4 w-4" />
           Exportar PDF
         </Button>
+
+        {/* Coordinador: se abre tocando su nombre en la cabecera. */}
+        <Dialog open={showCoordinador} onOpenChange={setShowCoordinador}>
+          <DialogContent className="max-w-xs">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <UserRound className="h-5 w-5 text-primary" />
+                Coordinador
+              </DialogTitle>
+              <DialogDescription className="text-left">
+                Quién ha dado el visto bueno. Sale en la hoja de Control de Rampa.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              value={coordinadorBorrador}
+              onChange={(e) => setCoordinadorBorrador(e.target.value.toUpperCase())}
+              placeholder="Nombre del coordinador"
+              maxLength={30}
+              className="h-12 text-center font-mono text-base"
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              Se guarda junto con la escala, al darle a Guardar.
+            </p>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              <Button
+                className="w-full"
+                onClick={() => {
+                  const limpio = coordinadorBorrador.trim().replace(/\s+/g, ' ');
+                  setTimes((t) => ({ ...t, coordinator: limpio || null }));
+                  setShowCoordinador(false);
+                }}
+              >
+                Aceptar
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => setShowCoordinador(false)}>
+                Cancelar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Se elige qué imágenes van al PDF antes de generarlo. */}
         <PdfExportDialog
