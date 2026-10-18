@@ -4,6 +4,11 @@
 -- que se hacen desde la pantalla de inicio no tienen escala donde meterse, y
 -- además interesa poder volver a abrirlos y reexportarlos, así que van a su
 -- propia tabla.
+--
+-- Todo el fichero se puede ejecutar más de una vez sin romper nada: la
+-- primera aplicación se quedó a medias (Supabase corta en el primer error y
+-- deja hecho lo anterior), y una migración que no se puede repetir obliga a
+-- ir mirando a mano qué quedó creado y qué no.
 CREATE TABLE IF NOT EXISTS public.standalone_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -27,22 +32,27 @@ ALTER TABLE public.standalone_reports ENABLE ROW LEVEL SECURITY;
 
 -- Cada uno los suyos; los administradores, todos (los informes de incidente
 -- son justo lo que un responsable tiene que poder revisar).
+DROP POLICY IF EXISTS "Usuarios ven sus informes" ON public.standalone_reports;
 CREATE POLICY "Usuarios ven sus informes"
   ON public.standalone_reports FOR SELECT TO authenticated
   USING (auth.uid() = user_id OR public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Usuarios crean sus informes" ON public.standalone_reports;
 CREATE POLICY "Usuarios crean sus informes"
   ON public.standalone_reports FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Usuarios editan sus informes" ON public.standalone_reports;
 CREATE POLICY "Usuarios editan sus informes"
   ON public.standalone_reports FOR UPDATE TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Usuarios borran sus informes" ON public.standalone_reports;
 CREATE POLICY "Usuarios borran sus informes"
   ON public.standalone_reports FOR DELETE TO authenticated
   USING (auth.uid() = user_id OR public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS standalone_reports_updated_at ON public.standalone_reports;
 CREATE TRIGGER standalone_reports_updated_at
   BEFORE UPDATE ON public.standalone_reports
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
