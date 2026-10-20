@@ -92,12 +92,34 @@ export const useEquipment = () => {
 
 /* ── Mutations (used by both Rampa and Equipos modules) ── */
 
-const ensureState = async (unitId: string) => {
+/**
+ * Resultado de escribir en el estado de un equipo.
+ *
+ * Antes estas funciones no devolvían nada y se tragaban los fallos, incluido
+ * el más frecuente: que los permisos (RLS) descarten la fila. Cuando eso pasa
+ * PostgREST no da error, simplemente actualiza CERO filas, así que la app
+ * creía haber guardado y el usuario se quedaba sin enterarse de que su cambio
+ * no había llegado a ningún sitio.
+ */
+export interface ResultadoEquipo {
+  ok: boolean;
+  error?: string;
+}
+
+const SIN_PERMISO =
+  'Tu usuario no tiene permiso para cambiar los equipos. Pídele a un administrador acceso al módulo de Equipos.';
+
+const ensureState = async (unitId: string): Promise<ResultadoEquipo> => {
   // Make sure a row exists so updates are idempotent.
-  await supabase.from('equipment_state').upsert(
+  const { error } = await supabase.from('equipment_state').upsert(
     { unit_id: unitId } as any,
     { onConflict: 'unit_id', ignoreDuplicates: true },
   );
+  if (error) {
+    console.error('[equipos] no se pudo preparar el estado:', error);
+    return { ok: false, error: /policy|permission|row-level/i.test(error.message) ? SIN_PERMISO : error.message };
+  }
+  return { ok: true };
 };
 
 // Broadcast the updated row so useEquipment merges it into local state
@@ -123,32 +145,44 @@ const logActivity = async (
   });
 };
 
-export async function updateParking(unitId: string, code: string, categoryId: string, oldVal: string, parking: string, source: 'rampa' | 'equipos') {
-  await ensureState(unitId);
+export async function updateParking(unitId: string, code: string, categoryId: string, oldVal: string, parking: string, source: 'rampa' | 'equipos'): Promise<ResultadoEquipo> {
+  const preparada = await ensureState(unitId);
+  if (!preparada.ok) return preparada;
   const uid = (await supabase.auth.getUser()).data.user?.id ?? null;
   const { data, error } = await supabase.from('equipment_state')
     .update({ parking, updated_by: uid })
     .eq('unit_id', unitId)
     .select()
     .maybeSingle();
-  if (!error) {
-    broadcastRow(data as EquipmentStateRow);
-    logActivity(unitId, code, categoryId, 'parking', oldVal || null, parking || null, source);
+  if (error) {
+    console.error('[equipos] parking:', error);
+    return { ok: false, error: error.message };
   }
+  // Sin fila devuelta no se ha escrito nada: lo normal es que los permisos la
+  // hayan descartado. Callarlo es lo que hacía que el cambio se "perdiera".
+  if (!data) return { ok: false, error: SIN_PERMISO };
+  broadcastRow(data as EquipmentStateRow);
+  logActivity(unitId, code, categoryId, 'parking', oldVal || null, parking || null, source);
+  return { ok: true };
 }
 
-export async function updateBattery(unitId: string, code: string, categoryId: string, oldVal: number | null, level: number | null, source: 'rampa' | 'equipos') {
-  await ensureState(unitId);
+export async function updateBattery(unitId: string, code: string, categoryId: string, oldVal: number | null, level: number | null, source: 'rampa' | 'equipos'): Promise<ResultadoEquipo> {
+  const preparada = await ensureState(unitId);
+  if (!preparada.ok) return preparada;
   const uid = (await supabase.auth.getUser()).data.user?.id ?? null;
   const { data, error } = await supabase.from('equipment_state')
     .update({ battery_level: level, is_charging: false, charging_since: null, updated_by: uid })
     .eq('unit_id', unitId)
     .select()
     .maybeSingle();
-  if (!error) {
-    broadcastRow(data as EquipmentStateRow);
-    logActivity(unitId, code, categoryId, 'battery', oldVal !== null ? String(oldVal) : null, level !== null ? String(level) : null, source);
+  if (error) {
+    console.error('[equipos] carga:', error);
+    return { ok: false, error: error.message };
   }
+  if (!data) return { ok: false, error: SIN_PERMISO };
+  broadcastRow(data as EquipmentStateRow);
+  logActivity(unitId, code, categoryId, 'battery', oldVal !== null ? String(oldVal) : null, level !== null ? String(level) : null, source);
+  return { ok: true };
 }
 
 export async function toggleCharging(unitId: string, code: string, categoryId: string, currentlyCharging: boolean, source: 'rampa' | 'equipos') {

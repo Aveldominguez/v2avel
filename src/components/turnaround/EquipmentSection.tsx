@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Wrench, Plus, X, Zap } from 'lucide-react';
 import { getFilteredEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { AirlineCode } from '@/types/turnaround';
-import { useEquipment, updateParking, updateBattery, toggleCharging } from '@/hooks/useEquipment';
+import { useEquipment, updateParking, updateBattery, toggleCharging, type ResultadoEquipo } from '@/hooks/useEquipment';
+import { toast } from '@/hooks/use-toast';
 import type { EquipmentUnitFull } from '@/types/equipment';
 
 interface EquipmentSectionProps {
@@ -54,6 +55,19 @@ const EquipmentStateEditor = ({
   const batteryFocused = useRef(false);
   const parkingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const batteryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Lo que está esperando a escribirse. Hace falta guardarlo aparte para
+  // poder mandarlo si el componente desaparece antes de que salte el
+  // temporizador: ver la limpieza de abajo.
+  const parkingPendiente = useRef<string | null>(null);
+  const batteryPendiente = useRef<{ valor: number | null } | null>(null);
+
+  /** Si la escritura no llega, se dice. Antes fallaba en silencio. */
+  const avisarSiFalla = async (p: Promise<ResultadoEquipo>) => {
+    const r = await p;
+    if (!r.ok) {
+      toast({ title: 'No se pudo guardar el equipo', description: r.error, variant: 'destructive' });
+    }
+  };
 
   useEffect(() => {
     if (!parkingFocused.current) setParkingInput(parking);
@@ -63,22 +77,49 @@ const EquipmentStateEditor = ({
     if (!batteryFocused.current) setBatteryInput(battery !== null ? String(battery) : '');
   }, [battery]);
 
-  useEffect(() => () => {
-    if (parkingTimer.current) clearTimeout(parkingTimer.current);
-    if (batteryTimer.current) clearTimeout(batteryTimer.current);
-  }, []);
+  /**
+   * Al desaparecer la fila (se cierra el acordeón, se guarda la escala, se
+   * cambia de pantalla) se MANDA lo que estuviera esperando, en vez de
+   * tirarlo. Antes se cancelaba el temporizador sin más: si escribías la
+   * carga y cerrabas antes de medio segundo, el valor no llegaba a la base
+   * de datos y no se enteraba nadie.
+   *
+   * Las referencias se leen dentro del propio cierre, que es lo único que
+   * sigue vivo en ese momento.
+   */
+  useEffect(() => {
+    const u = unit;
+    const bateriaRef = batteryPendiente;
+    const parkingRef = parkingPendiente;
+    const tB = batteryTimer;
+    const tP = parkingTimer;
+    return () => {
+      if (tP.current) clearTimeout(tP.current);
+      if (tB.current) clearTimeout(tB.current);
+      if (parkingRef.current !== null) {
+        void updateParking(u.id, u.code, u.category_id, '', parkingRef.current, 'rampa');
+      }
+      if (bateriaRef.current) {
+        void updateBattery(u.id, u.code, u.category_id, null, bateriaRef.current.valor, 'rampa');
+      }
+    };
+  }, [unit]);
 
   const scheduleParking = (value: string) => {
     if (parkingTimer.current) clearTimeout(parkingTimer.current);
+    parkingPendiente.current = value;
     parkingTimer.current = setTimeout(() => {
-      updateParking(unit.id, unit.code, unit.category_id, parking, value, 'rampa');
+      parkingPendiente.current = null;
+      void avisarSiFalla(updateParking(unit.id, unit.code, unit.category_id, parking, value, 'rampa'));
     }, 500);
   };
 
   const scheduleBattery = (value: number | null) => {
     if (batteryTimer.current) clearTimeout(batteryTimer.current);
+    batteryPendiente.current = { valor: value };
     batteryTimer.current = setTimeout(() => {
-      updateBattery(unit.id, unit.code, unit.category_id, battery, value, 'rampa');
+      batteryPendiente.current = null;
+      void avisarSiFalla(updateBattery(unit.id, unit.code, unit.category_id, battery, value, 'rampa'));
     }, 500);
   };
 
@@ -105,7 +146,10 @@ const EquipmentStateEditor = ({
       clearTimeout(parkingTimer.current);
       parkingTimer.current = null;
     }
-    if (parkingInput !== parking) updateParking(unit.id, unit.code, unit.category_id, parking, parkingInput, 'rampa');
+    parkingPendiente.current = null;
+    if (parkingInput !== parking) {
+      void avisarSiFalla(updateParking(unit.id, unit.code, unit.category_id, parking, parkingInput, 'rampa'));
+    }
   };
 
   const flushBattery = () => {
@@ -115,7 +159,10 @@ const EquipmentStateEditor = ({
     }
     const next = batteryInput === '' ? null : parseInt(batteryInput);
     const normalized = Number.isNaN(next as number) ? null : next;
-    if (normalized !== battery) updateBattery(unit.id, unit.code, unit.category_id, battery, normalized, 'rampa');
+    batteryPendiente.current = null;
+    if (normalized !== battery) {
+      void avisarSiFalla(updateBattery(unit.id, unit.code, unit.category_id, battery, normalized, 'rampa'));
+    }
   };
 
   return (
