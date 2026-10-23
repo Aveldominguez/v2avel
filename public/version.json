@@ -1,8 +1,8 @@
 {
-  "version": "4.730",
+  "version": "4.740",
   "changelog": [
-    "Arreglada la carga de los equipos desde la escala: el valor que escribías no llegaba a guardarse ni aparecía en Control de Equipos.",
-    "Si escribes la carga y cierras el apartado enseguida, el cambio ya no se pierde: se envía igual.",
-    "Y si por lo que sea no se puede guardar, la app lo dice en vez de quedarse callada."
+    "La app arranca con la mitad de código: el generador de PDF y el lector de códigos ya no se cargan al abrirla, sino al usarlos. Se nota sobre todo al entrar y al volver tras un rato.",
+    "Al volver con poca cobertura ya no se queda esperando: si el servidor tarda, tira enseguida de los datos guardados en el móvil.",
+    "Ojo: esta primera vez tardará algo más de lo normal, porque el móvil se trae los ficheros nuevos. A partir de ahí, más rápida."
   ]
 }
