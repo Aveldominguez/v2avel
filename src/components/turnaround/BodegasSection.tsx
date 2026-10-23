@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScanBarcode, Flashlight, X, Package } from 'lucide-react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import type { Html5Qrcode } from 'html5-qrcode';
 import { toast } from '@/hooks/use-toast';
 
 interface BodegasData {
@@ -66,16 +66,20 @@ const BodegasSection: React.FC<BodegasSectionProps> = ({ data, onChange }) => {
     await new Promise(r => setTimeout(r, 100));
 
     try {
-      const scanner = new Html5Qrcode(scannerContainerId, {
+      // La librería del lector pesa 99 KB comprimidos y sólo hace falta al
+      // pulsar «Escanear». Se pide aquí para que no la cargue todo el que
+      // abre una escala. El `import` tarda unos milisegundos desde la caché.
+      const { Html5Qrcode: Lector, Html5QrcodeSupportedFormats: Formatos } = await import('html5-qrcode');
+      const scanner = new Lector(scannerContainerId, {
         formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.PDF_417,
-          Html5QrcodeSupportedFormats.DATA_MATRIX,
-          Html5QrcodeSupportedFormats.AZTEC,
+          Formatos.QR_CODE,
+          Formatos.CODE_128,
+          Formatos.CODE_39,
+          Formatos.EAN_13,
+          Formatos.EAN_8,
+          Formatos.PDF_417,
+          Formatos.DATA_MATRIX,
+          Formatos.AZTEC,
         ],
         useBarCodeDetectorIfSupported: true,
         verbose: false,

@@ -1,6 +1,21 @@
 import { format } from 'date-fns';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+
+/**
+ * jsPDF y html2canvas se piden al usarlos, NO al cargar la app.
+ *
+ * Entre los dos pesan 189 KB comprimidos y entraban en el arranque por una
+ * cadena de importaciones: el formulario de escala trae el diálogo de
+ * informe, que traía esto. Resultado: todo el mundo se descargaba y compilaba
+ * el generador de PDF para ver la lista de escalas. Medido en producción, era
+ * el 32% de todo el JavaScript inicial.
+ */
+const cargarLibreriasPdf = async () => {
+  const [{ jsPDF }, html2canvas] = await Promise.all([
+    import('jspdf'),
+    import('html2canvas').then((m) => m.default),
+  ]);
+  return { jsPDF, html2canvas };
+};
 
 const esc = (s: string) => {
   const d = document.createElement('div');
@@ -85,6 +100,7 @@ export const construirHojaInforme = (data: DatosInforme, logoUrl: string): strin
     </div>`;
 
 export const generateIncidentPdf = async (data: DatosInforme): Promise<Blob> => {
+  const { jsPDF, html2canvas } = await cargarLibreriasPdf();
   // PNG de 1200 px con fondo transparente. El JPEG anterior era de baja
   // resolución, en escala de grises y con una caja blanca opaca alrededor que
   // se veía como un recuadro gris dentro de la celda.

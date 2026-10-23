@@ -4,7 +4,6 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { UpdateBanner } from "@/components/UpdateBanner";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { unlockAlertSound } from "@/lib/alertSound";
 import { startConnectivityMonitor } from "@/lib/backendReachability";
@@ -36,8 +35,6 @@ const EquiposHome = lazyWithRetry(() => import("./pages/equipos/EquiposHome"));
 const EquiposCategory = lazyWithRetry(() => import("./pages/equipos/EquiposCategory"));
 const EquiposRevision = lazyWithRetry(() => import("./pages/equipos/EquiposRevision"));
 
-
-const queryClient = new QueryClient();
 
 const FullScreenLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -161,7 +158,6 @@ const CatalogBootstrap = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -180,7 +176,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
 
-  </QueryClientProvider>
 );
 
 export default App;

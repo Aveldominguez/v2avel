@@ -91,6 +91,15 @@ export default defineConfig(() => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
+          /*
+           * El ayudante de carga diferida de Vite es un módulo sintético y,
+           * si no se le dice dónde va, Rollup lo mete donde le cuadra. Acabó
+           * dentro del fichero del PDF, y como el arranque necesita el
+           * ayudante, el arranque se traía los 612 KB del PDF aunque ya nadie
+           * lo importara de forma directa. Se fija junto a React, que es el
+           * único que siempre se carga.
+           */
+          if (id.includes('preload-helper')) return 'react';
           if (!id.includes('node_modules')) return;
           if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) return 'pdf';
           if (id.includes('jszip')) return 'jszip';
@@ -116,7 +125,28 @@ export default defineConfig(() => ({
       includeAssets: ['favicon.ico', 'favicon.jpeg', 'robots.txt', 'icons/*.png'],
       filename: 'sw.js',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,jpeg,svg,woff2}'],
+        /*
+         * Lo que se guarda de antemano es el armazón: lo que hace falta para
+         * que la app arranque y se pueda trabajar sin cobertura.
+         *
+         * Fuera quedan las pantallas de administración y sus librerías
+         * (catálogos, copias de seguridad, gráficas), que se usan sentado y
+         * con wifi. Antes se guardaban 45 ficheros y 4,3 MB, y el móvil se
+         * los traía ENTEROS en cada actualización, compitiendo con lo que
+         * estuvieras haciendo.
+         *
+         * El PDF y el lector de códigos SÍ se siguen guardando aunque ya no
+         * se carguen al arrancar: son de plataforma y tienen que funcionar
+         * sin cobertura. Que no se carguen de inicio y que estén guardados
+         * son dos cosas distintas, y aquí interesan las dos.
+         */
+        globPatterns: ['**/*.{css,html,ico,png,jpeg,svg,woff2}', 'assets/*.js'],
+        globIgnores: [
+          'assets/AdminPanel-*.js',
+          'assets/CatalogManager-*.js',
+          'assets/jszip-*.js',
+          'assets/charts-*.js',
+        ],
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
@@ -128,8 +158,29 @@ export default defineConfig(() => ({
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',
-              networkTimeoutSeconds: 5,
+              /*
+               * Metro y medio, no cinco.
+               *
+               * La app guarda copia local de casi todo (sesión, permisos,
+               * escalas, catálogo), así que tirar de ella es barato. Con
+               * cinco segundos, al volver a la app con la cobertura todavía
+               * reconectándose —entrando en la terminal, por ejemplo— cada
+               * consulta se quedaba esperando ese tiempo antes de rendirse,
+               * y en el arranque hay varias seguidas.
+               */
+              networkTimeoutSeconds: 1.5,
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 2 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Lo excluido del precache (administración) se guarda al usarlo:
+            // así la primera visita necesita red, pero las siguientes no.
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'assets-bajo-demanda',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

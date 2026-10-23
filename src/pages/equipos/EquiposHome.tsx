@@ -5,7 +5,6 @@ import {
   MoveLeft, Package, BoxSelect, ArrowLeftRight, Bus,
   LogOut, Shield, Plane, Loader2, FileDown, RotateCcw, ClipboardList,
 } from 'lucide-react';
-import jsPDF from 'jspdf';
 import { useAuth } from '@/hooks/useAuth';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { useEquipment } from '@/hooks/useEquipment';
@@ -34,7 +33,9 @@ const EquiposHome = () => {
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
+    // Se pide al pulsar, no al cargar la pantalla: ver generateIncidentPdf.
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     const now = new Date();
     doc.setFontSize(16);
