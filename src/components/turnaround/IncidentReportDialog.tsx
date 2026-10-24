@@ -27,6 +27,12 @@ interface IncidentReportDialogProps {
   parking: string;
   reportData?: IncidentReportData | null;
   onSave: (data: IncidentReportData) => void;
+  /**
+   * Lo deja guardado en el servidor. Sin esto el informe sólo vive en la
+   * pantalla y en el borrador del móvil, que caduca a las 48 horas.
+   * Viene sin definir en una escala que todavía no existe.
+   */
+  onPersist?: (data: IncidentReportData) => Promise<void>;
 }
 
 export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
@@ -35,6 +41,7 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
   parking,
   reportData,
   onSave,
+  onPersist,
 }) => {
   const [open, setOpen] = useState(false);
   const [nombre, setNombre] = useState('');
@@ -57,10 +64,27 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
 
   const hasReport = Boolean(reportData?.nombre || reportData?.descripcion);
 
-  const handleSave = () => {
-    onSave({ nombre, descripcion });
-    toast.success('Informe guardado correctamente');
-    setOpen(false);
+  const [guardando, setGuardando] = useState(false);
+
+  const handleSave = async () => {
+    const data = { nombre, descripcion };
+    onSave(data);
+    if (!onPersist) {
+      // No se miente: en una escala sin crear esto no ha salido del móvil.
+      toast.success('Informe añadido. Se guardará al guardar la escala.');
+      setOpen(false);
+      return;
+    }
+    setGuardando(true);
+    try {
+      await onPersist(data);
+      toast.success('Informe guardado en la escala');
+      setOpen(false);
+    } catch {
+      toast.error('No se pudo guardar el informe. Dale a Guardar en la escala.');
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const getPdfBlob = async () => {
@@ -186,10 +210,10 @@ export const IncidentReportDialog: React.FC<IncidentReportDialogProps> = ({
               onClick={handleSave}
               variant="secondary"
               className="flex-1 gap-2 font-semibold"
-              disabled={!nombre.trim() || !descripcion.trim()}
+              disabled={!nombre.trim() || !descripcion.trim() || guardando}
             >
-              <Save className="h-4 w-4" />
-              Guardar
+              {guardando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {guardando ? 'Guardando…' : 'Guardar'}
             </Button>
             <Button
               onClick={handleExport}

@@ -390,7 +390,12 @@ const TurnaroundForm: React.FC = () => {
     setErrors(validateTimes(times));
   }, [times]);
 
-  const getTimesWithFlightInfo = useCallback((): TurnaroundTimes => ({
+  /**
+   * `extra` sirve para guardar un dato recién escrito sin esperar a que React
+   * actualice el estado: al guardar el informe desde su diálogo hay que
+   * mandarlo YA, y `incidentReport` todavía valdría lo de antes.
+   */
+  const getTimesWithFlightInfo = useCallback((extra?: Partial<TurnaroundTimes>): TurnaroundTimes => ({
     ...times,
     // El parking se guarda siempre, sea remoto o de terminal: es el mismo dato
     // de ARION (T14 / 14) y antes se perdía al marcar "En Remoto".
@@ -425,6 +430,7 @@ const TurnaroundForm: React.FC = () => {
     scheduledEtd: scheduledEtd || (times as any).scheduledEtd || null,
     // CPM snapshot survives in 'times' (set by AirlineTimesBlock when CPM is opened)
     cpmRawLines: (times as any).cpmRawLines ?? null,
+    ...extra,
   }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   // --- Build current draft snapshot ---
@@ -611,7 +617,7 @@ const TurnaroundForm: React.FC = () => {
     setStep(2);
   };
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (extra?: Partial<TurnaroundTimes>) => {
     if (faltaNumeroDeVuelo()) {
       avisoSinNumero();
       return;
@@ -630,7 +636,7 @@ const TurnaroundForm: React.FC = () => {
 
     setSaving(true);
     try {
-      const finalTimes = getTimesWithFlightInfo();
+      const finalTimes = getTimesWithFlightInfo(extra);
       const safeDate = date instanceof Date ? date : new Date(date);
       const safeFvs: FieldValue[] = fieldValues.map(fv => ({
         ...fv,
@@ -996,7 +1002,7 @@ const TurnaroundForm: React.FC = () => {
               />
               <Button
                 ref={saveButtonRef}
-                onClick={handleSave}
+                onClick={() => handleSave()}
                 size="sm"
                 className={cn(
                   'gap-1 shrink-0 h-9 px-2 text-xs transition-colors duration-200',
@@ -1446,12 +1452,24 @@ const TurnaroundForm: React.FC = () => {
               </div>
               {/* El parking se guarda tal cual lo publica ARION, con su "T" si
                   la lleva: anteponer otra producía "TT31" en el informe. */}
+              {/*
+                El informe se guarda EN EL SERVIDOR al darle a Guardar dentro
+                de su diálogo, no sólo en la pantalla. Antes sólo se quedaba
+                en memoria y en el borrador del móvil: si la escala no se
+                guardaba después, el borrador caducaba a las 48 h y el informe
+                desaparecía, habiendo dicho "guardado correctamente".
+                En una escala todavía sin crear no se puede, y entonces el
+                diálogo lo dice en vez de prometer lo que no hace.
+              */}
               <IncidentReportDialog
                 flightNumber={flightNumber}
                 date={date}
                 parking={tango || remoteLocation || '—'}
                 reportData={incidentReport}
                 onSave={setIncidentReport}
+                onPersist={isEditing && id
+                  ? async (data) => { await handleSave({ incidentReport: data }); }
+                  : undefined}
               />
             </CardTitle>
           </CardHeader>
@@ -1484,7 +1502,7 @@ const TurnaroundForm: React.FC = () => {
          */
         <div className="classic-save-bar sticky bottom-0 z-40 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur border-t border-border">
           <button
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={saving}
             aria-label="Guardar"
             className={cn(
