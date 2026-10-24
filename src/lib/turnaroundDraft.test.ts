@@ -75,3 +75,43 @@ describe('saveDraft con el almacén lleno', () => {
     } finally { restaurar(); }
   });
 });
+
+describe('un borrador con informe de incidente no caduca', () => {
+  const viejo = Date.now() - 10 * 24 * 60 * 60 * 1000; // 10 días
+
+  const guardar = (clave: string, extra: Record<string, unknown>) =>
+    localStorage.setItem(clave, JSON.stringify({ savedAt: viejo, times: {}, ...extra }));
+
+  beforeEach(() => localStorage.clear());
+
+  it('se conserva aunque pase el plazo', () => {
+    guardar('turnaround_draft_abc', {
+      times: { incidentReport: { nombre: 'Óscar', descripcion: 'Golpe en la pasarela.' } },
+    });
+    expect(pruneDrafts()).toBe(0);
+    expect(localStorage.getItem('turnaround_draft_abc')).not.toBeNull();
+  });
+
+  it('uno viejo y sin informe sí se tira, como hasta ahora', () => {
+    guardar('turnaround_draft_xyz', {});
+    expect(pruneDrafts()).toBe(1);
+    expect(localStorage.getItem('turnaround_draft_xyz')).toBeNull();
+  });
+
+  it('un informe en blanco no cuenta: no hay nada que proteger', () => {
+    guardar('turnaround_draft_vacio', {
+      times: { incidentReport: { nombre: '', descripcion: '   ' } },
+    });
+    expect(pruneDrafts()).toBe(1);
+  });
+
+  it('con el almacén lleno tampoco se sacrifica el informe', () => {
+    // pruneDrafts(0) es el último recurso al no caber un borrador nuevo.
+    guardar('turnaround_draft_con', {
+      times: { incidentReport: { nombre: 'Óscar', descripcion: 'Incidente.' } },
+    });
+    guardar('turnaround_draft_sin', {});
+    expect(pruneDrafts(0)).toBe(1);
+    expect(localStorage.getItem('turnaround_draft_con')).not.toBeNull();
+  });
+});

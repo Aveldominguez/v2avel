@@ -1,5 +1,5 @@
 {
-  "version": "4.750",
+  "version": "4.751",
   "changelog": [
     "IMPORTANTE: el botón Guardar del informe de incidente no guardaba nada en el servidor, sólo en el móvil, y aun así decía «guardado correctamente». Si después no dabas a Guardar en la escala, el informe se perdía a los dos días. Ya se guarda de verdad.",
     "Si la escala todavía no está creada, el aviso lo dice claro: «se guardará al guardar la escala».",

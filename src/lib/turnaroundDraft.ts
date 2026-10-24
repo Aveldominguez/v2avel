@@ -40,6 +40,19 @@ export interface TurnaroundDraft {
  */
 const DRAFT_TTL_MS = 48 * 60 * 60 * 1000;
 
+/**
+ * ¿Este borrador lleva un informe de incidente escrito?
+ *
+ * Un informe es lo más valioso que puede haber en un borrador: se escribe
+ * cuando ha pasado algo y acaba siendo una prueba. Mientras el resto caduca a
+ * las 48 h para no llenar el almacén, esto no se tira: ocupa unos pocos KB y
+ * ya se perdió uno por el camino.
+ */
+export const llevaInforme = (d: Partial<TurnaroundDraft> | null | undefined): boolean => {
+  const inf = d?.times?.incidentReport;
+  return !!(inf && (inf.descripcion?.trim() || inf.nombre?.trim()));
+};
+
 const draftKeys = (): string[] =>
   Object.keys(localStorage).filter((k) => k.startsWith(`${DRAFT_KEY}_`));
 
@@ -51,6 +64,8 @@ export const pruneDrafts = (olderThanMs = DRAFT_TTL_MS, keep?: string): number =
     if (keep && k === keep) continue;
     try {
       const d = JSON.parse(localStorage.getItem(k) ?? '{}') as Partial<TurnaroundDraft>;
+      // Un informe de incidente no se tira por viejo. Ver llevaInforme.
+      if (llevaInforme(d)) continue;
       // Sin fecha se considera de una versión antigua: también sobra.
       if (!d.savedAt || d.savedAt < limite) {
         localStorage.removeItem(k);
