@@ -1,9 +1,10 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.751';
+export const APP_VERSION = '4.760';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'IMPORTANTE: el botón Guardar del informe de incidente no guardaba nada en el servidor, sólo en el móvil, y aun así decía «guardado correctamente». Si después no dabas a Guardar en la escala, el informe se perdía a los dos días. Ya se guarda de verdad.',
-  'Si la escala todavía no está creada, el aviso lo dice claro: «se guardará al guardar la escala».',
-  'Las escalas y sus informes no caducan nunca en el servidor. Lo que caduca es sólo la copia del móvil.',
+  'FedEx: las horas pasan a estar repartidas en «Vuelo de llegada» y «Vuelo de salida», como en el resto de aerolíneas. Antes estaban todas mezcladas y había que ir buscando.',
+  'En FedEx, «Recepción de LIR» pasa a llamarse «Recepción de PDA». Las horas ya guardadas siguen donde estaban.',
+  '«1ª Ristra» pasa a ser «1ª Ristra Llegada» y se añade «1ª Ristra Salida», para poder controlar las dos por separado.',
+  'Un borrador con un informe de incidente escrito ya no caduca a los dos días: se conserva hasta que lo guardes.',
 ];
