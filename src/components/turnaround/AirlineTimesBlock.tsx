@@ -298,7 +298,9 @@ const FieldRenderer: React.FC<{
    * que sólo existía en Air Canada y sólo servía para una reedición.
    */
   if (field.key === 'lirReception') {
-    const puedeAnadir = visibleLirCount < MAX_LIR_EDITIONS;
+    // En FedEx este campo es la recepción de la PDA, que es un aparato y no
+    // tiene reediciones: ahí el "+" no pinta nada.
+    const puedeAnadir = !field.sinEdiciones && visibleLirCount < MAX_LIR_EDITIONS;
     return (
       <React.Fragment key={field.key}>
         <div className="flex flex-col gap-1.5">
@@ -379,7 +381,10 @@ const FieldRenderer: React.FC<{
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-semibold text-foreground uppercase tracking-wide">
-              {(airline === 'FEDEX' || airline === 'AMAZON') ? '1ª Ristra' : field.label}
+              {/* Amazon no tiene etiqueta propia en su lista y hereda la de
+                  "Muelle": se le pone aquí. FedEx sí la trae, y es distinta
+                  ("1ª Ristra Llegada"), así que no se le pisa. */}
+              {airline === 'AMAZON' ? '1ª Ristra' : field.label}
             </label>
             {nextDockToShow && (
               <Button
@@ -641,7 +646,7 @@ export const AirlineTimesBlock: React.FC<AirlineTimesBlockProps> = ({
   // Split layout for non-FedEx/Amazon
   if (usesSplitLayout(airline)) {
     const arrivalFields = getArrivalFields(airline, isRemote, soloLlegada);
-    const departureFields = getDepartureFields(airline, isRemote, soloLlegada);
+    const departureFields = getDepartureFields(airline, isRemote, soloLlegada, soloSalida);
 
     // Filter for solo modes
     const filteredArrival = soloSalida ? [] : arrivalFields;

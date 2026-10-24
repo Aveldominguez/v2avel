@@ -57,7 +57,10 @@ export interface TurnaroundTimes {
   aviArrival: boolean;                   // AVI Llegada
   aviDeparture: boolean;                 // AVI Salida
   departureFlightNumber: string | null;  // Número de vuelo de salida
-  dock1: string | null;                   // 1ª Muelle
+  dock1: string | null;                   // 1ª Muelle / 1ª Ristra Llegada (FedEx)
+  // FedEx controla dos ristras: la que sale del avión que llega y la que se
+  // monta para el que sale. Campo aparte para no mezclarlas en el histórico.
+  ristraDeparture: string | null;         // 1ª Ristra Salida (FedEx)
   dock2: string | null;                   // 2ª Muelle
   dock3: string | null;                   // 3ª Muelle
   dock4: string | null;                   // 4ª Muelle
@@ -237,6 +240,11 @@ export interface TimeFieldConfig {
   type: 'time' | 'boolean' | 'boolean-text' | 'acu' | 'number' | 'number-toggle' | 'text';
   /** Para 'number-toggle': dónde se guarda el recuento que acompaña al sí/no. */
   countKey?: keyof TurnaroundTimes;
+  /**
+   * Oculta el "+" de reediciones de la recepción de LIR. En FedEx ese campo
+   * es la recepción de la PDA, que es un aparato: no tiene ediciones.
+   */
+  sinEdiciones?: boolean;
 }
 
 // Arrival fields (for non-FedEx/Amazon split layout)
@@ -345,24 +353,46 @@ const FIELDS_NO_STAIRS: TimeFieldConfig[] = [
   { key: 'acu', label: 'ACU', type: 'acu' },
 ];
 
-// FedEx-specific fields
-const FIELDS_FEDEX: TimeFieldConfig[] = [
-  { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
-  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
-  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
-  { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
-  { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
-  { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
-  { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
-  { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
-  { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
-  { key: 'lirReception', label: 'Recepción de LIR', type: 'time' },
-  { key: 'dock1', label: '1ª Ristra', clockColor: 'green', type: 'time' },
+/*
+ * FedEx, en dos bloques como el resto de aerolíneas.
+ *
+ * Tenía una lista única con las horas de llegada y de salida mezcladas sin
+ * orden: los calzos de salida entre los de llegada y la escalera, la carga
+ * antes de la recepción del documento. En plataforma hay que ir buscando.
+ *
+ * Dos cosas propias de FedEx, confirmadas con el usuario:
+ * - "Recepción de PDA" es el mismo campo que en el resto es la LIR: el avión
+ *   se trabaja con una PDA que da FedEx. Se recoge al empezar, así que va en
+ *   llegada, y tiene que seguir estando en las escalas de "sólo salida",
+ *   donde no hay bloque de llegada (ver getDepartureFields).
+ * - La ristra se controla dos veces: la que sale del avión que llega y la que
+ *   se monta para el que sale.
+ */
+const FEDEX_ARRIVAL_FIELDS: TimeFieldConfig[] = [
   { key: 'parkingArrival', label: 'Llegada a Parking', clockColor: 'green', type: 'time' },
   { key: 'fedexSuperArrival', label: 'Llegada FedEx Súper', clockColor: 'green', type: 'time' },
+  { key: 'chocksOnArrival', label: 'Calzos Llegada', clockColor: 'green', type: 'time' },
+  { key: 'coordinatorApproval', label: 'VB Coordinador', clockColor: 'green', type: 'time' },
+  { key: 'lirReception', label: 'Recepción de PDA', type: 'time', sinEdiciones: true },
+  { key: 'stairsTime', label: 'Puesta Escalera', clockColor: 'green', type: 'time' },
+  { key: 'unloadingStart', label: 'Inicio Descarga', clockColor: 'green', type: 'time' },
+  { key: 'unloadingEnd', label: 'Fin Descarga', clockColor: 'red', type: 'time' },
+  { key: 'dock1', label: '1ª Ristra Llegada', clockColor: 'green', type: 'time' },
+];
+
+const FEDEX_DEPARTURE_FIELDS: TimeFieldConfig[] = [
+  { key: 'loadingStart', label: 'Inicio Carga', clockColor: 'green', type: 'time' },
+  { key: 'loadingEnd', label: 'Fin Carga', clockColor: 'red', type: 'time' },
+  { key: 'ristraDeparture', label: '1ª Ristra Salida', clockColor: 'green', type: 'time' },
+  { key: 'specialEndLoading', label: 'Retirada Escalera', clockColor: 'red', type: 'time' },
+  { key: 'chocksOff', label: 'Calzos Salida', clockColor: 'red', type: 'time' },
   { key: 'asu', label: 'ASU', type: 'boolean-text' },
   { key: 'acu', label: 'ACU', type: 'acu' },
 ];
+
+// Una sola fuente: lo que usa el panel de catálogos para los ajustes por
+// aerolínea sale de los mismos dos bloques, no de una tercera lista.
+const FIELDS_FEDEX: TimeFieldConfig[] = [...FEDEX_ARRIVAL_FIELDS, ...FEDEX_DEPARTURE_FIELDS];
 
 // Remote-only fields
 const REMOTE_FIELDS: TimeFieldConfig[] = [
@@ -377,8 +407,9 @@ const REMOTE_STAIRS_FIELDS: TimeFieldConfig[] = [
 
 const AIRLINES_WITH_STAIRS: AirlineCode[] = ['TAP', 'AEGEAN', 'ITA', 'AIR_CANADA', 'AIR_CANADA_CARGO', 'AZUL', 'AMAZON', 'PEGASUS', 'SIN_MARCA', 'A_JET', 'SKYEXPRESS', 'SKYUP', 'WESTJET'];
 
-// Airlines that use the split layout (all except FedEx and Amazon)
-const SPLIT_LAYOUT_EXCLUDED: AirlineCode[] = ['FEDEX', 'AMAZON'];
+// Airlines that use the split layout (all except Amazon). FedEx se pasó al
+// reparto en dos bloques: ver FEDEX_ARRIVAL_FIELDS.
+const SPLIT_LAYOUT_EXCLUDED: AirlineCode[] = ['AMAZON'];
 
 export const usesSplitLayout = (airline: AirlineCode): boolean => {
   return !SPLIT_LAYOUT_EXCLUDED.includes(airline);
@@ -408,6 +439,7 @@ const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   lirReception4: 'LIR Ed. 4',
   lirReception5: 'LIR Ed. 5',
   dock1: '1ª Muelle',
+  ristraDeparture: '1ª Ristra Salida',
   cargoArrival: 'Cargo Llegada',
   cargoDeparture: 'Cargo Salida',
   mailArrival: 'Correo Llegada',
@@ -487,6 +519,12 @@ const applyTimeFieldOverrides = (
 
 // Get arrival fields for split layout
 export const getArrivalFields = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
+  if (airline === 'FEDEX') {
+    const fedex = [...FEDEX_ARRIVAL_FIELDS];
+    if (isRemote) fedex.push({ key: 'gpuOn', label: 'Puesta de GPU', type: 'time' });
+    return applyTimeFieldOverrides(airline, fedex, ARRIVAL_ONLY_KEYS as Set<string>);
+  }
+
   const hasStairs = AIRLINES_WITH_STAIRS.includes(airline);
   let fields = hasStairs ? [...ARRIVAL_FIELDS_WITH_STAIRS] : [...ARRIVAL_FIELDS_NO_STAIRS];
 
@@ -515,7 +553,28 @@ export const getArrivalFields = (airline: AirlineCode, isRemote: boolean, soloLl
 };
 
 // Get departure fields for split layout
-export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, soloLlegada: boolean = false): TimeFieldConfig[] => {
+export const getDepartureFields = (
+  airline: AirlineCode,
+  isRemote: boolean,
+  soloLlegada: boolean = false,
+  soloSalida: boolean = false,
+): TimeFieldConfig[] => {
+  if (airline === 'FEDEX') {
+    const fedex = [...FEDEX_DEPARTURE_FIELDS];
+    // En "sólo salida" no hay bloque de llegada, y la PDA hace falta igual:
+    // el avión se trabaja con ella. Se trae aquí para que no desaparezca.
+    if (soloSalida) {
+      const pda = FEDEX_ARRIVAL_FIELDS.find(x => x.key === 'lirReception');
+      if (pda) fedex.unshift(pda);
+    }
+    if (isRemote) fedex.push({ key: 'gpuOff', label: 'Retirada de GPU', type: 'time' });
+    const permitidas = new Set<string>(DEPARTURE_ONLY_KEYS as Set<string>);
+    if (!isRemote) permitidas.delete('gpuOff');
+    let salida = applyTimeFieldOverrides(airline, fedex, permitidas);
+    if (!isRemote) salida = salida.filter(x => x.key !== 'gpuOff');
+    return salida;
+  }
+
   const hasStairs = AIRLINES_WITH_STAIRS.includes(airline) || isRemote;
   let fields = hasStairs ? [...DEPARTURE_FIELDS_WITH_STAIRS] : [...DEPARTURE_FIELDS_NO_STAIRS];
 
@@ -560,6 +619,8 @@ export const getDepartureFields = (airline: AirlineCode, isRemote: boolean, solo
 const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOnArrival',
   'coordinatorApproval',
+  'parkingArrival',
+  'fedexSuperArrival',
   'transit',
   'transitBags',
   'stairsTime',
@@ -577,6 +638,7 @@ const ARRIVAL_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
 // Fields to keep in "Sólo salida" mode (departure only)
 const DEPARTURE_ONLY_KEYS: Set<keyof TurnaroundTimes> = new Set([
   'chocksOff',
+  'ristraDeparture',
   'ropeCount',
   'ringCount',
   'specialEndLoading',
@@ -681,7 +743,7 @@ export const getEscalaTimeFields = (
   }
 
   const llegada = soloSalida ? [] : getArrivalFields(airline, isRemote, soloLlegada);
-  const salida = soloLlegada ? [] : getDepartureFields(airline, isRemote, soloLlegada);
+  const salida = soloLlegada ? [] : getDepartureFields(airline, isRemote, soloLlegada, soloSalida);
 
   // Alguna clave puede salir en los dos bloques; en el PDF una fila basta.
   const vistas = new Set<string>();

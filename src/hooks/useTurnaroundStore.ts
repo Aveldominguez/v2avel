@@ -43,6 +43,7 @@ export const getEmptyTimes = (): TurnaroundTimes => ({
   aviDeparture: false,
   departureFlightNumber: null,
   dock1: null,
+  ristraDeparture: null,
   dock2: null,
   dock3: null,
   dock4: null,
