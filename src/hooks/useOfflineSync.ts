@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { localTurnaroundStore } from '@/lib/turnaroundLocalStore';
 import { pruneDrafts, type TurnaroundDraft } from '@/lib/turnaroundDraft';
 import { isBackendReachable, reportBackendFailure } from '@/lib/backendReachability';
+import { escalasSinSubir, esCreacion } from '@/lib/rescatarPendientes';
 
 // Se reexportan para no romper a quien ya los importaba desde aquí.
 export { saveDraft, loadDraft, clearDraft, pruneDrafts } from '@/lib/turnaroundDraft';
@@ -208,5 +209,44 @@ export const useOfflineSync = () => {
     };
   }, [isOnline, user, processQueue]);
 
-  return { isOnline, syncing, pendingCount, enqueue, processQueue };
+  /**
+   * Rescate de escalas que se quedaron sólo en el móvil.
+   *
+   * Hasta ahora un guardado que fallaba por red se daba por bueno y la
+   * escala quedaba marcada como pendiente sin que nada la reintentara nunca.
+   * Esto las busca al arrancar y las mete en la cola. Hace falta aunque el
+   * fallo ya esté corregido: hay escalas atrapadas en los móviles DESDE
+   * ANTES, y son las que se dieron por perdidas.
+   */
+  const rescatarPendientes = useCallback(() => {
+    if (!user) return 0;
+    const sueltas = escalasSinSubir(user.id, getQueue());
+    for (const t of sueltas) {
+      enqueue({
+        type: esCreacion(t) ? 'create' : 'update',
+        turnaroundId: t.id,
+        data: {
+          flightNumber: t.flightNumber,
+          date: t.date,
+          airline: t.airline,
+          times: t.times,
+          fieldValues: t.fieldValues,
+          observations: t.observations ?? '',
+        },
+      });
+    }
+    if (sueltas.length > 0) {
+      console.warn('[sync] rescatadas', sueltas.length, 'escalas que no habían subido');
+    }
+    return sueltas.length;
+  }, [user, enqueue]);
+
+  // Al arrancar y cada vez que vuelve la conexión.
+  useEffect(() => {
+    if (!user || !isOnline) return;
+    const id = setTimeout(() => { rescatarPendientes(); }, 3000);
+    return () => clearTimeout(id);
+  }, [user, isOnline, rescatarPendientes]);
+
+  return { isOnline, syncing, pendingCount, enqueue, processQueue, rescatarPendientes };
 };

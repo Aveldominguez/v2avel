@@ -163,6 +163,27 @@ export const useTurnarounds = () => {
     }
   }, [user]);
 
+/**
+ * Tope de espera para escribir en el servidor.
+ *
+ * En plataforma pasa mucho que el móvil diga que tiene cobertura y no haya
+ * datos de verdad (dentro del avión, en la terminal, al lado de un carro).
+ * Ahí la petición no falla: se queda esperando. Sin tope, el guardado no
+ * terminaba nunca y la escala se quedaba sólo en el móvil.
+ */
+const TOPE_GUARDADO_MS = 15_000;
+
+/** Señal que corta la petición pasado el tope. */
+const señalDeCorte = (): AbortSignal => {
+  if (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
+    return AbortSignal.timeout(TOPE_GUARDADO_MS);
+  }
+  // Navegador antiguo: se monta a mano.
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), TOPE_GUARDADO_MS);
+  return ctrl.signal;
+};
+
   const createTurnaround = async (
     flightNumber: string,
     date: Date,
@@ -216,6 +237,7 @@ export const useTurnarounds = () => {
             observations,
           })
           .select()
+          .abortSignal(señalDeCorte())
           .single();
         if (error) throw error;
         const row = data as DbRow;
@@ -223,10 +245,20 @@ export const useTurnarounds = () => {
         localTurnaroundStore.upsert(user.id, dbRowToLocal(row));
         return mapDbToTurnaround(row);
       } catch (err) {
-        console.warn('[turnarounds] create offline-queued:', err);
-        // Keep local copy; caller's offline queue will re-attempt.
-        const local = localTurnaroundStore.get(user.id, localId)!;
-        return localToTurnaround(local);
+        /*
+         * Antes aquí se devolvía la copia local como si se hubiera guardado.
+         * El formulario decidía encolar mirando `navigator.onLine`, que dice
+         * "sí" en cuanto hay wifi aunque no haya datos: con la escala sin
+         * subir, el usuario veía el aviso verde de guardado, se borraba el
+         * borrador y la escala se quedaba SOLO en ese móvil, sin que nada la
+         * volviera a intentar nunca.
+         *
+         * Ahora se avisa del fallo. La copia local ya está escrita, y quien
+         * llama tiene su propio `catch` que mete la escala en la cola de
+         * reintentos y lo dice en pantalla.
+         */
+        console.warn('[turnarounds] create: el servidor no confirmó', err);
+        throw err;
       }
     }
 
@@ -287,15 +319,17 @@ export const useTurnarounds = () => {
           })
           .eq('id', id)
           .select()
+          .abortSignal(señalDeCorte())
           .single();
         if (error) throw error;
         const row = data as DbRow;
         localTurnaroundStore.upsert(user.id, dbRowToLocal(row));
         return mapDbToTurnaround(row);
       } catch (err) {
-        console.warn('[turnarounds] update offline-queued:', err);
-        const local = localTurnaroundStore.get(user.id, id)!;
-        return localToTurnaround(local);
+        // Ver el comentario de createTurnaround: no se da por guardado algo
+        // que el servidor no ha confirmado.
+        console.warn('[turnarounds] update: el servidor no confirmó', err);
+        throw err;
       }
     }
 

@@ -1,5 +1,5 @@
 {
-  "version": "4.760",
+  "version": "4.764",
   "changelog": [
     "FedEx: las horas pasan a estar repartidas en «Vuelo de llegada» y «Vuelo de salida», como en el resto de aerolíneas. Antes estaban todas mezcladas y había que ir buscando.",
     "En FedEx, «Recepción de LIR» pasa a llamarse «Recepción de PDA». Las horas ya guardadas siguen donde estaban.",
