@@ -10,6 +10,11 @@ import {
 } from '@/components/ui/dialog';
 import { Camera, RotateCcw, Loader2, AlertCircle, ChevronDown, Plane, ImageIcon } from 'lucide-react';
 import { compressImage } from '@/utils/imageCompressor';
+import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { groupPositionsForDisplay } from '@/utils/acCargoLayout';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +59,10 @@ interface BulkData {
 }
 
 const EMPTY_BULK: BulkData = { bf: 0, by_val: 0, dom: 0, usa: 0, int_val: 0, bg: 0, rush: 0 };
+
+/** Maletas contadas en el bulk, todas las casillas juntas. */
+export const totalBulk = (b: BulkData | null | undefined): number =>
+  b ? (b.bf ?? 0) + (b.by_val ?? 0) + (b.dom ?? 0) + (b.usa ?? 0) + (b.int_val ?? 0) + (b.bg ?? 0) + (b.rush ?? 0) : 0;
 
 interface ScanModuleState {
   fwdPositions: PositionData[];
@@ -299,6 +308,11 @@ const BulkSection = React.memo(function BulkSection({ bulk, onDelta }: BulkSecti
             <Counter field="rush" label="RUSH" value={bulk.rush} onDelta={onDelta} />
           </div>
         </div>
+      </div>
+      {/* Suma de todas las casillas: es lo que hay que cantar por radio. */}
+      <div className="flex items-center justify-between rounded-lg border-2 border-primary/40 bg-primary/10 px-3 py-2">
+        <span className="text-xs font-bold uppercase tracking-wider">Total maletas</span>
+        <span className="text-xl font-extrabold tabular-nums">{totalBulk(bulk)}</span>
       </div>
     </div>
   );
@@ -637,6 +651,8 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             }
           : { ...EMPTY_BULK };
 
+      bulkRef.current = { arrival: readBulk(arrBulk), departure: readBulk(depBulk) };
+
       setArrival((prev) => ({
         ...prev,
         fwdPositions: mapPos(arrFwd),
@@ -695,38 +711,67 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
           manualOrder: '',
         }));
 
-        await supabase
+        /*
+         * Se inserta ANTES de borrar lo anterior, y sólo se borra si la
+         * inserción ha ido bien.
+         *
+         * Antes se borraba primero y no se miraba si el insert fallaba: si
+         * fallaba, el escaneo se quedaba en pantalla pero en la base de datos
+         * no habia nada, y al volver a la escala la LIR habia "desaparecido".
+         * El fallo mas probable es la clave foranea de `turnaround_id`: una
+         * escala creada sin cobertura lleva un id que todavia no existe en el
+         * servidor. Por eso, si eso pasa, se reintenta sin esa referencia:
+         * mejor guardar el escaneo suelto que perderlo.
+         */
+        const filas = mapped.map((p) => ({
+          turnaround_id: turnaroundId ?? null,
+          flight_number: flightNumber,
+          flight_date: flightDate,
+          aircraft_type: aircraftType,
+          scan_type: scanType,
+          fwd_section: expectedSection,
+          position: p.position,
+          container_id: p.containerId || null,
+          weight_kg: parseFloat(p.weightKg) || null,
+          pieces: parseInt(p.pieces) || null,
+          percentage: parseInt(p.percentage) || null,
+          notes: p.notes || null,
+          is_door_position: p.isDoorPosition,
+          manual_order: null,
+        }));
+
+        // Las que ya estaban, para borrarlas sólo cuando las nuevas estén.
+        const { data: previas } = await supabase
           .from('ac_load_sheet_data')
-          .delete()
+          .select('id')
           .eq('flight_number', flightNumber)
           .eq('flight_date', flightDate)
           .eq('scan_type', scanType)
           .eq('fwd_section', expectedSection);
 
         let inserted: any[] = [];
-        if (mapped.length > 0) {
-          const { data: ins } = await supabase
-            .from('ac_load_sheet_data')
-            .insert(
-              mapped.map((p) => ({
-                turnaround_id: turnaroundId ?? null,
-                flight_number: flightNumber,
-                flight_date: flightDate,
-                aircraft_type: aircraftType,
-                scan_type: scanType,
-                fwd_section: expectedSection,
-                position: p.position,
-                container_id: p.containerId || null,
-                weight_kg: parseFloat(p.weightKg) || null,
-                pieces: parseInt(p.pieces) || null,
-                percentage: parseInt(p.percentage) || null,
-                notes: p.notes || null,
-                is_door_position: p.isDoorPosition,
-                manual_order: null,
-              })),
-            )
-            .select();
+        if (filas.length > 0) {
+          let { data: ins, error: insErr } = await supabase
+            .from('ac_load_sheet_data').insert(filas).select();
+
+          if (insErr && /foreign key|violates/i.test(insErr.message)) {
+            console.warn('[air canada] reintento sin turnaround_id:', insErr.message);
+            ({ data: ins, error: insErr } = await supabase
+              .from('ac_load_sheet_data')
+              .insert(filas.map((r) => ({ ...r, turnaround_id: null })))
+              .select());
+          }
+
+          if (insErr) {
+            console.error('[air canada] no se pudo guardar el escaneo:', insErr);
+            throw new Error('No se pudo guardar el escaneo: ' + insErr.message);
+          }
           inserted = ins ?? [];
+        }
+
+        const idsPrevios = (previas ?? []).map((r: any) => r.id);
+        if (idsPrevios.length > 0) {
+          await supabase.from('ac_load_sheet_data').delete().in('id', idsPrevios);
         }
 
         const withIds = mapped.map((p, i) => ({ ...p, id: inserted[i]?.id }));
@@ -739,11 +784,11 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
         }));
       } catch (err) {
         console.error(err);
-        setter((prev) => ({
-          ...prev,
-          [scanningKey]: false,
-          scanError: 'Error al escanear. Verifica la imagen e inténtalo de nuevo.',
-        }));
+        const msg = err instanceof Error && /No se pudo guardar/.test(err.message)
+          ? err.message
+          : 'Error al escanear. Verifica la imagen e inténtalo de nuevo.';
+        toast({ title: 'Escaneo', description: msg, variant: 'destructive' });
+        setter((prev) => ({ ...prev, [scanningKey]: false, scanError: msg }));
       }
     },
     [flightNumber, flightDate, aircraftType, turnaroundId],
@@ -782,33 +827,95 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
   const updateArrivalPosition = useMemo(() => makeUpdatePosition('arrival'), [makeUpdatePosition]);
   const updateDeparturePosition = useMemo(() => makeUpdatePosition('departure'), [makeUpdatePosition]);
 
+  /**
+   * Contadores del BULK.
+   *
+   * La cuenta se lleva en una referencia, NO leyendo el estado dentro de la
+   * función de actualización de React. Antes se hacía así:
+   *
+   *   let nuevo = null;
+   *   setEstado(prev => { nuevo = ...; return ...; });
+   *   if (!nuevo) return;            // <- aquí se salía
+   *   await guardar(nuevo);
+   *
+   * y React sólo ejecuta esa función en el momento si no hay cambios
+   * pendientes. Medido en el navegador: diez pulsaciones seguidas, la
+   * pantalla marcaba 10 y se guardó UNA. Las otras nueve se perdían sin
+   * ningún aviso, y al volver a la escala sólo estaba la primera.
+   *
+   * Con la referencia, cada pulsación parte del valor real aunque React
+   * todavía no haya repintado, y el guardado va aparte.
+   */
+  const bulkRef = useRef<Record<'arrival' | 'departure', BulkData>>({
+    arrival: { ...EMPTY_BULK },
+    departure: { ...EMPTY_BULK },
+  });
+  const bulkTimer = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
+
+  const guardarBulk = useCallback(async (scanType: 'arrival' | 'departure', valores: BulkData) => {
+    const { error } = await supabase.from('ac_bulk_data').upsert(
+      {
+        turnaround_id: turnaroundId ?? null,
+        flight_number: flightNumber,
+        flight_date: flightDate,
+        scan_type: scanType,
+        ...valores,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'flight_number,flight_date,scan_type' },
+    );
+    if (error) {
+      console.error('[air canada] bulk:', error);
+      toast({
+        title: 'No se pudo guardar el recuento',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  }, [flightNumber, flightDate, turnaroundId]);
+
   const makeBulkDelta = useCallback(
     (scanType: 'arrival' | 'departure') => async (field: keyof BulkData, delta: number) => {
+      const actual = bulkRef.current[scanType];
+      const nuevo: BulkData = { ...actual, [field]: Math.max(0, (actual[field] ?? 0) + delta) };
+      bulkRef.current[scanType] = nuevo;
+
       const setter = scanType === 'arrival' ? setArrival : setDeparture;
-      let newBulk: BulkData | null = null;
-      setter((prev) => {
-        const newVal = Math.max(0, (prev.bulk[field] ?? 0) + delta);
-        newBulk = { ...prev.bulk, [field]: newVal };
-        return { ...prev, bulk: newBulk };
-      });
-      if (!newBulk) return;
-      await supabase.from('ac_bulk_data').upsert(
-        {
-          turnaround_id: turnaroundId ?? null,
-          flight_number: flightNumber,
-          flight_date: flightDate,
-          scan_type: scanType,
-          ...newBulk,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'flight_number,flight_date,scan_type' },
-      );
+      setter((prev) => ({ ...prev, bulk: nuevo }));
+
+      // Se agrupan las pulsaciones seguidas en una sola escritura, con el
+      // último valor. El temporizador se vacía al desmontar (ver abajo).
+      clearTimeout(bulkTimer.current[scanType]);
+      bulkTimer.current[scanType] = setTimeout(() => {
+        void guardarBulk(scanType, bulkRef.current[scanType]);
+      }, 500);
     },
-    [flightNumber, flightDate, turnaroundId],
+    [guardarBulk],
   );
+
+  /** Al cerrar la escala se manda lo que quede pendiente, no se tira. */
+  useEffect(() => {
+    const timers = bulkTimer;
+    const valores = bulkRef;
+    return () => {
+      (['arrival', 'departure'] as const).forEach((t) => {
+        if (timers.current[t]) {
+          clearTimeout(timers.current[t]);
+          void guardarBulk(t, valores.current[t]);
+        }
+      });
+    };
+  }, [guardarBulk]);
 
   const arrivalBulkDelta = useMemo(() => makeBulkDelta('arrival'), [makeBulkDelta]);
   const departureBulkDelta = useMemo(() => makeBulkDelta('departure'), [makeBulkDelta]);
+
+  /**
+   * El "Reset" borra de la base de datos TODA la LIR escaneada de ese módulo.
+   * Estaba a un toque, en rojo y al lado de los botones de escanear, sin
+   * preguntar nada: un roce se llevaba por delante un escaneo entero.
+   */
+  const [aReiniciar, setAReiniciar] = useState<'arrival' | 'departure' | null>(null);
 
   const resetModule = useCallback(
     async (scanType: 'arrival' | 'departure') => {
@@ -824,6 +931,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
         .eq('flight_number', flightNumber)
         .eq('flight_date', flightDate)
         .eq('scan_type', scanType);
+      bulkRef.current[scanType] = { ...EMPTY_BULK };
       (scanType === 'arrival' ? setArrival : setDeparture)(emptyModule());
     },
     [flightNumber, flightDate],
@@ -883,7 +991,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             onUpdatePosition={updateArrivalPosition}
             onBulkDelta={arrivalBulkDelta}
             onOpenLir={openLir}
-            onReset={resetModule}
+            onReset={setAReiniciar}
           />
         )}
       </div>
@@ -908,11 +1016,39 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             onUpdatePosition={updateDeparturePosition}
             onBulkDelta={departureBulkDelta}
             onOpenLir={openLir}
-            onReset={resetModule}
+            onReset={setAReiniciar}
           />
         )}
       </div>
       )}
+
+      <AlertDialog open={!!aReiniciar} onOpenChange={(v) => { if (!v) setAReiniciar(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Borrar el escaneo de {aReiniciar === 'arrival' ? 'descarga' : 'carga'}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              Se borran las posiciones escaneadas y el recuento del bulk de ese módulo.
+              No se puede deshacer: habría que volver a escanear la hoja.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault();
+                const cual = aReiniciar;
+                setAReiniciar(null);
+                if (cual) void resetModule(cual);
+              }}
+            >
+              Borrar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={lirDialog.open} onOpenChange={(o) => setLirDialog((p) => ({ ...p, open: o }))}>
         <DialogContent className="max-w-2xl">

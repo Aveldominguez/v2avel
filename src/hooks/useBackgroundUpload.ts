@@ -60,7 +60,10 @@ export function useBackgroundUpload({
 
         const { error } = await supabase.storage
           .from(bucket)
-          .upload(fileName, item.file, { upsert: true });
+          .upload(fileName, item.file, {
+            upsert: true,
+            contentType: item.file.type || 'image/jpeg',
+          });
 
         if (error) throw error;
 
@@ -110,6 +113,17 @@ export function useBackgroundUpload({
         toast({ title: 'Error', description: `${f.name} supera 10MB, omitido`, variant: 'destructive' });
         return false;
       }
+      // Android entrega a veces un archivo de cero bytes cuando la foto vive
+      // en la nube (Google Fotos) y todavía no se ha descargado al móvil. Si
+      // se sube, queda una imagen rota que nadie puede abrir.
+      if (f.size === 0) {
+        toast({
+          title: 'Esa foto no está en el móvil',
+          description: `${f.name || 'La foto'} parece estar sólo en la nube. Ábrela antes en la galería o usa la cámara.`,
+          variant: 'destructive',
+        });
+        return false;
+      }
       return true;
     });
 
@@ -118,46 +132,68 @@ export function useBackgroundUpload({
       toast({ title: 'Aviso', description: `Solo se subirán ${batch.length} de ${files.length} archivos (límite ${maxFiles})` });
     }
 
-    const newPending: PendingUpload[] = [];
+    /*
+     * Cada foto se mete en la lista EN CUANTO está lista, no al final.
+     *
+     * Antes se preparaban todas y sólo entonces se pintaban: con cinco fotos
+     * no se veía nada hasta que la última terminaba, y si una se atascaba no
+     * aparecía ninguna. Ahora van saliendo de una en una y, si una falla,
+     * las demás siguen su camino.
+     */
+    let añadidas = 0;
     for (const original of batch) {
-      // Compress images before upload (canvas, no network) to survive flaky ramp connections.
-      let file = original;
       try {
-        file = await compressImage(original);
+        // Se comprime en el móvil (lienzo, sin red) para aguantar la
+        // cobertura de plataforma. Si no se puede, se sube el original.
+        let file = original;
+        try {
+          file = await compressImage(original);
+        } catch (e) {
+          console.warn('Image compression failed, using original:', e);
+        }
+
+        const backupId = `${turnaroundId || 'new'}-${filePrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const localUrl = URL.createObjectURL(file);
+
+        // Copia de seguridad en el móvil por si la subida falla.
+        try {
+          await saveImageBackup({
+            id: backupId,
+            turnaroundId: turnaroundId || 'new',
+            filePrefix,
+            fileName: file.name,
+            blob: file,
+            createdAt: Date.now(),
+          });
+        } catch (e) {
+          console.warn('Could not save image backup to IndexedDB:', e);
+        }
+
+        const item: PendingUpload = { localUrl, file, status: 'uploading', backupId };
+        setPending(prev => [...prev, item]);
+        uploadStarted();
+        uploadQueueRef.current = [...uploadQueueRef.current, item];
+        añadidas += 1;
+        processQueue();
       } catch (e) {
-        console.warn('Image compression failed, using original:', e);
-      }
-
-      const backupId = `${turnaroundId || 'new'}-${filePrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-      const localUrl = URL.createObjectURL(file);
-
-      // Save to IndexedDB as backup
-      try {
-        await saveImageBackup({
-          id: backupId,
-          turnaroundId: turnaroundId || 'new',
-          filePrefix,
-          fileName: file.name,
-          blob: file,
-          createdAt: Date.now(),
+        // Una foto que no se puede ni preparar no se lleva por delante al
+        // resto, y se dice cuál ha sido.
+        console.error('[subida] no se pudo preparar la foto', original.name, e);
+        toast({
+          title: 'Una foto no se pudo añadir',
+          description: original.name,
+          variant: 'destructive',
         });
-      } catch (e) {
-        console.warn('Could not save image backup to IndexedDB:', e);
       }
-
-      newPending.push({
-        localUrl,
-        file,
-        status: 'uploading' as const,
-        backupId,
-      });
     }
 
-    setPending(prev => [...prev, ...newPending]);
-    newPending.forEach(() => uploadStarted());
-    uploadQueueRef.current = [...uploadQueueRef.current, ...newPending];
-
-    processQueue();
+    if (añadidas === 0 && batch.length > 0) {
+      toast({
+        title: 'No se pudo añadir ninguna foto',
+        description: 'Inténtalo de nuevo o usa la cámara.',
+        variant: 'destructive',
+      });
+    }
   }, [user, serverUrls.length, pending, maxFiles, processQueue, turnaroundId, filePrefix]);
 
   const removePending = useCallback((localUrl: string) => {
