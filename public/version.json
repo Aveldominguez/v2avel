@@ -1,9 +1,9 @@
 {
-  "version": "4.764",
+  "version": "4.770",
   "changelog": [
-    "FedEx: las horas pasan a estar repartidas en «Vuelo de llegada» y «Vuelo de salida», como en el resto de aerolíneas. Antes estaban todas mezcladas y había que ir buscando.",
-    "En FedEx, «Recepción de LIR» pasa a llamarse «Recepción de PDA». Las horas ya guardadas siguen donde estaban.",
-    "«1ª Ristra» pasa a ser «1ª Ristra Llegada» y se añade «1ª Ristra Salida», para poder controlar las dos por separado.",
-    "Un borrador con un informe de incidente escrito ya no caduca a los dos días: se conserva hasta que lo guardes."
+    "IMPORTANTE: si guardas una escala con mala cobertura, antes la app decía «guardado» aunque no hubiera llegado al servidor. Ahora lo detecta, lo dice y la reintenta sola. Verás «Guardado localmente, se reintentará» más a menudo: no es que falle más, es que antes fallaba en silencio.",
+    "Al abrir la app se rescatan las escalas que se hubieran quedado sólo en el móvil y se suben solas.",
+    "Android: arregladas las fotos de la galería que se elegían y no aparecían ni subían. Si una foto da problemas, ahora se dice cuál y las demás siguen.",
+    "Air Canada: los contadores de maletas (BF, BY, DOM, USA…) ya se guardan de verdad, con un total al pie. La LIR escaneada ya no puede perderse al reescanear, y el botón Reset pide confirmación."
   ]
 }
