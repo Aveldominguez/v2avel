@@ -260,6 +260,14 @@ const TurnaroundForm: React.FC = () => {
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftWarned = useRef(false);
+  /**
+   * La escala se ha abierto SIN poder contrastarla con el servidor (copia del
+   * móvil o borrador). Mientras esto sea cierto no se guarda nada solo: si lo
+   * que se ha cargado está incompleto, el guardado automático lo subiría y
+   * destruiría lo bueno que hubiera arriba. Es lo que paso con la AZ058 del
+   * 5/11: la escala acabo en el servidor sin una sola hora.
+   */
+  const [sinConfirmar, setSinConfirmar] = useState(false);
   const hasUnsavedChanges = useRef(false);
   const isInitialLoad = useRef(true);
   const savedAndNavigating = useRef(false);
@@ -273,15 +281,21 @@ const TurnaroundForm: React.FC = () => {
         // Try loading from draft first (offline edits)
         const draft = loadDraft(id);
         let existing = null;
+        let confirmada = false;
         try {
-          existing = await getTurnaroundById(id);
+          const r = await getTurnaroundById(id);
+          existing = r.escala;
+          confirmada = r.confirmada;
         } catch (err) {
           console.warn('Failed to fetch from server, will use draft if available:', err);
         }
-        
+
         if (isMounted) {
           // Use draft if it's newer than server data, or if server is unavailable
           if (draft && (!existing || draft.savedAt > existing.updatedAt.getTime())) {
+            // Un borrador son cambios de ESTE móvil que no se confirmaron: se
+            // enseñan, pero no se suben solos.
+            setSinConfirmar(true);
             applyDraft(draft);
           } else if (existing) {
             setFlightNumber(existing.flightNumber);
@@ -332,9 +346,14 @@ const TurnaroundForm: React.FC = () => {
             setScheduledStd((existing.times as any).scheduledStd ?? null);
             setScheduledEtd((existing.times as any).scheduledEtd ?? null);
             setLastSaved(existing.updatedAt);
+            // Si el servidor no ha contestado, esto puede ser una copia vieja.
+            if (!confirmada) setSinConfirmar(true);
           } else if (draft) {
             applyDraft(draft);
-            toast({ title: '📱 Sin conexión', description: 'Cargado desde borrador local' });
+            toast({
+              title: 'Hay cambios sin guardar en este móvil',
+              description: 'Revisa que esté todo y pulsa Guardar para subirlos.',
+            });
           } else {
             toast({ title: 'Error', description: 'No se encontró la escala', variant: 'destructive' });
             navigate('/');
@@ -489,7 +508,14 @@ const TurnaroundForm: React.FC = () => {
     // Debounced server save (only in step 2, editing mode, online)
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
 
-    if (isEditing && step === 2) {
+    /*
+     * El guardado automático se queda parado mientras la escala no esté
+     * contrastada con el servidor. Subir sola una copia que no se ha podido
+     * comprobar es justo lo que borró las horas de la AZ058: el borrador
+     * sigue escribiéndose en el móvil, así que no se pierde nada, y en cuanto
+     * el operario pulse Guardar se sube con su permiso.
+     */
+    if (isEditing && step === 2 && !sinConfirmar) {
       autoSaveTimer.current = setTimeout(() => {
         autoSaveToServer();
       }, AUTOSAVE_DELAY);
@@ -515,7 +541,19 @@ const TurnaroundForm: React.FC = () => {
   useEffect(() => {
     if (isInitialLoad.current || savedAndNavigating.current) return;
     flushDraft();
-    if (isEditing) autoSaveToServer();
+    /*
+     * Aquí se perdieron las horas de la AZ058 del 5/11.
+     *
+     * Al pulsar "Recuperar archivos" cambia la lista de adjuntos y esto subía
+     * la escala ENTERA al instante. Como esa escala se había abierto con una
+     * copia que el servidor no había confirmado —y por tanto sin horas—, el
+     * guardado se llevó por delante las que sí estaban arriba. Quedó sólo la
+     * hoja de carga, que es justo lo que acababa de recuperarse.
+     *
+     * Mientras no esté contrastada, el adjunto se queda en el borrador del
+     * móvil y sube cuando el operario pulse Guardar.
+     */
+    if (isEditing && !sinConfirmar) autoSaveToServer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjuntos]);
 
@@ -676,6 +714,7 @@ const TurnaroundForm: React.FC = () => {
           } else {
             setLastSaved(new Date());
             clearDraft(id);
+            setSinConfirmar(false);
             flashSaved();
           }
         } else {
@@ -1234,6 +1273,21 @@ const TurnaroundForm: React.FC = () => {
         )}
 
         {/* Adjuntos que se subieron pero no llegaron a quedar en la escala. */}
+        {sinConfirmar && (
+          <div className="rounded-lg border-2 border-amber-500 bg-amber-500/15 p-3 text-amber-700 dark:text-amber-400">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div className="min-w-0 flex-1 text-sm">
+                <p className="font-semibold">Esta escala no se ha podido comprobar con el servidor</p>
+                <p className="opacity-90">
+                  Puede que falten datos. No se guardará sola: revisa que esté todo y pulsa
+                  Guardar cuando tengas cobertura.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <AttachmentRecovery
           turnaroundId={id}
           loadingSheetUrls={loadingSheetUrls}

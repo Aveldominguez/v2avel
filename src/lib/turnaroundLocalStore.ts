@@ -44,12 +44,33 @@ const aligerar = (e: LocalTurnaround): LocalTurnaround => {
   return { ...e, times: { ...e.times, airlineLogo: null } };
 };
 
-const writeAll = (userId: string, list: LocalTurnaround[]) => {
+/** Avisa UNA vez de que la copia local se ha quedado congelada. */
+let avisadoAlmacenLleno = false;
+
+const writeAll = (userId: string, list: LocalTurnaround[]): boolean => {
   const limpia = pruneByAge(list, new Date()).map(aligerar);
   try {
     localStorage.setItem(KEY(userId), JSON.stringify(limpia));
+    avisadoAlmacenLleno = false;
+    return true;
   } catch (e) {
-    console.warn('turnaroundLocalStore: write failed', e);
+    /*
+     * Esto fallaba en silencio, y es grave: la copia local se queda
+     * CONGELADA en un estado viejo. A partir de ahí, cualquier apertura de
+     * escala que no consiga hablar con el servidor sirve esa copia vieja, y
+     * antes el guardado automático la subía encima de la buena.
+     *
+     * El bloqueo del guardado automático ya evita el destrozo; esto saca el
+     * problema a la luz para poder arreglarlo (hacer sitio en el móvil).
+     */
+    console.warn('turnaroundLocalStore: no se pudo escribir la copia local', e);
+    if (!avisadoAlmacenLleno) {
+      avisadoAlmacenLleno = true;
+      try {
+        window.dispatchEvent(new CustomEvent('almacen-local-lleno'));
+      } catch { /* entorno sin ventana */ }
+    }
+    return false;
   }
 };
 

@@ -349,10 +349,25 @@ const señalDeCorte = (): AbortSignal => {
     return true;
   };
 
-  const getTurnaroundById = useCallback(async (id: string): Promise<Turnaround | null> => {
-    if (!user) return null;
+  /**
+   * Abre una escala, diciendo SI LA HA CONFIRMADO con el servidor.
+   *
+   * Esto último es lo importante. Antes, si la consulta al servidor fallaba
+   * —cosa normal en plataforma, con el móvil diciendo que hay cobertura y sin
+   * datos de verdad— se devolvía la copia del móvil sin más. Y si esa copia
+   * estaba vieja (por ejemplo porque el almacenamiento del móvil está lleno y
+   * las escrituras locales fallan en silencio), la escala se abría con menos
+   * datos de los que había en el servidor... y el guardado automático la
+   * subía así, destruyendo lo bueno.
+   *
+   * Devolviendo `confirmada` el formulario puede negarse a guardar solo algo
+   * que no ha podido contrastar.
+   */
+  const getTurnaroundById = useCallback(async (
+    id: string,
+  ): Promise<{ escala: Turnaround | null; confirmada: boolean }> => {
+    if (!user) return { escala: null, confirmada: false };
 
-    // Return local immediately if present.
     const local = localTurnaroundStore.get(user.id, id);
 
     if (navigator.onLine) {
@@ -361,19 +376,23 @@ const señalDeCorte = (): AbortSignal => {
           .from('turnarounds')
           .select('*')
           .eq('id', id)
+          .abortSignal(señalDeCorte())
           .maybeSingle();
         if (error) throw error;
         if (data) {
           const row = data as DbRow;
           localTurnaroundStore.upsert(user.id, dbRowToLocal(row));
-          return mapDbToTurnaround(row);
+          return { escala: mapDbToTurnaround(row), confirmada: true };
         }
+        // El servidor contesta y dice que no existe: también es una respuesta
+        // firme, y la copia local es lo único que queda.
+        return { escala: local ? localToTurnaround(local) : null, confirmada: false };
       } catch (err) {
-        console.warn('[turnarounds] getById offline fallback:', err);
+        console.warn('[turnarounds] getById: el servidor no contestó', err);
       }
     }
 
-    return local ? localToTurnaround(local) : null;
+    return { escala: local ? localToTurnaround(local) : null, confirmada: false };
   }, [user]);
 
   return {
