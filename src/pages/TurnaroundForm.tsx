@@ -35,6 +35,7 @@ import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
 import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { nombreCoordinador } from '@/utils/coordinatorName';
 import { hayNumeroDeVuelo } from '@/utils/escalaStart';
+import { horariosDeArion, type FilaArion } from '@/utils/horariosArion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -229,9 +230,9 @@ const TurnaroundForm: React.FC = () => {
           const m = String(val).match(/(\d{2}:\d{2})$/);
           return m ? m[1] : null;
         };
-        const sta = extractTime((arrival as any)?.sdt);
-        const eta = extractTime((arrival as any)?.edt);
-        const std = extractTime((departure as any)?.connection_sdt);
+        // Ver utils/horariosArion: el STD salía de la hora del vuelo
+        // CONECTADO de la fila de salida, que es la de la llegada.
+        const { sta, eta, std, etd } = horariosDeArion(arrival as FilaArion, departure as FilaArion);
         // Keep previous value when ARION returns nothing (preserve persisted info)
         if (arrOrigin !== null) setOriginStation(arrOrigin);
         if (depDest !== null) setDestStation(depDest);
@@ -245,6 +246,7 @@ const TurnaroundForm: React.FC = () => {
         if (sta !== null) setScheduledArrival(sta);
         if (eta !== null) setScheduledEta(eta);
         if (std !== null) setScheduledStd(std);
+        if (etd !== null) setScheduledEtd(etd);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
