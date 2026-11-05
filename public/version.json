@@ -1,5 +1,5 @@
 {
-  "version": "4.773",
+  "version": "4.778",
   "changelog": [
     "IMPORTANTE: si guardas una escala con mala cobertura, antes la app decía «guardado» aunque no hubiera llegado al servidor. Ahora lo detecta, lo dice y la reintenta sola. Verás «Guardado localmente, se reintentará» más a menudo: no es que falle más, es que antes fallaba en silencio.",
     "Al abrir la app se rescatan las escalas que se hubieran quedado sólo en el móvil y se suben solas.",

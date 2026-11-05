@@ -418,7 +418,7 @@ export const usesSplitLayout = (airline: AirlineCode): boolean => {
 // Friendly default labels for known time field keys. Used when an admin override
 // enables a field without providing a custom label, so the form never shows
 // the raw technical key (e.g. "AVIARRIVAL", "GPUOFF").
-const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
+export const TIME_FIELD_FALLBACK_LABELS: Record<string, string> = {
   chocksOnArrival: 'Calzos Llegada',
   coordinatorApproval: 'VB Coordinador',
   chocksOff: 'Calzos Salida',
