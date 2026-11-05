@@ -12,6 +12,11 @@ describe('etiquetaDeHora', () => {
     }
   });
 
+  it('los muelles que sólo activa el admin también tienen nombre', () => {
+    expect(etiquetaDeHora('dock2')).toBe('2ª Muelle');
+    expect(etiquetaDeHora('dock4')).toBe('4ª Muelle');
+  });
+
   it('un campo desconocido se enseña tal cual, no en blanco', () => {
     expect(etiquetaDeHora('campoQueNoExiste')).toBe('campoQueNoExiste');
   });

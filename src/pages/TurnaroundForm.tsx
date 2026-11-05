@@ -283,6 +283,12 @@ const TurnaroundForm: React.FC = () => {
    * que faltaba cuando la AZ058 se quedó sin horas.
    */
   const horasEnServidor = useRef<Partial<TurnaroundTimes> | null>(null);
+  /**
+   * El guardado automático se ha parado porque iba a borrar datos. No es lo
+   * mismo que `sinConfirmar` —aquí el servidor sí contestó— y el aviso tiene
+   * que decir otra cosa: lo bueno sigue arriba y no se ha tocado.
+   */
+  const [borradoDetenido, setBorradoDetenido] = useState(false);
   /** Guardado a mano que borra datos: se para y se pregunta. */
   const [avisoBorrado, setAvisoBorrado] = useState<{ perdidos: string[]; extra?: Partial<TurnaroundTimes> } | null>(null);
   const hasUnsavedChanges = useRef(false);
@@ -603,7 +609,7 @@ const TurnaroundForm: React.FC = () => {
     const veredicto = revisarGuardado(horasEnServidor.current, finalTimes);
     if (veredicto.peligroso) {
       console.error('Guardado automático detenido: borraría', veredicto.perdidos);
-      setSinConfirmar(true);
+      setBorradoDetenido(true);
       toast({
         title: 'Guardado automático detenido',
         description: `Este cambio borraría ${veredicto.perdidos.length} datos ya guardados. Revisa la escala antes de guardar.`,
@@ -723,6 +729,7 @@ const TurnaroundForm: React.FC = () => {
       }
     }
 
+    setBorradoDetenido(false);
     setSaving(true);
     try {
       const finalTimes = getTimesWithFlightInfo(extra);
@@ -1325,6 +1332,22 @@ const TurnaroundForm: React.FC = () => {
         )}
 
         {/* Adjuntos que se subieron pero no llegaron a quedar en la escala. */}
+        {borradoDetenido && (
+          <div className="rounded-lg border-2 border-destructive bg-destructive/15 p-3 text-destructive">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div className="min-w-0 flex-1 text-sm">
+                <p className="font-semibold">Guardado automático detenido</p>
+                <p className="opacity-90">
+                  Lo que hay en pantalla borraría horas que ya estaban guardadas, así que
+                  no se ha subido nada: en el servidor siguen intactas. Si has sido tú
+                  quien las ha quitado, pulsa Guardar y confirma.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {sinConfirmar && (
           <div className="rounded-lg border-2 border-amber-500 bg-amber-500/15 p-3 text-amber-700 dark:text-amber-400">
             <div className="flex items-start gap-2">

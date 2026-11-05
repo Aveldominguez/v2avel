@@ -14,6 +14,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { etiquetaDeHora } from '@/utils/etiquetasHoras';
+import { NO_SON_DEL_OPERARIO } from '@/utils/guardadoSeguro';
 
 interface Version {
   id: string;
@@ -36,10 +37,16 @@ const esCopiaDeSeguridadDeRestauracion = (v: Version) => v.horas_antes === -1;
 
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-/** Las horas de una versión, con nombre legible y en orden. */
+/**
+ * Las horas de una versión, con nombre legible y en orden.
+ *
+ * Sólo las del operario: las de ARION (STA, STD, ETD, hora de salida) las
+ * pone el sistema solo y nadie las pierde, así que enseñarlas aquí era ruido
+ * y además inflaba la cuenta de horas.
+ */
 export const horasDeVersion = (times: Record<string, unknown> | null | undefined) =>
   Object.entries(times ?? {})
-    .filter(([, v]) => typeof v === 'string' && HORA.test(v))
+    .filter(([k, v]) => !NO_SON_DEL_OPERARIO.has(k) && typeof v === 'string' && HORA.test(v))
     .map(([clave, v]) => ({ clave, etiqueta: etiquetaDeHora(clave), valor: v as string }))
     .sort((a, b) => a.valor.localeCompare(b.valor));
 

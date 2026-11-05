@@ -16,7 +16,7 @@ import type { TurnaroundTimes } from '@/types/turnaround';
 export const LIMITE_CAMPOS_PERDIDOS = 3;
 
 /** Campos que no los escribe el operario: los pone ARION o la propia app. */
-const NO_SON_DEL_OPERARIO = new Set([
+export const NO_SON_DEL_OPERARIO = new Set([
   'scheduledArrival', 'scheduledEta', 'scheduledStd', 'scheduledEtd',
   'originStation', 'destStation', 'homeStation', 'ldmRaw', 'airlineLogo',
   'baggageBelt', 'cpmRawLines', 'aircraftModel', 'departureTime',
