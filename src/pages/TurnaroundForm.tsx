@@ -36,6 +36,11 @@ import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { nombreCoordinador } from '@/utils/coordinatorName';
 import { hayNumeroDeVuelo } from '@/utils/escalaStart';
 import { horariosDeArion, type FilaArion } from '@/utils/horariosArion';
+import { revisarGuardado } from '@/utils/guardadoSeguro';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -270,6 +275,16 @@ const TurnaroundForm: React.FC = () => {
    * 5/11: la escala acabo en el servidor sin una sola hora.
    */
   const [sinConfirmar, setSinConfirmar] = useState(false);
+  /**
+   * Lo último que se sabe que está guardado en el servidor.
+   *
+   * Sirve de testigo: antes de escribir se compara con lo que se va a subir y,
+   * si el cambio hace desaparecer datos que ya estaban, no pasa solo. Es la red
+   * que faltaba cuando la AZ058 se quedó sin horas.
+   */
+  const horasEnServidor = useRef<Partial<TurnaroundTimes> | null>(null);
+  /** Guardado a mano que borra datos: se para y se pregunta. */
+  const [avisoBorrado, setAvisoBorrado] = useState<{ perdidos: string[]; extra?: Partial<TurnaroundTimes> } | null>(null);
   const hasUnsavedChanges = useRef(false);
   const isInitialLoad = useRef(true);
   const savedAndNavigating = useRef(false);
@@ -350,6 +365,8 @@ const TurnaroundForm: React.FC = () => {
             setLastSaved(existing.updatedAt);
             // Si el servidor no ha contestado, esto puede ser una copia vieja.
             if (!confirmada) setSinConfirmar(true);
+            // Sólo vale de testigo lo que el servidor ha confirmado.
+            if (confirmada) horasEnServidor.current = existing.times;
           } else if (draft) {
             applyDraft(draft);
             toast({
@@ -574,8 +591,26 @@ const TurnaroundForm: React.FC = () => {
 
   const autoSaveToServer = useCallback(async () => {
     if (!isEditing || !id || !flightNumber.trim()) return;
-    
+
     const finalTimes = getTimesWithFlightInfo();
+
+    /*
+     * Un guardado automático no borra nunca. Nadie le ha dicho a la app que
+     * suba esto: si lo que va a escribir hace desaparecer horas que ya estaban
+     * en el servidor, es un fallo de la app, no una corrección del operario.
+     * Se queda parado y se avisa; el borrador del móvil sigue guardándose.
+     */
+    const veredicto = revisarGuardado(horasEnServidor.current, finalTimes);
+    if (veredicto.peligroso) {
+      console.error('Guardado automático detenido: borraría', veredicto.perdidos);
+      setSinConfirmar(true);
+      toast({
+        title: 'Guardado automático detenido',
+        description: `Este cambio borraría ${veredicto.perdidos.length} datos ya guardados. Revisa la escala antes de guardar.`,
+        variant: 'destructive',
+      });
+      return;
+    }
     const safeDate = date instanceof Date ? date : new Date(date);
     const safeFvs: FieldValue[] = fieldValues.map(fv => ({
       ...fv,
@@ -593,6 +628,7 @@ const TurnaroundForm: React.FC = () => {
     if (isOnline) {
       try {
         await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
+        horasEnServidor.current = finalTimes;
         setLastSaved(new Date());
         hasUnsavedChanges.current = false;
         // Don't clear draft on auto-save; keep as safety net until explicit manual save
@@ -657,7 +693,7 @@ const TurnaroundForm: React.FC = () => {
     setStep(2);
   };
 
-  const handleSave = useCallback(async (extra?: Partial<TurnaroundTimes>) => {
+  const handleSave = useCallback(async (extra?: Partial<TurnaroundTimes>, borradoAceptado?: boolean) => {
     if (faltaNumeroDeVuelo()) {
       avisoSinNumero();
       return;
@@ -672,6 +708,19 @@ const TurnaroundForm: React.FC = () => {
         variant: 'destructive',
       });
       return;
+    }
+
+    /*
+     * Guardar a mano sí puede borrar —el operario corrige lo que apuntó mal—,
+     * pero no media escala de golpe sin decirlo. A partir de tres datos se
+     * para y se pregunta: si es un fallo de la app, aquí se corta.
+     */
+    if (!borradoAceptado) {
+      const veredicto = revisarGuardado(horasEnServidor.current, getTimesWithFlightInfo(extra));
+      if (veredicto.peligroso) {
+        setAvisoBorrado({ perdidos: veredicto.perdidos, extra });
+        return;
+      }
     }
 
     setSaving(true);
@@ -696,6 +745,7 @@ const TurnaroundForm: React.FC = () => {
       try {
         if (isEditing && id) {
           await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
+          horasEnServidor.current = finalTimes;
           if (!isOnline) {
             enqueue({
               type: 'update',
@@ -1427,6 +1477,36 @@ const TurnaroundForm: React.FC = () => {
         </Dialog>
 
         {/* Se elige qué imágenes van al PDF antes de generarlo. */}
+        {/* Un guardado a mano que borra varios datos ya guardados: se pregunta. */}
+        <AlertDialog open={!!avisoBorrado} onOpenChange={(v) => { if (!v) setAvisoBorrado(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Este guardado borra datos</AlertDialogTitle>
+              <AlertDialogDescription>
+                {avisoBorrado && (
+                  <>
+                    Vas a dejar en blanco {avisoBorrado.perdidos.length} datos que ya estaban
+                    guardados en el servidor. Si no has sido tú quien los ha borrado, cancela:
+                    es un fallo de la app y los datos siguen arriba.
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const pendiente = avisoBorrado;
+                  setAvisoBorrado(null);
+                  if (pendiente) handleSave(pendiente.extra, true);
+                }}
+              >
+                Guardar igualmente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <PdfExportDialog
           open={pdfDialogOpen}
           onOpenChange={setPdfDialogOpen}
