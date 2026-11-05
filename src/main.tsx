@@ -20,4 +20,10 @@ registerAppServiceWorker();
 // dejaba de guardarse el borrador de la escala en curso, en silencio.
 try { pruneDrafts(); } catch { /* almacén no disponible */ }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// El indicador de carga que pinta index.html antes de que exista nada de
+// esto. Se quita a mano: createRoot no garantiza vaciar lo que ya hubiera
+// dentro del contenedor.
+const raiz = document.getElementById("root")!;
+document.getElementById("arranque")?.remove();
+
+createRoot(raiz).render(<App />);

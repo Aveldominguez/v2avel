@@ -35,10 +35,52 @@
   <meta property="og:description" content="Control de horas">
   <meta name="twitter:description" content="Control de horas">
   <link rel="icon" type="image/jpeg" href="/favicon.jpeg">
+    <!--
+      El color de fondo y el tema, ANTES de descargar nada.
+
+      Sin esto el móvil enseñaba una pantalla BLANCA desde que abres la app
+      hasta que termina de cargar y arrancar el JavaScript: con la app en tema
+      oscuro y un teléfono normal en el aeropuerto, eso son varios segundos en
+      blanco cada vez que Android descarta la pestaña por dejarla un rato de
+      fondo. El tema se aplicaba en main.tsx, que es lo ÚLTIMO que se ejecuta.
+
+      Esto pinta el fondo correcto en el primer instante y deja un indicador
+      de carga visible, que React sustituye al montar.
+    -->
+    <style>
+      html { background: hsl(216 54% 12%); }
+      html.light { background: hsl(220 20% 97%); }
+      html.exterior { background: hsl(0 0% 100%); }
+      html.sky { background: hsl(220 42% 96%); }
+      html.aero { background: hsl(216 54% 12%); }
+      body { margin: 0; background: inherit; }
+      #arranque {
+        position: fixed; inset: 0; display: flex;
+        align-items: center; justify-content: center;
+      }
+      #arranque i {
+        width: 2rem; height: 2rem; border-radius: 50%;
+        border: 3px solid hsl(210 40% 60% / 0.25);
+        border-top-color: hsl(210 90% 60%);
+        animation: girar 0.8s linear infinite;
+      }
+      @keyframes girar { to { transform: rotate(360deg); } }
+    </style>
+    <script>
+      // Mismo criterio que src/lib/theme.ts: por defecto 'aero'.
+      try {
+        var t = localStorage.getItem('theme') || 'aero';
+        var r = document.documentElement;
+        if (t === 'light' || t === 'exterior') r.classList.add('light');
+        if (t === 'exterior') r.classList.add('exterior');
+        if (t === 'sky') r.classList.add('sky');
+        if (t === 'aero') r.classList.add('aero');
+      } catch (e) { document.documentElement.classList.add('aero'); }
+    </script>
 </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="arranque"><i></i></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

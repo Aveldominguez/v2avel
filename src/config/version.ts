@@ -1,10 +1,10 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.781';
+export const APP_VERSION = '4.790';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  'IMPORTANTE: si guardas una escala con mala cobertura, antes la app decía «guardado» aunque no hubiera llegado al servidor. Ahora lo detecta, lo dice y la reintenta sola. Verás «Guardado localmente, se reintentará» más a menudo: no es que falle más, es que antes fallaba en silencio.',
-  'Al abrir la app se rescatan las escalas que se hubieran quedado sólo en el móvil y se suben solas.',
-  'Android: arregladas las fotos de la galería que se elegían y no aparecían ni subían. Si una foto da problemas, ahora se dice cuál y las demás siguen.',
-  'Air Canada: los contadores de maletas (BF, BY, DOM, USA…) ya se guardan de verdad, con un total al pie. La LIR escaneada ya no puede perderse al reescanear, y el botón Reset pide confirmación.',
+  "IMPORTANTE: la app ya no puede borrarte las horas de una escala. Antes de guardar comprueba lo que hay en el servidor y, si el cambio haría desaparecer horas ya guardadas, se detiene y te avisa. Si has sido tú quien las ha quitado, pulsa Guardar y confirma.",
+  "Si abres una escala y la app no ha podido comprobarla con el servidor, no sube nada sola: te lo dice y espera a que pulses Guardar. Así se perdieron unas horas y no volverá a pasar.",
+  "Al abrir la app ya no aparece la pantalla en blanco mientras carga: se ve el fondo de la app y el indicador desde el primer instante.",
+  "La cabecera enseñaba como STD la hora del vuelo de llegada. Ahora pone la del vuelo de salida, que es la que vale, y añade la ETD cuando ARION la tiene.",
 ];
