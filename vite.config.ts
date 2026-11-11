@@ -20,7 +20,13 @@ function readVersionSource() {
   }
 
   const changelogMatch = source.match(CHANGELOG_REGEX);
-  const changelog = changelogMatch?.[1].match(/'([^']+)'/g)?.map((entry) => entry.replace(/'/g, '')) ?? [];
+  // Acepta comillas simples y dobles. Antes sólo leía las simples y, al
+  // escribir el changelog con dobles, version.json salía con la lista VACÍA
+  // sin avisar: la versión se publicaba y nadie veía los cambios.
+  const changelog = changelogMatch
+    ? [...changelogMatch[1].matchAll(/(['"])((?:\\.|(?!\1)[^\\])*)\1/g)]
+        .map((m) => m[2].replace(/\\(.)/g, '$1'))
+    : [];
 
   const major = Number(versionMatch[1]);
   const minor = Number(versionMatch[2]);
