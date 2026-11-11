@@ -1,5 +1,5 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.802';
+export const APP_VERSION = '4.810';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
@@ -8,4 +8,5 @@ export const APP_CHANGELOG: string[] = [
   "La cola de sincronización decía «sincronizado» aunque el servidor no hubiera escrito nada. Ahora se comprueba que la fila existe de verdad y, si no, se reintenta en vez de darlo por bueno.",
   "Si el almacenamiento del móvil se llenaba, la app borraba TODOS los borradores para hacer sitio, incluido el de la escala que estabas rellenando. Ya solo borra los caducados.",
   "Cuando una escala se abre sin cobertura y no puede comprobarse con el servidor, ya no se queda sin guardado automático el resto del turno: lo reintenta cada 20 segundos y en cuanto hay señal vuelve a guardarse sola.",
+  "NUEVO apartado «Personal», encima de Equipos utilizados: buscas a los compañeros que han trabajado en la escala y les pones su función. Nace plegado para no ocupar sitio. Sale en los dos PDF.",
 ];
