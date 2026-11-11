@@ -35,6 +35,7 @@ import { decideParkingUpdate, isParkingLocked } from '@/utils/parkingLock';
 import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { nombreCoordinador } from '@/utils/coordinatorName';
 import { hayNumeroDeVuelo } from '@/utils/escalaStart';
+import { isBackendReachable } from '@/lib/backendReachability';
 import { horariosDeArion, type FilaArion } from '@/utils/horariosArion';
 import { revisarGuardado } from '@/utils/guardadoSeguro';
 import {
@@ -536,9 +537,13 @@ const TurnaroundForm: React.FC = () => {
     /*
      * El guardado automático se queda parado mientras la escala no esté
      * contrastada con el servidor. Subir sola una copia que no se ha podido
-     * comprobar es justo lo que borró las horas de la AZ058: el borrador
-     * sigue escribiéndose en el móvil, así que no se pierde nada, y en cuanto
-     * el operario pulse Guardar se sube con su permiso.
+     * comprobar es justo lo que borró las horas de la AZ058.
+     *
+     * OJO: esto NO puede durar todo el turno. El 11/11/2026, con cobertura
+     * mala a ratos, una escala se abrió sin poder comprobarse y se quedó así
+     * horas: no se guardó sola ni una vez y el borrador acabó siendo la única
+     * copia. Por eso el efecto de abajo reintenta la comprobación cada poco y
+     * en cuanto el servidor contesta se reanuda el guardado normal.
      */
     if (isEditing && step === 2 && !sinConfirmar) {
       autoSaveTimer.current = setTimeout(() => {
@@ -581,6 +586,44 @@ const TurnaroundForm: React.FC = () => {
     if (isEditing && !sinConfirmar) autoSaveToServer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjuntos]);
+
+  /**
+   * Reintenta contrastar la escala con el servidor mientras no se haya podido.
+   *
+   * Sin esto, un único fallo de red al abrir dejaba la escala sin guardado
+   * automático durante todo el turno. Con cobertura intermitente basta con
+   * que el servidor conteste una vez para volver a la normalidad.
+   */
+  useEffect(() => {
+    if (!isEditing || !id || !sinConfirmar) return;
+    let cancelado = false;
+
+    const comprobar = async () => {
+      if (cancelado || !isBackendReachable()) return;
+      try {
+        const r = await getTurnaroundById(id);
+        if (cancelado || !r.confirmada || !r.escala) return;
+        // Ya se sabe qué hay arriba: el guardado automático puede reanudarse
+        // con la red de seguridad de revisarGuardado puesta.
+        horasEnServidor.current = r.escala.times;
+        setSinConfirmar(false);
+      } catch {
+        // Sigue sin haber servidor; se reintenta en el siguiente aviso.
+      }
+    };
+
+    comprobar();
+    const t = setInterval(comprobar, 20_000);
+    window.addEventListener('online', comprobar);
+    document.addEventListener('visibilitychange', comprobar);
+    return () => {
+      cancelado = true;
+      clearInterval(t);
+      window.removeEventListener('online', comprobar);
+      document.removeEventListener('visibilitychange', comprobar);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, id, sinConfirmar]);
 
   // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
   useEffect(() => {

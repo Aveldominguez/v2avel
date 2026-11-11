@@ -38,6 +38,35 @@ interface PendingOperation {
 const QUEUE_KEY = 'offline_sync_queue';
 const MAX_RETRY = 10;
 
+/**
+ * Candado de módulo, NO por componente.
+ *
+ * `useOfflineSync` se monta dos veces a la vez: en OfflineSyncRunner (global)
+ * y en TurnaroundForm (mientras hay una escala abierta). Con un candado por
+ * instancia cada copia se creía la única y las dos procesaban la misma cola en
+ * paralelo: el 11/11/2026 eso creó cuatro escalas W46831 duplicadas en 41
+ * segundos, dos de ellas con 23 ms de diferencia.
+ */
+let procesandoCola = false;
+
+/**
+ * Quita de la cola ACTUAL las operaciones ya procesadas, sin pisar lo que haya
+ * entrado mientras tanto.
+ *
+ * Antes se escribía `saveQueue(remaining)` con la foto de la cola tomada al
+ * empezar. Si el operario pulsaba Guardar sin cobertura durante ese rato, su
+ * guardado entraba en la cola y acto seguido lo borraba esta escritura. Las
+ * horas desaparecían y el aviso decía "✅ Sincronizado".
+ */
+const cerrarPasada = (hechas: Set<string>, reintentos: Map<string, PendingOperation>) => {
+  const actual = getQueue();
+  const queda = actual
+    .filter((op) => !hechas.has(op.id))
+    .map((op) => reintentos.get(op.id) ?? op);
+  saveQueue(queda);
+  return queda.length;
+};
+
 const getQueue = (): PendingOperation[] => {
   try {
     const stored = localStorage.getItem(QUEUE_KEY);
@@ -50,10 +79,14 @@ const saveQueue = (queue: PendingOperation[]): boolean => {
     localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
     return true;
   } catch (e) {
-    // La cola es lo último que queda cuando falla el guardado en servidor: si
-    // tampoco cabe, se hace sitio con los borradores antes de darla por perdida.
+    // Se hace sitio con los borradores CADUCADOS únicamente.
+    //
+    // Antes aquí se llamaba a pruneDrafts(0), que borra TODOS los borradores
+    // incluido el de la escala que el operario está rellenando en ese momento.
+    // Eso es tirar justo lo que se intenta salvar: cuando la escala no ha
+    // podido subirse, el borrador ES la única copia de las horas.
     console.warn('No se pudo guardar la cola de sincronización:', e);
-    pruneDrafts(0);
+    pruneDrafts();
     try {
       localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
       return true;
@@ -109,15 +142,17 @@ export const useOfflineSync = () => {
   }, []);
 
   const processQueue = useCallback(async () => {
-    if (!user || syncingRef.current || !isBackendReachable()) return;
+    if (!user || procesandoCola || !isBackendReachable()) return;
     const queue = getQueue();
     if (queue.length === 0) return;
 
+    procesandoCola = true;
     syncingRef.current = true;
     setSyncing(true);
 
     let processed = 0;
-    const remaining: PendingOperation[] = [];
+    const hechas = new Set<string>();
+    const reintentos = new Map<string, PendingOperation>();
 
     for (const op of queue) {
       try {
@@ -130,6 +165,10 @@ export const useOfflineSync = () => {
 
         if (op.type === 'create') {
           const { data, error } = await supabase.from('turnarounds').insert({
+            // La escala se crea CON el id que ya tiene en el móvil. Así, si
+            // esta operación se procesa dos veces, la segunda choca con la
+            // clave primaria y no crea un duplicado.
+            ...(op.turnaroundId ? { id: op.turnaroundId } : {}),
             user_id: user.id,
             flight_number: op.data.flightNumber,
             date: op.data.date,
@@ -144,32 +183,41 @@ export const useOfflineSync = () => {
             localTurnaroundStore.remapId(user.id, op.turnaroundId, data.id);
           }
         } else if (op.type === 'update' && op.turnaroundId) {
-          const { error } = await supabase.from('turnarounds').update({
+          const { data: filas, error } = await supabase.from('turnarounds').update({
             flight_number: op.data.flightNumber,
             date: op.data.date,
             airline: op.data.airline,
             times: op.data.times as unknown as Json,
             field_values: fvForDb as unknown as Json,
             observations: op.data.observations,
-          }).eq('id', op.turnaroundId);
+          }).eq('id', op.turnaroundId).select('id');
           if (error) throw error;
+          // PostgREST devuelve error = null cuando el UPDATE no encuentra la
+          // fila (id inexistente o filtrada por RLS). Sin esta comprobación la
+          // app daba por sincronizado algo que nunca llegó a escribirse, y
+          // además lo marcaba como subido, así que el rescate ya no lo miraba.
+          if (!filas || filas.length === 0) {
+            throw new Error(`La escala ${op.turnaroundId} no existe en el servidor`);
+          }
           localTurnaroundStore.markSynced(user.id, op.turnaroundId);
         }
+        hechas.add(op.id);
         processed++;
       } catch (err) {
         console.error('Sync failed for operation:', op.id, err);
         reportBackendFailure();
         const retryCount = (op.retryCount || 0) + 1;
         if (retryCount < MAX_RETRY) {
-          remaining.push({ ...op, retryCount });
+          reintentos.set(op.id, { ...op, retryCount });
         } else {
           console.error('Dropping op after max retries:', op);
+          hechas.add(op.id);
         }
       }
     }
 
-    saveQueue(remaining);
-    setPendingCount(remaining.length);
+    setPendingCount(cerrarPasada(hechas, reintentos));
+    procesandoCola = false;
     syncingRef.current = false;
     setSyncing(false);
 

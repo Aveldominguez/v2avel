@@ -9,7 +9,10 @@ const logo = (a: string) => `data:image/png;base64,${a}${'A'.repeat(27 * 1024)}`
 /** 55 escalas de los últimos 40 días repartidas entre 5 aerolíneas. */
 const escalas = (): LocalTurnaround[] => Array.from({ length: 55 }, (_, i) => {
   const aero = ['WIZZ', 'ITA', 'TAP', 'ALBASTAR', 'A_JET'][i % 5];
-  const d = new Date('2026-09-28');
+  // Relativa a HOY, no una fecha fija: con fechas de septiembre escritas a
+  // mano la prueba se ponía roja sola al pasar las semanas, porque el almacén
+  // local poda por antigüedad y acababan cayendo todas.
+  const d = new Date();
   d.setDate(d.getDate() - (i % 40));
   return {
     id: `e${i}`, user_id: USER, flightNumber: `W${1000 + i}`,
