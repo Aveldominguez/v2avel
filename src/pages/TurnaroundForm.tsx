@@ -1485,6 +1485,10 @@ const TurnaroundForm: React.FC = () => {
         )}
         </div>
 
+        <div id="sec-personal" className="scroll-mt-48">
+        <PersonalSection personal={personal} onChange={setPersonal} />
+        </div>
+
         <div id="sec-equipos" className="scroll-mt-48">
         <EquipmentSection
           airline={selectedAirline}
@@ -1494,10 +1498,6 @@ const TurnaroundForm: React.FC = () => {
           equipment={equipmentSelections}
           onChange={setEquipmentSelections}
         />
-        </div>
-
-        <div id="sec-personal" className="scroll-mt-48">
-        <PersonalSection personal={personal} onChange={setPersonal} />
         </div>
 
         <Button
