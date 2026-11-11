@@ -44,6 +44,11 @@ const cuerpoHoja = (h: ControlRampa, logoUrl: string, aerolinea: string): string
 
   const codigos = h.codigos.length ? h.codigos.map(esc).join(' · ') : '';
 
+  // El personal va primero: es lo que se mira cuando hay que saber quién
+  // estuvo, y los equipos quedan debajo en la misma casilla de la hoja.
+  const personal = h.personal.length
+    ? h.personal.map((x) => `<div><b>${esc(x.label)}</b>${x.value && x.value !== '—' ? ` · ${esc(x.value)}` : ''}</div>`).join('')
+    : '';
   const equipos = h.equipos.length
     ? h.equipos.map((e) => `<div>${esc(e.label)}: <b>${esc(e.value)}</b></div>`).join('')
     : '&nbsp;';
@@ -120,7 +125,7 @@ const cuerpoHoja = (h: ControlRampa, logoUrl: string, aerolinea: string): string
     <tr><td class="band" style="width:58%">OBSERVACIONES</td><td class="band">PERSONAL / EQUIPOS ASIGNADOS AVIÓN</td></tr>
     <tr>
       <td class="libre">${esc(h.observaciones).replace(/\n/g, '<br>') || '&nbsp;'}</td>
-      <td class="libre">${equipos}</td>
+      <td class="libre">${personal}${personal && equipos ? '<div style="border-top:1px solid #999;margin:2px 0"></div>' : ''}${equipos}</td>
     </tr>
   </table>
 

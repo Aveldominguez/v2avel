@@ -101,6 +101,22 @@ export interface TurnaroundTimes {
     nombre: string;
     descripcion: string;
   } | null;
+  /**
+   * Quién trabaja en esta escala y con qué función.
+   *
+   * Va DENTRO de la escala, no en una tabla aparte, para heredar todo lo que
+   * ya protege a la escala: el borrador del móvil, la cola sin cobertura y el
+   * historial de pérdidas. La tabla `escala_personal` se rellena sola con un
+   * disparador, para poder consultarla y exportarla.
+   *
+   * `employeeId` es null cuando el nombre se escribió a mano (un eventual, o
+   * alguien que ARION todavía no tiene).
+   */
+  personal?: Array<{
+    employeeId: string | null;
+    nombre: string;
+    funcion: string;
+  }>;
   equipment?: Array<{                   // Equipos utilizados
     categoryId: string;
     equipmentId: string;

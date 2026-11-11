@@ -359,6 +359,21 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
       </table>`;
   }
 
+  // Personal que trabajó en la escala
+  let personalHtml = '';
+  const personal = (data.times.personal ?? []).filter((p) => (p?.nombre ?? '').trim());
+  if (personal.length > 0) {
+    const filas = personal
+      .map((p) => `<tr><td>${escapeHtml(p.nombre)}</td><td>${escapeHtml(p.funcion || "—")}</td><td style="text-align:center;">${escapeHtml(p.employeeId || "—")}</td></tr>`)
+      .join('');
+    personalHtml = `
+      <h2>Personal</h2>
+      <table class="data-table">
+        <tr style="background:#e5e5e5;font-weight:bold;"><td>Nombre</td><td>Función</td><td style="text-align:center;">Nº empleado</td></tr>
+        ${filas}
+      </table>`;
+  }
+
   // Códigos de carga eliminados de la exportación PDF a petición del usuario
 
   // Resolve signed URLs for images and inline as data URLs so they always render
@@ -545,6 +560,7 @@ ${PDF_TOOLBAR_Y_SCRIPT}
   })() : ''}
 
   ${equipmentHtml ? `<section class="pdf-section" data-pdf-section>${equipmentHtml}</section>` : ''}
+  ${personalHtml ? `<section class="pdf-section" data-pdf-section>${personalHtml}</section>` : ''}
 
   ${data.observations ? `
   <section class="pdf-section" data-pdf-section>

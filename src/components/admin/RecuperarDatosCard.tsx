@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  ChevronDown, ChevronUp, History, Loader2, RefreshCw, RotateCcw, ShieldCheck,
+  ChevronDown, ChevronUp, ExternalLink, History, Loader2, RefreshCw, RotateCcw, ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { etiquetaDeHora } from '@/utils/etiquetasHoras';
 import { NO_SON_DEL_OPERARIO } from '@/utils/guardadoSeguro';
+import { setImpersonatedUser } from '@/utils/adminImpersonation';
 
 interface Version {
   id: string;
@@ -69,6 +71,8 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
   const [desplegado, setDesplegado] = useState<string | null>(null);
   const [aRestaurar, setARestaurar] = useState<Version | null>(null);
   const [restaurando, setRestaurando] = useState<string | null>(null);
+  const navigate = useNavigate();
+
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -98,6 +102,17 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
     const u = usuarios.find((x) => x.user_id === userId);
     return u?.display_name || u?.email || 'Usuario desconocido';
   }, [usuarios]);
+
+  /**
+   * Abre la escala tal y como está AHORA, antes de decidir si se restaura.
+   *
+   * Hace falta suplantar al dueño de la escala: el administrador no tiene
+   * escalas de otros, así que sin esto se abriría vacía.
+   */
+  const verEscala = useCallback((v: Version) => {
+    setImpersonatedUser({ userId: v.user_id, email: quien(v.user_id) });
+    navigate(`/turnaround/${v.turnaround_id}`);
+  }, [navigate, quien]);
 
   const visibles = useMemo(() => {
     const q = filtro.trim().toLowerCase();
@@ -207,6 +222,14 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
                       onClick={() => setDesplegado((d) => (d === v.id ? null : v.id))}
                     >
                       {desplegado === v.id ? 'Ocultar' : `Ver ${horas.length} horas`}
+                    </Button>
+                    <Button
+                      variant="outline" size="sm" className="gap-1.5"
+                      onClick={() => verEscala(v)}
+                      title="Abrir la escala para ver cómo está ahora"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Ver escala
                     </Button>
                     <Button
                       size="sm" className="gap-1.5"

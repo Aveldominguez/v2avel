@@ -200,3 +200,41 @@ describe('detalles de etiquetado', () => {
     expect(numeroCompartimento('Bulk', [])).toBe('');
   });
 });
+
+describe('personal de la escala en la hoja', () => {
+  const con = (personal: unknown) =>
+    buildControlRampa(escala({ times: { ...getEmptyTimes(), personal } as never }));
+
+  it('sale con su nombre y su función', () => {
+    const h = con([
+      { employeeId: '1019297', nombre: 'Millan Sanz, Juan Jose', funcion: 'Conductor' },
+      { employeeId: null, nombre: 'Pepe el eventual', funcion: 'Bodega' },
+    ]);
+    expect(h.personal).toEqual([
+      { label: 'Millan Sanz, Juan Jose', value: 'Conductor' },
+      { label: 'Pepe el eventual', value: 'Bodega' },
+    ]);
+  });
+
+  it('sin función puesta no deja la casilla en blanco: pone una raya', () => {
+    expect(con([{ employeeId: '1', nombre: 'Ana', funcion: '' }]).personal)
+      .toEqual([{ label: 'Ana', value: '—' }]);
+  });
+
+  it('se respeta el orden en que se añadieron', () => {
+    const h = con([
+      { employeeId: '3', nombre: 'Carlos', funcion: 'Cinta' },
+      { employeeId: '1', nombre: 'Ana', funcion: 'Rampa' },
+    ]);
+    expect(h.personal.map((p) => p.label)).toEqual(['Carlos', 'Ana']);
+  });
+
+  it('una fila sin nombre no se cuela en la hoja', () => {
+    expect(con([{ employeeId: '1', nombre: '   ', funcion: 'Bodega' }]).personal).toEqual([]);
+  });
+
+  it('una escala sin personal no revienta y no pinta nada', () => {
+    expect(con(undefined).personal).toEqual([]);
+    expect(con([]).personal).toEqual([]);
+  });
+});

@@ -21,6 +21,7 @@ import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import { AttachmentRecovery } from '@/components/turnaround/AttachmentRecovery';
 import { PdfExportDialog } from '@/components/turnaround/PdfExportDialog';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
+import PersonalSection, { type PersonaEnEscala } from '@/components/turnaround/PersonalSection';
 import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { Button } from '@/components/ui/button';
@@ -96,6 +97,7 @@ const TurnaroundForm: React.FC = () => {
   const [observationPhotos, setObservationPhotos] = useState<string[]>([]);
   const [incidentReport, setIncidentReport] = useState<IncidentReportData | null>(null);
   const [equipmentSelections, setEquipmentSelections] = useState<EquipmentSelection[]>([]);
+  const [personal, setPersonal] = useState<PersonaEnEscala[]>([]);
   const [bodegasData, setBodegasData] = useState<{ f1: string; f2: string; f3: string; a1: string; a2: string; a3: string }>({ f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -357,6 +359,7 @@ const TurnaroundForm: React.FC = () => {
             setObservationPhotos(existing.times.observationPhotos || []);
             setIncidentReport(existing.times.incidentReport || null);
             setEquipmentSelections(existing.times.equipment || []);
+            setPersonal(existing.times.personal || []);
             setBodegasData(existing.times.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
             // Hydrate ARION-derived info from saved record (will be refreshed if scheduled_flights still has data)
             setOriginStation((existing.times as any).originStation ?? null);
@@ -427,6 +430,7 @@ const TurnaroundForm: React.FC = () => {
       setObservationPhotos(t.observationPhotos || []);
       setIncidentReport(t.incidentReport || null);
       setEquipmentSelections(t.equipment || []);
+      setPersonal(t.personal || []);
       setBodegasData(t.bodegasData || { f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
     }
   };
@@ -461,6 +465,7 @@ const TurnaroundForm: React.FC = () => {
     observationPhotos,
     incidentReport,
     equipment: equipmentSelections,
+    personal,
     bodegasData,
     // ARION-derived info (persisted with the turnaround so it survives in PDFs/offline)
     originStation: originStation || null,
@@ -476,7 +481,7 @@ const TurnaroundForm: React.FC = () => {
     // CPM snapshot survives in 'times' (set by AirlineTimesBlock when CPM is opened)
     cpmRawLines: (times as any).cpmRawLines ?? null,
     ...extra,
-  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
+  }), [times, tango, isRemote, remoteLocation, aircraftModel, matricula, soloLlegada, soloSalida, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, personal, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   // --- Build current draft snapshot ---
   const buildDraft = useCallback((): TurnaroundDraft => ({
@@ -556,7 +561,7 @@ const TurnaroundForm: React.FC = () => {
       if (draftTimer.current) clearTimeout(draftTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
+  }, [flightNumber, date, airline, aircraftModel, times, fieldValues, observations, tango, matricula, isRemote, remoteLocation, pushBack, departureTime, departureFlightNumber, loadingSheetUrls, fileUrls, observationPhotos, incidentReport, equipmentSelections, personal, bodegasData, originStation, destStation, homeStation, ldmRaw, airlineLogo, baggageBelt, scheduledArrival, scheduledEta, scheduledStd, scheduledEtd]);
 
   /*
    * Guardado inmediato en cuanto cambian los adjuntos.
@@ -1489,6 +1494,10 @@ const TurnaroundForm: React.FC = () => {
           equipment={equipmentSelections}
           onChange={setEquipmentSelections}
         />
+        </div>
+
+        <div id="sec-personal" className="scroll-mt-48">
+        <PersonalSection personal={personal} onChange={setPersonal} />
         </div>
 
         <Button

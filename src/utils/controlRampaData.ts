@@ -59,6 +59,8 @@ export interface ControlRampa {
   extras: ParejaDato[];
   especial: string[];
   codigos: string[];
+  /** Quién trabajó en la escala: label = nombre, value = función. */
+  personal: ParejaDato[];
   equipos: ParejaDato[];
   contenedores: Contenedor[];
   observaciones: string;
@@ -169,6 +171,13 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
       return [{ label: cat.label, value: sel.percentage ? `${item.label} (${sel.percentage}%)` : item.label }];
     });
 
+  // --- Personal de la escala ---
+  // La hoja de papel ya tiene una casilla "PERSONAL / EQUIPOS ASIGNADOS
+  // AVIÓN": el personal va ahí, que es donde el capataz lo busca.
+  const personal: ParejaDato[] = (t.personal ?? [])
+    .filter((x) => V(x?.nombre))
+    .map((x) => ({ label: V(x.nombre), value: V(x.funcion) || '—' }));
+
   // --- Otros registros: lo que la escala tiene y la hoja no contempla ---
   const campos = [
     ...getEscalaTimeFields(d.airline, d.isRemote, t.soloLlegada, t.soloSalida),
@@ -247,6 +256,7 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
     ],
     especial,
     codigos,
+    personal,
     equipos,
     contenedores,
     observaciones: [
