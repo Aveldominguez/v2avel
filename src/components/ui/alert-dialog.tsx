@@ -65,7 +65,12 @@ const AlertDialogDescription = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Description ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+  // text-foreground, no text-muted-foreground: estos diálogos preguntan por
+  // cosas que no se pueden deshacer (borrar un informe, restaurar datos) y el
+  // cuerpo del mensaje es justo lo que hay que leer antes de decidir. Atenuado
+  // casi no se veía. No se pone blanco fijo porque en los temas claros el
+  // diálogo tiene fondo blanco y desaparecería.
+  <AlertDialogPrimitive.Description ref={ref} className={cn("text-sm text-foreground", className)} {...props} />
 ));
 AlertDialogDescription.displayName = AlertDialogPrimitive.Description.displayName;
 
@@ -73,7 +78,7 @@ const AlertDialogAction = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Action>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>
 >(({ className, ...props }, ref) => (
-  <AlertDialogPrimitive.Action ref={ref} className={cn(buttonVariants(), className)} {...props} />
+  <AlertDialogPrimitive.Action ref={ref} className={cn(buttonVariants(), "font-bold", className)} {...props} />
 ));
 AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName;
 
@@ -83,7 +88,7 @@ const AlertDialogCancel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
-    className={cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className)}
+    className={cn(buttonVariants({ variant: "outline" }), "mt-2 font-bold sm:mt-0", className)}
     {...props}
   />
 ));
