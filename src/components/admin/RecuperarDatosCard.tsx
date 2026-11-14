@@ -221,6 +221,13 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
           )}
 
           {versiones.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Las copias que se guardan antes de restaurar se borran solas a los 7 días.
+              Las de pérdidas reales se quedan hasta que tú las quites.
+            </p>
+          )}
+
+          {versiones.length > 0 && (
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 value={filtro}
