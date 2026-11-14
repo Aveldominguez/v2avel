@@ -121,3 +121,24 @@ export const revisarGuardado = (
   const perdidos = camposQueSePierden(antes, despues);
   return { peligroso: perdidos.length >= LIMITE_CAMPOS_PERDIDOS, perdidos };
 };
+
+/**
+ * ¿Manda el borrador del móvil o la copia del servidor?
+ *
+ * Normalmente el borrador, porque es trabajo más reciente que aún no ha
+ * subido. Pero al recuperar datos desde OTRO dispositivo, el móvil se queda
+ * con un borrador posterior que no los tiene: enseñaba las horas y no el
+ * personal ni los recuentos, y había que esperar a que caducara.
+ *
+ * Un borrador puede tener MÁS que el servidor, nunca dos tipos de dato MENOS.
+ * Si los tiene, está desfasado.
+ */
+export const mandaElBorrador = (
+  borrador: (FotoEscala & { savedAt: number }) | null | undefined,
+  servidor: (FotoEscala & { updatedAt: number }) | null | undefined,
+): boolean => {
+  if (!borrador) return false;
+  if (!servidor) return true;
+  if (tiposQueSeVacian(servidor, borrador).length >= 2) return false;
+  return borrador.savedAt > servidor.updatedAt;
+};

@@ -40,7 +40,7 @@ import { nombreCoordinador } from '@/utils/coordinatorName';
 import { hayNumeroDeVuelo } from '@/utils/escalaStart';
 import { isBackendReachable } from '@/lib/backendReachability';
 import { horariosDeArion, type FilaArion } from '@/utils/horariosArion';
-import { revisarGuardado, tiposQueSeVacian, type FotoEscala } from '@/utils/guardadoSeguro';
+import { revisarGuardado, tiposQueSeVacian, mandaElBorrador, type FotoEscala } from '@/utils/guardadoSeguro';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -325,8 +325,30 @@ const TurnaroundForm: React.FC = () => {
         }
 
         if (isMounted) {
+          /*
+           * El borrador gana si es más nuevo... salvo que esté vacío.
+           *
+           * Al recuperar datos desde OTRO dispositivo, el móvil seguía con su
+           * borrador de antes —más reciente que la escala del servidor— y lo
+           * enseñaba: salían las horas (que nunca se perdieron) pero no el
+           * personal, los recuentos ni las observaciones recién recuperados.
+           * Había que esperar a que el borrador caducara.
+           *
+           * Un borrador es trabajo a medias: puede tener MÁS que el servidor,
+           * nunca dos tipos de dato MENOS. Si los tiene, está desfasado y
+           * manda el servidor.
+           */
+          const delBorrador = mandaElBorrador(
+            draft && { times: draft.times, fieldValues: draft.fieldValues as FotoEscala['fieldValues'], observations: draft.observations ?? '', savedAt: draft.savedAt },
+            existing && { times: existing.times, fieldValues: existing.fieldValues as FotoEscala['fieldValues'], observations: existing.observations ?? '', updatedAt: existing.updatedAt.getTime() },
+          );
+          if (draft && !delBorrador && existing) {
+            console.warn('[escala] borrador desfasado: manda la copia del servidor');
+            try { clearDraft(id); } catch { /* da igual */ }
+          }
+
           // Use draft if it's newer than server data, or if server is unavailable
-          if (draft && (!existing || draft.savedAt > existing.updatedAt.getTime())) {
+          if (delBorrador) {
             // Un borrador son cambios de ESTE móvil que no se confirmaron: se
             // enseñan, pero no se suben solos.
             setSinConfirmar(true);

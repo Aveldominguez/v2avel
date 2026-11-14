@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { camposQueSePierden, revisarGuardado, tiposQueSeVacian, riqueza } from './guardadoSeguro';
+import {
+  camposQueSePierden, revisarGuardado, tiposQueSeVacian, riqueza, mandaElBorrador,
+} from './guardadoSeguro';
 
 const base = {
   chocksOnArrival: '12:30',
@@ -127,5 +129,58 @@ describe('guardados que vacían lo que no son horas', () => {
     expect(riqueza(servidor)).toEqual({
       horas: 2, bodegas: 1, personal: 4, equipos: 2, adjuntos: 2, campos: 5, observaciones: 1,
     });
+  });
+});
+
+/**
+ * Por qué los datos recuperados tardaban en salir en el otro móvil.
+ *
+ * Se restaura desde el ordenador. El móvil sigue con su borrador de antes,
+ * que es MÁS RECIENTE que la escala del servidor, así que lo enseñaba: salían
+ * las horas (que nunca se perdieron) pero no el personal ni los recuentos
+ * recién recuperados. Había que esperar a que el borrador caducara.
+ */
+describe('borrador del móvil contra copia del servidor', () => {
+  const lleno = {
+    times: { chocksOff: '13:34', personal: [{ n: 1 }, { n: 2 }], equipment: [{ e: 1 }] },
+    fieldValues: [{ fieldDefinitionId: 'h11', value: '9BY' }],
+    observations: 'Algo',
+  };
+  const vacio = { times: { chocksOff: '13:34' }, fieldValues: [], observations: '' };
+
+  it('EL CASO: borrador más nuevo pero vacío -> manda el servidor', () => {
+    expect(mandaElBorrador(
+      { ...vacio, savedAt: 2000 },
+      { ...lleno, updatedAt: 1000 },
+    )).toBe(false);
+  });
+
+  it('borrador más nuevo y con lo mismo -> manda el borrador', () => {
+    expect(mandaElBorrador(
+      { ...lleno, savedAt: 2000 },
+      { ...lleno, updatedAt: 1000 },
+    )).toBe(true);
+  });
+
+  it('borrador con MÁS cosas -> manda el borrador, que es trabajo nuevo', () => {
+    const mas = { ...lleno, observations: 'Más texto', times: { ...lleno.times, firstBag: '12:31' } };
+    expect(mandaElBorrador({ ...mas, savedAt: 2000 }, { ...lleno, updatedAt: 1000 })).toBe(true);
+  });
+
+  it('borrador más viejo -> manda el servidor', () => {
+    expect(mandaElBorrador({ ...lleno, savedAt: 500 }, { ...lleno, updatedAt: 1000 })).toBe(false);
+  });
+
+  it('sin servidor (sin cobertura) manda el borrador: es lo único que hay', () => {
+    expect(mandaElBorrador({ ...vacio, savedAt: 2000 }, null)).toBe(true);
+  });
+
+  it('sin borrador no hay nada que decidir', () => {
+    expect(mandaElBorrador(null, { ...lleno, updatedAt: 1000 })).toBe(false);
+  });
+
+  it('perder UN solo tipo no descarta el borrador: puede ser deliberado', () => {
+    const sinPersonal = { ...lleno, times: { ...lleno.times, personal: [] } };
+    expect(mandaElBorrador({ ...sinPersonal, savedAt: 2000 }, { ...lleno, updatedAt: 1000 })).toBe(true);
   });
 });
