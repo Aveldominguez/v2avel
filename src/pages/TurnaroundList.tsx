@@ -75,6 +75,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AvisoCopiaOffline } from '@/components/AvisoCopiaOffline';
 import { ConnectivityChip } from '@/components/ConnectivityChip';
 import { useTheme } from '@/hooks/useTheme';
 import { APP_VERSION } from '@/config/version';
@@ -598,13 +599,19 @@ const TurnaroundList: React.FC = () => {
               </SheetContent>
             </Sheet>
 
+            {/*
+              El aviso de conexión va DENTRO del bloque del título, en su
+              propia línea. Estando en la fila de botones ocupaba una de las
+              cuatro columnas de la rejilla, el icono de perfil se caía a una
+              fila nueva y el texto se metía por detrás del botón de tema.
+            */}
             <div className="text-center min-w-0">
               <h1 className="text-lg font-bold leading-tight truncate">Control Rampa v{parseFloat(APP_VERSION)}</h1>
               <p className="text-xs text-muted-foreground truncate">Operaciones de rampa</p>
+              <ConnectivityChip textoSiempre className="mx-auto mt-1" />
             </div>
 
-            <ConnectivityChip />
-          <ThemeToggle />
+            <ThemeToggle />
 
             <Popover>
               <PopoverTrigger asChild>
@@ -656,6 +663,8 @@ const TurnaroundList: React.FC = () => {
         className="w-full py-4 space-y-4"
         style={{ paddingBottom: 'calc(var(--aero-weather-dock-h, 5rem) + 1rem)' }}
       >
+        <AvisoCopiaOffline />
+
         {/* METAR Weather */}
         <div className="classic-only">
           <WeatherWidget />

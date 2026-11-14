@@ -65,6 +65,18 @@
         animation: girar 0.8s linear infinite;
       }
       @keyframes girar { to { transform: rotate(360deg); } }
+      #tarda {
+        max-width: 22rem; margin: 0 1.5rem; text-align: center;
+        font-family: system-ui, -apple-system, sans-serif;
+        color: hsl(210 20% 60%);
+      }
+      #tarda b { display: block; font-size: 1.05rem; margin-bottom: .4rem; color: hsl(210 25% 75%); }
+      html.light #tarda, html.sky #tarda { color: hsl(215 16% 40%); }
+      html.light #tarda b, html.sky #tarda b { color: hsl(215 25% 20%); }
+      #tarda button {
+        margin-top: 1rem; padding: .7rem 1.4rem; font: inherit; font-weight: 600;
+        border: 0; border-radius: .6rem; background: hsl(210 90% 50%); color: #fff;
+      }
     </style>
     <script>
       // Mismo criterio que src/lib/theme.ts: por defecto 'aero'.
@@ -81,6 +93,46 @@
 
   <body>
     <div id="root"><div id="arranque"><i></i></div></div>
+    <!--
+      Vigilante de arranque.
+
+      Si la app no ha pintado nada en 10 segundos, esta pantalla deja de estar
+      en blanco y dice lo que pasa. Con cobertura mala (un 3G de una barra en
+      rampa) el móvil puede quedarse esperando el JavaScript sin dar señales, y
+      el operario no sabe si esperar, cerrar o que se ha roto algo.
+
+      Va en HTML y JavaScript corriente, sin depender de nada que haya que
+      descargar: es lo único que sigue funcionando cuando no llega lo demás.
+    -->
+    <script>
+      (function () {
+        var t = setTimeout(function () {
+          if (window.__appMontada) return;
+          var n = document.getElementById('arranque');
+          if (!n) return;
+          var offline = !navigator.onLine;
+          n.innerHTML =
+            '<div id="tarda">' +
+              '<b>' + (offline ? 'Sin conexión' : 'La app está tardando en abrir') + '</b>' +
+              (offline
+                ? 'No hay cobertura y la app aún no se ha guardado entera en este móvil. Busca un sitio con señal y vuelve a intentarlo.'
+                : 'La cobertura es muy débil. Tus escalas guardadas están a salvo; esto es solo la carga.') +
+              '<br><button type="button" onclick="location.reload()">Reintentar</button>' +
+            '</div>';
+          try {
+            localStorage.setItem('arranque_lento', JSON.stringify({
+              cuando: new Date().toISOString(),
+              online: navigator.onLine,
+              // Si esto es false, la página NO la sirvió la copia guardada en
+              // el móvil, y ahí está la causa de la pantalla en blanco.
+              servidaPorSW: !!(navigator.serviceWorker && navigator.serviceWorker.controller),
+              tipoRed: (navigator.connection && navigator.connection.effectiveType) || null
+            }));
+          } catch (e) {}
+        }, 10000);
+        window.__cancelarVigilante = function () { clearTimeout(t); };
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

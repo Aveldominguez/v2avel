@@ -24,6 +24,11 @@ try { pruneDrafts(); } catch { /* almacén no disponible */ }
 // esto. Se quita a mano: createRoot no garantiza vaciar lo que ya hubiera
 // dentro del contenedor.
 const raiz = document.getElementById("root")!;
+// La app ha arrancado: se desactiva el vigilante de index.html y se quita el
+// indicador de carga. Si esto no llega a ejecutarse, el vigilante salta y
+// explica lo que pasa en vez de dejar la pantalla en blanco.
+(window as unknown as { __appMontada?: boolean }).__appMontada = true;
+(window as unknown as { __cancelarVigilante?: () => void }).__cancelarVigilante?.();
 document.getElementById("arranque")?.remove();
 
 createRoot(raiz).render(<App />);

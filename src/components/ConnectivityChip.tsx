@@ -14,7 +14,15 @@ import { cn } from '@/lib/utils';
  * de la escala y tapaba el botón de Guardar justo cuando más falta hacía.
  * Aquí no roba sitio a nadie y cuando todo va bien no se pinta.
  */
-export const ConnectivityChip: React.FC<{ className?: string }> = ({ className }) => {
+export const ConnectivityChip: React.FC<{
+  className?: string;
+  /**
+   * En la cabecera de la home va en su propia línea, así que el texto se ve
+   * siempre. Dentro de la escala comparte fila con los botones y en pantallas
+   * estrechas se queda sólo el icono.
+   */
+  textoSiempre?: boolean;
+}> = ({ className, textoSiempre }) => {
   const { connectivity } = useOnlineStatus();
   const [abierto, setAbierto] = useState(false);
   const msg = connectivityMessage(connectivity);
@@ -38,7 +46,7 @@ export const ConnectivityChip: React.FC<{ className?: string }> = ({ className }
       >
         <Icono className="h-3.5 w-3.5 shrink-0" />
         {/* En pantallas estrechas queda sólo el icono: la cabecera va justa. */}
-        <span className="hidden min-[420px]:inline whitespace-nowrap">{corto}</span>
+        <span className={cn('whitespace-nowrap', !textoSiempre && 'hidden min-[420px]:inline')}>{corto}</span>
       </button>
 
       <Dialog open={abierto} onOpenChange={setAbierto}>
