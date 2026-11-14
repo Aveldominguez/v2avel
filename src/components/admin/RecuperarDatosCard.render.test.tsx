@@ -115,3 +115,13 @@ describe('limpiar el histórico', () => {
     expect(borrados).toEqual([]);
   });
 });
+
+describe('detalles de redacción', () => {
+  it('una sola hora se dice en singular', async () => {
+    select.mockReturnValue(cadena([fila({ times: { chocksOff: '13:45' } })]));
+    pintar();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Ver histórico/ })).toBeTruthy());
+    screen.getByRole('button', { name: /Ver histórico/ }).click();
+    expect(await screen.findByRole('button', { name: 'Ver 1 hora' })).toBeTruthy();
+  });
+});

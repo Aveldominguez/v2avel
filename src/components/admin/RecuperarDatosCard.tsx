@@ -253,9 +253,15 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
             const horas = horasDeVersion(v.times);
             const copia = esCopiaDeSeguridadDeRestauracion(v);
             return (
-              <div key={v.id} className="rounded-lg border border-border p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
+              <div key={v.id} className="overflow-hidden rounded-lg border border-border p-3">
+                {/*
+                  En el móvil la información va arriba y los botones debajo,
+                  repartidos a lo ancho. Todo en una fila no cabía: la tarjeta
+                  se salía de la pantalla y había que arrastrar para ver el
+                  último botón.
+                */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold">
                       {v.flight_number || 'Sin número'}
                       {v.date && <span className="font-normal text-muted-foreground">
@@ -263,26 +269,32 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
                       </span>}
                     </p>
                     <p className="text-xs text-muted-foreground">
+                    <span className="break-words">
                       {quien(v.user_id)} · {format(parseISO(v.saved_at), "d/MM HH:mm", { locale: es })}
                       {copia
                         ? ' · copia previa a una restauración'
                         : v.motivo === 'air-canada'
                           ? ' · escaneo de Air Canada borrado'
                           : ' · se perdieron datos'}
+                    </span>
                     </p>
                     {/* Qué trae la copia: horas, bodegas, recuentos, Air Canada… */}
                     <p className="text-xs font-medium text-primary">{resumirCopia(v as unknown as CopiaHistorico)}</p>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:shrink-0">
                     <Button
                       variant="ghost" size="sm"
+                      className="flex-1 whitespace-nowrap sm:flex-none"
                       disabled={horas.length === 0}
                       onClick={() => setDesplegado((d) => (d === v.id ? null : v.id))}
                     >
-                      {desplegado === v.id ? 'Ocultar' : `Ver ${horas.length} horas`}
+                      {desplegado === v.id
+                        ? 'Ocultar'
+                        : `Ver ${horas.length} ${horas.length === 1 ? 'hora' : 'horas'}`}
                     </Button>
                     <Button
-                      variant="outline" size="sm" className="gap-1.5"
+                      variant="outline" size="sm"
+                      className="flex-1 gap-1.5 whitespace-nowrap sm:flex-none"
                       onClick={() => verEscala(v)}
                       title="Abrir la escala para ver cómo está ahora"
                     >
@@ -290,16 +302,8 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
                       Ver escala
                     </Button>
                     <Button
-                      variant="ghost" size="icon"
-                      className="h-8 w-8 shrink-0 text-destructive"
-                      onClick={() => setABorrar(v)}
-                      title="Eliminar esta copia"
-                      aria-label={`Eliminar la copia de ${v.flight_number ?? 'la escala'}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm" className="gap-1.5"
+                      size="sm"
+                      className="flex-1 gap-1.5 whitespace-nowrap sm:flex-none"
                       disabled={restaurando === v.id || horas.length === 0}
                       onClick={() => setARestaurar(v)}
                     >
@@ -307,6 +311,17 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
                         ? <Loader2 className="h-4 w-4 animate-spin" />
                         : <RotateCcw className="h-4 w-4" />}
                       Devolver
+                    </Button>
+                    {/* La papelera, al final y separada: no se pulsa por error
+                        al ir a Devolver, que es el botón de al lado. */}
+                    <Button
+                      variant="ghost" size="icon"
+                      className="h-9 w-9 shrink-0 text-destructive"
+                      onClick={() => setABorrar(v)}
+                      title="Eliminar esta copia"
+                      aria-label={`Eliminar la copia de ${v.flight_number ?? 'la escala'}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
