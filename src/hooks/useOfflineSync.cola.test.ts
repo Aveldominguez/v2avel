@@ -60,3 +60,45 @@ describe('cierre de una pasada de sincronización', () => {
     expect(leer()).toEqual([]);
   });
 });
+
+/**
+ * El indicador "1 pendiente" que se quedaba clavado con buena cobertura.
+ *
+ * Cada copia de useOfflineSync (el sincronizador global y el formulario de
+ * escala) llevaba su propio contador en memoria. Cuando el global vaciaba la
+ * cola, el del formulario no se enteraba: se quedaba en 1 para siempre, y la
+ * nube tachada hacía pensar que no había conexión.
+ */
+describe('el contador de pendientes se entera de los cambios', () => {
+  const EVENTO = 'cola-sync-cambiada';
+
+  /** Lo que hace ahora saveQueue. */
+  const guardarCola = (q: Op[]) => {
+    escribir(q);
+    window.dispatchEvent(new CustomEvent(EVENTO));
+  };
+
+  it('EL FALLO: sin aviso, una copia que no escribe no se entera', () => {
+    escribir([{ id: 'a', type: 'update' }]);
+    let copiaB = leer().length;        // el formulario lee al montarse: 1
+    escribir([]);                      // el global vacía la cola...
+    expect(copiaB).toBe(1);            // ...y el formulario sigue diciendo 1
+  });
+
+  it('con el aviso, todas las copias se enteran', () => {
+    escribir([{ id: 'a', type: 'update' }]);
+    let copiaB = leer().length;
+    window.addEventListener(EVENTO, () => { copiaB = leer().length; });
+
+    guardarCola([]);                   // el global la vacía y avisa
+    expect(copiaB).toBe(0);
+  });
+
+  it('también cuando entra algo nuevo', () => {
+    escribir([]);
+    let copiaB = 0;
+    window.addEventListener(EVENTO, () => { copiaB = leer().length; });
+    guardarCola([{ id: 'x', type: 'update' }, { id: 'y', type: 'update' }]);
+    expect(copiaB).toBe(2);
+  });
+});

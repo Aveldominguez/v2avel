@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wifi, Loader2, CloudOff, Check } from 'lucide-react';
+import { Wifi, Loader2, UploadCloud, Check } from 'lucide-react';
 import { ConnectivityChip } from '@/components/ConnectivityChip';
 
 interface ConnectionStatusProps {
@@ -49,7 +49,7 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
         {pendingCount > 0 && (
           <span
             className="shrink-0 rounded-full bg-warning/20 px-1.5 py-0.5 font-semibold text-warning"
-            title={`${pendingCount} cambio(s) pendiente(s) de sincronizar`}
+            title={`${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} por subir cuando vuelva la cobertura`}
           >
             {pendingCount}
           </span>
@@ -59,15 +59,21 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
   }
 
   if (pendingCount > 0) {
+    /*
+     * Hay cobertura y queda algo por subir: se está enviando, no es un fallo.
+     *
+     * Antes esto salía con una nube TACHADA, que es el dibujo universal de
+     * "sin conexión", y con buena cobertura no había quien lo entendiera. Una
+     * nube con flecha hacia arriba dice lo que de verdad pasa: subiendo.
+     */
     return (
       <div
         className="flex shrink-0 items-center gap-1.5 text-xs text-warning"
-        title={`${pendingCount} cambio(s) pendiente(s) de sincronizar`}
+        title={`${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} por subir al servidor. Se envían solos; no hace falta hacer nada.`}
       >
-        <CloudOff className="h-3.5 w-3.5 shrink-0" />
-        {/* El número se mantiene siempre visible: es un dato, no una etiqueta. */}
+        <UploadCloud className="h-3.5 w-3.5 shrink-0" />
         <span className="shrink-0">{pendingCount}</span>
-        <Label>pendiente{pendingCount > 1 ? 's' : ''}</Label>
+        <Label>por subir</Label>
       </div>
     );
   }

@@ -74,9 +74,24 @@ const getQueue = (): PendingOperation[] => {
   } catch { return []; }
 };
 
+/**
+ * Aviso de que la cola ha cambiado.
+ *
+ * `useOfflineSync` se monta dos veces (el sincronizador global y el
+ * formulario de escala) y cada copia tenía su propio contador en memoria.
+ * Cuando el global vaciaba la cola, el del formulario no se enteraba y el
+ * indicador se quedaba clavado en "1 pendiente" con buena cobertura y para
+ * siempre. Ahora todas las copias escuchan el mismo aviso.
+ */
+const EVENTO_COLA = 'cola-sync-cambiada';
+const avisarCambioDeCola = () => {
+  try { window.dispatchEvent(new CustomEvent(EVENTO_COLA)); } catch { /* sin ventana */ }
+};
+
 const saveQueue = (queue: PendingOperation[]): boolean => {
   try {
     localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+    avisarCambioDeCola();
     return true;
   } catch (e) {
     // Se hace sitio con los borradores CADUCADOS únicamente.
@@ -89,6 +104,7 @@ const saveQueue = (queue: PendingOperation[]): boolean => {
     pruneDrafts();
     try {
       localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+      avisarCambioDeCola();
       return true;
     } catch {
       return false;
@@ -104,7 +120,17 @@ export const useOfflineSync = () => {
   const syncingRef = useRef(false);
 
   useEffect(() => {
-    setPendingCount(getQueue().length);
+    const refrescar = () => setPendingCount(getQueue().length);
+    refrescar();
+    window.addEventListener(EVENTO_COLA, refrescar);
+    // Otra pestaña o la misma app en segundo plano también pueden vaciarla.
+    window.addEventListener('storage', refrescar);
+    document.addEventListener('visibilitychange', refrescar);
+    return () => {
+      window.removeEventListener(EVENTO_COLA, refrescar);
+      window.removeEventListener('storage', refrescar);
+      document.removeEventListener('visibilitychange', refrescar);
+    };
   }, []);
 
   const enqueue = useCallback((op: Omit<PendingOperation, 'id' | 'timestamp'>) => {
