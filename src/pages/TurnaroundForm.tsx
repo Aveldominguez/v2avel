@@ -40,7 +40,7 @@ import { nombreCoordinador } from '@/utils/coordinatorName';
 import { hayNumeroDeVuelo } from '@/utils/escalaStart';
 import { isBackendReachable } from '@/lib/backendReachability';
 import { horariosDeArion, type FilaArion } from '@/utils/horariosArion';
-import { revisarGuardado } from '@/utils/guardadoSeguro';
+import { revisarGuardado, tiposQueSeVacian, type FotoEscala } from '@/utils/guardadoSeguro';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -289,6 +289,12 @@ const TurnaroundForm: React.FC = () => {
    */
   const horasEnServidor = useRef<Partial<TurnaroundTimes> | null>(null);
   /**
+   * Lo último confirmado del servidor, ENTERO: horas, recuentos, personal,
+   * equipos, adjuntos y observaciones. Con sólo las horas no se detectaba que
+   * un guardado vaciara todo lo demás, que es lo que pasó con la PC1099.
+   */
+  const fotoEnServidor = useRef<FotoEscala | null>(null);
+  /**
    * El guardado automático se ha parado porque iba a borrar datos. No es lo
    * mismo que `sinConfirmar` —aquí el servidor sí contestó— y el aviso tiene
    * que decir otra cosa: lo bueno sigue arriba y no se ha tocado.
@@ -378,7 +384,14 @@ const TurnaroundForm: React.FC = () => {
             // Si el servidor no ha contestado, esto puede ser una copia vieja.
             if (!confirmada) setSinConfirmar(true);
             // Sólo vale de testigo lo que el servidor ha confirmado.
-            if (confirmada) horasEnServidor.current = existing.times;
+            if (confirmada) {
+              horasEnServidor.current = existing.times;
+              fotoEnServidor.current = {
+                times: existing.times,
+                fieldValues: existing.fieldValues as FotoEscala['fieldValues'],
+                observations: existing.observations ?? '',
+              };
+            }
           } else if (draft) {
             applyDraft(draft);
             toast({
@@ -613,6 +626,11 @@ const TurnaroundForm: React.FC = () => {
         // Ya se sabe qué hay arriba: el guardado automático puede reanudarse
         // con la red de seguridad de revisarGuardado puesta.
         horasEnServidor.current = r.escala.times;
+        fotoEnServidor.current = {
+          times: r.escala.times,
+          fieldValues: r.escala.fieldValues as FotoEscala['fieldValues'],
+          observations: r.escala.observations ?? '',
+        };
         setSinConfirmar(false);
       } catch {
         // Sigue sin haber servidor; se reintenta en el siguiente aviso.
@@ -656,13 +674,21 @@ const TurnaroundForm: React.FC = () => {
      * en el servidor, es un fallo de la app, no una corrección del operario.
      * Se queda parado y se avisa; el borrador del móvil sigue guardándose.
      */
+    const vaciados = tiposQueSeVacian(fotoEnServidor.current, {
+      times: finalTimes,
+      fieldValues: fieldValues as FotoEscala['fieldValues'],
+      observations: observations.trim(),
+    });
     const veredicto = revisarGuardado(horasEnServidor.current, finalTimes);
-    if (veredicto.peligroso) {
-      console.error('Guardado automático detenido: borraría', veredicto.perdidos);
+    if (veredicto.peligroso || vaciados.length > 0) {
+      console.error('Guardado automático detenido: borraría',
+        [...veredicto.perdidos, ...vaciados].join(', '));
       setBorradoDetenido(true);
       toast({
         title: 'Guardado automático detenido',
-        description: `Este cambio borraría ${veredicto.perdidos.length} datos ya guardados. Revisa la escala antes de guardar.`,
+        description: vaciados.length > 0
+          ? `Este cambio dejaría sin nada: ${vaciados.join(', ')}. No se ha subido.`
+          : `Este cambio borraría ${veredicto.perdidos.length} datos ya guardados. Revisa la escala antes de guardar.`,
         variant: 'destructive',
       });
       return;
@@ -772,9 +798,15 @@ const TurnaroundForm: React.FC = () => {
      * para y se pregunta: si es un fallo de la app, aquí se corta.
      */
     if (!borradoAceptado) {
-      const veredicto = revisarGuardado(horasEnServidor.current, getTimesWithFlightInfo(extra));
-      if (veredicto.peligroso) {
-        setAvisoBorrado({ perdidos: veredicto.perdidos, extra });
+      const propuesta = getTimesWithFlightInfo(extra);
+      const vaciados = tiposQueSeVacian(fotoEnServidor.current, {
+        times: propuesta,
+        fieldValues: fieldValues as FotoEscala['fieldValues'],
+        observations: observations.trim(),
+      });
+      const veredicto = revisarGuardado(horasEnServidor.current, propuesta);
+      if (veredicto.peligroso || vaciados.length > 0) {
+        setAvisoBorrado({ perdidos: [...veredicto.perdidos, ...vaciados], extra });
         return;
       }
     }
@@ -803,6 +835,9 @@ const TurnaroundForm: React.FC = () => {
         if (isEditing && id) {
           await updateTurnaround(id, flightNumber, safeDate, selectedAirline, finalTimes, safeFvs, observations.trim());
           horasEnServidor.current = finalTimes;
+          fotoEnServidor.current = {
+            times: finalTimes, fieldValues: safeFvs, observations: observations.trim(),
+          };
           if (!isOnline) {
             enqueue({
               type: 'update',
@@ -1387,6 +1422,16 @@ const TurnaroundForm: React.FC = () => {
           <RecuperarEnEscala
             turnaroundId={id}
             hayCambiosSinGuardar={hasUnsavedChanges.current}
+            onAntesDeRecargar={() => {
+              // La pantalla tiene los datos de ANTES de restaurar. Se corta
+              // todo guardado y se marca como navegando, para que ni el
+              // autoguardado ni el flush de salida los suban encima.
+              savedAndNavigating.current = true;
+              hasUnsavedChanges.current = false;
+              if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+              if (draftTimer.current) clearTimeout(draftTimer.current);
+              if (id) clearDraft(id);
+            }}
           />
         )}
 

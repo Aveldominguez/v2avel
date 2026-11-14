@@ -42,6 +42,67 @@ export const camposQueSePierden = (
     .map(([clave]) => clave);
 };
 
+/**
+ * Una foto de TODO lo que lleva una escala, no sólo las horas.
+ *
+ * El 14/11 la PC1099 perdió dos veces los recuentos, el personal, los equipos
+ * y las observaciones justo después de restaurarlos: la escala estaba abierta
+ * y el formulario volvió a subir lo que tenía en pantalla, que estaba vacío.
+ * La comprobación de entonces sólo miraba las horas, y las horas no habían
+ * cambiado (18 → 18), así que lo dejó pasar.
+ */
+export interface FotoEscala {
+  /**
+   * Suelto a propósito: aquí sólo se CUENTA (cuántas horas, cuánta gente),
+   * nunca se leen los campos por dentro. Exigir la forma exacta obligaba a
+   * forzar el tipo en cada llamada sin ganar nada.
+   */
+  times?: Record<string, unknown> | Partial<TurnaroundTimes> | null;
+  fieldValues?: Array<{ fieldDefinitionId?: string; value?: unknown }> | null;
+  observations?: string | null;
+}
+
+const conValor = (v: unknown): boolean => typeof v === 'string' && v.trim() !== '';
+const largoLista = (v: unknown): number => (Array.isArray(v) ? v.length : 0);
+
+/** Cuánta información lleva, por tipo. Espejo de riqueza_escala() en la base. */
+export const riqueza = (f: FotoEscala | null | undefined): Record<string, number> => {
+  const t = (f?.times ?? {}) as Record<string, unknown>;
+  return {
+    horas: Object.entries(t).filter(([k, v]) => !NO_SON_DEL_OPERARIO.has(k) && tieneDato(v)).length,
+    bodegas: Object.values((t.bodegasData ?? {}) as Record<string, unknown>).filter(conValor).length,
+    personal: largoLista(t.personal),
+    equipos: largoLista(t.equipment),
+    adjuntos: largoLista(t.loadingSheetUrls) + largoLista(t.fileUrls) + largoLista(t.observationPhotos),
+    campos: (Array.isArray(f?.fieldValues) ? f!.fieldValues! : []).filter((x) => conValor(x?.value)).length,
+    observaciones: conValor(f?.observations) ? 1 : 0,
+  };
+};
+
+/** Nombres para el aviso, en cristiano. */
+const NOMBRES: Record<string, string> = {
+  horas: 'horas', bodegas: 'bodegas', personal: 'personas', equipos: 'equipos',
+  adjuntos: 'archivos', campos: 'recuentos', observaciones: 'observaciones',
+};
+
+/**
+ * Qué tipos de dato se vacían ENTEROS al guardar.
+ *
+ * Perder una lista completa (todo el personal, todos los recuentos) no es una
+ * corrección de nadie: es que se está subiendo una pantalla desfasada.
+ */
+export const tiposQueSeVacian = (
+  antes: FotoEscala | null | undefined,
+  despues: FotoEscala | null | undefined,
+): string[] => {
+  if (!antes) return [];
+  const a = riqueza(antes);
+  const d = riqueza(despues);
+  return Object.keys(a)
+    .filter((k) => k !== 'horas' && a[k] > 0 && d[k] === 0)
+    .map((k) => NOMBRES[k] ?? k);
+};
+
 export interface Veredicto {
   /** Hay que parar y preguntar antes de escribir. */
   peligroso: boolean;
