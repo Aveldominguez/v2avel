@@ -89,3 +89,23 @@ describe('qué copias se le ofrecen al operario', () => {
     expect(utiles.map((c) => c.id)).toEqual(['ac']);
   });
 });
+
+describe('copias antiguas, de antes de que existiera el motivo', () => {
+  const vieja = (extra = {}) => ({
+    id: 'v1', saved_at: '2026-11-05T10:00:00Z', motivo: null,
+    times: { chocksOff: '13:45' }, field_values: [], observations: '', extra: null,
+    ...extra,
+  }) as CopiaHistorico;
+
+  it('una previa a restaurar se reconoce por el -1 y NO se ofrece', () => {
+    expect(copiasUtiles([vieja({ horas_antes: -1 })])).toEqual([]);
+  });
+
+  it('una pérdida de verdad sí se ofrece', () => {
+    expect(copiasUtiles([vieja({ horas_antes: 8 })])).toHaveLength(1);
+  });
+
+  it('sin el dato tampoco se descarta por si acaso', () => {
+    expect(copiasUtiles([vieja()])).toHaveLength(1);
+  });
+});

@@ -40,7 +40,7 @@ export const RecuperarEnEscala: React.FC<Props> = ({ turnaroundId, hayCambiosSin
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('turnaround_history')
-        .select('id, saved_at, motivo, times, field_values, observations, extra')
+        .select('id, saved_at, motivo, horas_antes, times, field_values, observations, extra')
         .eq('turnaround_id', turnaroundId)
         .order('saved_at', { ascending: false })
         .limit(20);

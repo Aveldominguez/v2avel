@@ -1,5 +1,5 @@
 {
-  "version": "4.820",
+  "version": "4.821",
   "changelog": [
     "NUEVO: si a una escala le faltan datos, ahora puedes recuperarlos TÚ. Si hay algo que devolver, aparece un aviso arriba de la escala con lo que se puede recuperar y un botón para hacerlo. Ya no hace falta pedírselo al administrador.",
     "La copia de seguridad ya no guarda sólo las horas: también las bodegas, los recuentos de maletas, el personal, los equipos, los adjuntos y las observaciones. Y los contadores y la LIR de Air Canada, que viven aparte y antes no tenían ninguna red.",

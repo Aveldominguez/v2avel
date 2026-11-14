@@ -14,6 +14,8 @@ export interface CopiaHistorico {
   field_values: unknown;
   observations: string | null;
   extra: { bulk?: unknown[]; loadSheet?: unknown[] } | null;
+  /** -1 marcaba una copia previa a restaurar antes de existir `motivo`. */
+  horas_antes?: number | null;
 }
 
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -93,5 +95,10 @@ export const resumirCopia = (c: CopiaHistorico): string => {
  * de restaurar: esas son la red por si el rescate sale mal, y ofrecerlas de
  * vuelta sólo confunde.
  */
+export const esPreviaARestaurar = (c: CopiaHistorico): boolean =>
+  // Las copias de antes de que existiera `motivo` se marcaban con -1. Sin
+  // mirarlo, al operario se le ofrecían como si fueran una pérdida suya.
+  c.motivo === 'antes-de-restaurar' || c.horas_antes === -1;
+
 export const copiasUtiles = (copias: CopiaHistorico[]): CopiaHistorico[] =>
-  copias.filter((c) => c.motivo !== 'antes-de-restaurar' && queTiene(c).length > 0);
+  copias.filter((c) => !esPreviaARestaurar(c) && queTiene(c).length > 0);
