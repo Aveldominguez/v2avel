@@ -19,6 +19,7 @@ import AirCanadaCargoScanner from '@/components/turnaround/AirCanadaCargoScanner
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import { AttachmentRecovery } from '@/components/turnaround/AttachmentRecovery';
+import { RecuperarEnEscala } from '@/components/turnaround/RecuperarEnEscala';
 import { PdfExportDialog } from '@/components/turnaround/PdfExportDialog';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import PersonalSection, { type PersonaEnEscala } from '@/components/turnaround/PersonalSection';
@@ -1380,6 +1381,14 @@ const TurnaroundForm: React.FC = () => {
         )}
 
         {/* Adjuntos que se subieron pero no llegaron a quedar en la escala. */}
+        {/* Datos recuperables de esta escala: lo ve quien la trabaja. */}
+        {isEditing && (
+          <RecuperarEnEscala
+            turnaroundId={id}
+            hayCambiosSinGuardar={hasUnsavedChanges.current}
+          />
+        )}
+
         {borradoDetenido && (
           <div className="rounded-lg border-2 border-destructive bg-destructive/15 p-3 text-destructive">
             <div className="flex items-start gap-2">

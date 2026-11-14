@@ -34,7 +34,9 @@ describe('RecuperarDatosCard', () => {
     select.mockReturnValue(cadena([{
       id: 'h1', turnaround_id: 't1', user_id: 'u1',
       flight_number: 'AZ058', date: '2026-11-05',
-      times: { chocksOnArrival: '12:30', chocksOff: '13:39' },
+      times: { chocksOnArrival: '12:30', chocksOff: '13:39', bodegasData: { f1: '12' } },
+      field_values: [{ fieldDefinitionId: 'maletas', value: '140' }],
+      observations: '', extra: null, motivo: 'perdida',
       horas_antes: 8, horas_despues: 0, saved_at: '2026-11-05T14:00:00Z',
     }]));
     pintar({ usuarios: [{ user_id: 'u1', email: 'o@x.com', display_name: 'Óscar' }] });
@@ -42,7 +44,9 @@ describe('RecuperarDatosCard', () => {
     screen.getByRole('button', { name: /Ver histórico/ }).click();
     await waitFor(() => expect(screen.getByText('AZ058')).toBeTruthy());
     expect(screen.getByText(/Óscar/)).toBeTruthy();
-    expect(screen.getByText(/se quedó en 0 de 8 horas/)).toBeTruthy();
+    expect(screen.getByText(/se perdieron datos/)).toBeTruthy();
+    // El resumen enseña TODO lo recuperable, no sólo las horas.
+    expect(screen.getByText('2 horas · 1 bodega · 1 recuento')).toBeTruthy();
     expect(screen.getByRole('button', { name: /Ver 2 horas/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /Devolver/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /Ver escala/ })).toBeTruthy();

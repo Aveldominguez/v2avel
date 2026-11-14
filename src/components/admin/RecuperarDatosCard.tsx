@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { etiquetaDeHora } from '@/utils/etiquetasHoras';
 import { NO_SON_DEL_OPERARIO } from '@/utils/guardadoSeguro';
+import { resumirCopia, type CopiaHistorico } from '@/utils/resumenRecuperacion';
 import { setImpersonatedUser } from '@/utils/adminImpersonation';
 
 interface Version {
@@ -28,6 +29,10 @@ interface Version {
   horas_antes: number | null;
   horas_despues: number | null;
   saved_at: string;
+  motivo?: string | null;
+  field_values?: unknown;
+  observations?: string | null;
+  extra?: { bulk?: unknown[]; loadSheet?: unknown[] } | null;
 }
 
 interface Props {
@@ -80,7 +85,7 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('turnaround_history')
-        .select('id, turnaround_id, user_id, flight_number, date, times, horas_antes, horas_despues, saved_at')
+        .select('id, turnaround_id, user_id, flight_number, date, times, field_values, observations, extra, motivo, horas_antes, horas_despues, saved_at')
         .order('saved_at', { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -213,12 +218,17 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
                       {quien(v.user_id)} · {format(parseISO(v.saved_at), "d/MM HH:mm", { locale: es })}
                       {copia
                         ? ' · copia previa a una restauración'
-                        : ` · se quedó en ${v.horas_despues} de ${v.horas_antes} horas`}
+                        : v.motivo === 'air-canada'
+                          ? ' · escaneo de Air Canada borrado'
+                          : ' · se perdieron datos'}
                     </p>
+                    {/* Qué trae la copia: horas, bodegas, recuentos, Air Canada… */}
+                    <p className="text-xs font-medium text-primary">{resumirCopia(v as unknown as CopiaHistorico)}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="ghost" size="sm"
+                      disabled={horas.length === 0}
                       onClick={() => setDesplegado((d) => (d === v.id ? null : v.id))}
                     >
                       {desplegado === v.id ? 'Ocultar' : `Ver ${horas.length} horas`}
