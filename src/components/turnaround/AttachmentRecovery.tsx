@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FileWarning, Loader2, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { AvisoDestacado, BotonDeAviso } from '@/components/AvisoDestacado';
 import {
   findOrphanAttachments, retryLocalBackups, mergeOrphans, countOrphans, emptyOrphans,
   type Orphans,
@@ -88,27 +89,19 @@ export const AttachmentRecovery: React.FC<AttachmentRecoveryProps> = ({
   ].filter(Boolean).join(' · ');
 
   return (
-    <div className="rounded-lg border-2 border-amber-500 bg-amber-500/15 p-3 text-amber-700 dark:text-amber-400">
-      <div className="flex items-start gap-2">
-        <FileWarning size={20} className="mt-0.5 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold">
-            {total === 1
-              ? 'Hay 1 archivo subido que no está en la escala'
-              : `Hay ${total} archivos subidos que no están en la escala`}
-          </p>
-          <p className="text-sm opacity-90">{detalle}</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={recuperar}
-        disabled={recuperando}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border-2 border-current bg-background/60 py-2 font-semibold disabled:opacity-60"
-      >
-        {recuperando ? <Loader2 size={18} className="animate-spin" /> : <RotateCcw size={18} />}
-        {recuperando ? 'Recuperando…' : 'Recuperar archivos'}
-      </button>
-    </div>
+    <AvisoDestacado
+      icono={<FileWarning size={20} />}
+      titulo={total === 1
+        ? 'Hay 1 archivo subido que no está en la escala'
+        : `Hay ${total} archivos subidos que no están en la escala`}
+      acciones={
+        <BotonDeAviso onClick={recuperar} disabled={recuperando}>
+          {recuperando ? <Loader2 size={18} className="animate-spin" /> : <RotateCcw size={18} />}
+          {recuperando ? 'Recuperando…' : 'Recuperar archivos'}
+        </BotonDeAviso>
+      }
+    >
+      {detalle}
+    </AvisoDestacado>
   );
 };

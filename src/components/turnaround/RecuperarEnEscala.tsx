@@ -10,6 +10,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { copiasUtiles, resumirCopia, type CopiaHistorico } from '@/utils/resumenRecuperacion';
+import { AvisoDestacado, BotonDeAviso } from '@/components/AvisoDestacado';
 
 interface Props {
   turnaroundId?: string;
@@ -86,40 +87,32 @@ export const RecuperarEnEscala: React.FC<Props> = ({ turnaroundId, hayCambiosSin
   if (copias.length === 0) return null;
 
   return (
-    <div className="rounded-lg border-2 border-primary/50 bg-primary/10 p-3">
-      <div className="flex items-start gap-2">
-        <History size={20} className="mt-0.5 shrink-0 text-primary" />
-        <div className="min-w-0 flex-1 text-sm">
-          <p className="font-semibold text-primary">
-            {copias.length === 1
-              ? 'Esta escala tiene datos que puedes recuperar'
-              : `Esta escala tiene ${copias.length} copias con datos que puedes recuperar`}
-          </p>
-          <p className="opacity-90">
-            Se guardaron solas cuando algo desapareció. Míralas antes de rehacer el trabajo a mano.
-          </p>
-        </div>
-      </div>
-
-      <Button
-        type="button" variant="outline" size="sm"
-        className="mt-2 w-full border-primary/50"
-        onClick={() => setAbierto((v) => !v)}
-      >
-        {abierto ? 'Ocultar' : 'Ver qué se puede recuperar'}
-      </Button>
+    <AvisoDestacado
+      icono={<History size={20} />}
+      titulo={copias.length === 1
+        ? 'Esta escala tiene datos que puedes recuperar'
+        : `Esta escala tiene ${copias.length} copias con datos que puedes recuperar`}
+      acciones={
+        <BotonDeAviso onClick={() => setAbierto((v) => !v)}>
+          {abierto ? 'Ocultar' : 'Ver qué se puede recuperar'}
+        </BotonDeAviso>
+      }
+    >
+      Se guardaron solas cuando algo desapareció. Míralas antes de rehacer el trabajo a mano.
 
       {abierto && (
         <div className="mt-2 space-y-2">
           {hayCambiosSinGuardar && (
-            <p className="rounded-md bg-warning/20 p-2 text-xs font-semibold text-warning">
+            <p className="rounded-md bg-amber-100 p-2 text-xs font-semibold text-amber-900">
               Tienes cambios sin guardar. Pulsa Guardar antes de recuperar, o se perderán.
             </p>
           )}
           {copias.map((c) => (
-            <div key={c.id} className="rounded-md border border-border bg-background/60 p-2.5">
-              <p className="text-sm font-semibold">{resumirCopia(c)}</p>
-              <p className="text-xs text-muted-foreground">
+            // Tarjeta blanca sólida: sobre el azul del aviso, un fondo
+            // semitransparente se emborrona y el texto deja de leerse.
+            <div key={c.id} className="rounded-lg bg-white p-2.5 text-slate-900">
+              <p className="text-sm font-bold">{resumirCopia(c)}</p>
+              <p className="text-xs text-slate-600">
                 {format(new Date(c.saved_at), "d 'de' MMMM 'a las' HH:mm", { locale: es })}
                 {c.motivo === 'air-canada' ? ' · escaneo de Air Canada' : ''}
               </p>
@@ -159,7 +152,7 @@ export const RecuperarEnEscala: React.FC<Props> = ({ turnaroundId, hayCambiosSin
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AvisoDestacado>
   );
 };
 

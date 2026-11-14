@@ -1,5 +1,5 @@
 {
-  "version": "4.820",
+  "version": "4.825",
   "changelog": [
     "IMPORTANTE: arreglada la causa de que una escala entera pudiera perderse. La app tenía DOS procesos sincronizando a la vez sin verse entre ellos; cuando uno terminaba, borraba de la lista de pendientes lo que el otro acababa de meter. Si guardabas sin cobertura mientras eso pasaba, tu guardado desaparecía y encima salía «✅ Sincronizado».",
     "Eso mismo creaba escalas duplicadas: el 11/11 se crearon cuatro copias del mismo vuelo en 41 segundos. Ahora una escala no puede duplicarse aunque se envíe dos veces.",

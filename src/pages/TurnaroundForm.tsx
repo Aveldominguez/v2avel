@@ -20,6 +20,7 @@ import { FileUploadField } from '@/components/turnaround/FileUploadField';
 import { ObservationPhotos } from '@/components/turnaround/ObservationPhotos';
 import { AttachmentRecovery } from '@/components/turnaround/AttachmentRecovery';
 import { RecuperarEnEscala } from '@/components/turnaround/RecuperarEnEscala';
+import { AvisoDestacado } from '@/components/AvisoDestacado';
 import { PdfExportDialog } from '@/components/turnaround/PdfExportDialog';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import PersonalSection, { type PersonaEnEscala } from '@/components/turnaround/PersonalSection';
@@ -1390,34 +1391,25 @@ const TurnaroundForm: React.FC = () => {
         )}
 
         {borradoDetenido && (
-          <div className="rounded-lg border-2 border-destructive bg-destructive/15 p-3 text-destructive">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-              <div className="min-w-0 flex-1 text-sm">
-                <p className="font-semibold">Guardado automático detenido</p>
-                <p className="opacity-90">
-                  Lo que hay en pantalla borraría horas que ya estaban guardadas, así que
-                  no se ha subido nada: en el servidor siguen intactas. Si has sido tú
-                  quien las ha quitado, pulsa Guardar y confirma.
-                </p>
-              </div>
-            </div>
-          </div>
+          <AvisoDestacado
+            tono="alerta"
+            icono={<AlertTriangle className="h-5 w-5" />}
+            titulo="Guardado automático detenido"
+          >
+            Lo que hay en pantalla borraría horas que ya estaban guardadas, así que
+            no se ha subido nada: en el servidor siguen intactas. Si has sido tú
+            quien las ha quitado, pulsa Guardar y confirma.
+          </AvisoDestacado>
         )}
 
         {sinConfirmar && (
-          <div className="rounded-lg border-2 border-amber-500 bg-amber-500/15 p-3 text-amber-700 dark:text-amber-400">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-              <div className="min-w-0 flex-1 text-sm">
-                <p className="font-semibold">Esta escala no se ha podido comprobar con el servidor</p>
-                <p className="opacity-90">
-                  Puede que falten datos. No se guardará sola: revisa que esté todo y pulsa
-                  Guardar cuando tengas cobertura.
-                </p>
-              </div>
-            </div>
-          </div>
+          <AvisoDestacado
+            icono={<AlertTriangle className="h-5 w-5" />}
+            titulo="Esta escala no se ha podido comprobar con el servidor"
+          >
+            Puede que falten datos. No se guardará sola: revisa que esté todo y pulsa
+            Guardar cuando tengas cobertura.
+          </AvisoDestacado>
         )}
 
         <AttachmentRecovery

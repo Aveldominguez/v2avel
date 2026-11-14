@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CloudOff } from 'lucide-react';
 import { comprobarCopiaOffline, type EstadoCopia } from '@/lib/copiaOffline';
+import { AvisoDestacado } from '@/components/AvisoDestacado';
 
 /**
  * Avisa de que la app todavía no está guardada entera en el móvil.
@@ -25,17 +26,13 @@ export const AvisoCopiaOffline: React.FC = () => {
   if (estado !== 'incompleta') return null;
 
   return (
-    <div className="mx-3 rounded-lg border-2 border-warning/50 bg-warning/10 p-3 text-warning">
-      <div className="flex items-start gap-2">
-        <CloudOff size={20} className="mt-0.5 shrink-0" />
-        <div className="min-w-0 flex-1 text-sm">
-          <p className="font-semibold">La app no está guardada entera en este móvil</p>
-          <p className="opacity-90">
-            Si la abres sin cobertura puede que no cargue nada. Déjala abierta un
-            minuto con buena señal o wifi y se guardará sola.
-          </p>
-        </div>
-      </div>
-    </div>
+    <AvisoDestacado
+      className="mx-3"
+      icono={<CloudOff size={20} />}
+      titulo="La app no está guardada entera en este móvil"
+    >
+      Si la abres sin cobertura puede que no cargue nada. Déjala abierta un
+      minuto con buena señal o wifi y se guardará sola.
+    </AvisoDestacado>
   );
 };
