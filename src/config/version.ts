@@ -1,12 +1,12 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.829';
+export const APP_VERSION = '4.820';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "IMPORTANTE: arreglada la causa de que una escala entera pudiera perderse. La app tenía DOS procesos sincronizando a la vez sin verse entre ellos; cuando uno terminaba, borraba de la lista de pendientes lo que el otro acababa de meter. Si guardabas sin cobertura mientras eso pasaba, tu guardado desaparecía y encima salía «✅ Sincronizado».",
-  "Eso mismo creaba escalas duplicadas: el 11/11 se crearon cuatro copias del mismo vuelo en 41 segundos. Ahora una escala no puede duplicarse aunque se envíe dos veces.",
-  "La cola de sincronización decía «sincronizado» aunque el servidor no hubiera escrito nada. Ahora se comprueba que la fila existe de verdad y, si no, se reintenta en vez de darlo por bueno.",
-  "Si el almacenamiento del móvil se llenaba, la app borraba TODOS los borradores para hacer sitio, incluido el de la escala que estabas rellenando. Ya solo borra los caducados.",
-  "Cuando una escala se abre sin cobertura y no puede comprobarse con el servidor, ya no se queda sin guardado automático el resto del turno: lo reintenta cada 20 segundos y en cuanto hay señal vuelve a guardarse sola.",
-  "NUEVO apartado «Personal», encima de Equipos utilizados: buscas a los compañeros que han trabajado en la escala y les pones su función. Nace plegado para no ocupar sitio. Sale en los dos PDF.",
+  "NUEVO: si a una escala le faltan datos, ahora puedes recuperarlos TÚ. Si hay algo que devolver, aparece un aviso arriba de la escala con lo que se puede recuperar y un botón para hacerlo. Ya no hace falta pedírselo al administrador.",
+  "La copia de seguridad ya no guarda sólo las horas: también las bodegas, los recuentos de maletas, el personal, los equipos, los adjuntos y las observaciones. Y los contadores y la LIR de Air Canada, que viven aparte y antes no tenían ninguna red.",
+  "Los avisos de la app iban en ámbar y al sol no se leían. Ahora van en azul con letra blanca.",
+  "En la pantalla de inicio, cuando no hay cobertura, el aviso descolocaba el icono de perfil y se montaba encima del botón de tema. Arreglado.",
+  "Si la app tarda en abrir con muy poca cobertura, ya no se queda en blanco sin decir nada: avisa de lo que pasa y ofrece reintentar.",
+  "Aviso nuevo cuando la app todavía no está guardada entera en el móvil, para que te enteres con cobertura y no en mitad de la rampa.",
 ];
