@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { queTiene, resumirCopia, copiasUtiles, type CopiaHistorico } from './resumenRecuperacion';
+import {
+  queTiene, resumirCopia, copiasUtiles, horasDeCopia, bodegasDeCopia,
+  recuentosDeCopia, etiquetaDeCampo, type CopiaHistorico,
+} from './resumenRecuperacion';
 
 const copia = (extra: Partial<CopiaHistorico> = {}): CopiaHistorico => ({
   id: 'h1', saved_at: '2026-11-14T10:00:00Z', motivo: 'perdida',
@@ -107,5 +110,52 @@ describe('copias antiguas, de antes de que existiera el motivo', () => {
 
   it('sin el dato tampoco se descarta por si acaso', () => {
     expect(copiasUtiles([vieja()])).toHaveLength(1);
+  });
+});
+
+describe('detalle de lo que se va a recuperar', () => {
+  const c = (extra = {}) => ({
+    id: 'd1', saved_at: '2026-11-13T14:06:00Z', motivo: 'perdida',
+    times: {}, field_values: [], observations: '', extra: null, ...extra,
+  }) as CopiaHistorico;
+
+  it('enseña las horas con su nombre, ordenadas por hora', () => {
+    const d = horasDeCopia(c({ times: {
+      chocksOff: '13:45', chocksOnArrival: '12:30', unloadingStart: '12:35',
+      scheduledStd: '13:10',   // de ARION: no se cuenta
+    }}));
+    expect(d.map((x) => x.valor)).toEqual(['12:30', '12:35', '13:45']);
+    expect(d[0].etiqueta).toBe('Calzos Llegada');
+    expect(d[2].etiqueta).toBe('Calzos Salida');
+  });
+
+  it('enseña lo que había en cada bodega', () => {
+    const d = bodegasDeCopia(c({ times: { bodegasData: { f1: '14', a1: '22', f2: '  ' } } }));
+    expect(d).toEqual([{ etiqueta: 'A1', valor: '22' }, { etiqueta: 'F1', valor: '14' }]);
+  });
+
+  it('traduce el identificador del campo a algo legible', () => {
+    expect(etiquetaDeCampo('pegasus-hold-a32112')).toBe('Bodega 12');
+    expect(etiquetaDeCampo('wizz-hold-a32131')).toBe('Bodega 31');
+    expect(etiquetaDeCampo('algo-raro')).toBe('Algo raro');
+    expect(etiquetaDeCampo('')).toBe('');
+  });
+
+  it('junta el contenido de una bodega en una línea', () => {
+    const d = recuentosDeCopia(c({ field_values: [
+      { fieldDefinitionId: 'pegasus-hold-a32112', value: '67PC C\n30BY' },
+      { fieldDefinitionId: 'pegasus-hold-a32151', value: 'NIL' },
+      { fieldDefinitionId: 'pegasus-hold-a32141', value: '   ' },
+    ]}));
+    expect(d).toEqual([
+      { etiqueta: 'Bodega 12', valor: '67PC C · 30BY' },
+      { etiqueta: 'Bodega 51', valor: 'NIL' },
+    ]);
+  });
+
+  it('una copia sin nada no revienta ninguno de los tres', () => {
+    expect(horasDeCopia(c())).toEqual([]);
+    expect(bodegasDeCopia(c({ times: null }))).toEqual([]);
+    expect(recuentosDeCopia(c({ field_values: null }))).toEqual([]);
   });
 });

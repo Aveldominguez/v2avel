@@ -18,7 +18,12 @@ export interface CopiaHistorico {
   horas_antes?: number | null;
 }
 
+import { etiquetaDeHora } from '@/utils/etiquetasHoras';
+
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Una fila del detalle: "Calzos Llegada" → "12:30". */
+export interface Dato { etiqueta: string; valor: string }
 
 /** Puestos por ARION, no son trabajo de nadie y no cuentan como dato perdido. */
 const AUTOMATICOS = new Set([
@@ -36,6 +41,50 @@ export interface Trozo {
   /** Las observaciones no se cuentan: se tienen o no. "1 observaciones" chirría. */
   sinNumero?: boolean;
 }
+
+/**
+ * Las horas de una copia, con su nombre y ordenadas por hora.
+ *
+ * Hace falta para poder decidir si restaurar: saber que hay "13 horas" no
+ * sirve de nada si no se ve CUÁLES son y si son las que faltan.
+ */
+export const horasDeCopia = (c: CopiaHistorico): Dato[] =>
+  Object.entries((c.times ?? {}) as Record<string, unknown>)
+    .filter(([k, v]) => !AUTOMATICOS.has(k) && typeof v === 'string' && HORA.test(v))
+    .map(([k, v]) => ({ etiqueta: etiquetaDeHora(k), valor: v as string }))
+    .sort((a, b) => a.valor.localeCompare(b.valor));
+
+/** Lo que había en cada bodega: "F1" → "14". */
+export const bodegasDeCopia = (c: CopiaHistorico): Dato[] =>
+  Object.entries(((c.times ?? {}) as Record<string, unknown>).bodegasData as Record<string, unknown> ?? {})
+    .filter(([, v]) => typeof v === 'string' && v.trim() !== '')
+    .map(([k, v]) => ({ etiqueta: k.toUpperCase(), valor: (v as string).trim() }))
+    .sort((a, b) => a.etiqueta.localeCompare(b.etiqueta));
+
+/**
+ * Nombre legible del identificador de un campo.
+ *
+ * Vienen como "pegasus-hold-a32112": aerolínea, el modelo del avión y el
+ * número de compartimento pegados. Se saca de ahí en vez de pedir el catálogo
+ * al servidor, que sin cobertura no llegaría justo cuando hace falta.
+ */
+export const etiquetaDeCampo = (id: string): string => {
+  const m = /-hold-[a-z]?\d{3}[a-z]?(\d+)$/i.exec(id);
+  if (m) return `Bodega ${m[1]}`;
+  const limpio = id.replace(/[-_]+/g, ' ').trim();
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+};
+
+/** El contenido apuntado en cada bodega: "Bodega 12" → "67PC C / 30BY". */
+export const recuentosDeCopia = (c: CopiaHistorico): Dato[] =>
+  (Array.isArray(c.field_values) ? (c.field_values as Array<{ fieldDefinitionId?: string; value?: unknown }>) : [])
+    .filter((f) => typeof f?.value === 'string' && f.value.trim() !== '')
+    .map((f) => ({
+      etiqueta: etiquetaDeCampo(String(f.fieldDefinitionId ?? '')),
+      // Vienen con saltos de línea ("67PC C\n30BY"): en una fila estrecha
+      // se leen mejor seguidos.
+      valor: String(f.value).split(/\r?\n/).map((x) => x.trim()).filter(Boolean).join(' · '),
+    }));
 
 /** Lo que contiene una copia, por tipo y con nombres que se entienden. */
 export const queTiene = (c: CopiaHistorico): Trozo[] => {

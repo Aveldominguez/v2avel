@@ -9,7 +9,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { copiasUtiles, resumirCopia, type CopiaHistorico } from '@/utils/resumenRecuperacion';
+import {
+  bodegasDeCopia, copiasUtiles, horasDeCopia, recuentosDeCopia, resumirCopia,
+  type CopiaHistorico, type Dato,
+} from '@/utils/resumenRecuperacion';
 import { AvisoDestacado, BotonDeAviso } from '@/components/AvisoDestacado';
 
 interface Props {
@@ -17,6 +20,22 @@ interface Props {
   /** Con cambios en pantalla sin guardar no se restaura: se perderían. */
   hayCambiosSinGuardar: boolean;
 }
+
+/** Un grupo de datos del detalle. No se pinta si no hay nada que enseñar. */
+const Bloque: React.FC<{ titulo: string; filas: Dato[] }> = ({ titulo, filas }) =>
+  filas.length === 0 ? null : (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{titulo}</p>
+      <div className="mt-0.5 space-y-0.5">
+        {filas.map((f) => (
+          <div key={f.etiqueta + f.valor} className="flex justify-between gap-3 text-xs">
+            <span className="min-w-0 text-slate-600">{f.etiqueta}</span>
+            <span className="shrink-0 font-mono font-bold text-slate-900">{f.valor}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
 /**
  * Datos recuperables de ESTA escala, para que el operario se los devuelva él.
@@ -33,6 +52,8 @@ export const RecuperarEnEscala: React.FC<Props> = ({ turnaroundId, hayCambiosSin
   const [abierto, setAbierto] = useState(false);
   const [restaurando, setRestaurando] = useState<string | null>(null);
   const [aRestaurar, setARestaurar] = useState<CopiaHistorico | null>(null);
+  /** Qué copia tiene el detalle abierto. Sólo una a la vez: el móvil es estrecho. */
+  const [detalle, setDetalle] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     if (!turnaroundId) return;
@@ -116,6 +137,33 @@ export const RecuperarEnEscala: React.FC<Props> = ({ turnaroundId, hayCambiosSin
                 {format(new Date(c.saved_at), "d 'de' MMMM 'a las' HH:mm", { locale: es })}
                 {c.motivo === 'air-canada' ? ' · escaneo de Air Canada' : ''}
               </p>
+              {/*
+                Qué se va a recuperar, con nombre y valor. Sin esto hay que
+                decidir a ciegas: saber que hay "13 horas" no dice si son las
+                que faltan.
+              */}
+              <Button
+                type="button" variant="ghost" size="sm"
+                className="mt-1 h-7 w-full text-xs text-primary"
+                onClick={() => setDetalle((d) => (d === c.id ? null : c.id))}
+              >
+                {detalle === c.id ? 'Ocultar el detalle' : 'Ver qué contiene'}
+              </Button>
+
+              {detalle === c.id && (
+                <div className="mt-1 space-y-2 border-t border-slate-200 pt-2">
+                  <Bloque titulo="Horas" filas={horasDeCopia(c)} />
+                  <Bloque titulo="Bodegas" filas={bodegasDeCopia(c)} />
+                  <Bloque titulo="Contenido de bodegas" filas={recuentosDeCopia(c)} />
+                  {(c.observations ?? '').trim() && (
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Observaciones</p>
+                      <p className="text-xs text-slate-700">{c.observations}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Button
                 type="button" size="sm" className="mt-2 w-full gap-1.5"
                 disabled={restaurando === c.id || hayCambiosSinGuardar}
