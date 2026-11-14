@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
-  ChevronDown, ChevronUp, ExternalLink, History, Loader2, RefreshCw, RotateCcw, ShieldCheck,
+  ChevronDown, ChevronUp, ExternalLink, History, Loader2, RefreshCw, RotateCcw, ShieldCheck, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,6 +75,9 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
   const [filtro, setFiltro] = useState('');
   const [desplegado, setDesplegado] = useState<string | null>(null);
   const [aRestaurar, setARestaurar] = useState<Version | null>(null);
+  const [aBorrar, setABorrar] = useState<Version | null>(null);
+  const [limpiando, setLimpiando] = useState(false);
+  const [confirmarLimpieza, setConfirmarLimpieza] = useState(false);
   const [restaurando, setRestaurando] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -127,6 +130,31 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
       (v.date ?? '').includes(q) ||
       quien(v.user_id).toLowerCase().includes(q));
   }, [versiones, filtro, quien]);
+
+  /** Días a partir de los cuales una copia se considera vieja para limpiar. */
+  const DIAS_VIEJAS = 30;
+
+  const viejas = useMemo(() => {
+    const limite = Date.now() - DIAS_VIEJAS * 24 * 60 * 60 * 1000;
+    return versiones.filter((v) => new Date(v.saved_at).getTime() < limite);
+  }, [versiones]);
+
+  const borrar = async (ids: string[], queEra: string) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from('turnaround_history').delete().in('id', ids);
+      if (error) throw error;
+      setVersiones((prev) => prev.filter((v) => !ids.includes(v.id)));
+      toast({ title: queEra });
+    } catch (e) {
+      toast({
+        title: 'No se pudo borrar',
+        description: e instanceof Error ? e.message : undefined,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const restaurar = async (v: Version) => {
     setRestaurando(v.id);
@@ -193,12 +221,25 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
           )}
 
           {versiones.length > 0 && (
-            <Input
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
-              placeholder="Buscar por vuelo, fecha o usuario…"
-              className="h-9"
-            />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                placeholder="Buscar por vuelo, fecha o usuario…"
+                className="h-9 sm:flex-1"
+              />
+              {viejas.length > 0 && (
+                <Button
+                  variant="outline" size="sm"
+                  className="h-9 shrink-0 gap-1.5 text-destructive"
+                  disabled={limpiando}
+                  onClick={() => setConfirmarLimpieza(true)}
+                >
+                  {limpiando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Limpiar {viejas.length} de más de {DIAS_VIEJAS} días
+                </Button>
+              )}
+            </div>
           )}
 
           {visibles.map((v) => {
@@ -242,6 +283,15 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
                       Ver escala
                     </Button>
                     <Button
+                      variant="ghost" size="icon"
+                      className="h-8 w-8 shrink-0 text-destructive"
+                      onClick={() => setABorrar(v)}
+                      title="Eliminar esta copia"
+                      aria-label={`Eliminar la copia de ${v.flight_number ?? 'la escala'}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
                       size="sm" className="gap-1.5"
                       disabled={restaurando === v.id || horas.length === 0}
                       onClick={() => setARestaurar(v)}
@@ -273,6 +323,63 @@ export const RecuperarDatosCard: React.FC<Props> = ({ usuarios = [] }) => {
           )}
         </CardContent>
       )}
+
+      <AlertDialog open={!!aBorrar} onOpenChange={(o) => { if (!o) setABorrar(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar esta copia</AlertDialogTitle>
+            <AlertDialogDescription>
+              {aBorrar && (
+                <>
+                  Vas a borrar la copia de {aBorrar.flight_number ?? 'esta escala'} con{' '}
+                  {resumirCopia(aBorrar as unknown as CopiaHistorico)}.{' '}
+                  <strong>No se puede deshacer</strong>: si esos datos faltan en la escala,
+                  dejarán de poder recuperarse. La escala no se toca.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const v = aBorrar;
+                setABorrar(null);
+                if (v) void borrar([v.id], 'Copia eliminada');
+              }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmarLimpieza} onOpenChange={setConfirmarLimpieza}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limpiar las copias antiguas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se van a borrar <strong>{viejas.length}</strong>{' '}
+              {viejas.length === 1 ? 'copia de más' : 'copias de más'} de {DIAS_VIEJAS} días.
+              Las más recientes se quedan. <strong>No se puede deshacer</strong>, pero a
+              estas alturas esas escalas ya están cerradas y entregadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setConfirmarLimpieza(false);
+                setLimpiando(true);
+                await borrar(viejas.map((v) => v.id), `${viejas.length} copias eliminadas`);
+                setLimpiando(false);
+              }}
+            >
+              Limpiar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!aRestaurar} onOpenChange={(o) => { if (!o) setARestaurar(null); }}>
         <AlertDialogContent>
