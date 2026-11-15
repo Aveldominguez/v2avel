@@ -335,7 +335,7 @@ const AdminPanel: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className={cn("sticky z-50 bg-card/95 backdrop-blur border-b-2 border-border", updateAvailable ? "top-[40px]" : "top-0")}>
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-2 py-4 sm:px-4">
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-2 justify-center w-full">
               <ConnectivityChip />
@@ -367,7 +367,7 @@ const AdminPanel: React.FC = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-2 py-6 space-y-6 sm:px-4">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="card-operational">
@@ -586,156 +586,119 @@ const AdminPanel: React.FC = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Rol</TableHead>
-                      <TableHead>Módulos</TableHead>
-                      <TableHead>Bloqueado</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map(u => {
-                      const isSelf = u.user_id === user?.id;
-                      const isUserAdmin = u.roles.includes('admin');
+              /*
+               * Tarjetas, no una tabla de seis columnas.
+               *
+               * En el móvil la tabla no cabía ni de lejos: se salía de la
+               * pantalla y había que arrastrar a ciegas para llegar a los
+               * botones. Cada usuario en su tarjeta usa todo el ancho y se
+               * maneja con el pulgar.
+               */
+              <div className="divide-y divide-border">
+                {users.map(u => {
+                  const isSelf = u.user_id === user?.id;
+                  const isUserAdmin = u.roles.includes('admin');
 
-                      return (
-                        <TableRow key={u.id}>
-                          <TableCell>
-                            <div>
-                              <span className="font-mono text-sm">{u.email}</span>
-                              {u.display_name && (
-                                <p className="text-xs text-muted-foreground">{u.display_name}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {u.approved ? (
-                              <Badge className="bg-success/20 text-success border-success/30">Aprobado</Badge>
-                            ) : (
-                              <Badge variant="secondary">Pendiente</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {isUserAdmin && (
-                                <Badge className="bg-destructive/20 text-destructive border-destructive/30">
-                                  <ShieldCheck className="h-3 w-3 mr-1" />Admin
-                                </Badge>
-                              )}
-                              {!isSelf && (
-                                <Switch
-                                  checked={isUserAdmin}
-                                  onCheckedChange={() => handleToggleAdmin(u.user_id, isUserAdmin)}
-                                  disabled={actionLoading === u.user_id}
-                                />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              <label className="flex items-center gap-2 text-xs">
-                                <Switch checked={isUserAdmin || u.modules.includes('rampa')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'rampa', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
-                                Rampa
-                              </label>
-                              <label className="flex items-center gap-2 text-xs">
-                                <Switch checked={isUserAdmin || u.modules.includes('equipos')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'equipos', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
-                                Equipos
-                              </label>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {!isSelf && (
-                              <Switch
-                                checked={u.blocked}
-                                onCheckedChange={(blocked) => handleBlock(u.user_id, blocked)}
-                                disabled={actionLoading === u.user_id}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setFichaDialog({ userId: u.user_id, email: u.email, displayName: u.display_name ?? '' });
-                                  setFichaNombre(u.display_name ?? '');
-                                  setFichaCorreo(u.email);
-                                }}
-                                title="Editar nombre y correo"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleViewTurnarounds(u.user_id, u.email)}
-                                title="Ver escalas"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleExportBackup(u.user_id, u.email)}
-                                disabled={backupLoading === u.user_id}
-                                title="Exportar backup"
-                              >
-                                {backupLoading === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setImportTarget({ userId: u.user_id, email: u.email });
-                                  importFileRef.current?.click();
-                                }}
-                                title="Importar backup"
-                              >
-                                <Upload className="h-4 w-4" />
-                              </Button>
-                              {isUserAdmin && !isSelf && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleManageManagedUsers(u)}
-                                  title="Vincular usuarios"
-                                >
-                                  <Link className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {!isSelf && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setPasswordDialog({ userId: u.user_id, email: u.email })}
-                                  title="Cambiar contraseña"
-                                >
-                                  <KeyRound className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {!isSelf && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setDeleteTarget(u.user_id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                  return (
+                    <div key={u.id} className="space-y-3 p-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-mono text-sm">{u.email}</p>
+                          {u.display_name && (
+                            <p className="text-xs text-muted-foreground">{u.display_name}</p>
+                          )}
+                        </div>
+                        {u.approved ? (
+                          <Badge className="bg-success/20 text-success border-success/30">Aprobado</Badge>
+                        ) : (
+                          <Badge variant="secondary">Pendiente</Badge>
+                        )}
+                        {isUserAdmin && (
+                          <Badge className="bg-destructive/20 text-destructive border-destructive/30">
+                            <ShieldCheck className="h-3 w-3 mr-1" />Admin
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
+                        <label className="flex items-center gap-2">
+                          <Switch checked={isUserAdmin || u.modules.includes('rampa')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'rampa', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
+                          Rampa
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <Switch checked={isUserAdmin || u.modules.includes('equipos')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'equipos', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
+                          Equipos
+                        </label>
+                        {!isSelf && (
+                          <label className="flex items-center gap-2">
+                            <Switch
+                              checked={isUserAdmin}
+                              onCheckedChange={() => handleToggleAdmin(u.user_id, isUserAdmin)}
+                              disabled={actionLoading === u.user_id}
+                            />
+                            Admin
+                          </label>
+                        )}
+                        {!isSelf && (
+                          <label className="flex items-center gap-2">
+                            <Switch
+                              checked={u.blocked}
+                              onCheckedChange={(blocked) => handleBlock(u.user_id, blocked)}
+                              disabled={actionLoading === u.user_id}
+                            />
+                            Bloqueado
+                          </label>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-1">
+                        <Button variant="ghost" size="icon" title="Editar nombre y correo"
+                          onClick={() => {
+                            setFichaDialog({ userId: u.user_id, email: u.email, displayName: u.display_name ?? '' });
+                            setFichaNombre(u.display_name ?? '');
+                            setFichaCorreo(u.email);
+                          }}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" title="Ver escalas"
+                          onClick={() => handleViewTurnarounds(u.user_id, u.email)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" title="Exportar backup"
+                          disabled={backupLoading === u.user_id}
+                          onClick={() => handleExportBackup(u.user_id, u.email)}>
+                          {backupLoading === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                        </Button>
+                        <Button variant="ghost" size="icon" title="Importar backup"
+                          onClick={() => {
+                            setImportTarget({ userId: u.user_id, email: u.email });
+                            importFileRef.current?.click();
+                          }}>
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                        {isUserAdmin && !isSelf && (
+                          <Button variant="ghost" size="icon" title="Vincular usuarios"
+                            onClick={() => handleManageManagedUsers(u)}>
+                            <Link className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isSelf && (
+                          <Button variant="ghost" size="icon" title="Cambiar contraseña"
+                            onClick={() => setPasswordDialog({ userId: u.user_id, email: u.email })}>
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!isSelf && (
+                          <Button variant="ghost" size="icon" title="Eliminar usuario"
+                            className="ml-auto text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(u.user_id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>
