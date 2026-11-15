@@ -102,6 +102,15 @@ export interface TurnaroundTimes {
     descripcion: string;
   } | null;
   /**
+   * La meteorología real del rato en que se trabajó la escala.
+   *
+   * Se registra sola al poner calzos de salida y NO se vuelve a tocar: es la
+   * prueba para explicar, semanas después, por qué se tomó una decisión de
+   * seguridad. Ver src/utils/meteoEscala.ts.
+   */
+  meteo?: import('@/utils/meteoEscala').MeteoEscala | null;
+
+  /**
    * Quién trabaja en esta escala y con qué función.
    *
    * Va DENTRO de la escala, no en una tabla aparte, para heredar todo lo que

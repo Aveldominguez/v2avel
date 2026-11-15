@@ -19,6 +19,7 @@ import type { AirlineCode, FieldValue, TurnaroundTimes } from '@/types/turnaroun
 import { getEscalaTimeFields, getPushBackField } from '@/types/turnaround';
 import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories } from '@/data/equipmentDefinitions';
+import { resumenMeteo } from '@/utils/meteoEscala';
 import type { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { formatBaggageBelt } from './baggageBelt';
 import { filledLirEditions } from './lirEditions';
@@ -59,6 +60,8 @@ export interface ControlRampa {
   extras: ParejaDato[];
   especial: string[];
   codigos: string[];
+  /** Resumen del viento durante la escala, vacío si no se registró. */
+  meteo: string;
   /** Quién trabajó en la escala: label = nombre, value = función. */
   personal: ParejaDato[];
   equipos: ParejaDato[];
@@ -171,6 +174,11 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
       return [{ label: cat.label, value: sel.percentage ? `${item.label} (${sel.percentage}%)` : item.label }];
     });
 
+  // --- Meteorología ---
+  // Una sola línea: la hoja va justísima de espacio y lo que hace falta ahí
+  // es poder decir "ese día había rachas de 30 kt". El detalle va al informe.
+  const meteo = resumenMeteo(t.meteo);
+
   // --- Personal de la escala ---
   // La hoja de papel ya tiene una casilla "PERSONAL / EQUIPOS ASIGNADOS
   // AVIÓN": el personal va ahí, que es donde el capataz lo busca.
@@ -256,6 +264,7 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
     ],
     especial,
     codigos,
+    meteo,
     personal,
     equipos,
     contenedores,

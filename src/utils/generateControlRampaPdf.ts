@@ -132,6 +132,7 @@ const cuerpoHoja = (h: ControlRampa, logoUrl: string, aerolinea: string): string
   <table class="t">
     <tr><td class="k" style="width:34%">EQUIPAJE / CARGO ESPECIAL</td><td class="v" style="text-align:left">${especial || 'DAA / AVI / HUM / FKT / CAT / MAIL'}</td></tr>
     <tr><td class="k">CÓDIGOS CARGA / DESCARGA</td><td class="v" style="text-align:left">${codigos || '&nbsp;'}</td></tr>
+    ${h.meteo ? `<tr><td class="k">METEOROLOGÍA</td><td class="v" style="text-align:left">${esc(h.meteo)}</td></tr>` : ''}
   </table>
 
   ${contenedores}

@@ -238,3 +238,21 @@ describe('personal de la escala en la hoja', () => {
     expect(con([]).personal).toEqual([]);
   });
 });
+
+describe('meteorología en la hoja', () => {
+  const con = (meteo: unknown) =>
+    buildControlRampa(escala({ times: { ...getEmptyTimes(), meteo } as never }));
+
+  it('resume el viento en una línea', () => {
+    const h = con({
+      ventana: { desde: '', hasta: '' }, registradoEn: '', observaciones: [], taf: null,
+      maximo: { kt: 15, racha: 30, alerta: 'precaucion' },
+    });
+    expect(h.meteo).toBe('Viento máx. 30 kt (racha 30) · PRECAUCION');
+  });
+
+  it('sin meteorología registrada la fila no se pinta', () => {
+    expect(con(undefined).meteo).toBe('');
+    expect(con(null).meteo).toBe('');
+  });
+});

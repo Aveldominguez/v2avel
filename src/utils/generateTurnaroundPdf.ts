@@ -359,6 +359,34 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
       </table>`;
   }
 
+  // Meteorología del intervalo: la prueba para explicar decisiones.
+  let meteoHtml = '';
+  const meteo = data.times.meteo;
+  if (meteo && meteo.observaciones.length > 0) {
+    const filas = meteo.observaciones
+      .map((o) => {
+        const h = new Date(o.hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        return `<tr><td>${escapeHtml(h)}</td><td style="text-align:center;">${o.kt ?? '—'}</td>`
+          + `<td style="text-align:center;">${o.racha ?? '—'}</td>`
+          + `<td style="text-align:center;">${escapeHtml(o.alerta ? o.alerta.toUpperCase() : '—')}</td>`
+          + `<td style="font-family:monospace;font-size:9px;">${escapeHtml(o.raw)}</td></tr>`;
+      })
+      .join('');
+    const peor = meteo.maximo;
+    const aviso = peor?.alerta
+      ? `<p style="font-weight:bold;">Hubo alerta de viento durante la escala: ${escapeHtml(peor.alerta.toUpperCase())}`
+        + `${peor.racha ? ` · rachas de ${peor.racha} kt` : ` · ${peor.kt} kt`}</p>`
+      : '';
+    meteoHtml = `
+      <h2>Meteorología de la escala</h2>
+      ${aviso}
+      <table class="data-table">
+        <tr style="background:#e5e5e5;font-weight:bold;"><td>Hora</td><td style="text-align:center;">Viento (kt)</td><td style="text-align:center;">Racha</td><td style="text-align:center;">Alerta</td><td>Parte oficial (METAR)</td></tr>
+        ${filas}
+      </table>
+      ${meteo.taf ? `<p style="font-family:monospace;font-size:9px;">Previsión vigente (TAF): ${escapeHtml(meteo.taf)}</p>` : ''}`;
+  }
+
   // Personal que trabajó en la escala
   let personalHtml = '';
   const personal = (data.times.personal ?? []).filter((p) => (p?.nombre ?? '').trim());
@@ -561,6 +589,7 @@ ${PDF_TOOLBAR_Y_SCRIPT}
 
   ${equipmentHtml ? `<section class="pdf-section" data-pdf-section>${equipmentHtml}</section>` : ''}
   ${personalHtml ? `<section class="pdf-section" data-pdf-section>${personalHtml}</section>` : ''}
+  ${meteoHtml ? `<section class="pdf-section" data-pdf-section>${meteoHtml}</section>` : ''}
 
   ${data.observations ? `
   <section class="pdf-section" data-pdf-section>

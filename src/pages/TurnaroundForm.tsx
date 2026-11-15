@@ -24,6 +24,9 @@ import { AvisoDestacado } from '@/components/AvisoDestacado';
 import { PdfExportDialog } from '@/components/turnaround/PdfExportDialog';
 import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import PersonalSection, { type PersonaEnEscala } from '@/components/turnaround/PersonalSection';
+import MeteoEscalaSection from '@/components/turnaround/MeteoEscalaSection';
+import { registrarMeteoDeEscala } from '@/utils/meteoEscala';
+import { supabase } from '@/integrations/supabase/client';
 import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
 import { Button } from '@/components/ui/button';
@@ -671,6 +674,31 @@ const TurnaroundForm: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, id, sinConfirmar]);
+
+  /**
+   * Registra la meteorología en cuanto se cierra la escala.
+   *
+   * Se dispara al poner calzos de salida, que es cuando el intervalo de
+   * trabajo ya está definido. Se hace UNA vez y no se vuelve a tocar: es la
+   * prueba de lo que había, y un registro que cambia no prueba nada.
+   *
+   * Si falla (sin cobertura, el servicio caído) no se avisa ni se reintenta en
+   * bucle: es un extra, y molestar con un error mientras se cierra un avión
+   * sería peor que no tenerlo. Queda el botón de volver a entrar.
+   */
+  const meteoPedida = useRef(false);
+  useEffect(() => {
+    if (!isEditing || meteoPedida.current) return;
+    if (!times.chocksOff || times.meteo) return;
+    meteoPedida.current = true;
+
+    const fecha = date instanceof Date ? date : new Date(date);
+    registrarMeteoDeEscala(fecha, times as unknown as Record<string, unknown>,
+      (nombre, opciones) => supabase.functions.invoke(nombre, opciones))
+      .then((m) => { if (m) setTimes((t) => (t.meteo ? t : { ...t, meteo: m })); })
+      .catch((e) => console.warn('[meteo] no se pudo registrar:', e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, times.chocksOff, times.meteo]);
 
   // --- Lifecycle safety net: flush draft before iOS suspends/kills the WebView ---
   useEffect(() => {
@@ -1552,6 +1580,8 @@ const TurnaroundForm: React.FC = () => {
           />
         )}
         </div>
+
+        <MeteoEscalaSection meteo={times.meteo} />
 
         <div id="sec-personal" className="scroll-mt-48">
         <PersonalSection personal={personal} onChange={setPersonal} />
