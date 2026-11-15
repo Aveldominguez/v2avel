@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Camera, RotateCcw, Loader2, AlertCircle, ChevronDown, Plane, ImageIcon } from 'lucide-react';
+import { Camera, RotateCcw, Loader2, AlertCircle, ChevronDown, Plane, ImageIcon, Trash2 } from 'lucide-react';
 import { compressImage } from '@/utils/imageCompressor';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -48,6 +48,23 @@ interface PositionData {
   manualOrder: string;
 }
 
+/** Las categorías del bulk, tal y como se cantan por radio. */
+export const CATEGORIAS_BULK = ['BF', 'BY', 'DOM', 'USA', 'INT', 'BG', 'RUSH'] as const;
+export type CategoriaBulk = typeof CATEGORIAS_BULK[number];
+
+/**
+ * Lo que va al bulk y no cabe en los contadores fijos.
+ *
+ * Un DAA de una categoría, una silla de ruedas, una caja suelta… Cada línea
+ * lleva su cantidad y su categoría, y esas cantidades SUMAN al total: si no,
+ * el número que se canta por radio no sería el de maletas que van dentro.
+ */
+export interface ExtraBulk {
+  texto: string;
+  cantidad: number;
+  categoria: CategoriaBulk;
+}
+
 interface BulkData {
   bf: number;
   by_val: number;
@@ -56,13 +73,19 @@ interface BulkData {
   int_val: number;
   bg: number;
   rush: number;
+  extras?: ExtraBulk[];
 }
 
-const EMPTY_BULK: BulkData = { bf: 0, by_val: 0, dom: 0, usa: 0, int_val: 0, bg: 0, rush: 0 };
+const EMPTY_BULK: BulkData = { bf: 0, by_val: 0, dom: 0, usa: 0, int_val: 0, bg: 0, rush: 0, extras: [] };
 
-/** Maletas contadas en el bulk, todas las casillas juntas. */
-export const totalBulk = (b: BulkData | null | undefined): number =>
-  b ? (b.bf ?? 0) + (b.by_val ?? 0) + (b.dom ?? 0) + (b.usa ?? 0) + (b.int_val ?? 0) + (b.bg ?? 0) + (b.rush ?? 0) : 0;
+/** Maletas contadas en el bulk: las casillas fijas más lo añadido a mano. */
+export const totalBulk = (b: BulkData | null | undefined): number => {
+  if (!b) return 0;
+  const fijas = (b.bf ?? 0) + (b.by_val ?? 0) + (b.dom ?? 0) + (b.usa ?? 0)
+    + (b.int_val ?? 0) + (b.bg ?? 0) + (b.rush ?? 0);
+  const sueltas = (b.extras ?? []).reduce((n, e) => n + (Number(e?.cantidad) || 0), 0);
+  return fijas + sueltas;
+};
 
 interface ScanModuleState {
   fwdPositions: PositionData[];
@@ -287,9 +310,15 @@ const Counter = React.memo(function Counter({ field, label, value, onDelta }: Co
 interface BulkSectionProps {
   bulk: BulkData;
   onDelta: (field: keyof BulkData, delta: number) => void;
+  onExtras: (extras: ExtraBulk[]) => void;
 }
 
-const BulkSection = React.memo(function BulkSection({ bulk, onDelta }: BulkSectionProps) {
+const BulkSection = React.memo(function BulkSection({ bulk, onDelta, onExtras }: BulkSectionProps) {
+  const extras = bulk.extras ?? [];
+  const cambiar = (i: number, cambio: Partial<ExtraBulk>) =>
+    onExtras(extras.map((e, j) => (j === i ? { ...e, ...cambio } : e)));
+  const añadir = (texto: string) =>
+    onExtras([...extras, { texto, cantidad: 1, categoria: 'BF' }]);
   return (
     <div className="mt-3 space-y-2">
       <div className="flex items-center gap-2">
@@ -309,6 +338,66 @@ const BulkSection = React.memo(function BulkSection({ bulk, onDelta }: BulkSecti
           </div>
         </div>
       </div>
+      {/*
+        Lo que va al bulk y no cabe en los contadores: un DAA de una
+        categoría, una silla de ruedas, una caja suelta. Cada línea lleva su
+        cantidad y su categoría, y cuenta en el total.
+      */}
+      {extras.length > 0 && (
+        <div className="space-y-1.5">
+          {extras.map((e, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <input
+                value={e.texto}
+                onChange={(ev) => cambiar(i, { texto: ev.target.value })}
+                placeholder="Qué es"
+                className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm"
+              />
+              <input
+                type="number" inputMode="numeric" min={0}
+                value={e.cantidad}
+                onChange={(ev) => cambiar(i, { cantidad: Math.max(0, Number(ev.target.value) || 0) })}
+                className="h-9 w-14 rounded-md border border-input bg-background px-1 text-center text-sm font-bold tabular-nums"
+                aria-label="Cantidad"
+              />
+              <select
+                value={e.categoria}
+                onChange={(ev) => cambiar(i, { categoria: ev.target.value as CategoriaBulk })}
+                className="h-9 rounded-md border border-input bg-background px-1 text-sm font-semibold"
+                aria-label="Categoría"
+              >
+                {CATEGORIAS_BULK.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={() => onExtras(extras.filter((_, j) => j !== i))}
+                className="shrink-0 rounded-md p-1.5 text-destructive"
+                aria-label={`Quitar ${e.texto || 'la línea'}`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => añadir('')}
+          className="flex-1 rounded-lg border-2 border-dashed border-border py-2 text-sm font-semibold text-muted-foreground active:scale-[0.99]"
+        >
+          + Añadir al bulk
+        </button>
+        <button
+          type="button"
+          onClick={() => añadir('DAA')}
+          className="flex-1 rounded-lg border-2 border-primary/50 bg-primary/10 py-2 text-sm font-bold text-primary active:scale-[0.99]"
+        >
+          + DAA
+        </button>
+      </div>
+
       {/* Suma de todas las casillas: es lo que hay que cantar por radio. */}
       <div className="flex items-center justify-between rounded-lg border-2 border-primary/40 bg-primary/10 px-3 py-2">
         <span className="text-xs font-bold uppercase tracking-wider">Total maletas</span>
@@ -324,6 +413,7 @@ interface ScanModuleProps {
   onScan: (file: File, scanType: 'arrival' | 'departure', section: 'FWD' | 'AFT') => void;
   onUpdatePosition: UpdatePositionFn;
   onBulkDelta: (field: keyof BulkData, delta: number) => void;
+  onBulkExtras: (extras: ExtraBulk[]) => void;
   onOpenLir: (scanType: 'arrival' | 'departure', section: 'FWD' | 'AFT') => void;
   onReset: (scanType: 'arrival' | 'departure') => void;
 }
@@ -334,6 +424,7 @@ const ScanModule = React.memo(function ScanModule({
   onScan,
   onUpdatePosition,
   onBulkDelta,
+  onBulkExtras,
   onOpenLir,
   onReset,
 }: ScanModuleProps) {
@@ -514,7 +605,7 @@ const ScanModule = React.memo(function ScanModule({
         />
       )}
 
-      <BulkSection bulk={state.bulk} onDelta={onBulkDelta} />
+      <BulkSection bulk={state.bulk} onDelta={onBulkDelta} onExtras={onBulkExtras} />
     </div>
   );
 });
@@ -648,8 +739,21 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
               int_val: r.int_val ?? 0,
               bg: r.bg ?? 0,
               rush: r.rush ?? 0,
+              // Lo añadido a mano. Se valida al leer: una fila a medias
+              // guardada por una versión vieja no debe romper la pantalla.
+              extras: Array.isArray(r.extras)
+                ? r.extras
+                    .filter((e: unknown) => e && typeof e === 'object')
+                    .map((e: Record<string, unknown>) => ({
+                      texto: String(e.texto ?? ''),
+                      cantidad: Math.max(0, Number(e.cantidad) || 0),
+                      categoria: (CATEGORIAS_BULK as readonly string[]).includes(String(e.categoria))
+                        ? (e.categoria as CategoriaBulk)
+                        : 'BF',
+                    }))
+                : [],
             }
-          : { ...EMPTY_BULK };
+          : { ...EMPTY_BULK, extras: [] };
 
       bulkRef.current = { arrival: readBulk(arrBulk), departure: readBulk(depBulk) };
 
@@ -874,10 +978,34 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
     }
   }, [flightNumber, flightDate, turnaroundId]);
 
+  /**
+   * Lo añadido a mano al bulk.
+   *
+   * Va por su lado y no por los deltas porque no es sumar uno: es una lista
+   * que se edita entera. Se guarda con el mismo retardo que los contadores
+   * para no escribir en cada tecla.
+   */
+  const makeBulkExtras = useCallback(
+    (scanType: 'arrival' | 'departure') => (extras: ExtraBulk[]) => {
+      const nuevo: BulkData = { ...bulkRef.current[scanType], extras };
+      bulkRef.current[scanType] = nuevo;
+      const setter = scanType === 'arrival' ? setArrival : setDeparture;
+      setter((prev) => ({ ...prev, bulk: nuevo }));
+
+      clearTimeout(bulkTimer.current[scanType]);
+      bulkTimer.current[scanType] = setTimeout(() => {
+        void guardarBulk(scanType, bulkRef.current[scanType]);
+      }, 800);
+    },
+    [guardarBulk],
+  );
+
   const makeBulkDelta = useCallback(
     (scanType: 'arrival' | 'departure') => async (field: keyof BulkData, delta: number) => {
       const actual = bulkRef.current[scanType];
-      const nuevo: BulkData = { ...actual, [field]: Math.max(0, (actual[field] ?? 0) + delta) };
+      // Los deltas sólo tocan los contadores; `extras` se cambia por su lado.
+      const previo = (actual[field] as number) ?? 0;
+      const nuevo: BulkData = { ...actual, [field]: Math.max(0, previo + delta) };
       bulkRef.current[scanType] = nuevo;
 
       const setter = scanType === 'arrival' ? setArrival : setDeparture;
@@ -909,6 +1037,8 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
 
   const arrivalBulkDelta = useMemo(() => makeBulkDelta('arrival'), [makeBulkDelta]);
   const departureBulkDelta = useMemo(() => makeBulkDelta('departure'), [makeBulkDelta]);
+  const arrivalBulkExtras = useMemo(() => makeBulkExtras('arrival'), [makeBulkExtras]);
+  const departureBulkExtras = useMemo(() => makeBulkExtras('departure'), [makeBulkExtras]);
 
   /**
    * El "Reset" borra de la base de datos TODA la LIR escaneada de ese módulo.
@@ -990,6 +1120,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             onScan={handleScan}
             onUpdatePosition={updateArrivalPosition}
             onBulkDelta={arrivalBulkDelta}
+            onBulkExtras={arrivalBulkExtras}
             onOpenLir={openLir}
             onReset={setAReiniciar}
           />
@@ -1015,6 +1146,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
             onScan={handleScan}
             onUpdatePosition={updateDeparturePosition}
             onBulkDelta={departureBulkDelta}
+            onBulkExtras={departureBulkExtras}
             onOpenLir={openLir}
             onReset={setAReiniciar}
           />
