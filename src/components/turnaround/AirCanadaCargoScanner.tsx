@@ -684,23 +684,31 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
 
   const debouncedSave = useDebouncedSave();
 
-  // Load existing data
+  /*
+   * Lo guardado se busca por la ESCALA, no por el número de vuelo.
+   *
+   * El 12/11 una escala AC835 de sólo salida perdió 22 posiciones escaneadas
+   * y el bulk entero. No se perdieron de verdad: estaban guardadas, pero el
+   * número de llegada de esa escala está vacío —es sólo de salida— y aquí se
+   * hacía `if (!flightNumber) return`, así que no se llegaban a buscar
+   * nunca. Se guardaba y no se releía.
+   *
+   * El identificador de la escala no está vacío jamás y además distingue dos
+   * escalas del mismo vuelo el mismo día, cosa que el número no hacía.
+   */
   useEffect(() => {
-    if (!flightNumber || !flightDate) return;
+    if (!turnaroundId && (!flightNumber || !flightDate)) return;
     let cancelled = false;
 
     (async () => {
+      const porEscala = (q: ReturnType<typeof supabase.from>) =>
+        turnaroundId
+          ? q.select('*').eq('turnaround_id', turnaroundId)
+          : q.select('*').eq('flight_number', flightNumber).eq('flight_date', flightDate);
+
       const [{ data: positions }, { data: bulkRows }] = await Promise.all([
-        supabase
-          .from('ac_load_sheet_data')
-          .select('*')
-          .eq('flight_number', flightNumber)
-          .eq('flight_date', flightDate),
-        supabase
-          .from('ac_bulk_data')
-          .select('*')
-          .eq('flight_number', flightNumber)
-          .eq('flight_date', flightDate),
+        porEscala(supabase.from('ac_load_sheet_data')),
+        porEscala(supabase.from('ac_bulk_data')),
       ]);
 
       if (cancelled) return;
@@ -845,13 +853,17 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
         }));
 
         // Las que ya estaban, para borrarlas sólo cuando las nuevas estén.
-        const { data: previas } = await supabase
+        // Por la ESCALA, igual que la carga. Si se buscaran por número de
+        // vuelo, las filas guardadas antes con la clave en blanco no se
+        // borrarían al reescanear y saldrían duplicadas.
+        const consultaPrevias = supabase
           .from('ac_load_sheet_data')
           .select('id')
-          .eq('flight_number', flightNumber)
-          .eq('flight_date', flightDate)
           .eq('scan_type', scanType)
           .eq('fwd_section', expectedSection);
+        const { data: previas } = await (turnaroundId
+          ? consultaPrevias.eq('turnaround_id', turnaroundId)
+          : consultaPrevias.eq('flight_number', flightNumber).eq('flight_date', flightDate));
 
         let inserted: any[] = [];
         if (filas.length > 0) {
@@ -957,6 +969,13 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
   const bulkTimer = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
 
   const guardarBulk = useCallback(async (scanType: 'arrival' | 'departure', valores: BulkData) => {
+    /*
+     * Se identifica por la ESCALA cuando se conoce.
+     *
+     * Con el número de vuelo como clave, dos escalas del mismo vuelo el mismo
+     * día se pisaban entre ellas, y una escala de sólo salida escribía con la
+     * clave en blanco y luego no se encontraba.
+     */
     const { error } = await supabase.from('ac_bulk_data').upsert(
       {
         turnaround_id: turnaroundId ?? null,
@@ -966,7 +985,7 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
         ...valores,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'flight_number,flight_date,scan_type' },
+      { onConflict: turnaroundId ? 'turnaround_id,scan_type' : 'flight_number,flight_date,scan_type' },
     );
     if (error) {
       console.error('[air canada] bulk:', error);
@@ -1049,22 +1068,20 @@ const AirCanadaCargoScanner: React.FC<AirCanadaCargoScannerProps> = ({
 
   const resetModule = useCallback(
     async (scanType: 'arrival' | 'departure') => {
-      await supabase
-        .from('ac_load_sheet_data')
-        .delete()
-        .eq('flight_number', flightNumber)
-        .eq('flight_date', flightDate)
-        .eq('scan_type', scanType);
-      await supabase
-        .from('ac_bulk_data')
-        .delete()
-        .eq('flight_number', flightNumber)
-        .eq('flight_date', flightDate)
-        .eq('scan_type', scanType);
+      // También por escala: si no, un Reset dejaría atrás las filas guardadas
+      // con la clave en blanco y volverían a aparecer solas.
+      const borrar = (tabla: 'ac_load_sheet_data' | 'ac_bulk_data') => {
+        const q = supabase.from(tabla).delete().eq('scan_type', scanType);
+        return turnaroundId
+          ? q.eq('turnaround_id', turnaroundId)
+          : q.eq('flight_number', flightNumber).eq('flight_date', flightDate);
+      };
+      await borrar('ac_load_sheet_data');
+      await borrar('ac_bulk_data');
       bulkRef.current[scanType] = { ...EMPTY_BULK };
       (scanType === 'arrival' ? setArrival : setDeparture)(emptyModule());
     },
-    [flightNumber, flightDate],
+    [flightNumber, flightDate, turnaroundId],
   );
 
   const openLir = useCallback(

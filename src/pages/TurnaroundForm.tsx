@@ -1543,7 +1543,13 @@ const TurnaroundForm: React.FC = () => {
         <div id="sec-campos" className="scroll-mt-48 space-y-6">
         {(selectedAirline === 'AIR_CANADA' || selectedAirline === 'AIR_CANADA_CARGO') && (
           <AirCanadaCargoScanner
-            flightNumber={flightNumber}
+            /*
+              En una escala de SÓLO SALIDA el número de llegada está vacío.
+              Pasarlo vacío hacía que el escáner guardara con una clave en
+              blanco y luego no encontrara nada: así se "perdieron" 22
+              posiciones y el bulk de la AC835 del 12/11.
+            */
+            flightNumber={flightNumber || departureFlightNumber}
             flightDate={date ? format(date, 'yyyy-MM-dd') : ''}
             aircraftType={aircraftModel}
             turnaroundId={id}
