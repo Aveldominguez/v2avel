@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:hooks": "! eslint src 2>&1 | grep -q react-hooks/rules-of-hooks",
-    "check": "tsc --noEmit -p tsconfig.app.json && npm run check:hooks && vitest run"
+    "check": "tsc --noEmit -p tsconfig.app.json && npm run check:hooks && vitest run",
+    "version:subir": "node scripts/subir-version.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -1,11 +1,14 @@
 {
-  "version": "4.842",
+  "version": "4.843",
   "changelog": [
-    "NUEVO: si a una escala le faltan datos, ahora puedes recuperarlos TÚ. Si hay algo que devolver, aparece un aviso arriba de la escala con lo que se puede recuperar y un botón para hacerlo. Ya no hace falta pedírselo al administrador.",
-    "La copia de seguridad ya no guarda sólo las horas: también las bodegas, los recuentos de maletas, el personal, los equipos, los adjuntos y las observaciones. Y los contadores y la LIR de Air Canada, que viven aparte y antes no tenían ninguna red.",
-    "Los avisos de la app iban en ámbar y al sol no se leían. Ahora van en azul con letra blanca.",
-    "En la pantalla de inicio, cuando no hay cobertura, el aviso descolocaba el icono de perfil y se montaba encima del botón de tema. Arreglado.",
-    "Si la app tarda en abrir con muy poca cobertura, ya no se queda en blanco sin decir nada: avisa de lo que pasa y ofrece reintentar.",
-    "Aviso nuevo cuando la app todavía no está guardada entera en el móvil, para que te enteres con cobertura y no en mitad de la rampa."
+    "NUEVO: cada escala guarda la meteorología del rato en que se trabajó. Al poner calzos de llegada se anota el parte oficial del aeropuerto y lo que decía la previsión para tu intervalo. Sirve para explicar, semanas después, por qué se tomó una decisión de seguridad.",
+    "IMPORTANTE: la alerta de viento en vivo de la escala NUNCA había funcionado. Sólo se veía la previsión del TAF, nunca el viento que había de verdad. Ya está arreglada.",
+    "NUEVO: toca el código de un aeropuerto —el origen de la llegada o el destino de la salida— y te dice cuál es, en qué ciudad y en qué país. En la lista de escalas, debajo de MAD → TRN, se lee la ciudad.",
+    "NUEVO en Air Canada: debajo del BULK puedes añadir lo que no cabe en los contadores (un DAA de una categoría, una silla de ruedas, una caja suelta) con su cantidad y su categoría. Suman al total de maletas.",
+    "Al recuperar datos de una escala ahora se ve QUÉ contiene cada copia antes de decidir: las horas con su nombre y lo que había en cada bodega. Y el aviso se puede quitar cuando ya lo has resuelto.",
+    "Arreglado algo grave: al recuperar datos, si tenías la escala abierta en otro móvil, esa otra pantalla los volvía a borrar segundos después. Ahora lo impide la propia base de datos, así que da igual desde dónde se guarde.",
+    "Arreglado: el icono con el número de cambios pendientes se quedaba clavado aunque todo se hubiera subido, y con una nube tachada que parecía falta de conexión. Ahora dice «por subir» y desaparece al terminar.",
+    "Los avisos y las preguntas de confirmación iban en colores que al sol no se leían. Ahora van en azul con letra blanca.",
+    "El panel de administración ya no se sale de la pantalla en el móvil."
   ]
 }

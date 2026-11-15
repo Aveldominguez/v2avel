@@ -76,6 +76,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AvisoCopiaOffline } from '@/components/AvisoCopiaOffline';
+import { NovedadesTrasActualizar } from '@/components/NovedadesTrasActualizar';
 import { CiudadesDeRuta } from '@/components/CiudadesDeRuta';
 import { ConnectivityChip } from '@/components/ConnectivityChip';
 import { useTheme } from '@/hooks/useTheme';
@@ -664,6 +665,8 @@ const TurnaroundList: React.FC = () => {
         className="w-full py-4 space-y-4"
         style={{ paddingBottom: 'calc(var(--aero-weather-dock-h, 5rem) + 1rem)' }}
       >
+        <NovedadesTrasActualizar />
+
         <AvisoCopiaOffline />
 
         {/* METAR Weather */}
