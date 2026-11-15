@@ -152,6 +152,14 @@ export default defineConfig(() => ({
           'assets/CatalogManager-*.js',
           'assets/jszip-*.js',
           'assets/charts-*.js',
+          /*
+           * La lista de aeropuertos son 170 KB comprimidos y sólo hace falta
+           * al tocar un código. Precargarla obligaría a TODOS a bajársela en
+           * cada actualización, trabajen o no con ella. Se queda fuera del
+           * armazón: se baja la primera vez que se usa y la caché de
+           * 'assets-bajo-demanda' la conserva a partir de ahí.
+           */
+          'assets/aeropuertos-*.js',
         ],
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [

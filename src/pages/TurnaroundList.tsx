@@ -76,6 +76,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AvisoCopiaOffline } from '@/components/AvisoCopiaOffline';
+import { CiudadesDeRuta } from '@/components/CiudadesDeRuta';
 import { ConnectivityChip } from '@/components/ConnectivityChip';
 import { useTheme } from '@/hooks/useTheme';
 import { APP_VERSION } from '@/config/version';
@@ -840,6 +841,7 @@ const TurnaroundList: React.FC = () => {
                               )}
                             </strong>
                             <span className="aero-recent-route">{routeOrigin} <span>→</span> {routeDestination}</span>
+                            <CiudadesDeRuta origen={routeOrigin} destino={routeDestination} />
                             <small>{t.times?.aircraftModel || '—'} · {t.times?.matricula || '—'}</small>
                           </span>
                           <span className="aero-recent-meta">

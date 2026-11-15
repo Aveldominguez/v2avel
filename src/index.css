@@ -1752,3 +1752,11 @@
     opacity: 0;
   }
 }
+
+/* Ciudades debajo de la ruta, en la lista de escalas */
+.aero-recent-ciudades {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  opacity: 0.85;
+}

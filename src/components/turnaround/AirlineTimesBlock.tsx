@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCatalog } from '@/hooks/useCatalog';
+import CodigoAeropuerto from '@/components/turnaround/CodigoAeropuerto';
 import { TurnaroundTimes, TimeValidationError, AirlineCode, getTimeFieldsForAirline, getPushBackField, usesSplitLayout, getArrivalFields, getDepartureFields, TimeFieldConfig, getAirlinePrefix, getCargoMailDestination } from '@/types/turnaround';
 import { getTurnaroundDuration, getCleaningMinutes } from '@/data/aircraftModels';
 import { TimeInput } from './TimeInput';
@@ -481,7 +482,8 @@ const IntegratedFlightRoute: React.FC<{
   return (
     <div className={`aero-only aero-block-route aero-block-route-${kind}`}>
       <div className="aero-route-station text-left">
-        <strong>{isArrival ? destination : origin}</strong>
+        {/* Tocando el código se ve de qué aeropuerto se trata. */}
+        <strong><CodigoAeropuerto iata={isArrival ? destination : origin} /></strong>
         <span>{isArrival ? 'DESTINO' : 'ORIGEN'}</span>
       </div>
       <div className={`aero-route-track aero-route-track-${kind}`}>
@@ -489,7 +491,7 @@ const IntegratedFlightRoute: React.FC<{
         <Plane className={`aero-route-plane aero-route-plane-${kind}`} />
       </div>
       <div className="aero-route-station text-right">
-        <strong>{isArrival ? origin : destination}</strong>
+        <strong><CodigoAeropuerto iata={isArrival ? origin : destination} /></strong>
         <span>{isArrival ? 'ORIGEN' : 'DESTINO'}</span>
       </div>
     </div>
