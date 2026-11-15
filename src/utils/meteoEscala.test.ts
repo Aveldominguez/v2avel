@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ventanaDeEscala, observacionesDeLaVentana, peorDelIntervalo, resumenMeteo,
-  momentoDe, registrarMeteoDeEscala, previsionParaVentana, type ObsCruda,
+  momentoDe, registrarMeteoDeEscala, previsionParaVentana, sePuedeRellenar, type ObsCruda,
 } from './meteoEscala';
 
 const DIA = new Date(2026, 10, 15); // 15/11/2026
@@ -226,5 +226,31 @@ describe('qué decía la previsión para el intervalo de la escala', () => {
   it('sin previsión o sin periodos con alerta, no se anota nada', () => {
     expect(previsionParaVentana(null, ventana)).toBeNull();
     expect(previsionParaVentana([], ventana)).toBeNull();
+  });
+});
+
+describe('rellenar la meteorología de una escala ya trabajada', () => {
+  const HOY = new Date(2026, 10, 15, 12, 0);
+  const trabajada = { chocksOnArrival: '09:20', chocksOff: '10:05' };
+  const dias = (n: number) => new Date(2026, 10, 15 - n);
+
+  it('una escala de ayer sí se puede rellenar', () => {
+    expect(sePuedeRellenar(dias(1), trabajada, HOY)).toBe(true);
+  });
+
+  it('una de hace 7 días también: el histórico llega', () => {
+    expect(sePuedeRellenar(dias(7), trabajada, HOY)).toBe(true);
+  });
+
+  it('una de hace 10 días NO: el aeropuerto ya no la tiene', () => {
+    expect(sePuedeRellenar(dias(10), trabajada, HOY)).toBe(false);
+  });
+
+  it('una que ya tiene meteorología no se vuelve a pedir', () => {
+    expect(sePuedeRellenar(dias(1), { ...trabajada, meteo: { observaciones: [] } }, HOY)).toBe(false);
+  });
+
+  it('una sin intervalo tampoco: no hay nada que pedir', () => {
+    expect(sePuedeRellenar(dias(1), { chocksOnArrival: '09:20' }, HOY)).toBe(false);
   });
 });

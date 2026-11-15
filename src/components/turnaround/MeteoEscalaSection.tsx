@@ -1,11 +1,12 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Wind } from 'lucide-react';
+import { CloudDownload, Loader2, Wind } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
-import { resumenMeteo, type MeteoEscala } from '@/utils/meteoEscala';
+import { DIAS_DE_HISTORICO, resumenMeteo, type MeteoEscala } from '@/utils/meteoEscala';
 
 const COLOR: Record<string, string> = {
   precaucion: 'bg-yellow-500 text-yellow-950',
@@ -25,8 +26,48 @@ const hora = (iso: string) => format(new Date(iso), 'HH:mm', { locale: es });
  * Se registra solo al cerrar la escala. Nace plegado, como Personal y
  * Equipos: en el móvil lo que no se está usando estorba.
  */
-export const MeteoEscalaSection: React.FC<{ meteo?: MeteoEscala | null }> = ({ meteo }) => {
-  if (!meteo || meteo.observaciones.length === 0) return null;
+interface Props {
+  meteo?: MeteoEscala | null;
+  /** Se puede pedir al aeropuerto la de una escala ya trabajada. */
+  sePuedeRellenar?: boolean;
+  rellenando?: boolean;
+  onRellenar?: () => void;
+}
+
+export const MeteoEscalaSection: React.FC<Props> = ({
+  meteo, sePuedeRellenar, rellenando, onRellenar,
+}) => {
+  /*
+   * Escala ya trabajada y sin registro: se ofrece pedirlo.
+   *
+   * El aeropuerto guarda unos 8 días de partes, así que las escalas de esta
+   * semana todavía se pueden documentar. Las de antes ya no, y por eso el
+   * botón no sale: prometer un rescate que vuelve vacío es peor que no
+   * ofrecerlo.
+   */
+  if (!meteo || meteo.observaciones.length === 0) {
+    if (!sePuedeRellenar) return null;
+    return (
+      <Card className="card-operational">
+        <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="font-semibold">Esta escala no tiene meteorología registrada</p>
+            <p className="text-sm text-muted-foreground">
+              El aeropuerto todavía guarda los partes de estos días. Puedes pedirlos
+              y dejarlos guardados en la escala.
+            </p>
+          </div>
+          <Button
+            type="button" className="shrink-0 gap-2"
+            disabled={rellenando} onClick={onRellenar}
+          >
+            {rellenando ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudDownload className="h-4 w-4" />}
+            {rellenando ? 'Pidiendo…' : 'Registrar meteorología'}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const peor = meteo.maximo;
 
@@ -53,8 +94,8 @@ export const MeteoEscalaSection: React.FC<{ meteo?: MeteoEscala | null }> = ({ m
           <AccordionContent>
             <CardContent className="space-y-3 pt-4">
               <p className="text-sm text-muted-foreground">
-                Partes oficiales de {hora(meteo.ventana.desde)} a {hora(meteo.ventana.hasta)},
-                guardados al cerrar la escala.
+                Partes oficiales de {hora(meteo.ventana.desde)} a {hora(meteo.ventana.hasta)}.
+                {!meteo.prevision && ' Recuperados del histórico del aeropuerto después de la escala, así que no hay constancia de qué decía la previsión en su momento.'}
               </p>
 
               {peor?.alerta && (

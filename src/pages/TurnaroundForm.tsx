@@ -26,6 +26,7 @@ import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import PersonalSection, { type PersonaEnEscala } from '@/components/turnaround/PersonalSection';
 import MeteoEscalaSection from '@/components/turnaround/MeteoEscalaSection';
 import { useRegistroMeteo } from '@/hooks/useRegistroMeteo';
+import { registrarMeteoDeEscala, sePuedeRellenar } from '@/utils/meteoEscala';
 import { supabase } from '@/integrations/supabase/client';
 import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
@@ -103,6 +104,7 @@ const TurnaroundForm: React.FC = () => {
   const [incidentReport, setIncidentReport] = useState<IncidentReportData | null>(null);
   const [equipmentSelections, setEquipmentSelections] = useState<EquipmentSelection[]>([]);
   const [personal, setPersonal] = useState<PersonaEnEscala[]>([]);
+  const [rellenandoMeteo, setRellenandoMeteo] = useState(false);
   const [bodegasData, setBodegasData] = useState<{ f1: string; f2: string; f3: string; a1: string; a2: string; a3: string }>({ f1: '', f2: '', f3: '', a1: '', a2: '', a3: '' });
   const [errors, setErrors] = useState<TimeValidationError[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -1570,7 +1572,44 @@ const TurnaroundForm: React.FC = () => {
         )}
         </div>
 
-        <MeteoEscalaSection meteo={times.meteo} />
+        <MeteoEscalaSection
+          meteo={times.meteo}
+          sePuedeRellenar={isEditing && sePuedeRellenar(
+            date instanceof Date ? date : new Date(date),
+            times as unknown as Record<string, unknown>,
+          )}
+          rellenando={rellenandoMeteo}
+          onRellenar={async () => {
+            setRellenandoMeteo(true);
+            try {
+              const m = await registrarMeteoDeEscala(
+                date instanceof Date ? date : new Date(date),
+                times as unknown as Record<string, unknown>,
+                (nombre, opciones) => supabase.functions.invoke(nombre, opciones),
+              );
+              if (!m) {
+                toast({
+                  title: 'El aeropuerto no tiene partes de ese rato',
+                  description: 'Puede que la escala sea de hace más de una semana.',
+                });
+                return;
+              }
+              setTimes((t) => ({ ...t, meteo: m }));
+              toast({
+                title: 'Meteorología registrada',
+                description: `${m.observaciones.length} partes guardados. Pulsa Guardar para que queden en la escala.`,
+              });
+            } catch (e) {
+              toast({
+                title: 'No se pudo pedir la meteorología',
+                description: e instanceof Error ? e.message : undefined,
+                variant: 'destructive',
+              });
+            } finally {
+              setRellenandoMeteo(false);
+            }
+          }}
+        />
 
         <div id="sec-personal" className="scroll-mt-48">
         <PersonalSection personal={personal} onChange={setPersonal} />

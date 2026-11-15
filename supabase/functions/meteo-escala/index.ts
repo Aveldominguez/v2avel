@@ -22,9 +22,12 @@ const json = (body: unknown, status = 200) =>
 /** La API da el histórico en horas hacia atrás desde ahora, no por fechas. */
 const horasHaciaAtras = (desde: Date): number => {
   const h = Math.ceil((Date.now() - desde.getTime()) / 3_600_000) + 1;
-  // Un mínimo de 2 para que entre siempre la observación previa al inicio, y
-  // un tope de 36: más atrás la API deja de devolver y no tiene sentido pedirlo.
-  return Math.min(Math.max(h, 2), 36);
+  // Mínimo 2 para que entre siempre la observación previa al inicio.
+  //
+  // El tope son 200 h (más de 8 días) para poder rellenar escalas ya
+  // trabajadas. Más no sirve: la API devuelve como mucho 400 observaciones y,
+  // a una cada media hora, eso es justo lo que cabe.
+  return Math.min(Math.max(h, 2), 200);
 };
 
 serve(async (req) => {

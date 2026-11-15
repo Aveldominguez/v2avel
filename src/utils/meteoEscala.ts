@@ -263,3 +263,24 @@ export const previsionParaVentana = (
     tipo: peor.changeType,
   };
 };
+
+/**
+ * Hasta dónde llega el histórico del aeropuerto.
+ *
+ * La API devuelve como mucho 400 observaciones y se emite una cada media
+ * hora, así que son poco más de 8 días. Se dejan 8 justos para no prometer
+ * un rescate que luego vuelve vacío.
+ */
+export const DIAS_DE_HISTORICO = 8;
+
+/** ¿Se puede todavía rellenar la meteorología de una escala ya trabajada? */
+export const sePuedeRellenar = (
+  fecha: Date,
+  times: Record<string, unknown>,
+  ahora: Date = new Date(),
+): boolean => {
+  if (times.meteo) return false;                       // ya está registrada
+  if (!ventanaDeEscala(fecha, times)) return false;    // sin intervalo no hay nada que pedir
+  const limite = ahora.getTime() - DIAS_DE_HISTORICO * 86_400_000;
+  return fecha.getTime() >= limite;
+};
