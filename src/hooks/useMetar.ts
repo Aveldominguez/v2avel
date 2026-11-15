@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface WindData {
   speed: number;
@@ -54,31 +55,60 @@ export const ALERT_CONFIG = {
 
 const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes (catches SPECI reports)
 
+/**
+ * Último parte leído, compartido por todos los que usen el hook.
+ *
+ * La insignia de viento y el registro de la escala lo piden a la vez; sin
+ * esto serían dos llamadas cada diez minutos para traer exactamente lo mismo.
+ */
+let ultimo: { dato: WindData; nivel: WindAlertLevel; ts: number } | null = null;
+const VALE_DURANTE = 2 * 60 * 1000;
+
 export function useMetar() {
   const [windData, setWindData] = useState<WindData | null>(null);
   const [alertLevel, setAlertLevel] = useState<WindAlertLevel>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchMetar = async () => {
+    if (ultimo && Date.now() - ultimo.ts < VALE_DURANTE) {
+      setWindData(ultimo.dato);
+      setAlertLevel(ultimo.nivel);
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch(
-        'https://aviationweather.gov/api/data/metar?ids=LEMD&format=json'
-      );
-      const data = await res.json();
-      const m = data[0];
+      /*
+       * Por la función del servidor, NO directamente.
+       *
+       * aviationweather.gov no manda cabecera CORS, así que la llamada desde
+       * el navegador la bloqueaba siempre. Como el error se tragaba en
+       * silencio, la alerta de viento de la escala llevaba todo este tiempo
+       * sin funcionar: windData era siempre null y sólo se veía la previsión
+       * del TAF, nunca el viento que había de verdad.
+       */
+      const { data, error } = await supabase.functions.invoke('get-metar');
+      if (error) throw new Error(error.message);
+      const m = Array.isArray(data) ? data[0] : null;
       if (!m) return;
       const speed = m.wspd ?? 0;
       const gust = m.wgst ?? null;
-      setWindData({
+      const dato: WindData = {
         speed,
         gust,
         direction: m.wdir ?? 0,
         rawMetar: m.rawOb ?? '',
-        updatedAt: new Date(),
-      });
-      setAlertLevel(getWindAlertLevel(speed, gust));
-    } catch {
-      // Silent fail — no alert shown if METAR unavailable
+        // La hora del PARTE, no la de ahora: dos lecturas del mismo METAR no
+        // pueden parecer dos observaciones distintas en el registro.
+        updatedAt: m.reportTime ? new Date(m.reportTime) : new Date(),
+      };
+      const nivel = getWindAlertLevel(speed, gust);
+      ultimo = { dato, nivel, ts: Date.now() };
+      setWindData(dato);
+      setAlertLevel(nivel);
+    } catch (e) {
+      // Sin parte no se inventa una alerta, pero que quede en la consola:
+      // tragárselo del todo es lo que escondió el fallo durante semanas.
+      console.warn('[metar] no se pudo leer el parte:', e);
     } finally {
       setLoading(false);
     }

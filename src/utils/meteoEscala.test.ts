@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ventanaDeEscala, observacionesDeLaVentana, peorDelIntervalo, resumenMeteo,
-  momentoDe, registrarMeteoDeEscala, type ObsCruda,
+  momentoDe, registrarMeteoDeEscala, previsionParaVentana, type ObsCruda,
 } from './meteoEscala';
 
 const DIA = new Date(2026, 10, 15); // 15/11/2026
@@ -179,5 +179,52 @@ describe('registrar la meteorología al cerrar la escala', () => {
   it('un fallo del servicio se propaga: no se da por bueno en silencio', async () => {
     const roto = async () => ({ data: null, error: new Error('502') });
     await expect(registrarMeteoDeEscala(DIA, times, roto)).rejects.toThrow('502');
+  });
+});
+
+describe('qué decía la previsión para el intervalo de la escala', () => {
+  const periodo = (desde: string, hasta: string, kt: number, racha: number | null, tipo = 'TEMPO') => ({
+    from: new Date(`2026-11-15T${desde}:00Z`),
+    to: new Date(`2026-11-15T${hasta}:00Z`),
+    level: (Math.max(kt, racha ?? 0) >= 40 ? 'restriccion' : 'precaucion') as never,
+    speed: kt, gust: racha, changeType: tipo,
+  });
+  const ventana = {
+    desde: new Date('2026-11-15T09:20:00Z'),
+    hasta: new Date('2026-11-15T10:05:00Z'),
+  };
+
+  it('una previsión que empieza antes y acaba después sí afecta', () => {
+    const p = previsionParaVentana([periodo('09:00', '12:00', 20, 30)], ventana)!;
+    expect(p.alerta).toBe('precaucion');
+    expect(p.racha).toBe(30);
+    expect(p.tipo).toBe('TEMPO');
+  });
+
+  it('una que solapa sólo el final también cuenta', () => {
+    const p = previsionParaVentana([periodo('10:00', '14:00', 22, 35)], ventana);
+    expect(p).not.toBeNull();
+  });
+
+  it('una que termina antes de empezar la escala NO cuenta', () => {
+    expect(previsionParaVentana([periodo('06:00', '09:00', 30, 45)], ventana)).toBeNull();
+  });
+
+  it('una que empieza después de acabar la escala tampoco', () => {
+    expect(previsionParaVentana([periodo('11:00', '14:00', 30, 45)], ventana)).toBeNull();
+  });
+
+  it('con varias que solapan se queda con la peor', () => {
+    const p = previsionParaVentana([
+      periodo('09:00', '10:00', 18, 26),
+      periodo('09:30', '11:00', 30, 48),
+    ], ventana)!;
+    expect(p.racha).toBe(48);
+    expect(p.alerta).toBe('restriccion');
+  });
+
+  it('sin previsión o sin periodos con alerta, no se anota nada', () => {
+    expect(previsionParaVentana(null, ventana)).toBeNull();
+    expect(previsionParaVentana([], ventana)).toBeNull();
   });
 });

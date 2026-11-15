@@ -26,6 +26,26 @@ export interface ObservacionMeteo {
   raw: string;
 }
 
+/**
+ * Lo que la previsión (TAF) decía para el rato de la escala, anotado AL
+ * EMPEZAR.
+ *
+ * El TAF se emite unas pocas veces al día y vale durante muchas horas, así
+ * que con tenerlo una vez al poner calzos de llegada basta: no hace falta
+ * pedirlo otra vez al cerrar. Y sirve para lo que el METAR no puede: explicar
+ * una decisión tomada ANTES de que el viento llegara.
+ */
+export interface PrevisionDeEscala {
+  anotadoEn: string;
+  alerta: WindAlertLevel;
+  desde: string;
+  hasta: string;
+  kt: number;
+  racha: number | null;
+  /** BECMG, TEMPO, PROB30… tal y como lo dice el TAF. */
+  tipo: string;
+}
+
 export interface MeteoEscala {
   ventana: { desde: string; hasta: string };
   /** Cuándo se registró. Una vez puesto no se toca: es la prueba. */
@@ -35,6 +55,8 @@ export interface MeteoEscala {
   maximo: { kt: number; racha: number | null; alerta: WindAlertLevel } | null;
   /** El TAF vigente: lo que estaba PREVISTO, además de lo que pasó. */
   taf: string | null;
+  /** La previsión que afectaba a tu intervalo, anotada al empezar. */
+  prevision?: PrevisionDeEscala | null;
 }
 
 /** "09:20" sobre una fecha concreta → instante real. */
@@ -191,5 +213,53 @@ export const registrarMeteoDeEscala = async (
     observaciones: obs,
     maximo: peorDelIntervalo(obs),
     taf: cuerpo.taf ?? null,
+  };
+};
+
+/** Un periodo del TAF, con lo que necesita este módulo. */
+export interface PeriodoTaf {
+  from: Date;
+  to: Date;
+  /**
+   * El TAF lo da en MAYÚSCULAS ('PRECAUCION') y el METAR en minúsculas. Se
+   * acepta como texto y se normaliza, en vez de obligar a que coincidan dos
+   * módulos que nacieron por separado.
+   */
+  level: string | null;
+  speed: number;
+  gust: number | null;
+  changeType: string;
+}
+
+/**
+ * De los periodos con alerta del TAF, el que pilla tu intervalo y es peor.
+ *
+ * Se mira el solape, no si está dentro: una previsión de 09:00 a 12:00 afecta
+ * a una escala de 09:20 a 10:05 aunque ni empiece ni acabe con ella.
+ */
+export const previsionParaVentana = (
+  periodos: PeriodoTaf[] | null | undefined,
+  v: Ventana,
+): PrevisionDeEscala | null => {
+  if (!periodos || periodos.length === 0) return null;
+  const desde = v.desde.getTime();
+  const hasta = v.hasta.getTime();
+
+  const solapan = periodos.filter(
+    (p) => p.level && p.from.getTime() < hasta && p.to.getTime() > desde,
+  );
+  if (solapan.length === 0) return null;
+
+  const peor = solapan.reduce((a, b) =>
+    Math.max(b.speed, b.gust ?? 0) > Math.max(a.speed, a.gust ?? 0) ? b : a);
+
+  return {
+    anotadoEn: new Date().toISOString(),
+    alerta: (peor.level ? peor.level.toLowerCase() : null) as WindAlertLevel,
+    desde: peor.from.toISOString(),
+    hasta: peor.to.toISOString(),
+    kt: peor.speed,
+    racha: peor.gust,
+    tipo: peor.changeType,
   };
 };
