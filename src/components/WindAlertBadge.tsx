@@ -74,7 +74,14 @@ export const WindAlertBadge: React.FC<{ className?: string }> = ({ className }) 
           aria-label={badgeLabel}
         >
           <Wind className="h-3.5 w-3.5" />
-          {effective !== null && <span className="hidden sm:inline">{effective}kt</span>}
+          {/*
+            Los nudos se ven SIEMPRE, también en el móvil.
+            Estaban ocultos por debajo de 640 px para ahorrar sitio en la
+            cabecera, pero el dato cabe de sobra y es justo lo que hay que
+            poder leer de un vistazo: saber que hay viento sin saber cuánto
+            no sirve para decidir nada.
+          */}
+          {effective !== null && <span className="whitespace-nowrap">{effective}kt</span>}
           {/* Punto de aviso: sólo cuando el fondo ya está mostrando la alerta
               del METAR en vivo, para no perder el dato de que además hay
               previsión. Si no hay alerta en vivo, la previsión se ve en el
