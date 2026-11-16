@@ -5,24 +5,36 @@ se compruebe antes la sesión del agente contra Supabase.
 
 ## Desplegarlo (lo lanzas tú, desde tu terminal)
 
-Estando en la carpeta `workers/fotos`:
+**Siempre con `--config ./wrangler.toml`.** Sin eso, wrangler se va a buscar
+el `wrangler.jsonc` de la raíz del proyecto —el de la app— aunque estés
+metido en esta carpeta, y acabas redesplegando la app en vez de la pasarela.
+Comprobado con wrangler 4.163.
+
+Estando en `workers/fotos`:
 
 **1. Entrar en Cloudflare.** Abre el navegador y te pide confirmar:
 
     npx wrangler login
 
-**2. Crear la clave de firma.** Es la que hace que un enlace a una foto no se
-pueda inventar. Se genera sola y se guarda en Cloudflare; **no se escribe en
-ningún fichero ni hace falta que nadie la vea**:
+**2. Publicar la pasarela:**
 
-    openssl rand -hex 32 | npx wrangler secret put FIRMA_SECRETO
+    npx wrangler deploy --config ./wrangler.toml
 
-**3. Publicar:**
-
-    npx wrangler deploy
+Tiene que nombrar el cubo `v2avel-fotos (eu)` entre los bindings. Si en vez
+de eso habla de `assets` o de `dist`, ha cogido la configuración equivocada:
+páralo.
 
 En este paso Cloudflare crea también el subdominio `fotos.devavel.com` y su
 registro DNS, porque está pedido en `wrangler.toml`.
+
+**3. Crear la clave de firma.** Es la que hace que un enlace a una foto no se
+pueda inventar. Se genera sola y se guarda en Cloudflare; **no se escribe en
+ningún fichero ni hace falta que nadie la vea**:
+
+    openssl rand -hex 32 | npx wrangler secret put FIRMA_SECRETO --config ./wrangler.toml
+
+Va después del despliegue: el Worker tiene que existir antes de poder
+guardarle un secreto.
 
 **4. Comprobar que está viva:**
 
