@@ -41,7 +41,9 @@ const cors = (req: Request, env: Env): Record<string, string> => {
 const json = (datos: unknown, estado: number, cab: Record<string, string>) =>
   new Response(JSON.stringify(datos), {
     status: estado,
-    headers: { 'content-type': 'application/json', ...cab },
+    // Nunca se guardan: un enlace firmado caduca y un «no está» puede dejar
+    // de serlo. Un 404 guardado una semana sería una foto rota una semana.
+    headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...cab },
   });
 
 /** Quién llama. Se le pregunta a Supabase, que es quien manda sobre las sesiones. */
@@ -113,10 +115,14 @@ export default {
       const exp = Number(url.searchParams.get('exp'));
       const sig = url.searchParams.get('sig') ?? '';
       if (!(await verificar(ruta, exp, sig, env.FIRMA_SECRETO))) {
-        return new Response('enlace caducado o no válido', { status: 403, headers: cab });
+        return new Response('enlace caducado o no válido', {
+          status: 403, headers: { ...cab, 'cache-control': 'no-store' },
+        });
       }
       const obj = await env.FOTOS.get(ruta);
-      if (!obj) return new Response('no está', { status: 404, headers: cab });
+      if (!obj) {
+        return new Response('no está', { status: 404, headers: { ...cab, 'cache-control': 'no-store' } });
+      }
 
       const cabeceras = new Headers(cab);
       obj.writeHttpMetadata(cabeceras);
