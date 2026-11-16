@@ -34,6 +34,7 @@ import { StandaloneReportsCard } from '@/components/admin/StandaloneReportsCard'
 import { RecuperarDatosCard } from '@/components/admin/RecuperarDatosCard';
 import { MeteoPendienteCard } from '@/components/admin/MeteoPendienteCard';
 import { EspacioFotosCard } from '@/components/admin/EspacioFotosCard';
+import { MudarFotosCard } from '@/components/admin/MudarFotosCard';
 
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -419,6 +420,7 @@ const AdminPanel: React.FC = () => {
         <MeteoPendienteCard />
 
         <EspacioFotosCard />
+        <MudarFotosCard />
 
         {/* ARION Sync Management */}
         <Card className="card-operational">
