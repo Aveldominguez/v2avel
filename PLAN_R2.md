@@ -14,18 +14,53 @@ un respiro, no una solución: cada escala sube fotos nuevas y el cubo vuelve a
 subir. Con el ritmo de los últimos meses, volveríamos al límite **en algo
 menos de un año**. R2 lo quita de en medio para siempre.
 
-Quedan además **912 fotos** sin convertir y unos 131 MB por ganar. Antes de
-nada conviene saber por qué: puede que la conversión se parara a medias, o
-que esas fotos no mejorasen lo suficiente. Esta consulta lo dice (sólo lee):
+Quedan además **996 fotos en JPEG** y unos 354 MB sin convertir. Ya sabemos
+por qué, y no es la compresión: ver la sección siguiente.
 
-```sql
-SELECT bucket_id AS cubo, metadata->>'mimetype' AS tipo, count(*),
-       pg_size_pretty(sum((metadata->>'size')::bigint)) AS ocupa
-  FROM storage.objects GROUP BY 1,2 ORDER BY 1,2;
-```
+## Por qué quedan 354 MB en JPEG (confirmado el 16/11/2026)
 
-Si siguen saliendo como `image/jpeg`, basta con volver a pulsar **Analizar** y
-**Empezar** en la tarjeta «Espacio de las fotos»: se salta solas las ya hechas.
+No es que esas fotos no compriman: **la seguridad del almacén no deja
+sobrescribirlas**. Los permisos de hoy son:
+
+| | Leer | Sobrescribir | Borrar |
+|---|---|---|---|
+| Un usuario | su carpeta | su carpeta | su carpeta |
+| Admin | **todas** | **su carpeta** | todas |
+
+`migrations/20260612113636_...sql:14` ató el UPDATE a
+`(storage.foldername(name))[1] = auth.uid()`, y esa misma migración borró
+antes todas las políticas de UPDATE que había, la de admin incluida. Existe
+política de admin para ver todo y para borrar todo, pero **ninguna para
+sobrescribir**.
+
+Por eso la tarjeta «Espacio de las fotos» lista las 1.914 fotos, se las
+descarga, las recomprime bien y la subida se rechaza en todas las carpetas
+que no son la tuya. Dos pasadas completas dieron 0 adelgazadas.
+
+Lo convertido es tu carpeta (`41778992`): 912 fotos. El resto:
+
+| Carpeta | JPEG | Ocupa |
+|---|---|---|
+| `f339632e` | 786 | 262 MB |
+| `37281564` | 180 | 54 MB |
+| `52ddda78` | 15 | 26 MB |
+| otras tres | 5 | 12 MB |
+
+Las fotos nuevas de esos agentes ya suben en WebP (hay 6 sueltas entre sus
+JPEG), así que la compresión de la app funciona para todos. Lo único
+bloqueado es la pasada sobre lo antiguo.
+
+**Decisión: no se parchea.** Añadir un permiso de admin para sobrescribir
+ficheros de otros sería dar poder de escritura sobre las fotos de todos para
+ahorrar 131 MB. R2 no lo necesita: mover una foto es leerla (admin puede),
+escribirla en R2 (allí no hay estas políticas) y borrarla de Supabase (admin
+puede). El borrado además libera espacio de verdad, lo que sobrescribir puede
+que no haga. Los 354 MB en JPEG se recomprimen al moverlos, dentro del paso 4.
+
+**Pendiente de comprobar:** el panel de Supabase seguía avisando de exceso
+después de convertir. La base de datos dice 527 MB. O el contador va con
+retraso, o al sobrescribir no se liberó la versión vieja — y en ese caso las
+912 conversiones no han ganado nada real y hay que ir a R2 sin esperar.
 
 ## Por qué R2 y no otra cosa
 
@@ -51,7 +86,7 @@ tiene que mirar también ahí, o el recuperador acaba restaurando huecos.
 
 ## El plan, por orden
 
-### Paso 1 — Que la app sepa leer de los dos sitios (sin mover nada)
+### Paso 1 — Que la app sepa leer de los dos sitios (sin mover nada) ✅ HECHO 16/11/2026
 
 Antes de mover una sola foto, `parseStoragePath` y `getSignedUrl`
 (`src/utils/storageUrl.ts`) tienen que entender un tercer formato, además de
@@ -67,6 +102,29 @@ en cualquier momento parte de las fotos pueden estar en un sitio y parte en el
 otro, y la app las enseña todas igual.
 
 **Esto se sube y se deja rodando unos días antes de tocar nada más.**
+
+Hecho en `src/utils/storageUrl.ts`:
+
+- `parseStoragePath` entiende ahora `r2:ruta`, y lo mira ANTES que el formato
+  `cubo:ruta`, porque si no tomaría «r2» por un cubo de Supabase.
+- `getSignedUrl` pide el enlace a la pasarela de R2 cuando la foto está allí.
+  La sesión va en la cabecera, nunca en la dirección.
+- `buildR2Path()` para escribir esas direcciones, cuando toque.
+- `borrarDelAlmacen()`: antes cada pantalla borraba por su cuenta con
+  `supabase.storage.from(bucket).remove()`. Con dos almacenes eso fallaría en
+  silencio y la foto se quedaría ocupando sitio. Ahora las tres pantallas
+  (hoja de carga, ficheros, fotos de observaciones) pasan por una sola puerta.
+- Mientras `VITE_R2_BASE_URL` esté vacía, R2 no existe para la app. Hoy no hay
+  ninguna foto con dirección `r2:`, así que no cambia nada para nadie.
+
+Comprobado en el navegador contra la base de datos de verdad: una escala con
+5 hojas de carga las sigue enseñando las 5, y los tres formatos de dirección
+se reconocen (10 pruebas nuevas, 580 en total).
+
+**Hallazgo de paso:** la escala TO4634 apunta a una foto que ya no está en el
+servidor. Son referencias colgadas, lo contrario de los ficheros huérfanos.
+El paso 4 tiene que tolerarlas: al mover, una foto que no existe se salta y
+se deja anotada, nunca se da la migración por fallida.
 
 ### Paso 2 — El Worker que sirve las fotos
 

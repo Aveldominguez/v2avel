@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, RefreshCw } from 'lucide-react';
 import { DeletePhotoButton } from './DeletePhotoButton';
-import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
+import { borrarDelAlmacen, getSignedUrl } from '@/utils/storageUrl';
 import { useAttachmentLightbox } from '@/components/turnaround/AttachmentLightbox';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
@@ -45,10 +45,7 @@ export const ObservationPhotos: React.FC<ObservationPhotosProps> = ({
   const handleDelete = async (index: number) => {
     const url = photos[index];
     try {
-      const parsed = parseStoragePath(url);
-      if (parsed) {
-        await supabase.storage.from(parsed.bucket).remove([parsed.path]);
-      }
+      await borrarDelAlmacen(url);
     } catch {}
     onChange(photos.filter((_, i) => i !== index));
   };

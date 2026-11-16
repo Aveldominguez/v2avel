@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, FileImage, RefreshCw } from 'lucide-react';
 import { DeletePhotoButton } from './DeletePhotoButton';
-import { parseStoragePath, getSignedUrl } from '@/utils/storageUrl';
+import { borrarDelAlmacen, getSignedUrl } from '@/utils/storageUrl';
 import { useAttachmentLightbox } from '@/components/turnaround/AttachmentLightbox';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
@@ -46,10 +46,7 @@ export const LoadingSheetField: React.FC<LoadingSheetFieldProps> = ({
   const handleDelete = async (index: number) => {
     const url = imageUrls[index];
     if (url) {
-      const parsed = parseStoragePath(url);
-      if (parsed) {
-        await supabase.storage.from(parsed.bucket).remove([parsed.path]);
-      }
+      await borrarDelAlmacen(url);
     }
     onChange(imageUrls.filter((_, i) => i !== index));
   };
