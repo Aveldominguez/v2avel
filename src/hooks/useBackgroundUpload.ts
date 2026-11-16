@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { buildStoragePath } from '@/utils/storageUrl';
+import { subirFoto } from '@/utils/subirFoto';
 import { toast } from '@/hooks/use-toast';
 import { saveImageBackup, removeImageBackup } from '@/utils/imageBackupStore';
 import { compressImage } from '@/utils/imageCompressor';
@@ -58,16 +58,9 @@ export function useBackgroundUpload({
         const ext = item.file.name.split('.').pop() || 'jpg';
         const fileName = `${user.id}/${turnaroundId || 'new'}-${filePrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
 
-        const { error } = await supabase.storage
-          .from(bucket)
-          .upload(fileName, item.file, {
-            upsert: true,
-            contentType: item.file.type || 'image/jpeg',
-          });
-
-        if (error) throw error;
-
-        const serverPath = buildStoragePath(bucket, fileName);
+        // Va a R2 si se puede y a Supabase si no. Lo que importa aquí es
+        // que la foto quede subida; dónde, es secundario.
+        const { ruta: serverPath } = await subirFoto(bucket, fileName, item.file);
         item.serverPath = serverPath;
         item.status = 'done';
 

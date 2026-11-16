@@ -31,7 +31,7 @@ export const esRutaDeR2 = (value: string): boolean => value.startsWith(PREFIJO_R
  * R2 simplemente no se usa: las direcciones `r2:` se reconocen pero no se
  * pueden abrir. Hoy no hay ninguna, así que no afecta a nadie.
  */
-const baseDeR2 = (): string =>
+export const baseDeR2 = (): string =>
   (import.meta.env.VITE_R2_BASE_URL ?? '').toString().replace(/\/+$/, '');
 
 export const hayR2 = (): boolean => baseDeR2().length > 0;
