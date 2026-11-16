@@ -79,7 +79,16 @@ export default {
     const cab = cors(req, env);
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cab });
-    if (url.pathname === '/salud') return json({ ok: true }, 200, cab);
+    if (url.pathname === '/salud') {
+      return json({ ok: true, firma: Boolean(env.FIRMA_SECRETO) }, 200, cab);
+    }
+
+    // Sin clave de firma no se puede ni firmar ni comprobar. Antes esto
+    // reventaba con un error 1101 y la foto parecía rota por otra causa
+    // cualquiera; así se dice lo que pasa y /salud lo canta.
+    if (!env.FIRMA_SECRETO) {
+      return json({ error: 'falta FIRMA_SECRETO en el Worker' }, 503, cab);
+    }
 
     // ---- Pedir un enlace para una foto -----------------------------------
     if (url.pathname === '/firmar' && req.method === 'POST') {

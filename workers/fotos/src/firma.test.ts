@@ -85,3 +85,10 @@ describe('de quién es cada foto', () => {
     expect(puedeTocar('u1/../u2/f.webp', 'u2', true)).toBe(false);
   });
 });
+
+describe('cuando falta la clave de firma', () => {
+  it('no se da por bueno ningún enlace', async () => {
+    const sig = await firmar('u1/f.webp', EN_UNA_HORA, SECRETO);
+    expect(await verificar('u1/f.webp', EN_UNA_HORA, sig, '')).toBe(false);
+  });
+});

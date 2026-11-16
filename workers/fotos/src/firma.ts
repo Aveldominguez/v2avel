@@ -37,6 +37,9 @@ export const mismaFirma = (a: string, b: string): boolean => {
 export async function verificar(
   ruta: string, exp: number, firma: string, secreto: string, ahora = Date.now(),
 ): Promise<boolean> {
+  // Sin secreto no se puede comprobar nada, así que no se da por bueno nada.
+  if (!secreto) return false;
+  if (!firma) return false;
   if (!Number.isFinite(exp) || exp * 1000 <= ahora) return false;  // caducado
   if (!rutaSegura(ruta)) return false;
   return mismaFirma(firma, await firmar(ruta, exp, secreto));
