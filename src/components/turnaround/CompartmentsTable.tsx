@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { FieldValue } from '@/types/turnaround';
-import { CompartmentDefinition, isPairedHold, HoldEntry, ITA_STYLE_TYPE_OPTIONS } from '@/data/compartmentDefinitions';
+import {
+  CompartmentDefinition,
+  isPairedHold,
+  HoldEntry,
+  HoldDefinition,
+  ITA_STYLE_TYPE_OPTIONS,
+  sufijosDeUld,
+  sufijoYaNoVale,
+  activeSubHolds,
+  readSplitMode,
+  splitModeFieldId,
+  type SplitMode,
+} from '@/data/compartmentDefinitions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Hash, Undo2 } from 'lucide-react';
@@ -149,24 +161,26 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
   const handleItaNil = (hold: { id: string }) => {
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
+    const sufFieldId = `${hold.id}-suf`;
     const contentFieldId = `${hold.id}-content`;
-    const ids = [typeFieldId, numFieldId, contentFieldId];
+    const ids = [typeFieldId, numFieldId, sufFieldId, contentFieldId];
     const currents = ids.map(fid => getValue(fid));
     // Batch call: pass arrays so parent applies all 3 changes atomically
-    (onChange as any)(ids, ['NIL', 'NIL', 'NIL'], currents);
+    (onChange as any)(ids, ['NIL', 'NIL', 'NIL', 'NIL'], currents);
   };
 
   const handleItaUndo = (hold: { id: string }) => {
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
+    const sufFieldId = `${hold.id}-suf`;
     const contentFieldId = `${hold.id}-content`;
-    const ids = [typeFieldId, numFieldId, contentFieldId];
+    const ids = [typeFieldId, numFieldId, sufFieldId, contentFieldId];
     const prevs = ids.map(fid => {
       const entry = values.find(v => v.fieldDefinitionId === fid);
       return entry?.previousValue ?? '';
     });
     // Batch call: pass null as previousValue marker to clear NIL state
-    (onChange as any)(ids, prevs, [null, null, null]);
+    (onChange as any)(ids, prevs, [null, null, null, null]);
   };
 
   const isItaNilSet = (hold: { id: string }) => {
@@ -191,61 +205,197 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
     );
   };
 
-  // ITA-style hold: type selector + numeric field on top row, content field below
-  const renderItaHoldInput = (hold: { id: string; label: string }, holdAirline?: AirlineCode) => {
+  /*
+   * Posición en estilo contenedor: tipo + número arriba y contenido debajo.
+   *
+   * `media` es la mitad de una posición partida. Van las dos en la misma
+   * fila, L a la izquierda y R a la derecha, porque apiladas una encima de
+   * otra se leen como si fueran dos posiciones distintas del avión. Al tener
+   * la mitad de ancho, la etiqueta pasa arriba y el tipo a su propia línea.
+   */
+  const renderItaHoldInput = (
+    hold: { id: string; label: string },
+    holdAirline?: AirlineCode,
+    media = false,
+  ) => {
     const typeOptions = ITA_STYLE_TYPE_OPTIONS[holdAirline || ''] || ['AKH-AZ', 'PKC-AZ'];
     const typeFieldId = `${hold.id}-type`;
     const numFieldId = `${hold.id}-num`;
+    const sufFieldId = `${hold.id}-suf`;
     const contentFieldId = `${hold.id}-content`;
     const nilActive = isItaNilSet(hold);
+    const tipo = getValue(typeFieldId);
+    const sufijos = sufijosDeUld(holdAirline, tipo);
+
+    const selectorTipo = (
+      <Select
+        value={nilActive ? undefined : tipo || undefined}
+        onValueChange={(val) => {
+          // Al cambiar de tipo, la terminación anterior puede no existir en el
+          // nuevo (un AKE no termina en R9). Se limpia para no dejar un número
+          // de contenedor que no se corresponde con nada.
+          const actual = getValue(sufFieldId);
+          if (sufijoYaNoVale(holdAirline, val, actual)) {
+            (onChange as unknown as (i: string[], v: string[]) => void)(
+              [typeFieldId, sufFieldId], [val, ''],
+            );
+            return;
+          }
+          onChange(typeFieldId, val);
+        }}
+        disabled={disabled || nilActive}
+      >
+        <SelectTrigger
+          className={`h-9 font-mono text-sm bg-input border-border ${media ? 'flex-1 min-w-0' : 'w-20 shrink-0'}`}
+        >
+          <SelectValue placeholder="Tipo" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover z-50">
+          {typeOptions.map((opt) => (
+            <SelectItem key={opt} value={opt}>
+              {opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+
+    const campoNumero = (
+      <Input
+        type="text"
+        inputMode="numeric"
+        maxLength={5}
+        value={nilActive ? '' : getValue(numFieldId)}
+        onChange={(e) => {
+          const val = e.target.value.replace(/\D/g, '').slice(0, 5);
+          onChange(numFieldId, val);
+        }}
+        disabled={disabled || nilActive}
+        placeholder="00000"
+        className="h-9 flex-1 min-w-0 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30 text-center"
+      />
+    );
+
+    /* La terminación del número (AD, R7, R9). Sólo sale si el tipo la lleva. */
+    const selectorSufijo = sufijos.length > 0 && (
+      <Select
+        value={nilActive ? undefined : getValue(sufFieldId) || undefined}
+        onValueChange={(val) => onChange(sufFieldId, val)}
+        disabled={disabled || nilActive}
+      >
+        <SelectTrigger className="h-9 w-[3.5rem] shrink-0 px-2 gap-0.5 font-mono text-sm bg-input border-border [&>svg]:h-3 [&>svg]:w-3">
+          <SelectValue placeholder="—" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover z-50">
+          {sufijos.map((opt) => (
+            <SelectItem key={opt} value={opt}>
+              {opt}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
 
     return (
-      <div key={hold.id} className="border border-border rounded-lg p-3 space-y-2">
-        {/* Top row: label + type selector + numeric + NIL button */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-foreground shrink-0 min-w-[2.5rem]">
-            {hold.label}:
-          </span>
-          <Select
-            value={nilActive ? undefined : getValue(typeFieldId) || undefined}
-            onValueChange={(val) => onChange(typeFieldId, val)}
-            disabled={disabled || nilActive}
-          >
-            <SelectTrigger className="h-9 flex-1 min-w-0 font-mono text-sm bg-input border-border">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {typeOptions.map((opt) => (
-                <SelectItem key={opt} value={opt}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            type="text"
-            inputMode="numeric"
-            maxLength={5}
-             value={nilActive ? '' : getValue(numFieldId)}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, '').slice(0, 5);
-              onChange(numFieldId, val);
-            }}
-            disabled={disabled || nilActive}
-            placeholder="00000"
-            className="h-9 w-20 shrink-0 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30 text-center"
-          />
-          {renderItaNilButton(hold)}
-        </div>
-        {/* Bottom row: content field */}
+      <div
+        key={hold.id}
+        className={`border border-border rounded-lg space-y-2 ${media ? 'p-2' : 'p-3'}`}
+      >
+        {media ? (
+          /*
+           * A media anchura no caben el tipo, el número, la terminación y el
+           * NIL en una línea sin que el número se quede en dos dígitos. El
+           * NIL sube con el tipo y abajo queda el número con su terminación
+           * al lado, que es como se lee un contenedor: 31576 + AD.
+           */
+          <>
+            <div className="text-sm font-bold text-center text-foreground">{hold.label}</div>
+            <div className="flex items-center gap-1">
+              {selectorTipo}
+              {renderItaNilButton(hold)}
+            </div>
+            <div className="flex items-center gap-1">
+              {campoNumero}
+              {selectorSufijo}
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-foreground shrink-0 min-w-[2.5rem]">
+              {hold.label}:
+            </span>
+            {selectorTipo}
+            {campoNumero}
+            {selectorSufijo}
+            {renderItaNilButton(hold)}
+          </div>
+        )}
         <Input
           type="text"
-           value={nilActive ? 'NIL' : getValue(contentFieldId)}
+          value={nilActive ? 'NIL' : getValue(contentFieldId)}
           onChange={(e) => handleHoldInputChange(e, contentFieldId)}
           disabled={disabled || nilActive}
           placeholder="Contenido bodega"
           className="h-9 font-mono text-base bg-input border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
         />
+      </div>
+    );
+  };
+
+  /*
+   * Posición divisible: un palé que ocupa la sección entera, o la sección
+   * partida en dos con un contenedor en cada mitad. Se elige aquí, en la
+   * escala, porque la hoja de carga imprime las dos opciones y hasta que no
+   * llega el avión no se sabe cuál toca.
+   *
+   * Cada modo guarda en campos distintos, así que cambiar de idea no borra
+   * lo ya escrito: al volver, sigue donde estaba.
+   */
+  const renderSplitHold = (hold: HoldDefinition, holdAirline?: AirlineCode) => {
+    if (!hold.split) return renderItaHoldInput(hold, holdAirline);
+    const modo = readSplitMode(hold, getValue);
+    const subs = activeSubHolds(hold, getValue);
+    const cambiar = (nuevo: SplitMode) => {
+      if (nuevo === modo) return;
+      onChange(splitModeFieldId(hold.id), nuevo);
+    };
+    const botón = (valor: SplitMode, texto: string, título: string) => (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={disabled}
+        onClick={() => cambiar(valor)}
+        title={título}
+        aria-pressed={modo === valor}
+        className={`h-7 px-3 rounded-lg text-xs font-bold ${
+          modo === valor
+            ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        {texto}
+      </Button>
+    );
+
+    return (
+      <div key={hold.id} className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Posición {hold.label}
+          </span>
+          <div className="ml-auto flex items-center gap-1 rounded-xl border border-border bg-input p-0.5">
+            {botón('P', 'Palé', 'Una sola pieza: palé en toda la posición')}
+            {botón('LR', 'L / R', 'Partida en dos: un contenedor en cada mitad')}
+          </div>
+        </div>
+        {modo === 'LR' ? (
+          <div className="grid grid-cols-2 gap-2">
+            {subs.map((sub) => renderItaHoldInput(sub, holdAirline, true))}
+          </div>
+        ) : (
+          subs.map((sub) => renderItaHoldInput(sub, holdAirline))
+        )}
       </div>
     );
   };
@@ -429,7 +579,7 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
               {comp.holds.map((hold, idx) => {
                 const isBulk = comp.bulk === true || comp.id.includes('bulk');
                 return isItaStyle(comp) && !isPairedHold(hold)
-                  ? renderItaHoldInput(hold, comp.airline)
+                  ? renderSplitHold(hold, comp.airline)
                   : isPairedHold(hold)
                     ? renderPairedHold(hold, idx)
                     : renderHoldInput(hold);
@@ -440,7 +590,14 @@ export const CompartmentsTable: React.FC<CompartmentsTableProps> = ({
                 if (isItaStyle(comp)) {
                   // Paletizado (AKE/AKH): solo cuenta el primer número del contenido de cada posición
                   comp.holds.forEach((h) => {
-                    if (!isPairedHold(h)) total += firstNumericToken(getValue(`${h.id}-content`));
+                    if (isPairedHold(h)) return;
+                    // En una posición divisible sólo cuenta el modo activo:
+                    // si está partida suman las dos mitades, y si va en palé,
+                    // sólo el palé. Lo del otro modo se queda guardado, pero
+                    // no se suma dos veces.
+                    activeSubHolds(h, getValue).forEach((sub) => {
+                      total += firstNumericToken(getValue(`${sub.id}-content`));
+                    });
                   });
                 } else {
                   const ids: string[] = [];

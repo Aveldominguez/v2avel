@@ -1,15 +1,16 @@
 // Auto-incremented on each publish (+0.1 per release)
-export const APP_VERSION = '4.843';
+export const APP_VERSION = '4.874';
 
 // Changelog for the current version — update this with each meaningful change
 export const APP_CHANGELOG: string[] = [
-  "NUEVO: cada escala guarda la meteorología del rato en que se trabajó. Al poner calzos de llegada se anota el parte oficial del aeropuerto y lo que decía la previsión para tu intervalo. Sirve para explicar, semanas después, por qué se tomó una decisión de seguridad.",
-  "IMPORTANTE: la alerta de viento en vivo de la escala NUNCA había funcionado. Sólo se veía la previsión del TAF, nunca el viento que había de verdad. Ya está arreglada.",
-  "NUEVO: toca el código de un aeropuerto —el origen de la llegada o el destino de la salida— y te dice cuál es, en qué ciudad y en qué país. En la lista de escalas, debajo de MAD → TRN, se lee la ciudad.",
-  "NUEVO en Air Canada: debajo del BULK puedes añadir lo que no cabe en los contadores (un DAA de una categoría, una silla de ruedas, una caja suelta) con su cantidad y su categoría. Suman al total de maletas.",
-  "Al recuperar datos de una escala ahora se ve QUÉ contiene cada copia antes de decidir: las horas con su nombre y lo que había en cada bodega. Y el aviso se puede quitar cuando ya lo has resuelto.",
-  "Arreglado algo grave: al recuperar datos, si tenías la escala abierta en otro móvil, esa otra pantalla los volvía a borrar segundos después. Ahora lo impide la propia base de datos, así que da igual desde dónde se guarde.",
-  "Arreglado: el icono con el número de cambios pendientes se quedaba clavado aunque todo se hubiera subido, y con una nube tachada que parecía falta de conexión. Ahora dice «por subir» y desaparece al terminar.",
-  "Los avisos y las preguntas de confirmación iban en colores que al sol no se leían. Ahora van en azul con letra blanca.",
-  "El panel de administración ya no se sale de la pantalla en el móvil.",
+  "NUEVO en Azul: ya está el B787-8 con los cinco compartimientos de su hoja de carga (1 y 2 delante, 3 y 4 detrás, y el 5 de granel), con la puerta de delante en la 13R y la de atrás en la 41R.",
+  "NUEVO: en el 787 y el 767 cada posición se puede poner como palé (una pieza) o partida en L y R para meter dos AKE. Se cambia con un toque en la propia escala y queda guardado. La L y la R van juntas en la misma fila, para que no parezcan dos posiciones distintas. Lo escrito en un modo no se borra al cambiar al otro: si vuelves, sigue ahí.",
+  "NUEVO en Azul: al lado del número de contenedor va su terminación. Los AKE y AKN terminan en AD y los palés (PAG, PLA, PMC) en R7 o R9, como vienen en la LIR. Se elige de una lista, no se teclea. Al cambiar de tipo, si la terminación ya no vale se quita sola.",
+  "NUEVO en Azul: el B767 pasa a llamarse B767-3 y ya tiene sus bodegas de verdad: compartimientos 1 y 2 delante, 3 y 4 detrás y el 5 de granel, con la puerta de delante en la 12 y la de atrás en la 41. Las escalas de B767 ya trabajadas conservan su modelo.",
+  "La meteorología de la escala se registra SOLA al abrirla. Ya no hace falta pulsar «Registrar meteorología», y funciona también en una escala de sólo salida, donde antes no se anotaba nunca porque esperaba a los calzos de llegada.",
+  "La tarjeta de meteorología aparece SIEMPRE en la escala, en todas las aerolíneas. Antes, si no había parte y tampoco se podía pedir al aeropuerto, no salía nada y era imposible saber si la app lo estaba registrando. Ahora dice si está esperando el parte, si se puede pedir, o si la escala es tan antigua que ya no se puede recuperar.",
+  "IMPORTANTE: los partes de viento de la escala ya están dentro de la red de seguridad. Antes se guardaban pero nada los protegía: un guardado que llegara sin ellos los borraba sin avisar, y pasados 8 días el aeropuerto ya no los tiene. Ahora se devuelven solos, igual que las bodegas.",
+  "La palabra «crew» junto a un número ya no suma en el recuento de maletas: el equipaje de la tripulación no entra en el general. «6 BY 8 CREW» cuenta 6.",
+  "Al recuperar datos, las bodegas se llaman ahora igual que en la escala («Bodega 13L», «Bodega 21P»), en vez de salir con su nombre interno. Y cada copia dice también cuántos partes de viento trae.",
+  "Las fotos de la escala se suben más rápido y gastan menos datos del móvil, con la misma nitidez de siempre: se puede seguir leyendo la letra pequeña de una hoja de carga.",
 ];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AirlineCode, AIRLINES, FieldValue } from '@/types/turnaround';
 import { getFieldsByAirline } from '@/data/fieldDefinitions';
-import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
+import { getCompartmentsByAirline, isPairedHold, activeSubHolds } from '@/data/compartmentDefinitions';
 import { AirlineFieldsTable } from './AirlineFieldsTable';
 import { CompartmentsTable } from './CompartmentsTable';
 import { ComoditysDialog } from './ComoditysDialog';
@@ -64,13 +64,19 @@ export const AirlineTabs: React.FC<AirlineTabsProps> = ({
   // cuenta el primer número del campo de contenido de cada posición.
   const totalBodegas = React.useMemo(() => {
     if (!compartments.length) return 0;
+    const leerCampo = (id: string): string =>
+      fieldValues.find((fv) => fv.fieldDefinitionId === id)?.value || '';
     const ids = new Set<string>();
     const contentIds = new Set<string>();
     const extraPrefixes: string[] = [];
     compartments.forEach((comp) => {
       comp.holds.forEach((h) => {
         if (comp.holdStyle === 'ita') {
-          if (!isPairedHold(h)) contentIds.add(`${h.id}-content`);
+          // Una posición divisible aporta sólo el modo activo (palé, o las dos
+          // mitades): lo escrito en el otro modo sigue guardado pero no suma.
+          if (!isPairedHold(h)) {
+            activeSubHolds(h, leerCampo).forEach((sub) => contentIds.add(`${sub.id}-content`));
+          }
         } else if (isPairedHold(h)) {
           ids.add(h.left.id);
           ids.add(h.right.id);

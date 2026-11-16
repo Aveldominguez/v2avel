@@ -76,6 +76,15 @@ export const riqueza = (f: FotoEscala | null | undefined): Record<string, number
     adjuntos: largoLista(t.loadingSheetUrls) + largoLista(t.fileUrls) + largoLista(t.observationPhotos),
     campos: (Array.isArray(f?.fieldValues) ? f!.fieldValues! : []).filter((x) => conValor(x?.value)).length,
     observaciones: conValor(f?.observations) ? 1 : 0,
+    /*
+     * Los partes de viento de la escala.
+     *
+     * Entran aquí por lo mismo que todo lo demás: son la prueba de por qué
+     * se tomó una decisión de seguridad —no poner conos, parar la carga— y
+     * si un guardado los borra no hay manera de volver a tenerlos pasados
+     * ocho días, que es lo que el aeropuerto guarda de histórico.
+     */
+    meteo: largoLista((t.meteo as Record<string, unknown> | undefined)?.observaciones),
   };
 };
 
@@ -83,6 +92,7 @@ export const riqueza = (f: FotoEscala | null | undefined): Record<string, number
 const NOMBRES: Record<string, string> = {
   horas: 'horas', bodegas: 'bodegas', personal: 'personas', equipos: 'equipos',
   adjuntos: 'archivos', campos: 'recuentos', observaciones: 'observaciones',
+  meteo: 'partes de viento',
 };
 
 /**

@@ -127,7 +127,7 @@ describe('guardados que vacían lo que no son horas', () => {
 
   it('cuenta bien cada tipo', () => {
     expect(riqueza(servidor)).toEqual({
-      horas: 2, bodegas: 1, personal: 4, equipos: 2, adjuntos: 2, campos: 5, observaciones: 1,
+      horas: 2, bodegas: 1, personal: 4, equipos: 2, adjuntos: 2, campos: 5, observaciones: 1, meteo: 0,
     });
   });
 });
@@ -182,5 +182,52 @@ describe('borrador del móvil contra copia del servidor', () => {
   it('perder UN solo tipo no descarta el borrador: puede ser deliberado', () => {
     const sinPersonal = { ...lleno, times: { ...lleno.times, personal: [] } };
     expect(mandaElBorrador({ ...sinPersonal, savedAt: 2000 }, { ...lleno, updatedAt: 1000 })).toBe(true);
+  });
+});
+
+describe('los partes de viento también están protegidos', () => {
+  const conMeteo = (cuantos: number) => ({
+    times: {
+      chocksOnArrival: '08:30',
+      meteo: {
+        ventana: { desde: 'a', hasta: 'b' },
+        observaciones: Array.from({ length: cuantos }, (_, i) => ({ hora: `h${i}` })),
+      },
+    },
+    fieldValues: [{ fieldDefinitionId: 'x', value: '12' }],
+    observations: 'sin novedad',
+  });
+
+  it('se cuentan como información de la escala', () => {
+    expect(riqueza(conMeteo(3)).meteo).toBe(3);
+    expect(riqueza({ times: {} }).meteo).toBe(0);
+  });
+
+  it('un guardado que los borra se detecta', () => {
+    const vacía = { times: { chocksOnArrival: '08:30' }, fieldValues: [], observations: '' };
+    expect(tiposQueSeVacian(conMeteo(3), vacía)).toContain('partes de viento');
+  });
+
+  it('con los partes y algo más vaciado, el borrador deja de mandar', () => {
+    const sinMeteo = {
+      times: { chocksOnArrival: '08:30' },
+      fieldValues: [{ fieldDefinitionId: 'x', value: '12' }],
+      observations: '',
+    };
+    // Se pierden los partes y las observaciones: dos tipos, no es una corrección.
+    expect(tiposQueSeVacian(conMeteo(3), sinMeteo)).toHaveLength(2);
+    expect(mandaElBorrador(
+      { ...sinMeteo, savedAt: 2 },
+      { ...conMeteo(3), updatedAt: 1 },
+    )).toBe(false);
+  });
+
+  it('perder sólo los partes sigue siendo una corrección, no un borrado en masa', () => {
+    const sinMeteo = { ...conMeteo(3), times: { chocksOnArrival: '08:30' } };
+    expect(tiposQueSeVacian(conMeteo(3), sinMeteo)).toEqual(['partes de viento']);
+    expect(mandaElBorrador(
+      { ...sinMeteo, savedAt: 2 },
+      { ...conMeteo(3), updatedAt: 1 },
+    )).toBe(true);
   });
 });

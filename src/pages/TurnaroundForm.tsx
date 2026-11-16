@@ -26,7 +26,7 @@ import EquipmentSection from '@/components/turnaround/EquipmentSection';
 import PersonalSection, { type PersonaEnEscala } from '@/components/turnaround/PersonalSection';
 import MeteoEscalaSection from '@/components/turnaround/MeteoEscalaSection';
 import { useRegistroMeteo } from '@/hooks/useRegistroMeteo';
-import { registrarMeteoDeEscala, sePuedeRellenar } from '@/utils/meteoEscala';
+import { registrarMeteoDeEscala, sePuedeRellenar, DIAS_DE_HISTORICO } from '@/utils/meteoEscala';
 import { supabase } from '@/integrations/supabase/client';
 import BodegasSection from '@/components/turnaround/BodegasSection';
 import { EquipmentSelection } from '@/data/equipmentDefinitions';
@@ -1584,6 +1584,10 @@ const TurnaroundForm: React.FC = () => {
             date instanceof Date ? date : new Date(date),
             times as unknown as Record<string, unknown>,
           )}
+          fueraDePlazo={
+            Date.now() - (date instanceof Date ? date : new Date(date)).getTime()
+              > DIAS_DE_HISTORICO * 86_400_000
+          }
           rellenando={rellenandoMeteo}
           onRellenar={async () => {
             setRellenandoMeteo(true);

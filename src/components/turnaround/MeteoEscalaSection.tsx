@@ -30,40 +30,59 @@ interface Props {
   meteo?: MeteoEscala | null;
   /** Se puede pedir al aeropuerto la de una escala ya trabajada. */
   sePuedeRellenar?: boolean;
+  /** La escala es de hace más de lo que el aeropuerto guarda de histórico. */
+  fueraDePlazo?: boolean;
   rellenando?: boolean;
   onRellenar?: () => void;
 }
 
 export const MeteoEscalaSection: React.FC<Props> = ({
-  meteo, sePuedeRellenar, rellenando, onRellenar,
+  meteo, sePuedeRellenar, fueraDePlazo, rellenando, onRellenar,
 }) => {
   /*
-   * Escala ya trabajada y sin registro: se ofrece pedirlo.
+   * Sin partes anotados, la tarjeta SIEMPRE dice en qué estado está.
    *
-   * El aeropuerto guarda unos 8 días de partes, así que las escalas de esta
-   * semana todavía se pueden documentar. Las de antes ya no, y por eso el
-   * botón no sale: prometer un rescate que vuelve vacío es peor que no
-   * ofrecerlo.
+   * Antes, cuando no había registro y tampoco se podía pedir al aeropuerto,
+   * esto no pintaba nada: ni tarjeta, ni aviso, ni explicación. Desde la
+   * escala era imposible distinguir «todavía no ha entrado el parte» de
+   * «esto no lo registra la app», y la meteorología es justo lo que hay que
+   * poder enseñar semanas después para justificar una decisión de
+   * seguridad. Callar era la peor de las respuestas.
    */
   if (!meteo || meteo.observaciones.length === 0) {
-    if (!sePuedeRellenar) return null;
     return (
       <Card className="card-operational">
         <CardContent className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="font-semibold">Esta escala no tiene meteorología registrada</p>
-            <p className="text-sm text-muted-foreground">
-              El aeropuerto todavía guarda los partes de estos días. Puedes pedirlos
-              y dejarlos guardados en la escala.
-            </p>
+          <div className="min-w-0 flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-muted shrink-0">
+              <Wind className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold">
+                {sePuedeRellenar
+                  ? 'Esta escala no tiene meteorología registrada'
+                  : fueraDePlazo
+                    ? 'Esta escala se quedó sin meteorología'
+                    : 'Meteorología: esperando el primer parte'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {sePuedeRellenar
+                  ? 'El aeropuerto todavía guarda los partes de estos días. Puedes pedirlos y dejarlos guardados en la escala.'
+                  : fueraDePlazo
+                    ? `El aeropuerto sólo guarda ${DIAS_DE_HISTORICO} días de partes y los de este día ya no están. No se puede recuperar.`
+                    : 'Se anota sola en cuanto entre el parte del aeropuerto, sin tocar nada. Si no aparece en unos minutos, mira la conexión.'}
+              </p>
+            </div>
           </div>
-          <Button
-            type="button" className="shrink-0 gap-2"
-            disabled={rellenando} onClick={onRellenar}
-          >
-            {rellenando ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudDownload className="h-4 w-4" />}
-            {rellenando ? 'Pidiendo…' : 'Registrar meteorología'}
-          </Button>
+          {sePuedeRellenar && (
+            <Button
+              type="button" className="shrink-0 gap-2"
+              disabled={rellenando} onClick={onRellenar}
+            >
+              {rellenando ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudDownload className="h-4 w-4" />}
+              {rellenando ? 'Pidiendo…' : 'Registrar meteorología'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );

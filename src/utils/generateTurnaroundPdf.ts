@@ -1,6 +1,6 @@
 import { TurnaroundTimes, AirlineCode, AIRLINES, getEscalaTimeFields, getPushBackField, FieldValue } from '@/types/turnaround';
 // getFieldsByAirline removed: códigos de carga ya no se exportan en PDF
-import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
+import { getCompartmentsByAirline, isPairedHold, activeSubHolds } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories, EquipmentSelection } from '@/data/equipmentDefinitions';
 import { formatBaggageBelt } from '@/utils/baggageBelt';
 import { filledLirEditions } from '@/utils/lirEditions';
@@ -258,11 +258,23 @@ export const generateTurnaroundPdf = async (data: PdfData, images: PdfImageOptio
 
       if (isItaStyle) {
         // ITA-style: type + número + contenido per hold
-        holdsHtml = comp.holds.map(hold => {
-          if (isPairedHold(hold)) return '';
-          const typeVal = data.fieldValues.find(v => v.fieldDefinitionId === `${hold.id}-type`)?.value || '—';
-          const numVal = data.fieldValues.find(v => v.fieldDefinitionId === `${hold.id}-num`)?.value || '—';
-          const contentVal = data.fieldValues.find(v => v.fieldDefinitionId === `${hold.id}-content`)?.value || '—';
+        const leerCampo = (id: string): string =>
+          data.fieldValues.find(v => v.fieldDefinitionId === id)?.value || '';
+        // Una posición divisible se imprime como esté puesta ese día: una fila
+        // si va en palé, dos si está partida en L y R.
+        holdsHtml = comp.holds.flatMap(hold => {
+          if (isPairedHold(hold)) return [];
+          return activeSubHolds(hold, leerCampo);
+        }).map(hold => {
+          const typeVal = leerCampo(`${hold.id}-type`) || '—';
+          // El número del contenedor es la numeración más su terminación:
+          // «31063» + «AD» es el AKE31063AD que viene en la LIR.
+          const sufVal = leerCampo(`${hold.id}-suf`);
+          const numeración = leerCampo(`${hold.id}-num`);
+          const numVal = numeración
+            ? `${numeración}${sufVal && sufVal !== 'NIL' ? sufVal : ''}`
+            : '—';
+          const contentVal = leerCampo(`${hold.id}-content`) || '—';
           const isNil = typeVal === 'NIL';
           return `
             <tr>

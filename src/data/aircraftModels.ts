@@ -81,8 +81,9 @@ export const AIRCRAFT_MODELS: Record<string, AircraftModelConfig[]> = {
     { model: 'A321', label: 'A321', turnaroundMinutes: 45 },
   ],
   AZUL: [
-    { model: 'B767', label: 'B767', turnaroundMinutes: 105 },
+    { model: 'B767', label: 'B767-3', turnaroundMinutes: 105 },
     { model: 'A339', label: 'A339', turnaroundMinutes: 105 },
+    { model: 'B787-8', label: 'B787-8', turnaroundMinutes: 105 },
   ],
   ITA: [
     { model: 'A220', label: 'A220', turnaroundMinutes: 45 },

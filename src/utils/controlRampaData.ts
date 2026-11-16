@@ -17,7 +17,7 @@
 
 import type { AirlineCode, FieldValue, TurnaroundTimes } from '@/types/turnaround';
 import { getEscalaTimeFields, getPushBackField } from '@/types/turnaround';
-import { getCompartmentsByAirline, isPairedHold } from '@/data/compartmentDefinitions';
+import { getCompartmentsByAirline, isPairedHold, activeSubHolds } from '@/data/compartmentDefinitions';
 import { getEquipmentCategories } from '@/data/equipmentDefinitions';
 import { resumenMeteo } from '@/utils/meteoEscala';
 import type { EquipmentSelection } from '@/data/equipmentDefinitions';
@@ -133,7 +133,11 @@ export function buildControlRampa(d: ControlRampaInput): ControlRampa {
 
   for (const comp of compartimentos) {
     const contenido: string[] = [];
-    const sueltas = comp.holds.flatMap((h) => (isPairedHold(h) ? [h.left, h.right] : [h]));
+    // Una posición divisible aporta las posiciones que tenga puestas ese día:
+    // el palé, o las dos mitades L y R.
+    const sueltas = comp.holds.flatMap((h) =>
+      isPairedHold(h) ? [h.left, h.right] : activeSubHolds(h, valor),
+    );
     for (const hold of sueltas) {
       const v = valor(hold.id);
       if (!v) continue;

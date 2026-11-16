@@ -134,11 +134,23 @@ describe('detalle de lo que se va a recuperar', () => {
     expect(d).toEqual([{ etiqueta: 'A1', valor: '22' }, { etiqueta: 'F1', valor: '14' }]);
   });
 
-  it('traduce el identificador del campo a algo legible', () => {
-    expect(etiquetaDeCampo('pegasus-hold-a32112')).toBe('Bodega 12');
+  it('traduce el identificador del campo al mismo nombre que se ve en la escala', () => {
+    // El nombre sale del catálogo, no del id: en Pegasus la posición del id
+    // 'a32112' se rotula «Bodega 2» en pantalla, y el recuperador tiene que
+    // decir lo mismo que la escala para poder compararlos de un vistazo.
+    expect(etiquetaDeCampo('pegasus-hold-a32112')).toBe('Bodega 2');
     expect(etiquetaDeCampo('wizz-hold-a32131')).toBe('Bodega 31');
     expect(etiquetaDeCampo('algo-raro')).toBe('Algo raro');
     expect(etiquetaDeCampo('')).toBe('');
+  });
+
+  it('nombra las posiciones partidas del 787 y sus campos', () => {
+    expect(etiquetaDeCampo('azul-hold-b787811-l-content')).toBe('Bodega 11L');
+    expect(etiquetaDeCampo('azul-hold-b787813-r-content')).toBe('Bodega 13R 🚪');
+    expect(etiquetaDeCampo('azul-hold-b787813b-p-content')).toBe('Bodega 13P');
+    expect(etiquetaDeCampo('azul-hold-b787821-p-num')).toBe('Bodega 21P · nº');
+    expect(etiquetaDeCampo('azul-hold-b787821-p-type')).toBe('Bodega 21P · tipo');
+    expect(etiquetaDeCampo('azul-hold-b787843-modo')).toBe('Bodega 43 · reparto');
   });
 
   it('junta el contenido de una bodega en una línea', () => {
@@ -148,8 +160,8 @@ describe('detalle de lo que se va a recuperar', () => {
       { fieldDefinitionId: 'pegasus-hold-a32141', value: '   ' },
     ]}));
     expect(d).toEqual([
-      { etiqueta: 'Bodega 12', valor: '67PC C · 30BY' },
-      { etiqueta: 'Bodega 51', valor: 'NIL' },
+      { etiqueta: 'Bodega 2', valor: '67PC C · 30BY' },
+      { etiqueta: 'Bodega 5', valor: 'NIL' },
     ]);
   });
 

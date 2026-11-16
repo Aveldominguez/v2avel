@@ -17,6 +17,12 @@ interface Opciones {
 /** Sin hora de salida conocida se da por hecha una escala larga. */
 const ESCALA_POR_DEFECTO_MIN = 120;
 
+/** El parte de ahora sólo vale para una escala de hoy. */
+const esDeHoy = (fecha: Date, ahora: Date = new Date()): boolean =>
+  fecha.getFullYear() === ahora.getFullYear() &&
+  fecha.getMonth() === ahora.getMonth() &&
+  fecha.getDate() === ahora.getDate();
+
 /**
  * Deja constancia de la meteorología mientras se trabaja la escala.
  *
@@ -40,11 +46,30 @@ export const useRegistroMeteo = ({ activo, fecha, times, setTimes }: Opciones) =
   const calzosOn = times.chocksOnArrival as string | undefined;
   const calzosOff = times.chocksOff as string | undefined;
 
-  // 1. Al poner calzos de llegada: se abre el registro con lo que hay en mano.
+  /*
+   * 1. El registro se abre SOLO, en cuanto se empieza a trabajar la escala.
+   *
+   * Antes esperaba a los calzos de llegada, y en una escala de sólo salida
+   * esos calzos no existen: el parte no se abría nunca y había que pedirlo a
+   * mano con un botón. El viento que justifica no poner conos sopla desde
+   * que se llega al avión, no desde que alguien se acuerda de pulsar nada.
+   *
+   * Si hay calzos de llegada se usan, porque es la hora buena. Si no, se
+   * empieza a contar ahora, y sólo en escalas de hoy: en una de la semana
+   * pasada el parte de ahora no dice nada de aquel día, y para esas está el
+   * botón que lo pide al aeropuerto.
+   */
   useEffect(() => {
-    if (!activo || meteo || !calzosOn) return;
+    if (!activo || meteo) return;
+    /*
+     * Se espera a tener algo que anotar. Abrir el registro vacío sería peor
+     * que no abrirlo: la escala constaría como «ya registrada» y dejaría de
+     * ofrecer el botón que pide los partes al aeropuerto, así que acabaría
+     * sin meteorología y sin manera de recuperarla.
+     */
+    if (!windData && !forecast) return;
 
-    const desde = momentoDe(fecha, calzosOn);
+    const desde = momentoDe(fecha, calzosOn ?? '') ?? (esDeHoy(fecha) ? new Date() : null);
     if (!desde) return;
 
     // El rato que se espera estar: hasta la salida prevista, o dos horas.
@@ -76,7 +101,7 @@ export const useRegistroMeteo = ({ activo, fecha, times, setTimes }: Opciones) =
       } as MeteoEscala,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activo, calzosOn, meteo, windData, forecast]);
+  }, [activo, calzosOn, meteo, windData, forecast, fecha]);
 
   // 2. Mientras dura la escala: cada parte nuevo se añade.
   useEffect(() => {

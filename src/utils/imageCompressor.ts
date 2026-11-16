@@ -1,7 +1,15 @@
 /**
  * Comprime una imagen antes de subirla.
- * Objetivo: 1920 px en el lado mayor, calidad JPEG 88%.
- * Una foto de móvil de 4-8 MB se queda en 300-700 KB.
+ *
+ * Objetivo: 1920 px en el lado mayor. Se guarda en WebP, que a la misma
+ * vista pesa bastante menos que el JPEG, y se cae a JPEG en el navegador
+ * que no sepa codificarlo. Una foto de móvil de 4-8 MB se queda en 200-450
+ * KB en WebP, frente a los 300-700 KB que daba el JPEG.
+ *
+ * El lado mayor NO se baja de 1920: estas fotos son de hojas de carga con
+ * letra pequeña que luego hay que poder leer, y ahorrar espacio a costa de
+ * no distinguir un número de contenedor sería cambiar un problema por otro
+ * peor.
  */
 
 /**
@@ -20,6 +28,10 @@
  * mucho mejor que no subir nada.
  */
 const TOPE_DECODIFICAR_MS = 10_000;
+
+/** Calidad de guardado. La de WebP rinde como un JPEG bastante más alto. */
+const CALIDAD_WEBP = 0.82;
+const CALIDAD_JPEG = 0.88;
 
 /** Archivos que son una imagen aunque Android no diga de qué tipo son. */
 const pareceImagen = (file: File): boolean =>
@@ -73,17 +85,35 @@ export async function compressImage(file: File): Promise<File> {
         if (!ctx) { terminar(file); return; }
         ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob(
-          (blob) => {
-            if (!blob || blob.size >= file.size) { terminar(file); return; }
-            terminar(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            }));
-          },
-          'image/jpeg',
-          0.88,
-        );
+        /*
+         * Se intenta WebP antes que JPEG.
+         *
+         * Al mismo ojo, un WebP pesa entre un tercio y la mitad menos que el
+         * JPEG equivalente. En fotos de hoja de carga, que es casi todo lo
+         * que se sube, eso son cientos de megas al año de diferencia en el
+         * servidor sin perder un ápice de legibilidad.
+         *
+         * Un navegador que no sepa codificar WebP NO avisa: devuelve un PNG
+         * y se queda tan ancho, y un PNG de una foto pesa MÁS que el
+         * original. Por eso se comprueba el tipo de lo que vuelve y, si no
+         * es WebP, se rehace en JPEG como siempre.
+         */
+        const guardar = (blob: Blob | null, extension: string, siguiente?: () => void) => {
+          if (!blob || blob.type !== `image/${extension}` || blob.size >= file.size) {
+            if (siguiente) { siguiente(); return; }
+            terminar(file);
+            return;
+          }
+          terminar(new File([blob], file.name.replace(/\.[^.]+$/, `.${extension}`), {
+            type: `image/${extension}`,
+            lastModified: Date.now(),
+          }));
+        };
+
+        const enJpeg = () =>
+          canvas.toBlob((blob) => guardar(blob, 'jpeg'), 'image/jpeg', CALIDAD_JPEG);
+
+        canvas.toBlob((blob) => guardar(blob, 'webp', enJpeg), 'image/webp', CALIDAD_WEBP);
       } catch (e) {
         // Lienzo demasiado grande para el móvil: se sube el original.
         console.warn('[imagen] no se pudo redimensionar, se sube tal cual', e);

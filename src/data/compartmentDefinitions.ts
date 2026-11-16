@@ -1,9 +1,36 @@
 import { AirlineCode } from '@/types/turnaround';
 import { getCatalogSnapshot, type HoldOverride } from '@/lib/catalogStore';
+import { AIRCRAFT_MODELS } from '@/data/aircraftModels';
+
+/*
+ * Posición divisible (aviones de fuselaje ancho).
+ *
+ * En un 787 la misma sección de la bodega puede ir de dos maneras: un palé
+ * que la ocupa entera (13P) o partida en dos mitades con un contenedor en
+ * cada una (13L y 13R). La hoja de carga imprime TODAS las opciones y el
+ * cargador rellena la que se usa ese día, así que la app no puede fijar una
+ * de las dos: tiene que dejar elegir en cada escala.
+ *
+ * Cada mitad guarda sus datos por separado (`-l-*` y `-r-*`) y el palé los
+ * suyos (`-p-*`), de forma que cambiar de modo no pisa lo ya escrito: si se
+ * vuelve atrás, lo anterior sigue ahí.
+ */
+export interface SplitSpec {
+  /** Etiqueta cuando va de una pieza, p. ej. '13P'. */
+  p: string;
+  /** Etiqueta de la mitad izquierda, p. ej. '13L'. */
+  left: string;
+  /** Etiqueta de la mitad derecha, p. ej. '13R'. */
+  right: string;
+  /** Cómo aparece al abrir una escala nueva. Por defecto, de una pieza. */
+  default?: SplitMode;
+}
 
 export interface HoldDefinition {
   id: string;
   label: string;
+  /** Si está, la posición se puede partir en dos desde la propia escala. */
+  split?: SplitSpec;
 }
 
 export interface PairedHoldDefinition {
@@ -15,6 +42,43 @@ export type HoldEntry = HoldDefinition | PairedHoldDefinition;
 
 export const isPairedHold = (h: HoldEntry): h is PairedHoldDefinition =>
   'left' in h && 'right' in h;
+
+export type SplitMode = 'P' | 'LR';
+
+/** Campo donde se guarda si la posición va en palé o partida. */
+export const splitModeFieldId = (holdId: string): string => `${holdId}-modo`;
+
+/** Lee el modo guardado de una posición divisible; si no hay nada, el suyo por defecto. */
+export const readSplitMode = (
+  hold: HoldDefinition,
+  getValue: (id: string) => string,
+): SplitMode => {
+  if (!hold.split) return 'P';
+  const guardado = getValue(splitModeFieldId(hold.id));
+  if (guardado === 'P' || guardado === 'LR') return guardado;
+  return hold.split.default ?? 'P';
+};
+
+/**
+ * Las posiciones que de verdad hay que pintar, sumar o imprimir.
+ *
+ * Una posición normal se devuelve tal cual. Una divisible devuelve una sola
+ * entrada en modo palé y dos en modo partido, cada una con su propio id, que
+ * es el prefijo de sus campos `-type`, `-num` y `-content`.
+ */
+export const activeSubHolds = (
+  hold: HoldDefinition,
+  getValue: (id: string) => string,
+): HoldDefinition[] => {
+  if (!hold.split) return [hold];
+  if (readSplitMode(hold, getValue) === 'P') {
+    return [{ id: `${hold.id}-p`, label: hold.split.p }];
+  }
+  return [
+    { id: `${hold.id}-l`, label: hold.split.left },
+    { id: `${hold.id}-r`, label: hold.split.right },
+  ];
+};
 
 export interface CompartmentDefinition {
   id: string;
@@ -1392,9 +1456,262 @@ export const TAP_321_GRANEL_COMPARTMENTS: CompartmentDefinition[] = [
   },
 ];
 
+/*
+ * Azul B787-8 (hoja de carga B787-8UX).
+ *
+ * Delante los compartimientos 1 y 2, detrás el 3 y el 4, y el 5 es el granel
+ * de cola. Todas las posiciones son divisibles: pueden llevar un palé
+ * (PAG/PLA/PMC) o partirse en dos para meter dos AKE. El modo que se ve al
+ * abrir la escala es el que trae impreso la hoja, pero se cambia con un toque.
+ *
+ * Puertas: la de delante cae en la 13R y la de atrás en la 41R.
+ */
+export const AZUL_B787_8_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'azul-b7878-comp1',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holdStyle: 'ita',
+    legend: 'MAX 15309 kg',
+    holds: [
+      {
+        id: createHoldId('AZUL', 'b7878-11'),
+        label: '11',
+        split: { p: '11P', left: '11L', right: '11R', default: 'LR' },
+      },
+      {
+        id: createHoldId('AZUL', 'b7878-12'),
+        label: '12',
+        split: { p: '12P', left: '12L', right: '12R', default: 'P' },
+      },
+      /*
+       * La 13 va doble: la hoja la imprime en dos bloques separados, y en la
+       * del 03NOV26 se cargaron los dos (13L/13R con BY+BT, y 13P con un
+       * PAG). La puerta se marca en la primera, que es la que lleva anotado
+       * «Puerta» a mano en la hoja.
+       */
+      {
+        id: createHoldId('AZUL', 'b7878-13'),
+        label: '13',
+        split: { p: '13P 🚪', left: '13L', right: '13R 🚪', default: 'LR' },
+      },
+      {
+        id: createHoldId('AZUL', 'b7878-13b'),
+        label: '13',
+        split: { p: '13P', left: '13L', right: '13R', default: 'P' },
+      },
+    ],
+  },
+  {
+    id: 'azul-b7878-comp2',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 2 FWD',
+    holdStyle: 'ita',
+    legend: 'MAX 12701 kg',
+    holds: [
+      {
+        id: createHoldId('AZUL', 'b7878-21'),
+        label: '21',
+        split: { p: '21P', left: '21L', right: '21R', default: 'P' },
+      },
+      {
+        id: createHoldId('AZUL', 'b7878-22'),
+        label: '22',
+        split: { p: '22P', left: '22L', right: '22R', default: 'P' },
+      },
+    ],
+  },
+  {
+    id: 'azul-b7878-comp3',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holdStyle: 'ita',
+    legend: 'MAX 12678 kg',
+    holds: [
+      {
+        id: createHoldId('AZUL', 'b7878-31'),
+        label: '31',
+        split: { p: '31P', left: '31L', right: '31R', default: 'P' },
+      },
+      {
+        id: createHoldId('AZUL', 'b7878-32'),
+        label: '32',
+        split: { p: '32P', left: '32L', right: '32R', default: 'P' },
+      },
+    ],
+  },
+  {
+    id: 'azul-b7878-comp4',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 4 AFT',
+    holdStyle: 'ita',
+    legend: 'MAX 09525 kg',
+    holds: [
+      {
+        id: createHoldId('AZUL', 'b7878-41'),
+        label: '41',
+        split: { p: '41P 🚪', left: '41L', right: '41R 🚪', default: 'LR' },
+      },
+      {
+        id: createHoldId('AZUL', 'b7878-42'),
+        label: '42',
+        split: { p: '42P', left: '42L', right: '42R', default: 'LR' },
+      },
+      {
+        id: createHoldId('AZUL', 'b7878-43'),
+        label: '43',
+        split: { p: '43P', left: '43L', right: '43R', default: 'LR' },
+      },
+    ],
+  },
+  {
+    id: 'azul-b7878-bulk5',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 5 BULK — granel',
+    bulk: true,
+    legend: 'MAX 02735 kg · DAA, bicis y equipaje suelto',
+    expandable: true,
+    expandableDefault: 5,
+    holds: [
+      { id: createHoldId('AZUL', 'b7878-5'), label: 'Bulk 5' },
+    ],
+  },
+];
+
+/*
+ * Azul B767-3 (hoja de carga AD8001 / CSTSU).
+ *
+ * Delante los compartimientos 1 y 2, detrás el 3 y el 4, y el 5 de granel.
+ * En este avión se carga por el lado izquierdo, así que las posiciones vienen
+ * de una pieza; la 12 es la que la hoja imprime partible y sale dos veces,
+ * una como 12L/12R y otra como 12P. Aun así todas llevan el interruptor:
+ * cuesta lo mismo y evita quedarse corto el día que la carga cambie.
+ *
+ * Puertas: la de delante en la 12 y la de atrás en la 41.
+ *
+ * La cubierta principal (CPT 0) no se monta: en este avión va pasaje y la
+ * hoja la imprime siempre vacía.
+ */
+const partible = (
+  id: string,
+  label: string,
+  etiquetas: { p: string; left: string; right: string },
+  porDefecto: SplitMode = 'P',
+): HoldDefinition => ({
+  id: createHoldId('AZUL', id),
+  label,
+  split: { ...etiquetas, default: porDefecto },
+});
+
+export const AZUL_B767_COMPARTMENTS: CompartmentDefinition[] = [
+  {
+    id: 'azul-b767-comp1',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 1 FWD',
+    holdStyle: 'ita',
+    legend: 'MAX 10205 kg',
+    holds: [
+      partible('b767-11', '11', { p: '11', left: '11L', right: '11R' }),
+      // La 12 va doble, como la imprime la hoja: una vez partida y otra en
+      // palé. La puerta de delante cae aquí.
+      partible('b767-12', '12', { p: '12P 🚪', left: '12L', right: '12R 🚪' }, 'LR'),
+      partible('b767-12b', '12', { p: '12P', left: '12L', right: '12R' }),
+    ],
+  },
+  {
+    id: 'azul-b767-comp2',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 2 FWD',
+    holdStyle: 'ita',
+    legend: 'MAX 10205 kg',
+    holds: [
+      partible('b767-21', '21', { p: '21P', left: '21L', right: '21R' }),
+      partible('b767-22', '22', { p: '22P', left: '22L', right: '22R' }),
+    ],
+  },
+  {
+    id: 'azul-b767-comp3',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 3 AFT',
+    holdStyle: 'ita',
+    legend: 'MAX 9796 kg',
+    holds: [
+      partible('b767-31', '31', { p: '31', left: '31L', right: '31R' }),
+      partible('b767-32', '32', { p: '32', left: '32L', right: '32R' }),
+      partible('b767-33', '33', { p: '33', left: '33L', right: '33R' }),
+      partible('b767-34', '34', { p: '34', left: '34L', right: '34R' }),
+    ],
+  },
+  {
+    id: 'azul-b767-comp4',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 4 AFT',
+    holdStyle: 'ita',
+    legend: 'MAX 7347 kg',
+    holds: [
+      partible('b767-41', '41', { p: '41 🚪', left: '41L 🚪', right: '41R' }),
+      partible('b767-42', '42', { p: '42', left: '42L', right: '42R' }),
+      partible('b767-43', '43', { p: '43', left: '43L', right: '43R' }),
+    ],
+  },
+  {
+    id: 'azul-b767-bulk5',
+    airline: 'AZUL',
+    compartmentName: 'COMPARTIMIENTO 5 BULK — granel',
+    bulk: true,
+    legend: 'MAX 2925 kg · DAA, bicis y equipaje suelto',
+    expandable: true,
+    expandableDefault: 5,
+    holds: [
+      { id: createHoldId('AZUL', 'b767-5'), label: 'Bulk 5' },
+    ],
+  },
+];
+
 export const ITA_STYLE_TYPE_OPTIONS: Record<string, string[]> = {
   ITA: ['AKH-AZ', 'AKH-LH', 'PKC-AZ'],
   TAP: ['AKH-TP', 'PKC-TP'],
+  AZUL: ['AKE', 'AKN', 'PAG', 'PLA', 'PMC'],
+};
+
+/*
+ * Terminación del número de contenedor, la que va detrás de la numeración.
+ *
+ * En la LIR de Azul los AKE terminan en AD («AKE31063AD») y los palés en R7
+ * o en R9 («PMC36713R9», «PAG58322R7»). Se elige de una lista en vez de
+ * teclearla: son dos letras que se repiten en cada posición y a mano se
+ * equivoca uno. Si la compañía aprueba otra terminación, se añade aquí.
+ */
+export const ULD_SUFFIX_OPTIONS: Record<string, Record<string, string[]>> = {
+  AZUL: {
+    AKE: ['AD'],
+    AKN: ['AD'],
+    PAG: ['R7', 'R9'],
+    PLA: ['R7', 'R9'],
+    PMC: ['R7', 'R9'],
+  },
+};
+
+/** Terminaciones posibles para el tipo elegido; vacío si ese tipo no lleva. */
+export const sufijosDeUld = (airline: string | undefined, tipo: string): string[] => {
+  if (!airline || !tipo || tipo === 'NIL') return [];
+  return ULD_SUFFIX_OPTIONS[airline]?.[tipo] ?? [];
+};
+
+/**
+ * ¿Hay que borrar la terminación al cambiar de tipo de contenedor?
+ *
+ * Un AKE no termina en R9. Si se deja la de antes, el número de contenedor
+ * que queda apuntado no existe, y eso en una LIR es un error que se arrastra
+ * hasta el avión. Devuelve true cuando la que había ya no vale.
+ */
+export const sufijoYaNoVale = (
+  airline: string | undefined,
+  tipoNuevo: string,
+  sufijoActual: string,
+): boolean => {
+  if (!sufijoActual) return false;
+  return !sufijosDeUld(airline, tipoNuevo).includes(sufijoActual);
 };
 
 const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: string): CompartmentDefinition[] => {
@@ -1484,6 +1801,13 @@ const getCompartmentsByAirlineRaw = (airline: AirlineCode, aircraftModel?: strin
   }
   if (airline === 'PEGASUS') {
     if (aircraftModel === 'A321') return PEGASUS_A321_COMPARTMENTS;
+    return SKYEXPRESS_COMPARTMENTS;
+  }
+  if (airline === 'AZUL') {
+    if (aircraftModel === 'B787-8') return AZUL_B787_8_COMPARTMENTS;
+    if (aircraftModel === 'B767') return AZUL_B767_COMPARTMENTS;
+    // El B767 y el A339 siguen con el reparto genérico que ya tenían: tocarlo
+    // aquí borraría de la vista lo escrito en las escalas ya trabajadas.
     return SKYEXPRESS_COMPARTMENTS;
   }
   if (airline === 'WESTJET') {
@@ -1587,3 +1911,82 @@ export const getCompartmentsByAirline = (airline: AirlineCode, aircraftModel?: s
 
 
 
+
+/*
+ * Nombre legible de un campo de bodega a partir de su id.
+ *
+ * Los ids son internos ('azul-hold-b787813b-p-content'). En el recuperador de
+ * datos hay que enseñar QUÉ se va a restaurar antes de tocar nada, y una
+ * lista de ids no dice nada: si no se entiende lo que hay dentro de la copia,
+ * no se puede decidir si restaurarla.
+ *
+ * Se construye del catálogo fijo, no del de administración: es sólo para
+ * poner nombres y así no depende de que el catálogo esté cargado.
+ */
+const SUFIJOS: Array<[string, string]> = [
+  ['-type', 'tipo'],
+  ['-num', 'nº'],
+  ['-suf', 'terminación'],
+  ['-content', ''],
+  ['-modo', 'reparto'],
+];
+
+let nombresCache: Map<string, string> | null = null;
+
+const construirNombres = (): Map<string, string> => {
+  const mapa = new Map<string, string>();
+  const anota = (id: string, label: string) => {
+    if (!mapa.has(id)) mapa.set(id, label);
+  };
+  const vistos = new Set<string>();
+  const recorrer = (comps: CompartmentDefinition[]) => {
+    comps.forEach((c) => {
+      if (vistos.has(c.id)) return;
+      vistos.add(c.id);
+      c.holds.forEach((h) => {
+        if (isPairedHold(h)) {
+          anota(h.left.id, h.left.label);
+          anota(h.right.id, h.right.label);
+          return;
+        }
+        anota(h.id, h.label);
+        if (h.split) {
+          anota(`${h.id}-p`, h.split.p);
+          anota(`${h.id}-l`, h.split.left);
+          anota(`${h.id}-r`, h.split.right);
+        }
+      });
+    });
+  };
+  Object.entries(AIRCRAFT_MODELS).forEach(([airline, modelos]) => {
+    recorrer(getCompartmentsByAirlineRaw(airline as AirlineCode));
+    modelos.forEach((m) => recorrer(getCompartmentsByAirlineRaw(airline as AirlineCode, m.model)));
+  });
+  return mapa;
+};
+
+/**
+ * 'azul-hold-b787813b-p-content' → 'Bodega 13P'.
+ * Devuelve null si el id no es de una bodega conocida.
+ */
+const conBodega = (label: string): string => {
+  const limpio = label.trim();
+  // Algunas aerolíneas ya rotulan la posición como «Bodega 2»; otras sólo
+  // ponen el número («13L»). No se repite la palabra.
+  return /^bodega\b/i.test(limpio) ? limpio : `Bodega ${limpio}`;
+};
+
+export const nombreDeCampoDeBodega = (fieldId: string): string | null => {
+  if (!fieldId) return null;
+  if (!nombresCache) nombresCache = construirNombres();
+  const directo = nombresCache.get(fieldId);
+  if (directo) return conBodega(directo);
+  for (const [sufijo, detalle] of SUFIJOS) {
+    if (!fieldId.endsWith(sufijo)) continue;
+    const base = fieldId.slice(0, -sufijo.length);
+    const label = nombresCache.get(base);
+    if (!label) continue;
+    return detalle ? `${conBodega(label)} · ${detalle}` : conBodega(label);
+  }
+  return null;
+};

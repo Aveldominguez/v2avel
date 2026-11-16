@@ -5,6 +5,7 @@
  * merece la pena restaurar hay que poder ver de un vistazo QUÉ hay dentro,
  * sin abrir un JSON ni entender nombres de campos.
  */
+import { nombreDeCampoDeBodega } from '@/data/compartmentDefinitions';
 
 export interface CopiaHistorico {
   id: string;
@@ -69,6 +70,10 @@ export const bodegasDeCopia = (c: CopiaHistorico): Dato[] =>
  * al servidor, que sin cobertura no llegaría justo cuando hace falta.
  */
 export const etiquetaDeCampo = (id: string): string => {
+  // Primero el catálogo: sabe el nombre exacto de la posición, incluidas las
+  // mitades de una posición partida ('13L') y el palé ('13P').
+  const delCatalogo = nombreDeCampoDeBodega(id);
+  if (delCatalogo) return delCatalogo;
   const m = /-hold-[a-z]?\d{3}[a-z]?(\d+)$/i.exec(id);
   if (m) return `Bodega ${m[1]}`;
   const limpio = id.replace(/[-_]+/g, ' ').trim();
@@ -107,6 +112,9 @@ export const queTiene = (c: CopiaHistorico): Trozo[] => {
       ).length
     : 0;
   if (campos) trozos.push({ etiqueta: campos === 1 ? 'recuento' : 'recuentos', cuantos: campos });
+
+  const partes = cuantosEnLista((t.meteo as Record<string, unknown> | undefined)?.observaciones);
+  if (partes) trozos.push({ etiqueta: partes === 1 ? 'parte de viento' : 'partes de viento', cuantos: partes });
 
   const personal = cuantosEnLista(t.personal);
   if (personal) trozos.push({ etiqueta: personal === 1 ? 'persona' : 'personas', cuantos: personal });
