@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   parseStoragePath, buildStoragePath, buildR2Path, esRutaDeR2, ALMACEN_R2,
+  baseDeR2, hayR2, PASARELA_DE_FOTOS,
 } from './storageUrl';
 
 describe('las direcciones de siempre se siguen entendiendo', () => {
@@ -66,5 +67,24 @@ describe('ida y vuelta', () => {
       expect(parseStoragePath(buildStoragePath(cubo, ruta))).toEqual({ bucket: cubo, path: ruta });
     }
     expect(parseStoragePath(buildR2Path('u1/c.webp'))).toEqual({ bucket: ALMACEN_R2, path: 'u1/c.webp' });
+  });
+});
+
+describe('el interruptor de R2', () => {
+  it('sin variable, R2 está encendido y apunta a la pasarela', () => {
+    expect(baseDeR2()).toBe(PASARELA_DE_FOTOS);
+    expect(hayR2()).toBe(true);
+  });
+
+  it('con la variable VACÍA se apaga: la vuelta atrás no toca código', () => {
+    vi.stubEnv('VITE_R2_BASE_URL', '');
+    expect(hayR2()).toBe(false);
+    vi.unstubAllEnvs();
+  });
+
+  it('una barra de más al final no rompe las direcciones', () => {
+    vi.stubEnv('VITE_R2_BASE_URL', 'https://fotos.devavel.com//');
+    expect(baseDeR2()).toBe('https://fotos.devavel.com');
+    vi.unstubAllEnvs();
   });
 });

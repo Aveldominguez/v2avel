@@ -27,12 +27,24 @@ export const ALMACEN_R2 = 'r2';
 export const esRutaDeR2 = (value: string): boolean => value.startsWith(PREFIJO_R2);
 
 /**
- * Dirección de la pasarela que sirve las fotos de R2. Mientras esté vacía,
- * R2 simplemente no se usa: las direcciones `r2:` se reconocen pero no se
- * pueden abrir. Hoy no hay ninguna, así que no afecta a nadie.
+ * Dirección de la pasarela que sirve las fotos de R2.
+ *
+ * Va escrita aquí y no en una variable de compilación a propósito: no es un
+ * secreto, es una dirección pública, y así no depende de que alguien la
+ * escriba bien en un panel. Una errata allí compilaría la app con R2 apagado
+ * sin que nadie se entere hasta ir a buscar dónde acabó una foto.
+ *
+ * `VITE_R2_BASE_URL` sigue mandando si existe, y ponerla VACÍA es el
+ * interruptor de emergencia: todo vuelve a Supabase en el siguiente
+ * despliegue, sin tocar una línea de código.
  */
-export const baseDeR2 = (): string =>
-  (import.meta.env.VITE_R2_BASE_URL ?? '').toString().replace(/\/+$/, '');
+export const PASARELA_DE_FOTOS = 'https://fotos.devavel.com';
+
+export const baseDeR2 = (): string => {
+  const puesta = import.meta.env.VITE_R2_BASE_URL;
+  const bruto = puesta === undefined ? PASARELA_DE_FOTOS : String(puesta);
+  return bruto.replace(/\/+$/, '');
+};
 
 export const hayR2 = (): boolean => baseDeR2().length > 0;
 
