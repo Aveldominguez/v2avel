@@ -1,0 +1,26 @@
+name = "fotos-v2avel"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+# El cubo se conecta por dentro de Cloudflare: no hacen falta credenciales
+# de R2 en ninguna parte. La jurisdicción tiene que coincidir con la que se
+# eligió al crearlo (European Union) o el enlace no encuentra el cubo.
+[[r2_buckets]]
+binding = "FOTOS"
+bucket_name = "v2avel-fotos"
+jurisdiction = "eu"
+
+# Crea también el registro DNS de fotos.devavel.com.
+[[routes]]
+pattern = "fotos.devavel.com"
+custom_domain = true
+
+[vars]
+SUPABASE_URL = "https://imkvoywmakzwcjvrlrfx.supabase.co"
+# Pública por diseño: es la misma que lleva la app dentro.
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlta3ZveXdtYWt6d2NqdnJscmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMzA4MDMsImV4cCI6MjA5OTcwNjgwM30.yhzinLGChwOIXU0GhAftAOpzZZUKgY29SkSILV1dsvU"
+# Quién puede pedir enlaces. Nadie más.
+ORIGENES = "https://aero.devavel.com,http://localhost:8080"
+
+# FIRMA_SECRETO no va aquí: es un secreto y se guarda aparte.
+#   npx wrangler secret put FIRMA_SECRETO
