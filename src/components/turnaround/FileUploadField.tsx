@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, ImageIcon, Trash2, Loader2, Paperclip, RefreshCw } from 'lucide-react';
 import { DeletePhotoButton } from './DeletePhotoButton';
-import { borrarDelAlmacen, getSignedUrl } from '@/utils/storageUrl';
+import { getSignedUrl } from '@/utils/storageUrl';
 import { useAttachmentLightbox } from '@/components/turnaround/AttachmentLightbox';
 import { useBackgroundUpload } from '@/hooks/useBackgroundUpload';
 
@@ -43,11 +43,21 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
     return () => { cancelled = true; };
   }, [fileUrls]);
 
-  const handleDelete = async (index: number) => {
-    const url = fileUrls[index];
-    if (url) {
-      await borrarDelAlmacen(url);
-    }
+  /*
+   * Quitar una foto borra la REFERENCIA, nunca el fichero.
+   *
+   * El 16/11 la AD8001 se quedó con dos hojas de carga rotas. La secuencia:
+   * se quitaron del formulario, el fichero se borró del servidor al instante
+   * y, acto seguido, la protección antiborrado de la base de datos vio que la
+   * escala se quedaba sin adjuntos y DEVOLVIÓ la lista anterior. La escala
+   * acabó apuntando a dos ficheros que ya no existían, y una hoja de carga no
+   * se puede volver a hacer: el avión ya se ha ido.
+   *
+   * El fichero se queda huérfano y lo recoge la limpieza de huérfanos, que
+   * sólo borra lo que no menciona NI la escala NI el histórico. Un fichero de
+   * más cuesta unos kilobytes; una hoja de carga perdida no se recupera.
+   */
+  const handleDelete = (index: number) => {
     onChange(fileUrls.filter((_, i) => i !== index));
   };
 
