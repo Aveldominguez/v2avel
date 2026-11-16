@@ -59,14 +59,30 @@ export const hayNumeroDeVuelo = (e: Omit<InicioEscala, 'soloSalida'>): boolean =
     tieneNumeroReal(e.departureFlightNumber, e.prefijo, hayAerolinea);
 };
 
+/** Un número de vuelo lleva cifras; «AD» a secas es sólo el prefijo. */
+const llevaCifras = (v: string | null | undefined): boolean => /\d/.test(v ?? '');
+
 /**
  * Número con el que se identifica la escala en el historial.
  *
  * Si no hay vuelo de llegada se enseña el de salida, se haya marcado «sólo
  * salida» o no: antes la sustitución dependía de ese interruptor y una escala
  * empezada por el número de salida salía en la lista sin número ninguno.
+ *
+ * Y «no hay» incluye tener SÓLO EL PREFIJO. Al elegir aerolínea, el campo de
+ * llegada arranca con sus letras ya puestas («AD»), así que una escala de sólo
+ * salida se guarda con «AD» de llegada: no está vacío, pero tampoco es un
+ * vuelo. Mirando únicamente si había algo escrito, la lista enseñaba «AD» y se
+ * comía el número de salida, que era el único que existía.
  */
 export const numeroVueloVisible = (
   flightNumber: string | null | undefined,
   departureFlightNumber: string | null | undefined,
-): string => (flightNumber?.trim() ? flightNumber : (departureFlightNumber?.trim() || ''));
+): string => {
+  const llegada = (flightNumber ?? '').trim();
+  const salida = (departureFlightNumber ?? '').trim();
+  if (llevaCifras(llegada)) return llegada;
+  if (llevaCifras(salida)) return salida;
+  // Ninguno es un vuelo de verdad: mejor enseñar el prefijo que un hueco.
+  return llegada || salida;
+};

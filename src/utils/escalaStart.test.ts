@@ -75,3 +75,32 @@ describe('avanzar de pantalla y guardar', () => {
     expect(hayNumeroDeVuelo({ flightNumber: '', departureFlightNumber: 'AC835', prefijo: '', airline: '' })).toBe(true);
   });
 });
+
+describe('el número que se ve en la lista', () => {
+  it('con los dos vuelos, manda el de llegada', () => {
+    expect(numeroVueloVisible('AD8000', 'AD8001')).toBe('AD8000');
+  });
+
+  it('sin llegada, se enseña el de salida', () => {
+    expect(numeroVueloVisible('', 'AD8001')).toBe('AD8001');
+    expect(numeroVueloVisible(null, 'AD8001')).toBe('AD8001');
+  });
+
+  it('con SÓLO EL PREFIJO de llegada, se enseña el de salida', () => {
+    // Al elegir aerolínea el campo de llegada arranca con «AD» puesto, así que
+    // una escala de sólo salida se guarda con «AD» ahí. No está vacío, pero
+    // tampoco es un vuelo: antes la lista enseñaba «AD» y se comía el número.
+    expect(numeroVueloVisible('AD', 'AD8001')).toBe('AD8001');
+    expect(numeroVueloVisible('TP ', 'TP1014')).toBe('TP1014');
+  });
+
+  it('si ninguno lleva cifras, mejor el prefijo que un hueco', () => {
+    expect(numeroVueloVisible('AD', '')).toBe('AD');
+    expect(numeroVueloVisible('', 'AD')).toBe('AD');
+    expect(numeroVueloVisible('', '')).toBe('');
+  });
+
+  it('se recorta el espacio sobrante', () => {
+    expect(numeroVueloVisible(' AD8001 ', '')).toBe('AD8001');
+  });
+});
