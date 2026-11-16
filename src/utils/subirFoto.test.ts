@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const subidaSupabase = vi.fn();
+const firmaSupabase = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: { getSession: async () => ({ data: { session: { access_token: 'tok' } } }) },
-    storage: { from: () => ({ upload: subidaSupabase }) },
+    storage: { from: () => ({ upload: subidaSupabase, createSignedUrl: firmaSupabase }) },
   },
 }));
 
@@ -70,5 +71,35 @@ describe('la dirección que se manda a R2', () => {
     expect(url).not.toContain('tok');
     expect(opciones.headers.authorization).toBe('Bearer tok');
     expect(opciones.method).toBe('PUT');
+  });
+});
+
+describe('una foto de Supabase que ya se mudó a R2', () => {
+  it('se busca en R2 con la MISMA ruta, para no reescribir el histórico', async () => {
+    const { getSignedUrl } = await import('./storageUrl');
+    const red = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ url: 'https://fotos.devavel.com/f/u1/a.jpg?sig=x' }) });
+    vi.stubGlobal('fetch', red);
+    firmaSupabase.mockResolvedValue({ data: null, error: { message: 'Object not found' } });
+
+    const url = await getSignedUrl('loading-sheets:u1/a.jpg');
+
+    expect(url).toBe('https://fotos.devavel.com/f/u1/a.jpg?sig=x');
+    expect(JSON.parse(red.mock.calls[0][1].body).ruta).toBe('u1/a.jpg');
+  });
+
+  it('si tampoco está en R2, se dice que no hay foto en vez de inventarla', async () => {
+    const { getSignedUrl } = await import('./storageUrl');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    firmaSupabase.mockResolvedValue({ data: null, error: { message: 'Object not found' } });
+    expect(await getSignedUrl('loading-sheets:u1/a.jpg')).toBeNull();
+  });
+
+  it('si Supabase la tiene, ni se pregunta a R2', async () => {
+    const { getSignedUrl } = await import('./storageUrl');
+    const red = vi.fn();
+    vi.stubGlobal('fetch', red);
+    firmaSupabase.mockResolvedValue({ data: { signedUrl: 'https://sb/firmada' }, error: null });
+    expect(await getSignedUrl('loading-sheets:u1/a.jpg')).toBe('https://sb/firmada');
+    expect(red).not.toHaveBeenCalled();
   });
 });

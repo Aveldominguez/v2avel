@@ -132,6 +132,26 @@ export default {
       return new Response(req.method === 'HEAD' ? null : obj.body, { headers: cabeceras });
     }
 
+    // ---- Listar lo que hay en el cubo (sólo administrador) ----------------
+    if (url.pathname === '/lista' && req.method === 'GET') {
+      const quien = await quienEs(req, env);
+      if (!quien) return json({ error: 'sin sesión' }, 401, cab);
+      // Listar enseña las rutas de TODOS los agentes, y una ruta lleva dentro
+      // el número de escala y la fecha. Eso no es de cualquiera.
+      if (!quien.admin) return json({ error: 'sólo administrador' }, 403, cab);
+
+      const r = await env.FOTOS.list({
+        prefix: url.searchParams.get('prefijo') ?? undefined,
+        cursor: url.searchParams.get('cursor') ?? undefined,
+        limit: Math.min(Math.max(Number(url.searchParams.get('cuantas')) || 500, 1), 1000),
+      });
+      return json({
+        objetos: r.objects.map((o) => ({ ruta: o.key, bytes: o.size, subida: o.uploaded })),
+        // Mientras venga cursor queda cubo por recorrer: R2 pagina siempre.
+        cursor: r.truncated ? r.cursor : null,
+      }, 200, cab);
+    }
+
     // ---- Subir (paso 3) ---------------------------------------------------
     if (url.pathname.startsWith('/f/') && req.method === 'PUT') {
       const quien = await quienEs(req, env);

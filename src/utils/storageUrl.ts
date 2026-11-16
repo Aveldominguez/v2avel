@@ -129,6 +129,19 @@ export async function getSignedUrl(value: string | null): Promise<string | null>
     .createSignedUrl(parsed.path, SIGNED_URL_EXPIRY);
 
   if (error || !data?.signedUrl) {
+    /*
+     * Puede que la foto ya se haya mudado a R2. Se copia SIEMPRE con la misma
+     * ruta, así que buscarla allí con la misma ruta la encuentra.
+     *
+     * Esto es lo que permite mudar las fotos viejas sin reescribir nada: las
+     * copias del histórico siguen apuntando a «loading-sheets:…» y se ven
+     * igual. Y el histórico no se puede reescribir —el administrador sólo
+     * puede verlo y borrarlo—, así que esta es la única manera de que una
+     * copia de hace meses siga enseñando sus fotos después de la mudanza.
+     */
+    const mudada = await firmarEnR2(parsed.path);
+    if (mudada) return mudada;
+
     console.warn('Failed to create signed URL:', error);
     return null;
   }
