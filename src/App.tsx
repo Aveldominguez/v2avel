@@ -17,6 +17,7 @@ import { hydrateCatalogFromCache, loadCatalog } from "@/hooks/useCatalog";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { ChunkErrorBoundary } from "@/components/ChunkErrorBoundary";
 import { OfflineSyncRunner } from "@/components/OfflineSyncRunner";
+import { PuertaSync } from "@/components/PuertaSync";
 import { ArionSyncBootstrap } from "@/components/ArionSyncBootstrap";
 
 // Eager imports for critical work routes — avoids "Failed to fetch
@@ -166,6 +167,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CatalogBootstrap />
+          <PuertaSync />
           <ArionSyncBootstrap />
           <OfflineSyncRunner />
           <UpdateBanner />

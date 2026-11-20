@@ -1,6 +1,7 @@
 import {
   decideConnectivity, probeIntervalMs, type Connectivity,
 } from '@/utils/connectivityState';
+import { urlDeSupabase } from '@/config/puertas';
 
 /**
  * Comprueba de verdad si se llega al servidor, en lugar de fiarse de
@@ -11,7 +12,12 @@ import {
  * Sólo cuenta como caída que la petición no llegue a completarse.
  */
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+/*
+ * La comprobación tiene que ir por la MISMA puerta que usa la app. Si
+ * mirásemos siempre la dirección de siempre, con la puerta alternativa
+ * encendida diríamos «sin servidor» mientras la app trabaja tan tranquila.
+ */
+const SUPABASE_URL = urlDeSupabase() || undefined;
 
 /**
  * Marca que saca la comprobación de la caché del service worker.

@@ -1,6 +1,8 @@
 {
-  "version": "4.879",
+  "version": "4.884",
   "changelog": [
-    "Las fotos de las escalas empiezan a servirse desde Cloudflare: cargan más rápido y gastan menos datos del móvil. Las de antes se siguen viendo igual, sin que haya que hacer nada."
+    "La cabecera de la escala ya no se descoloca cuando falla la red: el botón de Guardar se queda siempre en su sitio. Antes, al aparecer el aviso de «Sin servidor», se salía de la pantalla justo cuando más falta hacía.",
+    "Los avisos de conexión y de cambios pendientes pasan a una franja propia debajo de los datos del vuelo, con sitio para explicarse. Cuando no hay nada que avisar, no ocupa nada.",
+    "Nueva «conexión alternativa» para quien tenga problemas con su operadora: algunas bloquean el servidor durante los partidos de fútbol y dejaban la app sin datos ni fotos. La activa el administrador a quien la necesite."
   ]
 }

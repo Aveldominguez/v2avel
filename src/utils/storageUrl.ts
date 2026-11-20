@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { urlDeFotos } from '@/config/puertas';
 
 // Una escala se trabaja durante horas y luego se consulta: con una hora, las
 // miniaturas ya cargadas dejaban de poder abrirse a media escala.
@@ -43,7 +44,33 @@ export const PASARELA_DE_FOTOS = 'https://fotos.devavel.com';
 export const baseDeR2 = (): string => {
   const puesta = import.meta.env.VITE_R2_BASE_URL;
   const bruto = puesta === undefined ? PASARELA_DE_FOTOS : String(puesta);
-  return bruto.replace(/\/+$/, '');
+  const normal = bruto.replace(/\/+$/, '');
+  // Vacío es el interruptor de emergencia: R2 apagado del todo. Manda sobre
+  // la puerta elegida, porque si no hay pasarela no la hay por ningún camino.
+  if (!normal) return '';
+  return urlDeFotos(normal).replace(/\/+$/, '');
+};
+
+/**
+ * Lleva una dirección a la misma puerta por la que estamos entrando.
+ *
+ * La pasarela firma las fotos con SU propio nombre («fotos.devavel.com»). Si
+ * estamos entrando por el servidor alternativo es justo porque ese nombre
+ * está bloqueado, así que el enlace firmado llegaría roto. Esto le cambia el
+ * servidor y el puerto dejando intacta la ruta y la firma.
+ *
+ * Por la puerta normal no hace nada: el servidor ya es el mismo.
+ */
+const porLaMismaPuerta = (url: string, base: string): string => {
+  try {
+    const destino = new URL(url);
+    const puerta = new URL(base);
+    destino.protocol = puerta.protocol;
+    destino.host = puerta.host; // host incluye el puerto
+    return destino.toString();
+  } catch {
+    return url;
+  }
 };
 
 export const hayR2 = (): boolean => baseDeR2().length > 0;
@@ -105,7 +132,8 @@ async function firmarEnR2(path: string): Promise<string | null> {
       return null;
     }
     const json = await respuesta.json();
-    return typeof json?.url === 'string' ? json.url : null;
+    if (typeof json?.url !== 'string') return null;
+    return porLaMismaPuerta(json.url, base);
   } catch (e) {
     console.warn('[fotos] no se pudo hablar con R2', e);
     return null;

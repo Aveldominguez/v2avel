@@ -14,6 +14,7 @@ import { FlightInfoStep } from '@/components/turnaround/FlightInfoStep';
 import { AirlineTimesBlock } from '@/components/turnaround/AirlineTimesBlock';
 import { AirlineTabs } from '@/components/turnaround/AirlineTabs';
 import { ConnectionStatus } from '@/components/turnaround/ConnectionStatus';
+import { BandaAvisos } from '@/components/turnaround/BandaAvisos';
 import { LoadingSheetField } from '@/components/turnaround/LoadingSheetField';
 import AirCanadaCargoScanner from '@/components/turnaround/AirCanadaCargoScanner';
 import { FileUploadField } from '@/components/turnaround/FileUploadField';
@@ -1358,6 +1359,18 @@ const TurnaroundForm: React.FC = () => {
             )}
 
           </div>
+
+          {/*
+            Franja de avisos. Va DEBAJO de los datos del vuelo y a todo el
+            ancho de la cabecera (de ahí los márgenes negativos, que anulan el
+            padding del contenedor). Cuando no hay nada que avisar no se pinta
+            y no ocupa altura ninguna.
+          */}
+          <BandaAvisos
+            isOnline={isOnline}
+            pendingCount={pendingCount}
+            className="-mx-4 -mb-3 mt-1"
+          />
 
           <div id="aero-flight-documents" className="aero-only" />
 

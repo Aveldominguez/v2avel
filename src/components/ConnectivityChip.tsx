@@ -6,6 +6,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { AvisoPuertaAlternativa } from '@/components/PuertaAlternativa';
 
 /**
  * Estado de la conexión, en pequeño y dentro de la cabecera.
@@ -58,6 +59,14 @@ export const ConnectivityChip: React.FC<{
             </DialogTitle>
             <DialogDescription className="text-left">{msg.detail}</DialogDescription>
           </DialogHeader>
+
+          {/*
+            Sin cobertura no se dice nada de esto: la conexión alternativa no
+            inventa señal, y mencionarla ahí sólo despista. Con cobertura pero
+            sin llegar al servidor, en cambio, el bloqueo de la operadora es
+            la causa más probable y conviene que el agente lo sepa.
+          */}
+          {connectivity !== 'offline' && <AvisoPuertaAlternativa className="mt-2" />}
         </DialogContent>
       </Dialog>
     </>

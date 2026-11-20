@@ -1,6 +1,5 @@
 import React from 'react';
-import { Wifi, Loader2, UploadCloud, Check } from 'lucide-react';
-import { ConnectivityChip } from '@/components/ConnectivityChip';
+import { Wifi, WifiOff, Loader2, Check } from 'lucide-react';
 
 interface ConnectionStatusProps {
   isOnline: boolean;
@@ -10,87 +9,68 @@ interface ConnectionStatusProps {
 }
 
 /**
- * En la cabecera del formulario este indicador comparte fila con el botón
- * Guardar, que es la acción crítica. Las etiquetas de texto ("Sincronizando…",
- * "Sin conexión") medían ~110px y en móviles de ~412px empujaban el botón
- * fuera del margen del contenedor. Por eso el texto sólo se muestra a partir
- * de sm; en móvil quedan el icono y el color, que ya comunican el estado, más
- * el contador de pendientes, que sí es un dato y no puede perderse. El estado
- * completo sigue disponible en el title y para lectores de pantalla.
+ * El estado del guardado, en la cabecera, con un hueco de tamaño FIJO.
+ *
+ * Esto antes crecía: cuando no había servidor sacaba una píldora con texto y
+ * un contador, y en pantallas de ~412px empujaba el botón de Guardar fuera
+ * del margen. O sea que el botón desaparecía exactamente cuando más falta
+ * hacía. Por eso ahora es siempre un icono y siempre mide lo mismo: pase lo
+ * que pase con la red, la cabecera no se recoloca y Guardar no se mueve.
+ *
+ * El detalle —qué falla, cuántos cambios quedan por subir, qué hacer— vive en
+ * la franja de avisos de debajo, donde hay ancho para contarlo. Aquí sólo
+ * queda la señal de un vistazo, que es lo que se mira de reojo con las manos
+ * ocupadas.
+ *
+ * Lo que se ve, en orden de importancia:
+ *   girando  → guardando ahora mismo
+ *   nube ✗   → no se llega al servidor (lo de abajo lo explica)
+ *   check    → guardado
+ *   wifi     → conectado, nada que contar
  */
-const Label: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <>
-    <span className="hidden sm:inline whitespace-nowrap">{children}</span>
-    <span className="sr-only">{children}</span>
-  </>
-);
-
 export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
   isOnline,
   syncing,
   pendingCount,
   lastSaved,
 }) => {
-  if (syncing) {
-    return (
-      <div className="flex shrink-0 items-center gap-1.5 text-xs text-primary animate-pulse" title="Sincronizando…">
-        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-        <Label>Sincronizando...</Label>
-      </div>
-    );
-  }
-
-  if (!isOnline) {
-    // La píldora es la misma de las demás cabeceras: distingue quedarse sin
-    // cobertura de no llegar al servidor, y al tocarla explica qué hacer.
-    return (
-      <div className="flex shrink-0 items-center gap-1.5 text-xs">
-        <ConnectivityChip />
-        {pendingCount > 0 && (
-          <span
-            className="shrink-0 rounded-full bg-warning/20 px-1.5 py-0.5 font-semibold text-warning"
-            title={`${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} por subir cuando vuelva la cobertura`}
-          >
-            {pendingCount}
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  if (pendingCount > 0) {
-    /*
-     * Hay cobertura y queda algo por subir: se está enviando, no es un fallo.
-     *
-     * Antes esto salía con una nube TACHADA, que es el dibujo universal de
-     * "sin conexión", y con buena cobertura no había quien lo entendiera. Una
-     * nube con flecha hacia arriba dice lo que de verdad pasa: subiendo.
-     */
-    return (
-      <div
-        className="flex shrink-0 items-center gap-1.5 text-xs text-warning"
-        title={`${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} por subir al servidor. Se envían solos; no hace falta hacer nada.`}
-      >
-        <UploadCloud className="h-3.5 w-3.5 shrink-0" />
-        <span className="shrink-0">{pendingCount}</span>
-        <Label>por subir</Label>
-      </div>
-    );
-  }
-
-  if (lastSaved) {
-    return (
-      <div className="flex shrink-0 items-center gap-1 text-xs text-success" title="Guardado">
-        <Check className="h-4 w-4 shrink-0" />
-        <span className="sr-only">Guardado</span>
-      </div>
-    );
-  }
+  const { Icono, color, titulo, girando } = (() => {
+    if (syncing) {
+      return { Icono: Loader2, color: 'text-primary', titulo: 'Guardando…', girando: true };
+    }
+    if (!isOnline) {
+      return {
+        Icono: WifiOff,
+        color: 'text-warning',
+        titulo: pendingCount > 0
+          ? `Sin servidor. ${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} por subir; se envían solos al volver.`
+          : 'Sin servidor. Lo que escribas se guarda en el móvil.',
+        girando: false,
+      };
+    }
+    if (pendingCount > 0) {
+      return {
+        Icono: Loader2,
+        color: 'text-warning',
+        titulo: `${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} subiendo. No hace falta hacer nada.`,
+        girando: true,
+      };
+    }
+    if (lastSaved) {
+      return { Icono: Check, color: 'text-success', titulo: 'Guardado', girando: false };
+    }
+    return { Icono: Wifi, color: 'text-muted-foreground', titulo: 'Conectado', girando: false };
+  })();
 
   return (
-    <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground" title="Conectado">
-      <Wifi className="h-3.5 w-3.5 shrink-0" />
-      <span className="sr-only">Conectado</span>
+    // w-5 fijo y shrink-0: este hueco no cambia de tamaño nunca, que es todo
+    // el sentido de este componente.
+    <div
+      className={`flex h-9 w-5 shrink-0 items-center justify-center ${color}`}
+      title={titulo}
+    >
+      <Icono className={`h-4 w-4 shrink-0 ${girando ? 'animate-spin' : ''}`} />
+      <span className="sr-only">{titulo}</span>
     </div>
   );
 };

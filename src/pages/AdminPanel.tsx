@@ -56,6 +56,7 @@ const AdminPanel: React.FC = () => {
     changeDisplayName,
     changeEmail,
     setUserModule,
+    setPuertaAlternativa,
   } = useAdmin();
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -633,6 +634,31 @@ const AdminPanel: React.FC = () => {
                         <label className="flex items-center gap-2">
                           <Switch checked={isUserAdmin || u.modules.includes('equipos')} disabled={isUserAdmin || actionLoading === u.user_id} onCheckedChange={(v) => setUserModule(u.user_id, 'equipos', v).catch(() => toast({ title: 'Error', variant: 'destructive' }))} />
                           Equipos
+                        </label>
+                        {/*
+                          Conexión alternativa: sólo para quien la necesita.
+
+                          Su móvil entra por el servidor propio en vez de por
+                          Cloudflare, que es lo que bloquean O2 y Movistar
+                          durante el fútbol. Hay que concederla ANTES de que
+                          el agente se quede bloqueado: una vez bloqueado, su
+                          app no puede preguntar si la tiene.
+                        */}
+                        <label
+                          className="flex items-center gap-2"
+                          title="Su app saldrá por el servidor propio en lugar de por Cloudflare. Para agentes con O2 o Movistar, que lo bloquean durante los partidos. Se aplica la próxima vez que abran la app con conexión."
+                        >
+                          <Switch
+                            checked={u.puerta_alternativa}
+                            disabled={actionLoading === u.user_id}
+                            onCheckedChange={(v) => setPuertaAlternativa(u.user_id, v)
+                              .then(() => toast({
+                                title: v ? 'Conexión alternativa concedida' : 'Conexión alternativa retirada',
+                                description: 'Se aplica la próxima vez que abra la app con conexión.',
+                              }))
+                              .catch(() => toast({ title: 'Error', variant: 'destructive' }))}
+                          />
+                          Conexión alternativa
                         </label>
                         {!isSelf && (
                           <label className="flex items-center gap-2">

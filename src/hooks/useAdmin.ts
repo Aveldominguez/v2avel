@@ -12,6 +12,8 @@ export interface UserProfile {
   display_name: string | null;
   approved: boolean;
   blocked: boolean;
+  /** Si su app sale por el servidor propio en vez de por Cloudflare. */
+  puerta_alternativa: boolean;
   created_at: string;
   updated_at: string;
   roles: string[];
@@ -315,6 +317,23 @@ export const useAdmin = () => {
     return data;
   };
 
+  /**
+   * Concede o retira la conexión alternativa a un agente.
+   *
+   * Su móvil se entera la próxima vez que abra la app con conexión, y se
+   * recarga solo para cambiar de camino. No es instantáneo a propósito: si
+   * ya está bloqueado por su operadora, no hay forma de avisarle, y por eso
+   * esto se concede ANTES de que haga falta, no durante el problema.
+   */
+  const setPuertaAlternativa = async (userId: string, enabled: boolean) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ puerta_alternativa: enabled })
+      .eq('user_id', userId);
+    if (error) throw error;
+    await fetchUsers();
+  };
+
   const setUserModule = async (userId: string, module: 'rampa' | 'equipos', enabled: boolean) => {
     if (enabled) {
       const { error } = await supabase.from('user_module_access').insert({ user_id: userId, module });
@@ -413,5 +432,6 @@ export const useAdmin = () => {
     changeDisplayName,
     changeEmail,
     setUserModule,
+    setPuertaAlternativa,
   };
 };

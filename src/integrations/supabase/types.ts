@@ -699,6 +699,7 @@ export type Database = {
       profiles: {
         Row: {
           approved: boolean
+          puerta_alternativa: boolean
           blocked: boolean
           created_at: string
           display_name: string | null
@@ -709,6 +710,7 @@ export type Database = {
         }
         Insert: {
           approved?: boolean
+          puerta_alternativa?: boolean
           blocked?: boolean
           created_at?: string
           display_name?: string | null
@@ -719,6 +721,7 @@ export type Database = {
         }
         Update: {
           approved?: boolean
+          puerta_alternativa?: boolean
           blocked?: boolean
           created_at?: string
           display_name?: string | null
